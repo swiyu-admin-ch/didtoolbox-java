@@ -1,4 +1,4 @@
-package ch.admin.eid.did.tdw;
+package ch.admin.bj.swiyu;
 
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;

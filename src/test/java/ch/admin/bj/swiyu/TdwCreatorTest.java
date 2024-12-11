@@ -1,4 +1,4 @@
-package ch.admin.eid.did.tdw;
+package ch.admin.bj.swiyu;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;

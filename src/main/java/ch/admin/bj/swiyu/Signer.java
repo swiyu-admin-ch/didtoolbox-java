@@ -1,4 +1,4 @@
-package ch.admin.eid.did.tdw;
+package ch.admin.bj.swiyu;
 
 import io.ipfs.multibase.Base58;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;

@@ -1,4 +1,4 @@
-package ch.admin.eid.did.tdw;
+package ch.admin.bj.swiyu;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
