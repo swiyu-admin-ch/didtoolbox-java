@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu;
+package ch.admin.bj.swiyu.didtoolbox;
 
 import io.ipfs.multibase.Base58;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
@@ -6,7 +6,9 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.util.encoders.Hex;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
@@ -21,6 +23,15 @@ public class Signer {
     byte[] signingKey = new byte[32];
     byte[] verifyingKey = new byte[32];
 
+    static String buildEd25519VerificationKey2020(byte[] verifyingKey) {
+
+        ByteBuffer buff = ByteBuffer.allocate(34);
+        buff.put((byte) 0xed); // Ed25519Pub is a draft code tagged "key" and described by: Ed25519 public key.
+        buff.put((byte) 0x01);
+        buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
+        return 'z' + Base58.encode(buff.array());
+    }
+
     /**
      * According to https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020:
      * The publicKeyMultibase property of the verification method MUST be a public key encoded according to [MULTICODEC] and formatted according to [MULTIBASE].
@@ -29,13 +40,7 @@ public class Signer {
      * @return
      */
     public String getEd25519VerificationKey2020() {
-
-        byte[] publicKey = this.verifyingKey;
-        ByteBuffer buff = ByteBuffer.allocate(34);
-        buff.put((byte) 0xed); // Ed25519Pub is a draft code tagged "key" and described by: Ed25519 public key.
-        buff.put((byte) 0x01);
-        buff.put(Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length));
-        return 'z' + Base58.encode(buff.array());
+        return buildEd25519VerificationKey2020(this.verifyingKey);
     }
 
     /*

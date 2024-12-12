@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu;
+package ch.admin.bj.swiyu.didtoolbox;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -23,7 +23,28 @@ public class TdwCreator {
     private Map<String, AssertionMethodInput> assertionMethods;
     private Signer signer;
 
-    public String create(String domain, ZonedDateTime now) throws NoSuchAlgorithmException, IOException {
+    /**
+     *
+     * @param domain
+     * @param path
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws IOException
+     */
+    public String create(String domain, String path) throws NoSuchAlgorithmException, IOException {
+        return create(domain, ZonedDateTime.now());
+    }
+
+    /**
+     * Package-scope and therefore more potent method.
+     *
+     * @param domain
+     * @param now
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws IOException
+     */
+    String create(String domain, ZonedDateTime now) throws NoSuchAlgorithmException, IOException {
 
         // Create verification method suffix so that it can be used as part of verification method id property
         var didTDW = "did:tdw:{SCID}:" + domain;
@@ -65,7 +86,7 @@ public class TdwCreator {
                 assertionMethodObj.addProperty("type", "Ed25519VerificationKey2020");
                 assertionMethodObj.addProperty("controller", didTDW);
 
-                String publicKeyMultibase = this.signer.getEd25519VerificationKey2020(); // default
+                String publicKeyMultibase = this.signer.getEd25519VerificationKey2020(); // fallback
                 if (e.getValue().getAssertionPublicKey() != null) {
                     publicKeyMultibase = e.getValue().getAssertionPublicKey();
                 }

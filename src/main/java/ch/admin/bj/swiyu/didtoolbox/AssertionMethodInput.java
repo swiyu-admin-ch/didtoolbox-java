@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu;
+package ch.admin.bj.swiyu.didtoolbox;
 
 import lombok.Builder;
 import lombok.Getter;

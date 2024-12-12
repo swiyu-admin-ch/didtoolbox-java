@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu;
+package ch.admin.bj.swiyu.didtoolbox;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -13,7 +13,6 @@ import java.util.HexFormat;
 class JCSHasher {
 
     /**
-     *
      * @param json
      * @return Returns a hexadecimal string formatted from...
      * @throws NoSuchAlgorithmException
@@ -26,7 +25,6 @@ class JCSHasher {
     }
 
     /**
-     *
      * @param json
      * @return
      * @throws NoSuchAlgorithmException
@@ -37,7 +35,6 @@ class JCSHasher {
     }
 
     /**
-     *
      * @param json
      * @return
      * @throws NoSuchAlgorithmException

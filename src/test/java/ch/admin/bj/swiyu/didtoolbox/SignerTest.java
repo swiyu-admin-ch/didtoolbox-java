@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu;
+package ch.admin.bj.swiyu.didtoolbox;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.DisplayName;
@@ -93,7 +93,7 @@ public class SignerTest {
     @DisplayName("Verifying using various existing keys")
     @ParameterizedTest(name = "Verifying using key: {0}")
     @MethodSource("keysSignature")
-    public void verifyUsingKeys(String privateKey, String publicKey, String expected) {
+    public void testVerifyUsingKeys(String privateKey, String publicKey, String expected) {
 
         boolean verified = new Signer(privateKey, publicKey).verify("The quick brown fox jumps over the lazy dog", Hex.decode(expected)); // MUT
 
@@ -112,6 +112,15 @@ public class SignerTest {
         assertEquals(expected, signed);
     }
 
+    @DisplayName("Verifying using key from a JKS")
+    @ParameterizedTest(name = "Verifying signed message: {2}")
+    @MethodSource("keyMessageSignature")
+    public void testVerifyUsingJKS(String _unusedPrivateKey, String _unusedPublicKey, String message, String expected) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+
+        boolean verified = new Signer(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias").verify(message, Hex.decode(expected)); // MUT
+
+        assertTrue(verified);
+    }
 
     @DisplayName("Signing using key from PEM files")
     @ParameterizedTest(name = "Signing: {2}")
@@ -128,7 +137,7 @@ public class SignerTest {
     @DisplayName("Verifying using PEM keys")
     @ParameterizedTest(name = "Verifying signed message: {2}")
     @MethodSource("keyMessageSignature")
-    public void verifyUsingPemKeys(String _privateKey, String _publicKey, String message, String expected) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+    public void testVerifyUsingPemKeys(String _privateKey, String _publicKey, String message, String expected) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
         boolean verified = new Signer(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")).verify(message, Hex.decode(expected)); // MUT
 
