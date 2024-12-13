@@ -1,20 +1,72 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.UnixStyleUsageFormatter;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.jar.Manifest;
 
 public class Main {
 
+    @Parameter(names = {"--help", "-h"},
+            description = "Display help for the DID toolbox",
+            help = true)
+    boolean help;
+
+    @Parameter(names = {"--version", "-V"},
+            description = "Display version")
+    boolean version;
+
+    private static String getManifestResourceValue(String name) {
+        try {
+            return new Manifest(Objects.requireNonNull(Main.class.getClassLoader().getResource("META-INF/MANIFEST.MF")).openStream()).getMainAttributes().getValue(name);
+        } catch (IOException ignore) {
+            //
+        }
+        return "undefined";
+    }
+
+    private String getImplementationTitle() {
+        // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
+        return getManifestResourceValue("Implementation-Title");
+    }
+
+    private String getImplementationVersion() {
+        // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
+        return getManifestResourceValue("Implementation-Version");
+    }
+
+    private String getImplementationVersionX() {
+        try {
+            Manifest manifest = new Manifest(Objects.requireNonNull(this.getClass().getClassLoader().getResource("META-INF/MANIFEST.MF")).openStream());
+            // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
+            return manifest.getMainAttributes().getValue("Implementation-Version");
+        } catch (IOException ignore) {
+            //
+        }
+        return "undefined";
+    }
+
     public static void main(String... args) {
+
+        var main = new Main();
 
         var createCommand = new CreateTdwCommand();
         var jc = JCommander.newBuilder()
+                .addObject(main)
                 .addCommand("create", createCommand)
+                .programName(main.getImplementationTitle())
+                .columnSize(150)
                 .build();
+
+        var usageFormatter = new UnixStyleUsageFormatter(jc);
+        jc.setUsageFormatter(usageFormatter);
 
         try {
             jc.parse(args);
@@ -22,6 +74,16 @@ public class Main {
             System.err.println(e.getLocalizedMessage());
             jc.usage();
             System.exit(1);
+        }
+
+        if (main.version) {
+            System.out.println(main.getImplementationTitle() + " " + main.getImplementationVersion());
+            System.exit(0);
+        }
+
+        if (main.help) {
+            jc.usage();
+            System.exit(0);
         }
 
         var parsedCmdStr = jc.getParsedCommand();
@@ -33,6 +95,11 @@ public class Main {
         switch (parsedCmdStr) {
 
             case "create":
+
+                if (createCommand.help) {
+                    jc.usage(parsedCmdStr);
+                    System.exit(0);
+                }
 
                 var domain = createCommand.domain;
                 var path = createCommand.path;

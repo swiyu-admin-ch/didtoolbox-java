@@ -24,30 +24,33 @@ public class TdwCreator {
     private Signer signer;
 
     /**
-     *
      * @param domain
-     * @param path
+     * @param path   (optional)
      * @return
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
     public String create(String domain, String path) throws NoSuchAlgorithmException, IOException {
-        return create(domain, ZonedDateTime.now());
+        return create(domain, path, ZonedDateTime.now());
     }
 
     /**
      * Package-scope and therefore more potent method.
      *
      * @param domain
+     * @param path   (optional)
      * @param now
      * @return
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    String create(String domain, ZonedDateTime now) throws NoSuchAlgorithmException, IOException {
+    String create(String domain, String path, ZonedDateTime now) throws NoSuchAlgorithmException, IOException {
 
-        // Create verification method suffix so that it can be used as part of verification method id property
-        var didTDW = "did:tdw:{SCID}:" + domain;
+        // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
+        String didTDW = "did:tdw:{SCID}:" + domain.replace("https://", "").replace(":", "%3A");
+        if (path != null && !path.isEmpty()) {
+            didTDW += ":" + path.replaceAll("/", ":");
+        }
 
         var keyDef = new JsonObject();
         keyDef.add("type", new JsonPrimitive("Ed25519VerificationKey2020"));
@@ -80,11 +83,12 @@ public class TdwCreator {
         if (this.assertionMethods != null) {
 
             JsonArray assertionMethod = new JsonArray();
+            String finalDidTDW = didTDW;
             this.assertionMethods.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach((e) -> {
                 JsonObject assertionMethodObj = new JsonObject();
-                assertionMethodObj.addProperty("id", didTDW + "#" + e.getKey());
+                assertionMethodObj.addProperty("id", finalDidTDW + "#" + e.getKey());
                 assertionMethodObj.addProperty("type", "Ed25519VerificationKey2020");
-                assertionMethodObj.addProperty("controller", didTDW);
+                assertionMethodObj.addProperty("controller", finalDidTDW);
 
                 String publicKeyMultibase = this.signer.getEd25519VerificationKey2020(); // fallback
                 if (e.getValue().getAssertionPublicKey() != null) {

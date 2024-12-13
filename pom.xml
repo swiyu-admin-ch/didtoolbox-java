@@ -61,6 +61,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>${project.dependencies.directory}</classpathPrefix>
                             <mainClass>${project.main.class}</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                     </archive>
                 </configuration>
@@ -96,6 +97,10 @@
                             <archive>
                                 <manifest>
                                     <mainClass>${project.main.class}</mainClass>
+                                    <addDefaultEntries>true</addDefaultEntries>
+                                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                    <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                                    <addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
                                 </manifest>
                             </archive>
                             <descriptorRefs>

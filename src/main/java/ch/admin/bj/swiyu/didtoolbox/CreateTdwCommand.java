@@ -17,6 +17,11 @@ import java.util.List;
 )
 class CreateTdwCommand {
 
+    @Parameter(names = {"--help", "-h"},
+            description = "Display help for the DID toolbox 'create' command",
+            help = true)
+    boolean help;
+
     @Parameter(names = {"--domain", "-d"},
             description = "The domain for the DID (e.g. example.com)",
             required = true)
@@ -24,6 +29,7 @@ class CreateTdwCommand {
 
     @Parameter(names = {"--path", "-p"},
             description = "Path segment for the DID (e.g. UUID/GUID)")
+    //,required = true)
     String path;
 
     static class PemFileParameterConverter implements IStringConverter<File> {
