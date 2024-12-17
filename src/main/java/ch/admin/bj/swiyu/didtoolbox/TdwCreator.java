@@ -3,13 +3,10 @@ package ch.admin.bj.swiyu.didtoolbox;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import io.ipfs.multibase.Base58;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +16,8 @@ import java.util.Map;
 @Builder
 @Getter
 public class TdwCreator {
+
+    private static String SCID_PLACEHOLDER = "{SCID}";
 
     private Map<String, AssertionMethodInput> assertionMethods;
     private Signer signer;
@@ -52,20 +51,21 @@ public class TdwCreator {
             didTDW += ":" + path.replaceAll("/", ":");
         }
 
-        var keyDef = new JsonObject();
-        keyDef.add("type", new JsonPrimitive("Ed25519VerificationKey2020"));
-        keyDef.addProperty("publicKeyMultibase", this.signer.getEd25519VerificationKey2020());
-
-        String keyDefHashMultibase = 'z' + Base58.encode(JCSHasher.hashJsonObject(keyDef).getBytes(StandardCharsets.UTF_8));
+        /* CAUTION According to https://github.com/decentralized-identity/trustdidweb-ts/blob/main/src/utils.ts#L170
+        export const createVMID = (vm: VerificationMethod, did: string | null) => {
+            return `${did ?? ''}#${vm.publicKeyMultibase?.slice(-8) || nanoid(8)}`
+        }
+         */
+        String publicKeyMultibase = this.signer.getEd25519VerificationKey2020();
+        String verfificationMethodId = publicKeyMultibase.substring(publicKeyMultibase.length() - 8);
 
         // Create verification method for subject with placeholder
         JsonArray verificationMethod = new JsonArray();
         JsonObject verificationMethodObj = new JsonObject();
-        //verificationMethod.addProperty("id", didTDW + "#" + verificationMethodSuffix);
-        verificationMethodObj.addProperty("id", didTDW + "#" + keyDefHashMultibase);
+        verificationMethodObj.addProperty("id", didTDW + "#" + verfificationMethodId);
         verificationMethodObj.addProperty("controller", didTDW);
         verificationMethodObj.addProperty("type", "Ed25519VerificationKey2020");
-        verificationMethodObj.addProperty("publicKeyMultibase", this.signer.getEd25519VerificationKey2020());
+        verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
         //verificationMethod.addProperty("publicKeyJwk", (String)null);
         verificationMethod.add(verificationMethodObj);
 
@@ -90,34 +90,17 @@ public class TdwCreator {
                 assertionMethodObj.addProperty("type", "Ed25519VerificationKey2020");
                 assertionMethodObj.addProperty("controller", finalDidTDW);
 
-                String publicKeyMultibase = this.signer.getEd25519VerificationKey2020(); // fallback
+                String publicKeyMultibaseProperty = publicKeyMultibase; // fallback
                 if (e.getValue().getAssertionPublicKey() != null) {
-                    publicKeyMultibase = e.getValue().getAssertionPublicKey();
+                    publicKeyMultibaseProperty = e.getValue().getAssertionPublicKey();
                 }
-                assertionMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
+                assertionMethodObj.addProperty("publicKeyMultibase", publicKeyMultibaseProperty);
 
                 assertionMethod.add(assertionMethodObj);
             });
 
             didDoc.add("assertionMethod", assertionMethod);
         }
-
-        var controller = new JsonArray();
-        controller.add(didTDW);
-        didDoc.add("controller", controller);
-        //verificationMethod.addProperty("deactivated", (Boolean)null);
-
-        // Generate SCID and replace placeholder in did doc
-        var scid = 'Q' + Base58.encode(JCSHasher.hashJsonObject(didDoc).getBytes(StandardCharsets.UTF_8));
-
-        /* https://identity.foundation/trustdidweb/v0.3/#output-of-the-scid-generation-process:
-        After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
-        This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
-        Once the process has run, the version number of this first version of the DID (1),
-        a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-         */
-
-        String didDocWithSCID = didDoc.toString().replaceAll("\\{SCID}", scid);
 
         /*
         Generate a preliminary DID Log Entry (input JSON array)
@@ -127,15 +110,11 @@ public class TdwCreator {
         [ "{SCID}", "<current time>", "parameters": [ <parameters>], { "value": "<DIDDoc with Placeholders>" } ]
          */
 
-        JsonObject genesisDidDoc = JsonParser.parseString(didDocWithSCID).getAsJsonObject();
-
-        String genesisDidDocHashHex = JCSHasher.hashJsonObject(genesisDidDoc);
-
         var didLogEntryWithoutProofAndSignature = new JsonArray();
 
         // Add a preliminary versionId value
         // The first item in the input JSON array MUST be the placeholder string {SCID}.
-        didLogEntryWithoutProofAndSignature.add(scid);
+        didLogEntryWithoutProofAndSignature.add(SCID_PLACEHOLDER);
         // Add the versionTime value
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
@@ -147,32 +126,62 @@ public class TdwCreator {
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         JsonObject didMethodParameters = new JsonObject();
         didMethodParameters.addProperty("method", "did:tdw:0.3");
-        didMethodParameters.addProperty("scid", scid);
-        //didMethodParameters.addProperty("hash", null);
+        didMethodParameters.addProperty("scid", SCID_PLACEHOLDER);
+
+        /*
+        Generate the authorization key pair(s) Authorized keys are authorized to control (create, update, deactivate) the DID.
+        This includes generating any other key pairs that will be placed into the initial DIDDoc for the DID.
+
+        For each authorization key pair, generate a multikey based on the key pair’s public key.
+        The multikey representations of the public keys are placed in the updateKeys item in parameters.
+
+        updateKeys: A list of one or more multikey formatted public keys associated with the private keys that are
+        authorized to sign the log entries that update the DID from one version to the next. An instance of the list in
+        an entry replaces the previously active list. If an entry does not have the updateKeys item,
+        the currently active list continues to apply.
+         */
+        JsonArray updateKeys = new JsonArray();
+        updateKeys.add(this.signer.getEd25519VerificationKey2020());
+        didMethodParameters.add("updateKeys", updateKeys);
+
         // Since v0.3 (https://identity.foundation/trustdidweb/v0.3/#didtdw-version-changelog):
         //            Removes the cryptosuite parameter, moving it to implied based on the method parameter.
         //cryptosuite: Option::None,
-        //didMethodParameters.addProperty("prerotation", false);
-        //next_keys: Option::None,
-        //moved: Option::None,
-        //deactivated: Option::None,
-        //ttl: Option::None,
+        didMethodParameters.addProperty("prerotation", false);
+        // OPTIONAL: next_keys, moved, deactivated, ttl
         didMethodParameters.addProperty("portable", false);
         didLogEntryWithoutProofAndSignature.add(didMethodParameters);
+
+        // Generate SCID and replace placeholder in did doc
+        var scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
+
+        /* https://identity.foundation/trustdidweb/v0.3/#output-of-the-scid-generation-process:
+        After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
+        This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
+        Once the process has run, the version number of this first version of the DID (1),
+        a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
+         */
+
+        // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
+        String didDocWithSCID = didDoc.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
+        didDoc = JsonParser.parseString(didDocWithSCID).getAsJsonObject();
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
         JsonObject initialDidDoc = new JsonObject();
-        initialDidDoc.add("value", genesisDidDoc);
+        initialDidDoc.add("value", didDoc);
         didLogEntryWithoutProofAndSignature.add(initialDidDoc);
+
+        // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
+        String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
+        JsonArray didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonArray();
 
         // See https://identity.foundation/trustdidweb/v0.3/#generate-entry-hash
         // After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = 'Q' + Base58.encode(JCSHasher.hashJsonArray(didLogEntryWithoutProofAndSignature).getBytes(StandardCharsets.UTF_8));
-        //String entryHash = 'Q' + Base58.encode(didLogEntryWithoutProofAndSignatureHash);
+        String entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
 
         /*
         https://identity.foundation/trustdidweb/v0.3/#data-integrity-proof-generation-and-first-log-entry:
@@ -185,34 +194,29 @@ public class TdwCreator {
         JsonObject proof = new JsonObject();
         proof.addProperty("type", "DataIntegrityProof");
         proof.addProperty("cryptoSuite", "eddsa-jcs-2022");
-        //proof.addProperty("created", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.systemDefault())));
         proof.addProperty("created", DateTimeFormatter.ISO_INSTANT.format(now.truncatedTo(ChronoUnit.SECONDS)));
-        String verificationMethodString = genesisDidDoc.get("id").getAsString() + '#' + keyDefHashMultibase;
-        proof.addProperty("verificationMethod", verificationMethodString);
+
+        /*
+        The data integrity proof verificationMethod is the did:key from the first log entry, and the challenge is the versionId from this log entry.
+         */
+        proof.addProperty("verificationMethod", "did:key:" + this.signer.getEd25519VerificationKey2020() + '#' + this.signer.getEd25519VerificationKey2020());
         proof.addProperty("proofPurpose", "authentication");
         proof.addProperty("challenge", "1-" + entryHash);
 
-        String proofHashHex = JCSHasher.hashJsonObject(proof);
-
         // See https://www.w3.org/TR/vc-di-eddsa/#hashing-eddsa-jcs-2022:
         // Let hashData be the result of joining proofConfigHash (the first hash) with transformedDocumentHash (the second hash).
-        String signedHashDataMultibase = 'z' + Base58.encode(this.signer.sign(proofHashHex + genesisDidDocHashHex));
+        String proofValue = JCSHasher.buildProof(proof, didDoc, this.signer);
 
         // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
-        proof.addProperty("proofValue", signedHashDataMultibase);
+        proof.addProperty("proofValue", proofValue);
 
         JsonArray didLogEntryWithProof = new JsonArray();
         didLogEntryWithProof.add("1-" + entryHash);
-        didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
-        didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(2));
-        didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(3));
+        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(1));
+        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(2));
+        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(3));
         didLogEntryWithProof.add(proof);
 
-        if (this.signer.verify(proofHashHex + genesisDidDocHashHex, Base58.decode(signedHashDataMultibase.substring(1)))) {
-
-            return didLogEntryWithProof.toString();
-        }
-
-        return null;
+        return didLogEntryWithProof.toString();
     }
 }
