@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -20,43 +19,26 @@ public class TdwCreator {
     private static String SCID_PLACEHOLDER = "{SCID}";
 
     private Map<String, AssertionMethodInput> assertionMethods;
-    private Signer signer;
+    private Ed25519SignerVerifier signer;
 
     /**
      * @param domain
      * @param path   (optional)
      * @return
-     * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    public String create(String domain, String path) throws NoSuchAlgorithmException, IOException {
+    public String create(String domain, String path) throws IOException {
         return create(domain, path, ZonedDateTime.now());
     }
 
-    /**
-     * Package-scope and therefore more potent method.
-     *
-     * @param domain
-     * @param path   (optional)
-     * @param now
-     * @return
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     */
-    String create(String domain, String path, ZonedDateTime now) throws NoSuchAlgorithmException, IOException {
-
-        // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
-        String didTDW = "did:tdw:{SCID}:" + domain.replace("https://", "").replace(":", "%3A");
-        if (path != null && !path.isEmpty()) {
-            didTDW += ":" + path.replaceAll("/", ":");
-        }
+    private JsonArray buildVerificationMethod(String didTDW) {
 
         /* CAUTION According to https://github.com/decentralized-identity/trustdidweb-ts/blob/main/src/utils.ts#L170
         export const createVMID = (vm: VerificationMethod, did: string | null) => {
             return `${did ?? ''}#${vm.publicKeyMultibase?.slice(-8) || nanoid(8)}`
         }
          */
-        String publicKeyMultibase = this.signer.getEd25519VerificationKey2020();
+        String publicKeyMultibase = this.signer.getVerificationKeyMultibase();
         String verfificationMethodId = publicKeyMultibase.substring(publicKeyMultibase.length() - 8);
 
         // Create verification method for subject with placeholder
@@ -69,6 +51,29 @@ public class TdwCreator {
         //verificationMethod.addProperty("publicKeyJwk", (String)null);
         verificationMethod.add(verificationMethodObj);
 
+        return verificationMethod;
+    }
+
+    /**
+     * Package-scope and therefore more potent method.
+     *
+     * @param domain
+     * @param path   (optional)
+     * @param now
+     * @return
+     * @throws IOException
+     */
+    String create(String domain, String path, ZonedDateTime now) throws IOException {
+
+        // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
+        String didTDW = "did:tdw:{SCID}:" + domain.replace("https://", "").replace(":", "%3A");
+        if (path != null && !path.isEmpty()) {
+            didTDW += ":" + path.replaceAll("/", ":");
+        }
+
+        // According to https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020
+        String publicKeyMultibase = this.signer.getVerificationKeyMultibase();
+
         var context = new JsonArray();
         context.add("https://www.w3.org/ns/did/v1");
         context.add("https://w3id.org/security/multikey/v1");
@@ -77,8 +82,8 @@ public class TdwCreator {
         var didDoc = new JsonObject();
         didDoc.add("@context", context);
         didDoc.addProperty("id", didTDW);
-        didDoc.add("verificationMethod", verificationMethod);
-        didDoc.add("authentication", verificationMethod);
+        didDoc.add("verificationMethod", buildVerificationMethod(didTDW));
+        didDoc.add("authentication", buildVerificationMethod(didTDW));
 
         if (this.assertionMethods != null) {
 
@@ -141,7 +146,7 @@ public class TdwCreator {
         the currently active list continues to apply.
          */
         JsonArray updateKeys = new JsonArray();
-        updateKeys.add(this.signer.getEd25519VerificationKey2020());
+        updateKeys.add(this.signer.getVerificationKeyMultibase());
         didMethodParameters.add("updateKeys", updateKeys);
 
         // Since v0.3 (https://identity.foundation/trustdidweb/v0.3/#didtdw-version-changelog):
@@ -183,6 +188,12 @@ public class TdwCreator {
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
 
+        JsonArray didLogEntryWithProof = new JsonArray();
+        didLogEntryWithProof.add("1-" + entryHash);
+        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(1));
+        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(2));
+        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(3));
+
         /*
         https://identity.foundation/trustdidweb/v0.3/#data-integrity-proof-generation-and-first-log-entry:
         The last step in the creation of the first log entry is the generation of the data integrity proof.
@@ -190,32 +201,7 @@ public class TdwCreator {
         with the versionId value (item 1 of the did log) used as the challenge item.
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
-
-        JsonObject proof = new JsonObject();
-        proof.addProperty("type", "DataIntegrityProof");
-        proof.addProperty("cryptoSuite", "eddsa-jcs-2022");
-        proof.addProperty("created", DateTimeFormatter.ISO_INSTANT.format(now.truncatedTo(ChronoUnit.SECONDS)));
-
-        /*
-        The data integrity proof verificationMethod is the did:key from the first log entry, and the challenge is the versionId from this log entry.
-         */
-        proof.addProperty("verificationMethod", "did:key:" + this.signer.getEd25519VerificationKey2020() + '#' + this.signer.getEd25519VerificationKey2020());
-        proof.addProperty("proofPurpose", "authentication");
-        proof.addProperty("challenge", "1-" + entryHash);
-
-        // See https://www.w3.org/TR/vc-di-eddsa/#hashing-eddsa-jcs-2022:
-        // Let hashData be the result of joining proofConfigHash (the first hash) with transformedDocumentHash (the second hash).
-        String proofValue = JCSHasher.buildProof(proof, didDoc, this.signer);
-
-        // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
-        proof.addProperty("proofValue", proofValue);
-
-        JsonArray didLogEntryWithProof = new JsonArray();
-        didLogEntryWithProof.add("1-" + entryHash);
-        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(1));
-        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(2));
-        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(3));
-        didLogEntryWithProof.add(proof);
+        didLogEntryWithProof.add(JCSHasher.buildDataIntegrityProof(didDoc, this.signer, 1, entryHash, "authentication", now));
 
         return didLogEntryWithProof.toString();
     }

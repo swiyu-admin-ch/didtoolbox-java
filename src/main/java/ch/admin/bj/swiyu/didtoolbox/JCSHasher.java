@@ -10,27 +10,30 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 
 class JCSHasher {
 
     /**
      * To generate the required SCID for a did:tdw DID, the DID Controller MUST execute the following function:
-     * base58btc(multihash(JCS(preliminary log entry with placeholders), <hash algorithm>))
-     * Where
-     * JCS is an implementation of the JSON Canonicalization Scheme [RFC8785]. It outputs a canonicalized representation of its JSON input.
-     * multihash is an implementation of the multihash specification. Its output is a hash of the input using the associated <hash algorithm>, prefixed with a hash algorithm identifier and the hash size.
-     * <hash algorithm> is the hash algorithm used by the DID Controller. The hash algorithm MUST be one listed in the parameters defined by the version of the did:tdw specification being used by the DID Controller.
-     * base58btc is an implementation of the base58btc function. Its output is the base58 encoded string of its input.
+     * <p>base58btc(multihash(JCS(preliminary log entry with placeholders), &lt;hash algorithm&gt;))
+     * <p>Where
+     * <li>JCS is an implementation of the JSON Canonicalization Scheme [RFC8785]. It outputs a canonicalized representation of its JSON input.
+     * <li>multihash is an implementation of the multihash specification. Its output is a hash of the input using the associated &lt;hash algorithm&gt;, prefixed with a hash algorithm identifier and the hash size.
+     * <li>&lt;hash algorithm&gt; is the hash algorithm used by the DID Controller. The hash algorithm MUST be one listed in the parameters defined by the version of the did:tdw specification being used by the DID Controller.
+     * <li>base58btc is an implementation of the base58btc function. Its output is the base58 encoded string of its input.
      *
      * @return
      */
-    static String buildSCID(JsonArray didLog) throws NoSuchAlgorithmException, IOException {
+    static String buildSCID(JsonArray didLog) throws IOException {
         var jsc = (new JsonCanonicalizer(didLog.toString())).getEncodedString();
         return Base58.encode(multihash(jsc));
     }
 
-    static String multihashJsonObject(JsonObject obj) throws NoSuchAlgorithmException, IOException {
+    static String multihashJsonObject(JsonObject obj) throws IOException {
         var jsc = (new JsonCanonicalizer(obj.toString())).getEncodedString();
         return Base58.encode(multihash(jsc));
     }
@@ -41,12 +44,15 @@ class JCSHasher {
      *
      * @param str
      * @return
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
      */
-    static byte[] multihash(String str) throws NoSuchAlgorithmException, IOException {
+    static byte[] multihash(String str) {
 
-        MessageDigest hasher = MessageDigest.getInstance("SHA-256");
+        MessageDigest hasher = null;
+        try {
+            hasher = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         hasher.update(str.getBytes(StandardCharsets.UTF_8));
         byte[] digest = hasher.digest();
 
@@ -63,31 +69,86 @@ class JCSHasher {
         return buff.array();
     }
 
-    private static String hashAsHex(String json) throws NoSuchAlgorithmException, IOException {
-        MessageDigest hasher = MessageDigest.getInstance("SHA-256");
+    private static String hashAsHex(String json) throws IOException {
+
+        MessageDigest hasher = null;
+        try {
+            hasher = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         hasher.update(((new JsonCanonicalizer(json)).getEncodedString()).getBytes(StandardCharsets.UTF_8));
         return HexFormat.of().formatHex(hasher.digest());
     }
 
-    static String hashJsonObjectAsHex(JsonObject json) throws NoSuchAlgorithmException, IOException {
+    static String hashJsonObjectAsHex(JsonObject json) throws IOException {
         return hashAsHex(json.toString());
     }
 
-    static String hashJsonArray(JsonArray json) throws NoSuchAlgorithmException, IOException {
+    static String hashJsonArray(JsonArray json) throws IOException {
         return hashAsHex(json.toString());
     }
 
     /**
-     * As specifed https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
+     * As specified by https://www.w3.org/TR/vc-di-eddsa/#dataintegrityproof.
+     * <p>See example: https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
+     *
+     * <p>A proof contains the attributes specified in the Proofs section (https://www.w3.org/TR/vc-data-integrity/#proofs)
+     * of [VC-DATA-INTEGRITY (https://www.w3.org/TR/vc-di-eddsa/#bib-vc-data-integrity)] with the following restrictions.
+     *
+     * <p>The type property MUST be DataIntegrityProof.
+     *
+     * <p>The cryptosuite property of the proof MUST be "eddsa-rdfc-2022" or "eddsa-jcs-2022".
+     * CAUTION This implementation supports currently only "eddsa-jcs-2022" as specified by https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022.
+     *
+     * <p>The proofValue property of the proof MUST be a detached EdDSA signature produced according to
+     * [RFC8032 (https://www.w3.org/TR/vc-di-eddsa/#bib-rfc8032)],
+     * encoded using the base-58-btc header and alphabet as described in the Multibase section
+     * (https://www.w3.org/TR/controller-document/#multibase-0) of Controlled Identifier Document 1.0 (https://www.w3.org/TR/controller-document/).
+     *
+     * @param unsecuredDocument to create a proof for
+     * @param signer            to use for signing the proofValue
+     * @param versionId         relevant for the "challenge" property, if required
+     * @param entryHash         relevant for the "challenge" property, if required
+     * @param proofPurpose      typically "assertionMethod" or "authentication"
+     * @param dateTime          of the proof creation
+     * @return JsonObject representing the data integrity proof
+     * @throws IOException may come from a hasher
      */
-    static String buildProof(JsonObject proof, JsonObject doc, Signer signer) throws NoSuchAlgorithmException, IOException {
+    static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument, Ed25519SignerVerifier signer, int versionId, String entryHash, String proofPurpose, ZonedDateTime dateTime)
+            throws IOException {
 
-        String docHashHex = JCSHasher.hashJsonObjectAsHex(doc);
-        String proofHashHex = JCSHasher.hashJsonObjectAsHex(proof);
+        /*
+        https://identity.foundation/trustdidweb/v0.3/#data-integrity-proof-generation-and-first-log-entry:
+        The last step in the creation of the first log entry is the generation of the data integrity proof.
+        One of the keys in the updateKeys parameter MUST be used (in the form of a did:key) to generate the signature in the proof,
+        with the versionId value (item 1 of the did log) used as the challenge item.
+        The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
+         */
+
+        JsonObject proof = new JsonObject();
+        proof.addProperty("type", "DataIntegrityProof");
+        proof.addProperty("cryptosuite", "eddsa-jcs-2022");
+        proof.addProperty("created", DateTimeFormatter.ISO_INSTANT.format(dateTime.truncatedTo(ChronoUnit.SECONDS)));
+
+        /*
+        The data integrity proof verificationMethod is the did:key from the first log entry, and the challenge is the versionId from this log entry.
+         */
+        proof.addProperty("verificationMethod", "did:key:" + signer.getVerificationKeyMultibase() + '#' + signer.getVerificationKeyMultibase());
+        proof.addProperty("proofPurpose", proofPurpose);
+        if (entryHash != null && !entryHash.isEmpty()) {
+            proof.addProperty("challenge", versionId + "-" + entryHash);
+        }
+
+        String docHashHex = hashJsonObjectAsHex(unsecuredDocument);
+        String proofHashHex = hashJsonObjectAsHex(proof);
 
         var signature = signer.signBytes(HexFormat.of().parseHex(proofHashHex + docHashHex));
-        //String combinedHashHex = HexFormat.of().formatHex(signature);
+        //String signatureHex = HexFormat.of().formatHex(signature);
 
-        return 'z' + Base58.encode(signature);
+        // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
+        proof.addProperty("proofValue", 'z' + Base58.encode(signature));
+
+        return proof;
     }
 }

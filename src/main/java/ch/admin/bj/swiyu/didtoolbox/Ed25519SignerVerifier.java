@@ -16,48 +16,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
 
-public class Signer {
+/**
+ * Builds on top of {@link org.bouncycastle.crypto.signers.Ed25519Signer} by adding further useful helpers.
+ */
+class Ed25519SignerVerifier {
 
     byte[] signingKey = new byte[32];
     byte[] verifyingKey = new byte[32];
 
-    /**
-     * The encoding of an Ed25519 public key MUST start with the two-byte prefix 0xed01 (the varint expression of 0xed),
-     * followed by the 32-byte public key data. The resulting 34-byte value MUST then be encoded using the base-58-btc alphabet,
-     * according to Section 2.4 Multibase (https://www.w3.org/TR/controller-document/#multibase-0),
-     * and then prepended with the base-58-btc Multibase header (z).
-     * See https://www.w3.org/TR/controller-document/#Multikey
-     * @param verifyingKey
-     * @return
-     */
-    static String buildEd25519VerificationKey2020(byte[] verifyingKey) {
-
-        ByteBuffer buff = ByteBuffer.allocate(34);
-        // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
-        buff.put((byte) 0xed); // Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
-        buff.put((byte) 0x01);
-        buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
-        return 'z' + Base58.encode(buff.array());
-    }
-
-    /**
-     * According to https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020:
-     * The publicKeyMultibase property of the verification method MUST be a public key encoded according to [MULTICODEC] and formatted according to [MULTIBASE].
-     * The multicodec encoding of a Ed25519 public key is the two-byte prefix 0xed01 followed by the 32-byte public key data.
-     *
-     * @return
-     */
-    public String getEd25519VerificationKey2020() {
-        return buildEd25519VerificationKey2020(this.verifyingKey);
-    }
-
-    /*
-    public byte[] getSigningKey() {
-        return signingKey;
-    }
-    */
-
-    Signer() {
+    Ed25519SignerVerifier() {
 
         try {
             KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("Ed25519");
@@ -79,21 +46,22 @@ public class Signer {
     }
 
     /**
-     * Constructor accepting keys in multibase base58btc format, e.g.
+     * The constructor accepting keys in multibase base58btc format, e.g.
+     * <p>
+     * {@snippet lang = JSON:
+     *     {
+     *         "publicKeyMultibase": "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2",
+     *         "secretKeyMultibase": "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"
+     *     }
+     *}
      *
-     * <code>
-     * {
-     *   publicKeyMultibase: "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2",
-     *   secretKeyMultibase: "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"
-     * }
-     * </code>
-     * @param privateKey
-     * @param publicKey
+     * @param privateKeyMultibase
+     * @param publicKeyMultibase
      */
-    public Signer(String privateKey, String publicKey) {
+    Ed25519SignerVerifier(String privateKeyMultibase, String publicKeyMultibase) {
 
-        var signingKey = Base58.decode(privateKey.substring(1));
-        var verifyingKey = Base58.decode(publicKey.substring(1));
+        var signingKey = Base58.decode(privateKeyMultibase.substring(1));
+        var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
 
         ByteBuffer buff = ByteBuffer.allocate(32);
         buff.put(Arrays.copyOfRange(signingKey, signingKey.length - 32, signingKey.length));
@@ -104,12 +72,30 @@ public class Signer {
         this.verifyingKey = buff.array();
 
         // sanity check
-        if (!this.verify("hello world", this.signString("hello world"))){
-            throw  new RuntimeException("keys do not match");
+        if (!this.verify("hello world", this.signString("hello world"))) {
+            throw new RuntimeException("keys do not match");
         }
     }
 
-    public Signer(InputStream jksFile, String password, String alias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
+    /*
+    public byte[] getSigningKey() {
+        return signingKey;
+    }
+    */
+
+    /**
+     * The Java KeyStore (JKS) compliant constructor.
+     *
+     * @param jksFile
+     * @param password
+     * @param alias
+     * @throws KeyStoreException
+     * @throws CertificateException
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws UnrecoverableEntryException
+     */
+    Ed25519SignerVerifier(InputStream jksFile, String password, String alias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
 
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(jksFile, password.toCharArray()); // java.io.IOException: keystore password was incorrect
@@ -136,7 +122,16 @@ public class Signer {
         this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
     }
 
-    public Signer(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+    /**
+     * The PEM file based constructor.
+     *
+     * @param privatePemFile
+     * @param publicPemFile
+     * @throws IOException
+     * @throws InvalidKeySpecException
+     * @throws NoSuchAlgorithmException
+     */
+    Ed25519SignerVerifier(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
         byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
@@ -147,6 +142,37 @@ public class Signer {
         PublicKey pubKey = PemUtils.getPublicKeyEd25519(publicPemBytes);
         byte[] publicKey = pubKey.getEncoded(); // 44 bytes
         this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
+    }
+
+    /**
+     * The encoding of an Ed25519 public key MUST start with the two-byte prefix 0xed01 (the varint expression of 0xed),
+     * followed by the 32-byte public key data. The resulting 34-byte value MUST then be encoded using the base-58-btc alphabet,
+     * according to Section 2.4 Multibase (https://www.w3.org/TR/controller-document/#multibase-0),
+     * and then prepended with the base-58-btc Multibase header (z).
+     * <p>See https://www.w3.org/TR/controller-document/#Multikey
+     *
+     * @param verifyingKey
+     * @return
+     */
+    static String buildVerificationKeyMultibase(byte[] verifyingKey) {
+
+        ByteBuffer buff = ByteBuffer.allocate(34);
+        // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
+        buff.put((byte) 0xed); // Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
+        buff.put((byte) 0x01);
+        buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
+        return 'z' + Base58.encode(buff.array());
+    }
+
+    /**
+     * According to https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020:
+     * <p>The publicKeyMultibase property of the verification method MUST be a public key encoded according to [MULTICODEC] and formatted according to [MULTIBASE].
+     * The multicodec encoding of a Ed25519 public key is the two-byte prefix 0xed01 followed by the 32-byte public key data.
+     *
+     * @return
+     */
+    String getVerificationKeyMultibase() {
+        return buildVerificationKeyMultibase(this.verifyingKey);
     }
 
     byte[] signString(String message) {

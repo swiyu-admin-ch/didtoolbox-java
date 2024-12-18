@@ -124,7 +124,7 @@ class CreateTdwCommand {
                 byte[] publicKey = pubKey.getEncoded(); // 44 bytes
                 var verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 
-                fileList.add(new AssertionMethodParameters(splitted[0], Signer.buildEd25519VerificationKey2020(verifyingKey)));
+                fileList.add(new AssertionMethodParameters(splitted[0], Ed25519SignerVerifier.buildVerificationKeyMultibase(verifyingKey)));
             }
             return fileList;
         }

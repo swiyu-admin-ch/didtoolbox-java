@@ -32,27 +32,6 @@ public class Main {
         return "undefined";
     }
 
-    private String getImplementationTitle() {
-        // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
-        return getManifestResourceValue("Implementation-Title");
-    }
-
-    private String getImplementationVersion() {
-        // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
-        return getManifestResourceValue("Implementation-Version");
-    }
-
-    private String getImplementationVersionX() {
-        try {
-            Manifest manifest = new Manifest(Objects.requireNonNull(this.getClass().getClassLoader().getResource("META-INF/MANIFEST.MF")).openStream());
-            // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
-            return manifest.getMainAttributes().getValue("Implementation-Version");
-        } catch (IOException ignore) {
-            //
-        }
-        return "undefined";
-    }
-
     public static void main(String... args) {
 
         var main = new Main();
@@ -120,11 +99,11 @@ public class Main {
                 String didLogEntry = null;
                 try {
 
-                    Signer signer = null;
+                    Ed25519SignerVerifier signer = null;
                     if (signingKeyPemFile != null && verifyingKeyPemFile != null) {
-                        signer = new Signer(signingKeyPemFile, verifyingKeyPemFile);
+                        signer = new Ed25519SignerVerifier(signingKeyPemFile, verifyingKeyPemFile);
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
-                        signer = new Signer(new FileInputStream(jksFile), jksPassword, jksAlias);
+                        signer = new Ed25519SignerVerifier(new FileInputStream(jksFile), jksPassword, jksAlias);
                     }
 
                     if (signer == null) {
@@ -155,5 +134,15 @@ public class Main {
         }
 
         System.exit(0);
+    }
+
+    private String getImplementationTitle() {
+        // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
+        return getManifestResourceValue("Implementation-Title");
+    }
+
+    private String getImplementationVersion() {
+        // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
+        return getManifestResourceValue("Implementation-Version");
     }
 }
