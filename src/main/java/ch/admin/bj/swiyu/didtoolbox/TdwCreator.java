@@ -157,6 +157,12 @@ public class TdwCreator {
         didMethodParameters.addProperty("portable", false);
         didLogEntryWithoutProofAndSignature.add(didMethodParameters);
 
+        // Add the initial DIDDoc
+        // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
+        JsonObject initialDidDoc = new JsonObject();
+        initialDidDoc.add("value", didDoc);
+        didLogEntryWithoutProofAndSignature.add(initialDidDoc);
+
         // Generate SCID and replace placeholder in did doc
         var scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
 
@@ -170,12 +176,6 @@ public class TdwCreator {
         // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
         String didDocWithSCID = didDoc.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
         didDoc = JsonParser.parseString(didDocWithSCID).getAsJsonObject();
-
-        // Add the initial DIDDoc
-        // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
-        JsonObject initialDidDoc = new JsonObject();
-        initialDidDoc.add("value", didDoc);
-        didLogEntryWithoutProofAndSignature.add(initialDidDoc);
 
         // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
         String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);

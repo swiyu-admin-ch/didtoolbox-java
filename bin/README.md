@@ -71,11 +71,11 @@ The command above should produce a following DID log entry (_prettified_/_pretty
 
 ```json
 [
-  "1-Qmf7WSc1qGksHhn7tQR73Ng2Ntr6B7E8UZMDf2zGYXnVD3",
-  "2024-12-18T15:15:56Z",
+  "1-QmY2uXCrzovBTDTKF1KAVBVDmmWU5DJeR9AFKVAx8Vy7wj",
+  "2024-12-19T09:49:41Z",
   {
     "method": "did:tdw:0.3",
-    "scid": "QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm",
+    "scid": "QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa",
     "updateKeys": [
       "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
     ],
@@ -88,34 +88,34 @@ The command above should produce a following DID log entry (_prettified_/_pretty
         "https://www.w3.org/ns/did/v1",
         "https://w3id.org/security/multikey/v1"
       ],
-      "id": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2",
+      "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
       "verificationMethod": [
         {
-          "id": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2#KsXDA8UP",
-          "controller": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2",
+          "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#KsXDA8UP",
+          "controller": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
           "type": "Ed25519VerificationKey2020",
           "publicKeyMultibase": "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
         }
       ],
       "authentication": [
         {
-          "id": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2#KsXDA8UP",
-          "controller": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2",
+          "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#KsXDA8UP",
+          "controller": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
           "type": "Ed25519VerificationKey2020",
           "publicKeyMultibase": "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
         }
       ],
       "assertionMethod": [
         {
-          "id": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2#myAssertionKey1",
+          "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#myAssertionKey1",
           "type": "Ed25519VerificationKey2020",
-          "controller": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2",
+          "controller": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
           "publicKeyMultibase": "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
         },
         {
-          "id": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2#myAssertionKey2",
+          "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#myAssertionKey2",
           "type": "Ed25519VerificationKey2020",
-          "controller": "did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2",
+          "controller": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
           "publicKeyMultibase": "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
         }
       ]
@@ -124,11 +124,11 @@ The command above should produce a following DID log entry (_prettified_/_pretty
   {
     "type": "DataIntegrityProof",
     "cryptosuite": "eddsa-jcs-2022",
-    "created": "2024-12-18T15:15:56Z",
+    "created": "2024-12-19T09:49:41Z",
     "verificationMethod": "did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP",
     "proofPurpose": "authentication",
-    "challenge": "1-Qmf7WSc1qGksHhn7tQR73Ng2Ntr6B7E8UZMDf2zGYXnVD3",
-    "proofValue": "z5orAcN2CLX73WDeBc25C29m77LpgbnrBpxzTgrpbMFo55hs4LtyFxzCZUvooKjzekQn8AzChxLxQB7nAhSYzT6zd"
+    "challenge": "1-QmY2uXCrzovBTDTKF1KAVBVDmmWU5DJeR9AFKVAx8Vy7wj",
+    "proofValue": "z4kr5JMu7xihco65bn23oiMfhE1SYz7H88xXr6mWwNkUBtyhet2cxpqzxqYCix99jMqjjsdgE6WcDXtC4jp8ft9VW"
   }
 ]
 ```
@@ -136,5 +136,5 @@ The command above should produce a following DID log entry (_prettified_/_pretty
 The same content _un-prettified_, as it should be found in the `did.jsonl` file:
 
 ```json
-["1-Qmf7WSc1qGksHhn7tQR73Ng2Ntr6B7E8UZMDf2zGYXnVD3","2024-12-18T15:15:56Z",{"method":"did:tdw:0.3","scid":"QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"prerotation":false,"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/multikey/v1"],"id":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2","verificationMethod":[{"id":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2#KsXDA8UP","controller":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}],"authentication":[{"id":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2#KsXDA8UP","controller":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}],"assertionMethod":[{"id":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2#myAssertionKey1","type":"Ed25519VerificationKey2020","controller":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"},{"id":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2#myAssertionKey2","type":"Ed25519VerificationKey2020","controller":"did:tdw:QmSJFcEDZeuTSJeQ2HpU1Hpcn1PjY8nx4Pca9nZ3WRWZfm:domain.com%3A443:path1:path2","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}]}},{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2024-12-18T15:15:56Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-Qmf7WSc1qGksHhn7tQR73Ng2Ntr6B7E8UZMDf2zGYXnVD3","proofValue":"z5orAcN2CLX73WDeBc25C29m77LpgbnrBpxzTgrpbMFo55hs4LtyFxzCZUvooKjzekQn8AzChxLxQB7nAhSYzT6zd"}]
+["1-QmY2uXCrzovBTDTKF1KAVBVDmmWU5DJeR9AFKVAx8Vy7wj","2024-12-19T09:49:41Z",{"method":"did:tdw:0.3","scid":"QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"prerotation":false,"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/multikey/v1"],"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","verificationMethod":[{"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#KsXDA8UP","controller":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}],"authentication":[{"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#KsXDA8UP","controller":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}],"assertionMethod":[{"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#myAssertionKey1","type":"Ed25519VerificationKey2020","controller":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"},{"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#myAssertionKey2","type":"Ed25519VerificationKey2020","controller":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}]}},{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2024-12-19T09:49:41Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-QmY2uXCrzovBTDTKF1KAVBVDmmWU5DJeR9AFKVAx8Vy7wj","proofValue":"z4kr5JMu7xihco65bn23oiMfhE1SYz7H88xXr6mWwNkUBtyhet2cxpqzxqYCix99jMqjjsdgE6WcDXtC4jp8ft9VW"}]
 ```

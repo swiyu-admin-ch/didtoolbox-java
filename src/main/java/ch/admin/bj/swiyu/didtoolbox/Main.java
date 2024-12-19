@@ -83,10 +83,12 @@ public class Main {
                 var domain = createCommand.domain;
                 var path = createCommand.path;
 
-                var assertions = createCommand.assertions;
                 Map<String, AssertionMethodInput> assertionMethodsMap = new HashMap<>();
-                for (CreateTdwCommand.AssertionMethodParameters param : assertions) {
-                    assertionMethodsMap.put(param.key, new AssertionMethodInput(param.publicKeyMultibase));
+                var assertions = createCommand.assertions;
+                if (assertions != null) {
+                    for (CreateTdwCommand.AssertionMethodParameters param : assertions) {
+                        assertionMethodsMap.put(param.key, new AssertionMethodInput(param.publicKeyMultibase));
+                    }
                 }
 
                 var signingKeyPemFile = createCommand.signingKeyPemFile;
@@ -112,11 +114,17 @@ public class Main {
                         System.exit(1);
                     }
 
-                    didLogEntry = TdwCreator.builder()
-                            .signer(signer)
-                            .assertionMethods(assertionMethodsMap)
-                            .build()
-                            .create(domain, path);
+                    var tdwBuilder = TdwCreator.builder().signer(signer);
+                    if (!assertionMethodsMap.isEmpty()) {
+                        didLogEntry = tdwBuilder
+                                .assertionMethods(assertionMethodsMap)
+                                .build()
+                                .create(domain, path);
+                    } else {
+                        didLogEntry = tdwBuilder
+                                .build()
+                                .create(domain, path);
+                    }
 
                 } catch (Exception e) {
                     System.err.println("Command '" + parsedCmdStr + "' failed due to: " + e.getLocalizedMessage());
