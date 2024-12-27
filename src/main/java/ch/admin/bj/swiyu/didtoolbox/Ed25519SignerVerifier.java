@@ -4,12 +4,14 @@ import io.ipfs.multibase.Base58;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -23,6 +25,7 @@ class Ed25519SignerVerifier {
 
     byte[] signingKey = new byte[32];
     byte[] verifyingKey = new byte[32];
+    private KeyPair keyPair;
 
     Ed25519SignerVerifier() {
 
@@ -31,9 +34,9 @@ class Ed25519SignerVerifier {
             //keyPairGen.initialize(NamedParameterSpec.ED25519, new SecureRandom(secretKey));
             keyPairGen.initialize(NamedParameterSpec.ED25519);
 
-            KeyPair keyPair = keyPairGen.generateKeyPair();
+            keyPair = keyPairGen.generateKeyPair();
 
-            byte[] privateKey = keyPair.getPrivate().getEncoded();
+            byte[] privateKey = keyPair.getPrivate().getEncoded(); // may return null
             this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
 
             byte[] publicKey = keyPair.getPublic().getEncoded();
@@ -103,7 +106,7 @@ class Ed25519SignerVerifier {
         //var entryPassword = new KeyStore.PasswordProtection(password.toCharArray());
         //KeyStore.Entry keyEntry = keyStore.getEntry(alias, entryPassword);
 
-        var key = keyStore.getKey(alias, password.toCharArray()); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
+        Key key = keyStore.getKey(alias, password.toCharArray()); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
         /*
         if key == null {
             throw
@@ -142,6 +145,8 @@ class Ed25519SignerVerifier {
         PublicKey pubKey = PemUtils.getPublicKeyEd25519(publicPemBytes);
         byte[] publicKey = pubKey.getEncoded(); // 44 bytes
         this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
+
+        keyPair = new KeyPair(pubKey, privKey);
     }
 
     /**
@@ -162,6 +167,46 @@ class Ed25519SignerVerifier {
         buff.put((byte) 0x01);
         buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
         return 'z' + Base58.encode(buff.array());
+    }
+
+    /**
+     * @param file to store the key
+     * @throws IOException
+     */
+    void writePrivateKeyAsPem(File file) throws IOException {
+
+        if (keyPair == null) {
+            throw new RuntimeException("This instance features no self-generated key pair.");
+        }
+
+        var key = keyPair.getPrivate();
+        PemWriter pemWriter = new PemWriter(new BufferedWriter(new FileWriter(file)));
+        try {
+            pemWriter.writeObject(new PemObject("PRIVATE KEY", key.getEncoded()));
+        } finally {
+            pemWriter.close();
+        }
+        Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-------"));
+    }
+
+    /**
+     * @param file to store the key
+     * @throws IOException
+     */
+    void writePublicKeyAsPem(File file) throws IOException {
+
+        if (keyPair == null) {
+            throw new RuntimeException("This instance features no self-generated key pair.");
+        }
+
+        var key = keyPair.getPublic();
+        PemWriter pemWriter = new PemWriter(new BufferedWriter(new FileWriter(file)));
+        try {
+            pemWriter.writeObject(new PemObject("PUBLIC KEY", key.getEncoded()));
+        } finally {
+            pemWriter.close();
+        }
+        //Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-------"));
     }
 
     /**

@@ -1,0 +1,16 @@
+{
+  "keys": [
+    {
+      "kty" : "OKP",
+      "crv" : "Ed25519",
+      "kid" : "my-auth-key-01",
+      "x" : "6sp4uBi3AHRDEFM1wQIyEzjC_sGYDdnSo01N-s_zDYU"
+    },
+    {
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "kid": "my-assert-key-01",
+      "x": "jcAGpa7VpH8SjTjxqXs1bqq8jUjKYE8IrYrU_XY4zg0"
+    }
+  ]
+}

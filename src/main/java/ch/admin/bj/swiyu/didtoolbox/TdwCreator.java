@@ -3,14 +3,17 @@ package ch.admin.bj.swiyu.didtoolbox;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.JOSEException;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
+import java.util.*;
 
 @Builder
 @Getter
@@ -18,8 +21,10 @@ public class TdwCreator {
 
     private static String SCID_PLACEHOLDER = "{SCID}";
 
-    private Map<String, AssertionMethodInput> assertionMethods;
+    private Map<String, String> assertionMethodKeys;
+    private Map<String, String> authenticationKeys;
     private Ed25519SignerVerifier signer;
+    //private File dirToStoreKeyPair;
 
     /**
      * @param domain
@@ -27,31 +32,25 @@ public class TdwCreator {
      * @return
      * @throws IOException
      */
-    public String create(String domain, String path) throws IOException {
+    public String create(String domain, String path) throws IOException, JOSEException, ParseException {
         return create(domain, path, ZonedDateTime.now());
     }
 
-    private JsonArray buildVerificationMethod(String didTDW) {
+    private JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk) throws JOSEException, IOException, ParseException {
 
-        /* CAUTION According to https://github.com/decentralized-identity/trustdidweb-ts/blob/main/src/utils.ts#L170
-        export const createVMID = (vm: VerificationMethod, did: string | null) => {
-            return `${did ?? ''}#${vm.publicKeyMultibase?.slice(-8) || nanoid(8)}`
+        String publicKeyJwk = jwk;
+        if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
+            publicKeyJwk = JwkUtils.generateEd25519(keyID);
         }
-         */
-        String publicKeyMultibase = this.signer.getVerificationKeyMultibase();
-        String verfificationMethodId = publicKeyMultibase.substring(publicKeyMultibase.length() - 8);
 
-        // Create verification method for subject with placeholder
-        JsonArray verificationMethod = new JsonArray();
         JsonObject verificationMethodObj = new JsonObject();
-        verificationMethodObj.addProperty("id", didTDW + "#" + verfificationMethodId);
+        verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
         verificationMethodObj.addProperty("controller", didTDW);
-        verificationMethodObj.addProperty("type", "Ed25519VerificationKey2020");
-        verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
-        //verificationMethod.addProperty("publicKeyJwk", (String)null);
-        verificationMethod.add(verificationMethodObj);
+        verificationMethodObj.addProperty("type", "JsonWebKey2020");
+        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
+        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
 
-        return verificationMethod;
+        return verificationMethodObj;
     }
 
     /**
@@ -63,16 +62,13 @@ public class TdwCreator {
      * @return
      * @throws IOException
      */
-    String create(String domain, String path, ZonedDateTime now) throws IOException {
+    String create(String domain, String path, ZonedDateTime now) throws IOException, JOSEException, ParseException {
 
         // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
         String didTDW = "did:tdw:{SCID}:" + domain.replace("https://", "").replace(":", "%3A");
         if (path != null && !path.isEmpty()) {
             didTDW += ":" + path.replaceAll("/", ":");
         }
-
-        // According to https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020
-        String publicKeyMultibase = this.signer.getVerificationKeyMultibase();
 
         var context = new JsonArray();
         context.add("https://www.w3.org/ns/did/v1");
@@ -82,30 +78,48 @@ public class TdwCreator {
         var didDoc = new JsonObject();
         didDoc.add("@context", context);
         didDoc.addProperty("id", didTDW);
-        didDoc.add("verificationMethod", buildVerificationMethod(didTDW));
-        didDoc.add("authentication", buildVerificationMethod(didTDW));
 
-        if (this.assertionMethods != null) {
+        JsonArray verificationMethod = new JsonArray();
+
+        if (this.authenticationKeys != null && !this.authenticationKeys.isEmpty()) {
+
+            JsonArray authentication = new JsonArray();
+            for (var key : this.authenticationKeys.entrySet()) {
+                authentication.add(didTDW + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue()));
+            }
+
+            didDoc.add("authentication", authentication);
+
+        } else {
+
+            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null)); // default
+
+            JsonArray authentication = new JsonArray();
+            authentication.add(didTDW + "#" + "auth-key-01");
+            didDoc.add("authentication", authentication);
+        }
+
+        if (this.assertionMethodKeys != null && !this.assertionMethodKeys.isEmpty()) {
 
             JsonArray assertionMethod = new JsonArray();
-            String finalDidTDW = didTDW;
-            this.assertionMethods.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach((e) -> {
-                JsonObject assertionMethodObj = new JsonObject();
-                assertionMethodObj.addProperty("id", finalDidTDW + "#" + e.getKey());
-                assertionMethodObj.addProperty("type", "Ed25519VerificationKey2020");
-                assertionMethodObj.addProperty("controller", finalDidTDW);
-
-                String publicKeyMultibaseProperty = publicKeyMultibase; // fallback
-                if (e.getValue().getAssertionPublicKey() != null) {
-                    publicKeyMultibaseProperty = e.getValue().getAssertionPublicKey();
-                }
-                assertionMethodObj.addProperty("publicKeyMultibase", publicKeyMultibaseProperty);
-
-                assertionMethod.add(assertionMethodObj);
-            });
+            for (var key : this.assertionMethodKeys.entrySet()) {
+                assertionMethod.add(didTDW + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue()));
+            }
 
             didDoc.add("assertionMethod", assertionMethod);
+
+        } else {
+
+            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null)); // default
+
+            JsonArray assertionMethod = new JsonArray();
+            assertionMethod.add(didTDW + "#" + "assert-key-01");
+            didDoc.add("assertionMethod", assertionMethod);
         }
+
+        didDoc.add("verificationMethod", verificationMethod);
 
         /*
         Generate a preliminary DID Log Entry (input JSON array)

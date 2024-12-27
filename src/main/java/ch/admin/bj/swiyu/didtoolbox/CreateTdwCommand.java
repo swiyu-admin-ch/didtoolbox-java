@@ -4,11 +4,8 @@ import com.beust.jcommander.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Parameters(
@@ -31,6 +28,29 @@ class CreateTdwCommand {
             description = "Path segment for the DID (e.g. UUID/GUID)")
     //,required = true)
     String path;
+
+    static class OutputDirParameterConverter implements IStringConverter<File> {
+        @Override
+        public File convert(String value) {
+            return new File(value);
+        }
+    }
+
+    public static class OutputDirParameterValidator implements IParameterValidator {
+        @Override
+        public void validate(String name, String value) throws ParameterException {
+            File dir = new File(value);
+            if (dir.exists() && !dir.isDirectory()) {
+                throw new ParameterException("Parameter " + name + " should be a directory, not a file (found " + value + ")");
+            }
+        }
+    }
+
+    @Parameter(names = {"--key-pair-output-dir", "-o"},
+            description = "The directory to store the generated key pair (both in PEM Format), in case no external keys are supplied. Otherwise, ignored",
+            converter = OutputDirParameterConverter.class,
+            validateWith = OutputDirParameterValidator.class)
+    File outputDir;
 
     static class PemFileParameterConverter implements IStringConverter<File> {
         @Override
@@ -93,44 +113,43 @@ class CreateTdwCommand {
             description = "Java KeyStore alias")
     String jksAlias;
 
-    static class AssertionMethodParameters {
+    static class VerificationMethodParameters {
 
         String key;
-        String publicKeyMultibase;
+        String jwk;
 
-        public AssertionMethodParameters(String key, String publicKeyMultibase) {
+        public VerificationMethodParameters(String key, String jwk) {
             this.key = key;
-            this.publicKeyMultibase = publicKeyMultibase;
+            this.jwk = jwk;
         }
     }
 
-    static class AssertionMethodParametersConverter implements IStringConverter<List<AssertionMethodParameters>> {
+    static class VerificationMethodParametersConverter implements IStringConverter<List<VerificationMethodParameters>> {
         @Override
-        public List<AssertionMethodParameters> convert(String value) {
+        public List<VerificationMethodParameters> convert(String value) {
             String[] splitted = value.split(",");
-            List<AssertionMethodParameters> fileList = new ArrayList<>();
+            List<VerificationMethodParameters> fileList = new ArrayList<>();
             if (splitted.length == 2) {
 
-                byte[] publicPemBytes = null;
-                PublicKey pubKey;
-                try {
-                    publicPemBytes = PemUtils.parsePEMFile(new File(splitted[1]));
-                    pubKey = PemUtils.getPublicKeyEd25519(publicPemBytes);
+                String kid = splitted[0];
 
-                } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+                String jwk = null;
+                try {
+
+                    jwk = JwkUtils.load(new File(splitted[1]), kid);
+
+                } catch (IOException | ParseException e) {
                     throw new RuntimeException(e);
                 }
 
-                byte[] publicKey = pubKey.getEncoded(); // 44 bytes
-                var verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
-
-                fileList.add(new AssertionMethodParameters(splitted[0], Ed25519SignerVerifier.buildVerificationKeyMultibase(verifyingKey)));
+                fileList.add(new VerificationMethodParameters(kid, jwk));
             }
+
             return fileList;
         }
     }
 
-    public static class AssertionMethodParametersValidator implements IParameterValidator {
+    public static class VerificationMethodKeyParametersValidator implements IParameterValidator {
         @Override
         public void validate(String name, String value) throws ParameterException {
             String[] splitted = value.split(",");
@@ -138,26 +157,34 @@ class CreateTdwCommand {
                 throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (Ed25519 public/verifying key in PEM format)) (found " + value + ")");
             }
 
-            String pubKeyFile = splitted[1];
-            File f = new File(pubKeyFile);
+            String kid = splitted[0];
+            String jwkFile = splitted[1];
+            File f = new File(jwkFile);
             if (!f.exists() || !f.isFile()) {
-                throw new ParameterException("A public key file (" + pubKeyFile + ") supplied by " + name + " option must be a regular file containing public/verifying key in PEM format (found " + pubKeyFile + ")");
+                throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing public/verifying key in PEM format (found " + jwkFile + ")");
             }
 
             try {
-                PemUtils.getPublicKeyEd25519(PemUtils.parsePEMFile(f));
-            } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-                throw new ParameterException("A public key file (" + pubKeyFile + ") supplied by " + name + " option must contain an Ed25519 public/verifying key in PEM format: " + e.getLocalizedMessage());
+                JwkUtils.load(f, kid);
+            } catch (IOException | ParseException e) {
+                throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an Ed25519 public/verifying key in PEM format: " + e.getLocalizedMessage());
             }
         }
     }
 
-    @Parameter(names = {"--assertion", "-a"},
-            description = "An (embedded) assertion method (comma-separated) parameters: a key name as well as a PEM file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)",
-            listConverter = AssertionMethodParametersConverter.class,
-            validateWith = AssertionMethodParametersValidator.class,
+    @Parameter(names = {"--assert", "-a"},
+            description = "An assertion method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)",
+            listConverter = VerificationMethodParametersConverter.class,
+            validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
-    List<AssertionMethodParameters> assertions;
+    List<VerificationMethodParameters> assertionMethodKeys;
+
+    @Parameter(names = {"--auth", "-t"},
+            description = "An authentication method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#authentication)",
+            listConverter = VerificationMethodParametersConverter.class,
+            validateWith = VerificationMethodKeyParametersValidator.class,
+            variableArity = true)
+    List<VerificationMethodParameters> authenticationKeys;
 
     /*
     @Parameter(names = "-i")

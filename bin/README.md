@@ -27,9 +27,12 @@ Usage: didtoolbox [options] [command] [command options]
     create      Create a did:tdw DID Document. Optionally sign the initial log entry if a private key is provided
       Usage: create [options]
         Options:
-          --assertion, -a
-            An (embedded) assertion method (comma-separated) parameters: a key name as well as a PEM file containing Ed25519 public/verifying key, as 
-            defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)
+          --assert, -a
+            An assertion method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined 
+            by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)
+          --auth, -t
+            An authentication method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as 
+            defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#authentication)
         * --domain, -d
             The domain for the DID (e.g. example.com)
           --help, -h
@@ -40,6 +43,8 @@ Usage: didtoolbox [options] [command] [command options]
             Java KeyStore (PKCS12) file to read the keys from
           --jks-password
             Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore
+          --key-pair-output-dir, -o
+            The directory to store the generated key pair (both in PEM Format), in case no external keys are supplied. Otherwise, ignored
           --path, -p
             Path segment for the DID (e.g. UUID/GUID)
           --signing-key-file, -s
@@ -52,30 +57,59 @@ $ ./bin/didtoolbox.sh -V
 didtoolbox 0.5
 ```
 
-This repo already contains some keys intended for testing purposes, so feel free to try out the following example: 
+Probably the simplest way to use the generator would be to let it generate as much on its own as possible.
+As this repo already contains some keys intended for testing purposes, feel free to try out the following example:
 
 ```shell
 ./bin/didtoolbox.sh create \
-    -a myAssertionKey1,src/test/data/public.pem \
-    -a myAssertionKey2,src/test/data/public.pem \
+    -d https://domain.com:443 \
+    -o dir_to_store_generated_key_pair
+```
+
+The command would create a valid DID log entry also featuring some assertion/verification keys in [JWKS](https://datatracker.ietf.org/doc/html/rfc7517) format.
+Once a DID log entry is created this way (and presumably saved as `did.jsonl`), the generated [verification material](https://www.w3.org/TR/did-core/#verification-material) 
+can be easily extracted (in JWKS format) using [`jq`](https://jqlang.github.io/jq/) parser:
+
+```shell
+cat did.jsonl | jq '.[3].value.verificationMethod[].publicKeyJwk' | jq -s '.|{"keys":.}' > src/test/data/myjsonwebkeys.json
+```
+
+As this repo already contains some keys intended for testing purposes, feel free to try out the following example: 
+
+```shell
+./bin/didtoolbox.sh create \
+    -a my-assert-key-01,src/test/data/myjsonwebkeys.json \
+    -t my-auth-key-01,src/test/data/myjsonwebkeys.json \
     -d https://domain.com:443 \
     -p path1/path2 \
     -j src/test/data/mykeystore.jks \
     --jks-password changeit \
-    --jks-alias    myalias \
+    --jks-alias    myalias                                              
+```
+
+ Alternatively, besides Java KeyStore (PKCS12) also PEM format of signing/verifying key is supported:
+
+```shell
+./bin/didtoolbox.sh create \
+    -a my-assert-key-01,src/test/data/myjsonwebkeys.json \
+    -t my-auth-key-01,src/test/data/myjsonwebkeys.json \
+    -d https://domain.com:443 \
+    -p path1/path2 \
     -s src/test/data/private.pem \
     -v src/test/data/public.pem                                              
 ```
 
-The command above should produce a following DID log entry (_prettified_/_pretty-printed_ version):
+So, regardless of whether [verification material](https://www.w3.org/TR/did-core/#verification-material) is generated 
+or supplied manually via `-a`/`-t` CLI options, a generated DID log entry will always feature some e.g. the command above 
+should produce a following output (_prettified_/_pretty-printed_ version):
 
 ```json
 [
-  "1-QmY2uXCrzovBTDTKF1KAVBVDmmWU5DJeR9AFKVAx8Vy7wj",
-  "2024-12-19T09:49:41Z",
+  "1-QmPYczq8srCY3QjDkgrcwqgur1jq9Rs5o2fKSuozvdgqPw",
+  "2024-12-25T13:58:36Z",
   {
     "method": "did:tdw:0.3",
-    "scid": "QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa",
+    "scid": "QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X",
     "updateKeys": [
       "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
     ],
@@ -88,35 +122,35 @@ The command above should produce a following DID log entry (_prettified_/_pretty
         "https://www.w3.org/ns/did/v1",
         "https://w3id.org/security/multikey/v1"
       ],
-      "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
-      "verificationMethod": [
-        {
-          "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#KsXDA8UP",
-          "controller": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
-          "type": "Ed25519VerificationKey2020",
-          "publicKeyMultibase": "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
-        }
-      ],
+      "id": "did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2",
       "authentication": [
-        {
-          "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#KsXDA8UP",
-          "controller": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
-          "type": "Ed25519VerificationKey2020",
-          "publicKeyMultibase": "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
-        }
+        "did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2#my-auth-key-01"
       ],
       "assertionMethod": [
+        "did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2#my-assert-key-01"
+      ],
+      "verificationMethod": [
         {
-          "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#myAssertionKey1",
-          "type": "Ed25519VerificationKey2020",
-          "controller": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
-          "publicKeyMultibase": "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
+          "id": "did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2#my-auth-key-01",
+          "controller": "did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2",
+          "type": "JsonWebKey2020",
+          "publicKeyJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "kid": "my-auth-key-01",
+            "x": "6sp4uBi3AHRDEFM1wQIyEzjC_sGYDdnSo01N-s_zDYU"
+          }
         },
         {
-          "id": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#myAssertionKey2",
-          "type": "Ed25519VerificationKey2020",
-          "controller": "did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2",
-          "publicKeyMultibase": "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
+          "id": "did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2#my-assert-key-01",
+          "controller": "did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2",
+          "type": "JsonWebKey2020",
+          "publicKeyJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "kid": "my-assert-key-01",
+            "x": "jcAGpa7VpH8SjTjxqXs1bqq8jUjKYE8IrYrU_XY4zg0"
+          }
         }
       ]
     }
@@ -124,11 +158,11 @@ The command above should produce a following DID log entry (_prettified_/_pretty
   {
     "type": "DataIntegrityProof",
     "cryptosuite": "eddsa-jcs-2022",
-    "created": "2024-12-19T09:49:41Z",
+    "created": "2024-12-25T13:58:36Z",
     "verificationMethod": "did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP",
     "proofPurpose": "authentication",
-    "challenge": "1-QmY2uXCrzovBTDTKF1KAVBVDmmWU5DJeR9AFKVAx8Vy7wj",
-    "proofValue": "z4kr5JMu7xihco65bn23oiMfhE1SYz7H88xXr6mWwNkUBtyhet2cxpqzxqYCix99jMqjjsdgE6WcDXtC4jp8ft9VW"
+    "challenge": "1-QmPYczq8srCY3QjDkgrcwqgur1jq9Rs5o2fKSuozvdgqPw",
+    "proofValue": "z5L1jUtzJ4T7zjr9TaH9HKYNKkv4LHhmKa8URJeSRqMHRdsTVf4xRDPr9PoBwkFojU67Yh1u4asdbUg8y3Fh9b4ZC"
   }
 ]
 ```
@@ -136,5 +170,5 @@ The command above should produce a following DID log entry (_prettified_/_pretty
 The same content _un-prettified_, as it should be found in the `did.jsonl` file:
 
 ```json
-["1-QmY2uXCrzovBTDTKF1KAVBVDmmWU5DJeR9AFKVAx8Vy7wj","2024-12-19T09:49:41Z",{"method":"did:tdw:0.3","scid":"QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"prerotation":false,"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/multikey/v1"],"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","verificationMethod":[{"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#KsXDA8UP","controller":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}],"authentication":[{"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#KsXDA8UP","controller":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}],"assertionMethod":[{"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#myAssertionKey1","type":"Ed25519VerificationKey2020","controller":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"},{"id":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2#myAssertionKey2","type":"Ed25519VerificationKey2020","controller":"did:tdw:QmVSt4eee9ZCurXENQagEVxcc1sHDPGVrDqLANBzNtCEaa:domain.com%3A443:path1:path2","publicKeyMultibase":"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"}]}},{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2024-12-19T09:49:41Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-QmY2uXCrzovBTDTKF1KAVBVDmmWU5DJeR9AFKVAx8Vy7wj","proofValue":"z4kr5JMu7xihco65bn23oiMfhE1SYz7H88xXr6mWwNkUBtyhet2cxpqzxqYCix99jMqjjsdgE6WcDXtC4jp8ft9VW"}]
+["1-QmPYczq8srCY3QjDkgrcwqgur1jq9Rs5o2fKSuozvdgqPw","2024-12-25T13:58:36Z",{"method":"did:tdw:0.3","scid":"QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"prerotation":false,"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/multikey/v1"],"id":"did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2","authentication":["did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2#my-auth-key-01"],"assertionMethod":["did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2#my-auth-key-01","controller":"did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2","type":"JsonWebKey2020","publicKeyJwk":{"kty":"OKP","crv":"Ed25519","kid":"my-auth-key-01","x":"6sp4uBi3AHRDEFM1wQIyEzjC_sGYDdnSo01N-s_zDYU"}},{"id":"did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2#my-assert-key-01","controller":"did:tdw:QmTKT5fyz9A3rsuSE5iMeC1Z3NXP6in5ZCV5VYVXodYV7X:domain.com%3A443:path1:path2","type":"JsonWebKey2020","publicKeyJwk":{"kty":"OKP","crv":"Ed25519","kid":"my-assert-key-01","x":"jcAGpa7VpH8SjTjxqXs1bqq8jUjKYE8IrYrU_XY4zg0"}}]}},{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2024-12-25T13:58:36Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-QmPYczq8srCY3QjDkgrcwqgur1jq9Rs5o2fKSuozvdgqPw","proofValue":"z5L1jUtzJ4T7zjr9TaH9HKYNKkv4LHhmKa8URJeSRqMHRdsTVf4xRDPr9PoBwkFojU67Yh1u4asdbUg8y3Fh9b4ZC"}]
 ```

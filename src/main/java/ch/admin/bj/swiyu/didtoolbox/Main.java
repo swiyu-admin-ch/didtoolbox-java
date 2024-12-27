@@ -5,6 +5,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.UnixStyleUsageFormatter;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -50,9 +51,7 @@ public class Main {
         try {
             jc.parse(args);
         } catch (ParameterException e) {
-            System.err.println(e.getLocalizedMessage());
-            jc.usage();
-            System.exit(1);
+            overAndOut(jc, e.getLocalizedMessage());
         }
 
         if (main.version) {
@@ -83,52 +82,64 @@ public class Main {
                 var domain = createCommand.domain;
                 var path = createCommand.path;
 
-                Map<String, AssertionMethodInput> assertionMethodsMap = new HashMap<>();
-                var assertions = createCommand.assertions;
-                if (assertions != null) {
-                    for (CreateTdwCommand.AssertionMethodParameters param : assertions) {
-                        assertionMethodsMap.put(param.key, new AssertionMethodInput(param.publicKeyMultibase));
+                Map<String, String> assertionMethodsMap = new HashMap<>();
+                var assertionMethodKeys = createCommand.assertionMethodKeys;
+                if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
+                    for (CreateTdwCommand.VerificationMethodParameters param : assertionMethodKeys) {
+                        assertionMethodsMap.put(param.key, param.jwk);
                     }
                 }
 
-                var signingKeyPemFile = createCommand.signingKeyPemFile;
-                var verifyingKeyPemFile = createCommand.verifyingKeyPemFile;
+                Map<String, String> authMap = new HashMap<>();
+                var authenticationKeys = createCommand.authenticationKeys;
+                if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
+                    for (CreateTdwCommand.VerificationMethodParameters param : authenticationKeys) {
+                        authMap.put(param.key, param.jwk);
+                    }
+                }
 
-                var jksFile = createCommand.jksFile;
-                var jksPassword = createCommand.jksPassword;
-                var jksAlias = createCommand.jksAlias;
+                File signingKeyPemFile = createCommand.signingKeyPemFile;
+                File verifyingKeyPemFile = createCommand.verifyingKeyPemFile;
+
+                File jksFile = createCommand.jksFile;
+                String jksPassword = createCommand.jksPassword;
+                String jksAlias = createCommand.jksAlias;
+
+                if (signingKeyPemFile != null && verifyingKeyPemFile != null &&
+                        jksFile != null && jksPassword != null && jksAlias != null) {
+                    overAndOut(jc, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
+                }
 
                 String didLogEntry = null;
                 try {
 
-                    Ed25519SignerVerifier signer = null;
+                    Ed25519SignerVerifier signer = new Ed25519SignerVerifier(); // default with generated key pair
                     if (signingKeyPemFile != null && verifyingKeyPemFile != null) {
-                        signer = new Ed25519SignerVerifier(signingKeyPemFile, verifyingKeyPemFile);
+                        signer = new Ed25519SignerVerifier(signingKeyPemFile, verifyingKeyPemFile); // supplied external key pair
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
-                        signer = new Ed25519SignerVerifier(new FileInputStream(jksFile), jksPassword, jksAlias);
-                    }
-
-                    if (signer == null) {
-                        System.err.println("Source for the (signing/verifying) keys undefined. Use one of the relevant options to supply keys");
-                        jc.usage();
-                        System.exit(1);
+                        signer = new Ed25519SignerVerifier(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
+                    } else {
+                        File outputDir = createCommand.outputDir;
+                        if (outputDir == null) {
+                            overAndOut(jc, "As the key pair will be generated, an output directory (to store the key pair) is required to be supplied as well. Alternatively, use one of the relevant options to supply keys");
+                        }
+                        if (!outputDir.exists()){
+                            outputDir.mkdirs();
+                        }
+                        signer.writePrivateKeyAsPem(new File(outputDir, "id_ed25519"));
+                        signer.writePublicKeyAsPem(new File(outputDir, "id_ed25519.pub"));
                     }
 
                     var tdwBuilder = TdwCreator.builder().signer(signer);
-                    if (!assertionMethodsMap.isEmpty()) {
-                        didLogEntry = tdwBuilder
-                                .assertionMethods(assertionMethodsMap)
-                                .build()
-                                .create(domain, path);
-                    } else {
-                        didLogEntry = tdwBuilder
-                                .build()
-                                .create(domain, path);
-                    }
+
+                    didLogEntry = tdwBuilder
+                            .assertionMethodKeys(assertionMethodsMap)
+                            .authenticationKeys(authMap)
+                            .build()
+                            .create(domain, path);
 
                 } catch (Exception e) {
-                    System.err.println("Command '" + parsedCmdStr + "' failed due to: " + e.getLocalizedMessage());
-                    System.exit(1);
+                    overAndOut(jc, "Command '" + parsedCmdStr + "' failed due to: " + e.getLocalizedMessage());
                 }
 
                 System.out.println(didLogEntry);
@@ -136,12 +147,17 @@ public class Main {
                 break;
 
             default:
-                System.err.println("Invalid command: " + parsedCmdStr);
-                jc.usage();
-                System.exit(1);
+                overAndOut(jc, "Invalid command: " + parsedCmdStr);
         }
 
         System.exit(0);
+    }
+
+    private static void overAndOut(JCommander jc, String message) {
+        System.err.println(message);
+        System.err.println();
+        jc.usage();
+        System.exit(1);
     }
 
     private String getImplementationTitle() {

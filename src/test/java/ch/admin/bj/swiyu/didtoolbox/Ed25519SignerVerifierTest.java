@@ -9,6 +9,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
@@ -67,6 +69,32 @@ public class Ed25519SignerVerifierTest {
         assertNotNull(signed);
         assertEquals(128, signed.length());
         //assertEquals(expected, signed);
+    }
+
+    @Test
+    void testWritePrivateKeyAsPem() throws IOException {
+
+        File tempFile = File.createTempFile("myprivatekey", ".pem");
+        tempFile.deleteOnExit();
+
+        (new Ed25519SignerVerifier()).writePrivateKeyAsPem(tempFile); // MUT
+
+        //assertEquals(119, tempFile.length());
+        assertEquals(119, Files.size(tempFile.toPath()));
+        assertEquals(3, Files.lines(tempFile.toPath(), StandardCharsets.UTF_8).count());
+    }
+
+    @Test
+    void testWritePublicKeyAsPem() throws IOException {
+
+        File tempFile = File.createTempFile("mypublickey", ".pem");
+        tempFile.deleteOnExit();
+
+        (new Ed25519SignerVerifier()).writePublicKeyAsPem(tempFile); // MUT
+
+        //assertEquals(119, tempFile.length());
+        assertEquals(113, Files.size(tempFile.toPath()));
+        assertEquals(3, Files.lines(tempFile.toPath(), StandardCharsets.UTF_8).count());
     }
 
     @DisplayName("Verifying using various existing keys")
