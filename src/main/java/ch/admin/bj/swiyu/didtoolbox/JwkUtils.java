@@ -1,5 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
@@ -8,9 +11,10 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.text.ParseException;
 
 class JwkUtils {
@@ -45,7 +49,7 @@ class JwkUtils {
     }
      */
 
-    static String generateEd25519(String keyID) throws com.nimbusds.jose.JOSEException {
+    static String generateEd25519(String keyID, File jwksFile) throws com.nimbusds.jose.JOSEException, IOException {
 
         // Generate Ed25519 Octet key pair in JWK format, attach some metadata
         OctetKeyPair jwk = new OctetKeyPairGenerator(Curve.Ed25519)
@@ -54,6 +58,32 @@ class JwkUtils {
                 .keyID(keyID) // give the key a unique ID (optional)
                 //.issueTime(new Date()) // issued-at timestamp (optional)
                 .generate();
+
+        if (jwksFile != null) {
+
+            var jsonArray = new JsonArray();
+            jsonArray.add(JsonParser.parseString(jwk.toJSONString()));
+            var keys = new JsonObject();
+            keys.add("keys", jsonArray);
+
+            var w = new BufferedWriter(new FileWriter(jwksFile));
+            try {
+                w.write(keys.toString());
+            } finally {
+                w.close();
+            }
+
+            // A private key file should always get appropriate file permissions, if feasible
+            PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(jwksFile.toPath(), PosixFileAttributeView.class);
+            if (!System.getProperty("os.name").toLowerCase().contains("win") && posixFileAttributeView != null) {
+                Files.setPosixFilePermissions(jwksFile.toPath(), PosixFilePermissions.fromString("rw-------"));
+            } else {
+                // CAUTION If the underlying file system can not distinguish the owner's read permission from that of others,
+                //         then the permission will apply to everybody, regardless of this value.
+                jwksFile.setReadable(true, true);
+                jwksFile.setWritable(true, true);
+            }
+        }
 
         // Output the public OKP JWK parameters only
         return jwk.toPublicJWK().toJSONString();

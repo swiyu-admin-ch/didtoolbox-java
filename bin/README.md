@@ -43,8 +43,6 @@ Usage: didtoolbox [options] [command] [command options]
             Java KeyStore (PKCS12) file to read the keys from
           --jks-password
             Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore
-          --key-pair-output-dir, -o
-            The directory to store the generated key pair (both in PEM Format), in case no external keys are supplied. Otherwise, ignored
           --path, -p
             Path segment for the DID (e.g. UUID/GUID)
           --signing-key-file, -s
@@ -57,24 +55,38 @@ $ ./bin/didtoolbox.sh -V
 didtoolbox 0.5
 ```
 
-Probably the simplest way to use the generator would be to let it generate as much on its own as possible.
-As this repo already contains some keys intended for testing purposes, feel free to try out the following example:
+Probably the simplest way to use the generator would be to let it generate as much on its own as possible:
 
 ```shell
-./bin/didtoolbox.sh create \
-    -d https://domain.com:443 \
-    -o dir_to_store_generated_key_pair
+./bin/didtoolbox.sh create -d https://domain.com:443
 ```
 
 The command would create a valid DID log entry also featuring some assertion/verification keys in [JWKS](https://datatracker.ietf.org/doc/html/rfc7517) format.
-Once a DID log entry is created this way (and presumably saved as `did.jsonl`), the generated [verification material](https://www.w3.org/TR/did-core/#verification-material) 
-can be easily extracted (in JWKS format) using [`jq`](https://jqlang.github.io/jq/) parser:
+Beyond that, and since no [verification material](https://www.w3.org/TR/did-core/#verification-material) is supplied explicitly, 
+the generator will take care of that, too. Hence, all required key pairs will also be generated and stored in `.didtoolbox` directory, for later use:
 
 ```shell
-cat did.jsonl | jq '.[3].value.verificationMethod[].publicKeyJwk' | jq -s '.|{"keys":.}' > src/test/data/myjsonwebkeys.json
+# ll .didtoolbox
+total 32
+-rw-------@ 1 u80850818  staff   162B Dec 30 13:51 assert-key-01.json
+-rw-------@ 1 u80850818  staff   160B Dec 30 13:51 auth-key-01.json
+-rw-------  1 u80850818  staff   119B Dec 30 13:51 id_ed25519
+-rw-r--r--  1 u80850818  staff   113B Dec 30 13:51 id_ed25519.pub
 ```
 
-As this repo already contains some keys intended for testing purposes, feel free to try out the following example: 
+This implies that you may now also try running the command in a usual/recommended way:
+
+```shell
+./bin/didtoolbox.sh create \
+    -a assert-key-01,.didtoolbox/assert-key-01.json \
+    -t auth-key-01,.didtoolbox/auth-key-01.json \
+    -d https://domain.com:443 \
+    -p path1/path2 \
+    -s .didtoolbox/id_ed25519 \
+    -v .didtoolbox/id_ed25519.pub                                                      
+```
+
+As this repo already contains some keys intended for testing purposes, feel free to also try out the following example: 
 
 ```shell
 ./bin/didtoolbox.sh create \

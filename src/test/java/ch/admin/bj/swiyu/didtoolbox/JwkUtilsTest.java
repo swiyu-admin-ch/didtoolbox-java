@@ -12,7 +12,7 @@ class JwkUtilsTest {
     @Test
     void generateEd25519() { //throws JOSEException {
         try {
-            String json = JwkUtils.generateEd25519("auth-key-01");
+            String json = JwkUtils.generateEd25519("auth-key-01", null);
             assertNotNull(json);
         } catch (Exception e) {
             fail(e);

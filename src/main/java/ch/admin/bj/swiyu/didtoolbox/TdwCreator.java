@@ -9,11 +9,10 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Map;
 
 @Builder
 @Getter
@@ -32,15 +31,15 @@ public class TdwCreator {
      * @return
      * @throws IOException
      */
-    public String create(String domain, String path) throws IOException, JOSEException, ParseException {
+    public String create(String domain, String path) throws IOException, JOSEException {
         return create(domain, path, ZonedDateTime.now());
     }
 
-    private JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk) throws JOSEException, IOException, ParseException {
+    private JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws JOSEException, IOException {
 
         String publicKeyJwk = jwk;
         if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generateEd25519(keyID);
+            publicKeyJwk = JwkUtils.generateEd25519(keyID, jwksFile);
         }
 
         JsonObject verificationMethodObj = new JsonObject();
@@ -62,7 +61,7 @@ public class TdwCreator {
      * @return
      * @throws IOException
      */
-    String create(String domain, String path, ZonedDateTime now) throws IOException, JOSEException, ParseException {
+    String create(String domain, String path, ZonedDateTime now) throws IOException, JOSEException {
 
         // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
         String didTDW = "did:tdw:{SCID}:" + domain.replace("https://", "").replace(":", "%3A");
@@ -86,14 +85,18 @@ public class TdwCreator {
             JsonArray authentication = new JsonArray();
             for (var key : this.authenticationKeys.entrySet()) {
                 authentication.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue()));
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue(), null));
             }
 
             didDoc.add("authentication", authentication);
 
         } else {
 
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null)); // default
+            var outputDir = new File(".didtoolbox");
+            if (!outputDir.exists()){
+                outputDir.mkdirs();
+            }
+            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null, new File(outputDir, "auth-key-01.json"))); // default
 
             JsonArray authentication = new JsonArray();
             authentication.add(didTDW + "#" + "auth-key-01");
@@ -105,14 +108,18 @@ public class TdwCreator {
             JsonArray assertionMethod = new JsonArray();
             for (var key : this.assertionMethodKeys.entrySet()) {
                 assertionMethod.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue()));
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue(), null));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
 
         } else {
 
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null)); // default
+            var outputDir = new File(".didtoolbox");
+            if (!outputDir.exists()){
+                outputDir.mkdirs();
+            }
+            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null, new File(outputDir, "assert-key-01.json"))); // default
 
             JsonArray assertionMethod = new JsonArray();
             assertionMethod.add(didTDW + "#" + "assert-key-01");

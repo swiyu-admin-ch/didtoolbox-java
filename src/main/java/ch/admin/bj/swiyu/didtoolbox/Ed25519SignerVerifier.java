@@ -11,6 +11,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -180,13 +181,22 @@ class Ed25519SignerVerifier {
         }
 
         var key = keyPair.getPrivate();
-        PemWriter pemWriter = new PemWriter(new BufferedWriter(new FileWriter(file)));
+        PemWriter pemWriter = new PemWriter(new FileWriter(file));
         try {
             pemWriter.writeObject(new PemObject("PRIVATE KEY", key.getEncoded()));
         } finally {
             pemWriter.close();
         }
-        Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-------"));
+        // A private key file should always get appropriate file permissions, if feasible
+        PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(file.toPath(), PosixFileAttributeView.class);
+        if (!System.getProperty("os.name").toLowerCase().contains("win") && posixFileAttributeView != null) {
+            Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-------"));
+        } else {
+            // CAUTION If the underlying file system can not distinguish the owner's read permission from that of others,
+            //         then the permission will apply to everybody, regardless of this value.
+            file.setReadable(true, true);
+            file.setWritable(true, true);
+        }
     }
 
     /**
@@ -200,13 +210,12 @@ class Ed25519SignerVerifier {
         }
 
         var key = keyPair.getPublic();
-        PemWriter pemWriter = new PemWriter(new BufferedWriter(new FileWriter(file)));
+        PemWriter pemWriter = new PemWriter(new FileWriter(file));
         try {
             pemWriter.writeObject(new PemObject("PUBLIC KEY", key.getEncoded()));
         } finally {
             pemWriter.close();
         }
-        //Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-------"));
     }
 
     /**

@@ -29,6 +29,7 @@ class CreateTdwCommand {
     //,required = true)
     String path;
 
+    /*
     static class OutputDirParameterConverter implements IStringConverter<File> {
         @Override
         public File convert(String value) {
@@ -51,6 +52,48 @@ class CreateTdwCommand {
             converter = OutputDirParameterConverter.class,
             validateWith = OutputDirParameterValidator.class)
     File outputDir;
+     */
+
+    @Parameter(names = {"--signing-key-file", "-s"},
+            description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format",
+            converter = PemFileParameterConverter.class,
+            validateWith = PemFileParameterValidator.class)
+    File signingKeyPemFile;
+
+    @Parameter(names = {"--verifying-key-file", "-v"},
+            description = "The ed25519 public key file for the DID Document’s verification method. In PEM format",
+            converter = PemFileParameterConverter.class,
+            validateWith = PemFileParameterValidator.class)
+    File verifyingKeyPemFile;
+
+    @Parameter(names = {"--jks-file", "-j"},
+            description = "Java KeyStore (PKCS12) file to read the keys from",
+            converter = JksFileParameterConverter.class,
+            validateWith = JksFileParameterValidator.class)
+    File jksFile;
+
+    @Parameter(names = {"--jks-password"},
+            description = "Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore",
+            password = true)
+    String jksPassword;
+
+    @Parameter(names = {"--jks-alias"},
+            description = "Java KeyStore alias")
+    String jksAlias;
+
+    @Parameter(names = {"--assert", "-a"},
+            description = "An assertion method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)",
+            listConverter = VerificationMethodParametersConverter.class,
+            validateWith = VerificationMethodKeyParametersValidator.class,
+            variableArity = true)
+    List<VerificationMethodParameters> assertionMethodKeys;
+
+    @Parameter(names = {"--auth", "-t"},
+            description = "An authentication method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#authentication)",
+            listConverter = VerificationMethodParametersConverter.class,
+            validateWith = VerificationMethodKeyParametersValidator.class,
+            variableArity = true)
+    List<VerificationMethodParameters> authenticationKeys;
 
     static class PemFileParameterConverter implements IStringConverter<File> {
         @Override
@@ -69,18 +112,6 @@ class CreateTdwCommand {
         }
     }
 
-    @Parameter(names = {"--signing-key-file", "-s"},
-            description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format",
-            converter = PemFileParameterConverter.class,
-            validateWith = PemFileParameterValidator.class)
-    File signingKeyPemFile;
-
-    @Parameter(names = {"--verifying-key-file", "-v"},
-            description = "The ed25519 public key file for the DID Document’s verification method. In PEM format",
-            converter = PemFileParameterConverter.class,
-            validateWith = PemFileParameterValidator.class)
-    File verifyingKeyPemFile;
-
     static class JksFileParameterConverter implements IStringConverter<File> {
         @Override
         public File convert(String value) {
@@ -97,21 +128,6 @@ class CreateTdwCommand {
             }
         }
     }
-
-    @Parameter(names = {"--jks-file", "-j"},
-            description = "Java KeyStore (PKCS12) file to read the keys from",
-            converter = JksFileParameterConverter.class,
-            validateWith = JksFileParameterValidator.class)
-    File jksFile;
-
-    @Parameter(names = {"--jks-password"},
-            description = "Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore",
-            password = true)
-    String jksPassword;
-
-    @Parameter(names = {"--jks-alias"},
-            description = "Java KeyStore alias")
-    String jksAlias;
 
     static class VerificationMethodParameters {
 
@@ -171,20 +187,6 @@ class CreateTdwCommand {
             }
         }
     }
-
-    @Parameter(names = {"--assert", "-a"},
-            description = "An assertion method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)",
-            listConverter = VerificationMethodParametersConverter.class,
-            validateWith = VerificationMethodKeyParametersValidator.class,
-            variableArity = true)
-    List<VerificationMethodParameters> assertionMethodKeys;
-
-    @Parameter(names = {"--auth", "-t"},
-            description = "An authentication method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#authentication)",
-            listConverter = VerificationMethodParametersConverter.class,
-            validateWith = VerificationMethodKeyParametersValidator.class,
-            variableArity = true)
-    List<VerificationMethodParameters> authenticationKeys;
 
     /*
     @Parameter(names = "-i")

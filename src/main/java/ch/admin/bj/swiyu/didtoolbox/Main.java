@@ -119,11 +119,14 @@ public class Main {
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
                         signer = new Ed25519SignerVerifier(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
                     } else {
+                        /*
                         File outputDir = createCommand.outputDir;
                         if (outputDir == null) {
                             overAndOut(jc, "As the key pair will be generated, an output directory (to store the key pair) is required to be supplied as well. Alternatively, use one of the relevant options to supply keys");
                         }
-                        if (!outputDir.exists()){
+                         */
+                        var outputDir = new File(".didtoolbox");
+                        if (!outputDir.exists()) {
                             outputDir.mkdirs();
                         }
                         signer.writePrivateKeyAsPem(new File(outputDir, "id_ed25519"));
