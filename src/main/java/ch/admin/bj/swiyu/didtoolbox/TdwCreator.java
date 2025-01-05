@@ -77,6 +77,7 @@ public class TdwCreator {
         var didDoc = new JsonObject();
         didDoc.add("@context", context);
         didDoc.addProperty("id", didTDW);
+        didDoc.addProperty("controller", didTDW);
 
         JsonArray verificationMethod = new JsonArray();
 
@@ -170,6 +171,11 @@ public class TdwCreator {
         updateKeys.add(this.signer.getVerificationKeyMultibase());
         didMethodParameters.add("updateKeys", updateKeys);
 
+        didMethodParameters.add("nextKeyHashes", new JsonArray());
+        didMethodParameters.add("witnesses", new JsonArray());
+        didMethodParameters.addProperty("witnessThreshold", 0);
+        didMethodParameters.addProperty("deactivated", false);
+
         // Since v0.3 (https://identity.foundation/trustdidweb/v0.3/#didtdw-version-changelog):
         //            Removes the cryptosuite parameter, moving it to implied based on the method parameter.
         //cryptosuite: Option::None,
@@ -202,7 +208,7 @@ public class TdwCreator {
         String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
         JsonArray didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonArray();
 
-        // See https://identity.foundation/trustdidweb/v0.3/#generate-entry-hash
+        // See https://identity.foundation/didwebvh/v0.3/#generate-entry-hash
         // After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
@@ -222,7 +228,9 @@ public class TdwCreator {
         with the versionId value (item 1 of the did log) used as the challenge item.
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
-        didLogEntryWithProof.add(JCSHasher.buildDataIntegrityProof(didDoc, this.signer, 1, entryHash, "authentication", now));
+        JsonArray proofs = new JsonArray();
+        proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, this.signer, 1, entryHash, "authentication", now));
+        didLogEntryWithProof.add(proofs);
 
         return didLogEntryWithProof.toString();
     }

@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,34 +22,37 @@ public class JCSHasherTest {
     // From https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
     private static final String CREDENTIAL_WITHOUT_PROOF = """
             {
-                "@context": [
-                    "https://www.w3.org/ns/credentials/v2",
-                    "https://www.w3.org/ns/credentials/examples/v2"
-                ],
-                "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
-                "type": ["VerifiableCredential", "AlumniCredential"],
-                "name": "Alumni Credential",
-                "description": "A minimum viable example of an Alumni Credential.",
-                "issuer": "https://vc.example/issuers/5678",
-                "validFrom": "2023-01-01T00:00:00Z",
-                "credentialSubject": {
-                    "id": "did:example:abcdefgh",
-                    "alumniOf": "The School of Examples"
-                }
+                 "@context": [
+                     "https://www.w3.org/ns/credentials/v2",
+                     "https://www.w3.org/ns/credentials/examples/v2"
+                 ],
+                 "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
+                 "type": ["VerifiableCredential", "AlumniCredential"],
+                 "name": "Alumni Credential",
+                 "description": "A minimum viable example of an Alumni Credential.",
+                 "issuer": "https://vc.example/issuers/5678",
+                 "validFrom": "2023-01-01T00:00:00Z",
+                 "credentialSubject": {
+                     "id": "did:example:abcdefgh",
+                     "alumniOf": "The School of Examples"
+                 }
             }
             """;
 
-    // From https://www.w3.org/TR/vc-di-eddsa/#example-canonical-credential-without-proof-0
+    // From https://www.w3.org/TR/vc-di-eddsa/#example-proof-options-document-1
     private static final String PROOF_OPTIONS_DOCUMENT = """
             {
                 "type": "DataIntegrityProof",
                 "cryptosuite": "eddsa-jcs-2022",
                 "created": "2023-02-24T23:36:38Z",
                 "verificationMethod": "did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2#z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2",
-                "proofPurpose": "assertionMethod"
+                "proofPurpose": "assertionMethod",
+                "@context": [
+                    "https://www.w3.org/ns/credentials/v2",
+                    "https://www.w3.org/ns/credentials/examples/v2"
+               ]
             }
             """;
-
 
     private static Collection<Object[]> multihashInputExpected() {
         return Arrays.asList(new String[][]{
@@ -101,9 +105,9 @@ public class JCSHasherTest {
         String scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
 
         // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
-        String didDocWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\{SCID}", scid);
+        String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\{SCID}", scid);
 
-        return JsonParser.parseString(didDocWithSCID).getAsJsonArray();
+        return JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonArray();
     }
 
     @DisplayName("Calculating multihash value")
@@ -172,15 +176,12 @@ public class JCSHasherTest {
 
         // https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-credential-without-proof-hex-0
         assertEquals("59b7cb6251b8991add1ce0bc83107e3db9dbbab5bd2c28f687db1a03abc92f19", actualDocHashHex);
-        // https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-0
-        assertEquals("c46b3487ab7087c4f426b546c449094ff57b8fefa6fd85e83f1b31e24c230da8", actualProofHashHex);
+        // https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-1
+        assertEquals("66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db", actualProofHashHex);
     }
 
     @Test
     public void testBuildDataIntegrityProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
-
-        JsonObject actual = null;
-        String actualProofValue = null;
 
         try {
 
@@ -189,29 +190,29 @@ public class JCSHasherTest {
             assertEquals("59b7cb6251b8991add1ce0bc83107e3db9dbbab5bd2c28f687db1a03abc92f19", docHashHex);
 
             String expectedProofHashHex = JCSHasher.hashJsonObjectAsHex(JsonParser.parseString(PROOF_OPTIONS_DOCUMENT).getAsJsonObject());
-            // https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-0
-            assertEquals("c46b3487ab7087c4f426b546c449094ff57b8fefa6fd85e83f1b31e24c230da8", expectedProofHashHex);
+            // https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-1
+            assertEquals("66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db", expectedProofHashHex);
 
-            actual = JCSHasher.buildDataIntegrityProof(
+            JsonObject actual = JCSHasher.buildDataIntegrityProof(
                     JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject(),
-                    // https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
+                    true,
+                    // https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
                     new Ed25519SignerVerifier("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
                     1, // here irrelevant
                     null, // here irrelevant
                     "assertionMethod",
                     ZonedDateTime.parse("2023-02-24T23:36:38Z"));
 
-            actualProofValue = actual.asMap().get("proofValue").getAsString();
-            assertNotNull(actual.remove("proofValue"));
+            String actualProofValue = actual.asMap().get("proofValue").getAsString();
+            // https://www.w3.org/TR/vc-di-eddsa/#example-signature-of-combined-hashes-base58-btc-1
+            assertEquals("z2HnFSSPPBzR36zdDgK8PbEHeXbR56YF24jwMpt3R1eHXQzJDMWS93FCzpvJpwTWd3GAVFuUfjoJdcnTMuVor51aX", actualProofValue);
 
-            // https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-0
-            assertEquals("c46b3487ab7087c4f426b546c449094ff57b8fefa6fd85e83f1b31e24c230da8", JCSHasher.hashJsonObjectAsHex(actual));
+            assertNotNull(actual.remove("proofValue"));
+            // https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-1
+            assertEquals("66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db", JCSHasher.hashJsonObjectAsHex(actual));
 
         } catch (Exception e) {
             fail(e);
         }
-
-        // https://www.w3.org/TR/vc-di-eddsa/#example-signature-of-combined-hashes-base58-btc-0
-        assertEquals("zboydVv31kj6jP37GMBZwYyjbvrqr9MWeY9NCEfYUwLcKwkdqAcB44dqEcqaMi8mfdvT2Vbnvdrv6XRaYzgpuPWn", actualProofValue);
     }
 }

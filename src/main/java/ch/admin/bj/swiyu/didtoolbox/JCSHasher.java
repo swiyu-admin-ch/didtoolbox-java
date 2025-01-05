@@ -61,7 +61,6 @@ class JCSHasher {
         // Multihash Identifier	Multihash Header	Description
         // sha2-256	            0x12	            SHA-2 with 256 bits (32 bytes) of output, as defined by [RFC6234].
         ByteBuffer buff = ByteBuffer.allocate(2 + digest.length);
-        // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
         buff.put((byte) 0x12);          // hash algorithm (sha2-256) identifier
         buff.put((byte) digest.length); // hash size (in bytes)
         buff.put(digest);
@@ -85,12 +84,12 @@ class JCSHasher {
         return hashAsHex(json.toString());
     }
 
-    static String hashJsonArray(JsonArray json) throws IOException {
+    static String hashJsonArrayAsHex(JsonArray json) throws IOException {
         return hashAsHex(json.toString());
     }
 
     /**
-     * As specified by https://www.w3.org/TR/vc-di-eddsa/#dataintegrityproof.
+     * As specified by https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022.
      * <p>See example: https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
      *
      * <p>A proof contains the attributes specified in the Proofs section (https://www.w3.org/TR/vc-data-integrity/#proofs)
@@ -115,7 +114,7 @@ class JCSHasher {
      * @return JsonObject representing the data integrity proof
      * @throws IOException may come from a hasher
      */
-    static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument, Ed25519SignerVerifier signer, int versionId, String entryHash, String proofPurpose, ZonedDateTime dateTime)
+    static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument, boolean useContext, Ed25519SignerVerifier signer, int versionId, String entryHash, String proofPurpose, ZonedDateTime dateTime)
             throws IOException {
 
         /*
@@ -127,6 +126,13 @@ class JCSHasher {
          */
 
         JsonObject proof = new JsonObject();
+
+        // If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context.
+        var ctx = unsecuredDocument.get("@context");
+        if (ctx != null && useContext) {
+            proof.add("@context", ctx);
+        }
+
         proof.addProperty("type", "DataIntegrityProof");
         proof.addProperty("cryptosuite", "eddsa-jcs-2022");
         proof.addProperty("created", DateTimeFormatter.ISO_INSTANT.format(dateTime.truncatedTo(ChronoUnit.SECONDS)));
@@ -145,8 +151,10 @@ class JCSHasher {
 
         var signature = signer.signBytes(HexFormat.of().parseHex(proofHashHex + docHashHex));
         //String signatureHex = HexFormat.of().formatHex(signature);
+        //String verifyingKeyHex = HexFormat.of().formatHex(signer.verifyingKey);
 
         // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
+        //     https://www.w3.org/TR/controller-document/#multibase-0
         proof.addProperty("proofValue", 'z' + Base58.encode(signature));
 
         return proof;
