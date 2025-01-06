@@ -95,7 +95,7 @@ public class TdwCreator {
         } else {
 
             var outputDir = new File(".didtoolbox");
-            if (!outputDir.exists()){
+            if (!outputDir.exists()) {
                 outputDir.mkdirs();
             }
             verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null, new File(outputDir, "auth-key-01.json"))); // default
@@ -118,7 +118,7 @@ public class TdwCreator {
         } else {
 
             var outputDir = new File(".didtoolbox");
-            if (!outputDir.exists()){
+            if (!outputDir.exists()) {
                 outputDir.mkdirs();
             }
             verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null, new File(outputDir, "assert-key-01.json"))); // default
@@ -172,17 +172,19 @@ public class TdwCreator {
         updateKeys.add(this.signer.getVerificationKeyMultibase());
         didMethodParameters.add("updateKeys", updateKeys);
 
+        /* See https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters
         didMethodParameters.add("nextKeyHashes", new JsonArray());
         didMethodParameters.add("witnesses", new JsonArray());
         didMethodParameters.addProperty("witnessThreshold", 0);
         didMethodParameters.addProperty("deactivated", false);
+        didMethodParameters.addProperty("portable", false);
+        didMethodParameters.addProperty("prerotation", false);
+         */
 
-        // Since v0.3 (https://identity.foundation/trustdidweb/v0.3/#didtdw-version-changelog):
+        // Since v0.3 (https://identity.foundation/didwebvh/v0.3/#didtdw-version-changelog):
         //            Removes the cryptosuite parameter, moving it to implied based on the method parameter.
         //cryptosuite: Option::None,
-        didMethodParameters.addProperty("prerotation", false);
-        // OPTIONAL: next_keys, moved, deactivated, ttl
-        didMethodParameters.addProperty("portable", false);
+
         didLogEntryWithoutProofAndSignature.add(didMethodParameters);
 
         // Add the initial DIDDoc
