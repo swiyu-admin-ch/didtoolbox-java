@@ -77,7 +77,8 @@ public class TdwCreator {
         var didDoc = new JsonObject();
         didDoc.add("@context", context);
         didDoc.addProperty("id", didTDW);
-        didDoc.addProperty("controller", didTDW);
+        // "controller" is omitted w.r.t. https://jira.bit.admin.ch/browse/EIDSYS-352
+        //didDoc.addProperty("controller", didTDW);
 
         JsonArray verificationMethod = new JsonArray();
 
