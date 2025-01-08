@@ -64,6 +64,7 @@ public class TdwCreator {
     String create(String domain, String path, ZonedDateTime now) throws IOException, JOSEException {
 
         // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
+        // See example https://identity.foundation/didwebvh/v0.3/#example-7
         String didTDW = "did:tdw:{SCID}:" + domain.replace("https://", "").replace(":", "%3A");
         if (path != null && !path.isEmpty()) {
             didTDW += ":" + path.replaceAll("/", ":");
@@ -98,7 +99,7 @@ public class TdwCreator {
             if (!outputDir.exists()) {
                 outputDir.mkdirs();
             }
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null, new File(outputDir, "auth-key-01.json"))); // default
+            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null, new File(outputDir, "auth-key-01"))); // default
 
             JsonArray authentication = new JsonArray();
             authentication.add(didTDW + "#" + "auth-key-01");
@@ -121,7 +122,7 @@ public class TdwCreator {
             if (!outputDir.exists()) {
                 outputDir.mkdirs();
             }
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null, new File(outputDir, "assert-key-01.json"))); // default
+            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null, new File(outputDir, "assert-key-01"))); // default
 
             JsonArray assertionMethod = new JsonArray();
             assertionMethod.add(didTDW + "#" + "assert-key-01");

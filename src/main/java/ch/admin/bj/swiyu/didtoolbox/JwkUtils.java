@@ -10,11 +10,19 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.*;
 import java.text.ParseException;
 
 class JwkUtils {
@@ -66,11 +74,56 @@ class JwkUtils {
             var keys = new JsonObject();
             keys.add("keys", jsonArray);
 
-            var w = new BufferedWriter(new FileWriter(jwksFile));
+            var w = new BufferedWriter(new FileWriter(new File(jwksFile.getPath() + ".json")));
             try {
                 w.write(keys.toString());
+                w.flush();
             } finally {
                 w.close();
+            }
+
+            PemWriter pemWriter = new PemWriter(new FileWriter(jwksFile));
+            PemWriter pemWriterPub = new PemWriter(new FileWriter(new File(jwksFile.getPath() + ".pub")));
+            try {
+
+                var keyFactory = KeyFactory.getInstance("Ed25519");
+
+                PrivateKey privKey = keyFactory.generatePrivate(new EdECPrivateKeySpec(NamedParameterSpec.ED25519, jwk.getDecodedD()));
+
+                pemWriter.writeObject(new PemObject("PRIVATE KEY", privKey.getEncoded()));
+                pemWriter.flush();
+
+                /* checkpoint
+                if (PemUtils.getPrivateKeyEd25519(PemUtils.parsePEMFile(jwksFile)).getEncoded().length != 48) {
+                    throw new RuntimeException("Ed25519 private key loaded from a PEM file should be 48 bytes long");
+                }*/
+
+                var x = jwk.getDecodedX();
+                byte msb = x[x.length - 1]; // Most Significant Byte
+                x[x.length - 1] &= (byte) 0x7F;
+                boolean xOdd = (msb & 0x80) != 0;
+
+                reverse(x); // see https://github.com/openjdk/jdk15/blob/master/src/jdk.crypto.ec/share/classes/sun/security/ec/ed/EdDSAPublicKeyImpl.java#L76
+                PublicKey pubKey = keyFactory.generatePublic(new EdECPublicKeySpec(NamedParameterSpec.ED25519, new EdECPoint(xOdd, new BigInteger(1, x))));
+
+                pemWriterPub.writeObject(new PemObject("PUBLIC KEY", pubKey.getEncoded()));
+                pemWriterPub.flush();
+
+                /* checkpoint
+                if (PemUtils.getPublicKeyEd25519(PemUtils.parsePEMFile(new File(jwksFile.getPath() + ".pub"))).getEncoded().length != 44) {
+                    throw new RuntimeException("Ed25519 public key loaded from a PEM file should be 44 bytes long");
+                }*/
+
+                // sanity check
+                var signer = new Ed25519SignerVerifier(new File(jwksFile.getPath()), new File(jwksFile.getPath() + ".pub"));
+                if (!signer.verify("hello world", signer.signString("hello world"))) {
+                    throw new RuntimeException("keys do not match");
+                }
+
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                throw new RuntimeException(e);
+            } finally {
+                pemWriter.close();
             }
 
             // A private key file should always get appropriate file permissions, if feasible
@@ -87,6 +140,21 @@ class JwkUtils {
 
         // Output the public OKP JWK parameters only
         return jwk.toPublicJWK().toJSONString();
+    }
+
+    // See https://github.com/openjdk/jdk15/blob/master/src/jdk.crypto.ec/share/classes/sun/security/ec/ed/EdDSAPublicKeyImpl.java#L120
+    private static void reverse(byte[] arr) {
+        int i = 0;
+        int j = arr.length - 1;
+
+        while (i < j) {
+            //swap(arr, i, j);
+            byte tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
+            i++;
+            j--;
+        }
     }
 
     /**

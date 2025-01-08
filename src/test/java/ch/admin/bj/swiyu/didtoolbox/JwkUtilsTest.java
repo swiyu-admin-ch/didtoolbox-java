@@ -3,17 +3,32 @@ package ch.admin.bj.swiyu.didtoolbox;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.file.Files;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 class JwkUtilsTest {
 
     @Test
-    void generateEd25519() { //throws JOSEException {
+    void testGenerateEd25519() { //throws JOSEException {
         try {
             String json = JwkUtils.generateEd25519("auth-key-01", null);
             assertNotNull(json);
+        } catch (Exception e) {
+            fail(e);
+        }
+    }
+
+    @Test
+    void testGenerateEd25519WithOutput() { //throws JOSEException {
+        try {
+            File tempFile = File.createTempFile("myprivatekey", "");
+            tempFile.deleteOnExit();
+            String json = JwkUtils.generateEd25519("auth-key-01", tempFile);
+            assertNotNull(json);
+            assertNotEquals(0, Files.size(tempFile.toPath()));
+            assertNotEquals(0, Files.size(new File(tempFile.getPath() + ".json").toPath()));
+            assertNotEquals(0, Files.size(new File(tempFile.getPath() + ".pub").toPath()));
         } catch (Exception e) {
             fail(e);
         }
