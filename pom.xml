@@ -6,8 +6,12 @@
 
     <groupId>ch.admin.bj.swiyu</groupId>
     <artifactId>didtoolbox</artifactId>
-    <version>0.5.0-SNAPSHOST</version>
+    <version>1.0.0-SNAPSHOST</version>
     <packaging>jar</packaging>
+
+    <!--name>???</name-->
+    <!--description>A collection of ???</description-->
+    <url>https://github.com/e-id-admin/didtoolbox-java</url>
 
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
@@ -133,6 +137,40 @@
             </plugin-->
         </plugins>
     </build>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit</url>
+        </license>
+    </licenses>
+
+    <profiles>
+        <profile>
+            <id>github</id>
+            <repositories>
+                <repository>
+                    <id>github</id>
+                    <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>Github</name>
+            <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+        </repository>
+        <snapshotRepository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <repositories>
         <!-- required for https://github.com/multiformats/java-multibase -->
