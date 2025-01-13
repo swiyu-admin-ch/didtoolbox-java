@@ -8,12 +8,16 @@ import com.beust.jcommander.UnixStyleUsageFormatter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.jar.Manifest;
 
+import static ch.admin.bj.swiyu.didtoolbox.CreateTdwCommand.DEFAULT_METHOD_VERSION;
+
 public class Main {
+
 
     @Parameter(names = {"--help", "-h"},
             description = "Display help for the DID toolbox",
@@ -79,8 +83,14 @@ public class Main {
                     System.exit(0);
                 }
 
-                var domain = createCommand.domain;
-                var path = createCommand.path;
+                URL identifierRegistryUrl = createCommand.identifierRegistryUrl;
+
+                var methodVersion = createCommand.methodVersion;
+                if (methodVersion == null) {
+                    methodVersion = DEFAULT_METHOD_VERSION;
+                } else if (!methodVersion.equals(DEFAULT_METHOD_VERSION)) {
+                    overAndOut(jc, "Supplied method version is not supported: '" + methodVersion + "'. Currently supported is: " + DEFAULT_METHOD_VERSION);
+                }
 
                 Map<String, String> assertionMethodsMap = new HashMap<>();
                 var assertionMethodKeys = createCommand.assertionMethodKeys;
@@ -139,7 +149,7 @@ public class Main {
                             .assertionMethodKeys(assertionMethodsMap)
                             .authenticationKeys(authMap)
                             .build()
-                            .create(domain, path);
+                            .create(identifierRegistryUrl);
 
                 } catch (Exception e) {
                     overAndOut(jc, "Command '" + parsedCmdStr + "' failed due to: " + e.getLocalizedMessage());

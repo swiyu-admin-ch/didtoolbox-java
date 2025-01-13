@@ -8,6 +8,7 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -25,13 +26,14 @@ public class TdwCreator {
     // TODO private File dirToStoreKeyPair;
 
     /**
-     * @param domain
-     * @param path   (optional)
+     * Creates a did:tdw DID Document.
+     *
+     * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
      * @return
      * @throws IOException
      */
-    public String create(String domain, String path) throws IOException {
-        return create(domain, path, ZonedDateTime.now());
+    public String create(URL identifierRegistryUrl) throws IOException {
+        return create(identifierRegistryUrl, ZonedDateTime.now());
     }
 
     private JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws IOException {
@@ -52,21 +54,30 @@ public class TdwCreator {
     }
 
     /**
-     * Package-scope and therefore more potent method.
+     * Creates a did:tdw DID Document for a supplied datetime.
+     * <p>
+     * This package-scope method is certainly more potent than the public one.
+     * <b>However, it is introduced for the sake of testability only.</b>
      *
-     * @param domain
-     * @param path   (optional)
+     * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
      * @param now
      * @return
      * @throws IOException
      */
-    String create(String domain, String path, ZonedDateTime now) throws IOException {
+    String create(URL identifierRegistryUrl, ZonedDateTime now) throws IOException {
 
         // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
-        // See example https://identity.foundation/didwebvh/v0.3/#example-7
-        String didTDW = "did:tdw:{SCID}:" + domain.replace("https://", "").replace(":", "%3A");
-        if (path != null && !path.isEmpty()) {
-            didTDW += ":" + path.replaceAll("/", ":");
+        // W.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
+        // See also https://identity.foundation/didwebvh/v0.3/#example-7
+        String didTDW = "did:tdw:{SCID}:" + identifierRegistryUrl.getHost();
+        int port = identifierRegistryUrl.getPort(); // the port number, or -1 if the port is not set
+        if (port != -1) {
+            didTDW += "%3A" + port;
+        }
+        String path = identifierRegistryUrl.getPath(); // the path part of this URL, or an empty string if one does not exist
+        if (!path.isEmpty()) {
+            didTDW += path.replace("/did.jsonl", "") // cleanup
+                    .replaceAll("/", ":"); // w.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
         }
 
         var context = new JsonArray();

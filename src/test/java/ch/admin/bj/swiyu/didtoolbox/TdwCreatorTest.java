@@ -2,15 +2,17 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -19,7 +21,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-//@Disabled
 public class TdwCreatorTest {
 
     private static void assertDidLogEntry(String didLogEntry) {
@@ -50,18 +51,18 @@ public class TdwCreatorTest {
         assertTrue(proof.getAsJsonObject().has("proofValue"));
     }
 
-    private static Collection<Object[]> domainPath() {
-        return Arrays.asList(new String[][]{
-                {"https://127.0.0.1:54858", null},
-                {"https://127.0.0.1:54858", "123456789"},
-                {"https://127.0.0.1:54858", "123456789/123456789"},
-        });
+    private static Collection<URL> identifierRegistryUrl() throws URISyntaxException, MalformedURLException {
+        return Arrays.asList(
+                URL.of(new URI("https://127.0.0.1:54858"), null),
+                URL.of(new URI("https://127.0.0.1:54858/123456789"), null),
+                URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null)
+        );
     }
 
-    @DisplayName("Building TDW log entry for various domain(:path) variants")
-    @ParameterizedTest(name = "For domain {0} and path {1}")
-    @MethodSource("domainPath")
-    public void testBuild(String domain, String path) {
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testBuild(URL identifierRegistryUrl) {
 
         String didLogEntry = null;
         try {
@@ -69,7 +70,7 @@ public class TdwCreatorTest {
             didLogEntry = TdwCreator.builder()
                     .signer(new Ed25519SignerVerifier())
                     .build()
-                    .create(domain, path, ZonedDateTime.now()); // MUT
+                    .create(identifierRegistryUrl, ZonedDateTime.now()); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -78,10 +79,10 @@ public class TdwCreatorTest {
         assertDidLogEntry(didLogEntry);
     }
 
-    @DisplayName("Building TDW log entry for various domain(:path) variants using Java Keystore (JKS)")
-    @ParameterizedTest(name = "For domain {0} and path {1}")
-    @MethodSource("domainPath")
-    public void testBuildUsingJKS(String domain, String path) {
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants using Java Keystore (JKS)")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testBuildUsingJKS(URL identifierRegistryUrl) {
 
         String didLogEntry = null;
         try {
@@ -89,7 +90,7 @@ public class TdwCreatorTest {
             didLogEntry = TdwCreator.builder()
                     .signer(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     .build()
-                    .create(domain, path, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -109,10 +110,10 @@ public class TdwCreatorTest {
         //        """.contains(didLogEntry));
     }
 
-    @DisplayName("Building TDW log entry for various domain(:path) variants (incl. external authentication/assertion keys) using existing keys")
-    @ParameterizedTest(name = "For domain {0} and path {1}")
-    @MethodSource("domainPath")
-    public void testBuildUsingJksWithExternalVerificationMethodKeys(String domain, String path) { // https://www.w3.org/TR/did-core/#assertion
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants (incl. external authentication/assertion keys) using existing keys")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testBuildUsingJksWithExternalVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         String didLogEntry = null;
         try {
@@ -126,7 +127,7 @@ public class TdwCreatorTest {
                             "my-auth-key-01", JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "my-auth-key-01")
                     ))
                     .build()
-                    .create(domain, path, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -149,10 +150,10 @@ public class TdwCreatorTest {
                 """.contains(didLogEntry));
     }
 
-    @DisplayName("Building TDW log entry for various domain(:path) variants (incl. generated authentication/assertion keys) using existing keys")
-    @ParameterizedTest(name = "For domain {0} and path {1}")
-    @MethodSource("domainPath")
-    public void testBuildUsingJksWithGeneratedVerificationMethodKeys(String domain, String path) { // https://www.w3.org/TR/did-core/#assertion
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants (incl. generated authentication/assertion keys) using existing keys")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testBuildUsingJksWithGeneratedVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         String didLogEntry = null;
         try {
@@ -162,7 +163,7 @@ public class TdwCreatorTest {
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
-                    .create(domain, path, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -182,10 +183,10 @@ public class TdwCreatorTest {
         //        """.contains(didLogEntry));
     }
 
-    @DisplayName("Building TDW log entry for various domain(:path) variants (incl. generated authentication/assertion keys) using existing keys")
-    @ParameterizedTest(name = "For domain {0} and path {1}")
-    @MethodSource("domainPath")
-    public void testBuildUsingJksWithPartiallyGeneratedVerificationMethodKeys(String domain, String path) { // https://www.w3.org/TR/did-core/#assertion
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants (incl. generated authentication/assertion keys) using existing keys")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testBuildUsingJksWithPartiallyGeneratedVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         String didLogEntry = null;
         try {
@@ -195,7 +196,7 @@ public class TdwCreatorTest {
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     //.authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
-                    .create(domain, path, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -216,10 +217,10 @@ public class TdwCreatorTest {
     }
 
 
-    @DisplayName("Building TDW log entry for various domain(:path) variants (incl. generated authentication/assertion keys) using existing keys")
-    @ParameterizedTest(name = "For domain {0} and path {1}")
-    @MethodSource("domainPath")
-    public void testBuildUsingJksWithPartiallyGeneratedVerificationMethodKeys2(String domain, String path) { // https://www.w3.org/TR/did-core/#assertion
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants (incl. generated authentication/assertion keys) using existing keys")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testBuildUsingJksWithPartiallyGeneratedVerificationMethodKeys2(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         String didLogEntry = null;
         try {
@@ -229,7 +230,7 @@ public class TdwCreatorTest {
                     //.assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
-                    .create(domain, path, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -249,8 +250,10 @@ public class TdwCreatorTest {
         //        """.contains(didLogEntry));
     }
 
-    @Test
-    public void testThrowsNoSuchKidException() throws IOException {
+    @DisplayName("Throwing 'no such kid' ParseException")
+    @ParameterizedTest(name = "For (here irrelevant) identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testThrowsNoSuchKidParseException(URL identifierRegistryUrl) throws IOException {
 
         assertThrowsExactly(ParseException.class, () -> {
             TdwCreator.builder()
@@ -260,7 +263,7 @@ public class TdwCreatorTest {
                             JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "nonexisting-key-id")
                     ))
                     .build()
-                    .create("domain", "path", ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
         });
 
         assertThrowsExactly(ParseException.class, () -> {
@@ -271,7 +274,7 @@ public class TdwCreatorTest {
                             JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "nonexisting-key-id")
                     ))
                     .build()
-                    .create("domain", "path", ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
         });
 
     }

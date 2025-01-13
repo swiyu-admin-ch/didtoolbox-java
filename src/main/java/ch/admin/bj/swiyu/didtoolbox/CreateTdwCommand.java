@@ -4,6 +4,7 @@ import com.beust.jcommander.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.*;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,20 +15,53 @@ import java.util.List;
 )
 class CreateTdwCommand {
 
+    final static String DEFAULT_METHOD_VERSION = "did:tdw:0.3";
+
     @Parameter(names = {"--help", "-h"},
             description = "Display help for the DID toolbox 'create' command",
             help = true)
     boolean help;
 
-    @Parameter(names = {"--domain", "-d"},
-            description = "The domain for the DID (e.g. example.com)",
-            required = true)
-    String domain;
+    public static class IdentifierRegistryUrlParameterValidator implements IParameterValidator {
+        @Override
+        public void validate(String name, String value) throws ParameterException {
+            URL url;
+            var exc = new ParameterException("Parameter " + name + " should be a regular HTTP(S) DID URL (found '" + value + "')");
+            try {
+                url = URL.of(new URI(value), null);
+            } catch (URISyntaxException | MalformedURLException e) {
+                throw exc;
+            }
 
-    @Parameter(names = {"--path", "-p"},
-            description = "Path segment for the DID (e.g. UUID/GUID)")
+            if (!url.getProtocol().startsWith("http")) {
+                throw exc;
+            }
+        }
+    }
+
+    static class IdentifierRegistryUrlParameterConverter implements IStringConverter<URL> {
+        @Override
+        public URL convert(String value) {
+            try {
+                return URL.of(new URI(value), null);
+            } catch (URISyntaxException | MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Parameter(names = {"--identifier-registry-url", "-u"},
+            description = "A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for",
+            required = true,
+            converter = IdentifierRegistryUrlParameterConverter.class,
+            validateWith = IdentifierRegistryUrlParameterValidator.class)
+    URL identifierRegistryUrl;
+
+    @Parameter(names = {"--method-version", "-m"},
+            description = "Defines the did:tdw specification version to use when generating a DID log. Currently supported is only '" + DEFAULT_METHOD_VERSION + "'",
+            defaultValueDescription = DEFAULT_METHOD_VERSION)
     //,required = true)
-    String path;
+    String methodVersion;
 
     /*
     static class OutputDirParameterConverter implements IStringConverter<File> {
