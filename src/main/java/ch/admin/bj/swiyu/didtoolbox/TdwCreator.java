@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nimbusds.jose.JOSEException;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -23,7 +22,7 @@ public class TdwCreator {
     private Map<String, String> assertionMethodKeys;
     private Map<String, String> authenticationKeys;
     private Ed25519SignerVerifier signer;
-    //private File dirToStoreKeyPair;
+    // TODO private File dirToStoreKeyPair;
 
     /**
      * @param domain
@@ -31,15 +30,15 @@ public class TdwCreator {
      * @return
      * @throws IOException
      */
-    public String create(String domain, String path) throws IOException, JOSEException {
+    public String create(String domain, String path) throws IOException {
         return create(domain, path, ZonedDateTime.now());
     }
 
-    private JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws JOSEException, IOException {
+    private JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws IOException {
 
         String publicKeyJwk = jwk;
         if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generateEd25519(keyID, jwksFile);
+            publicKeyJwk = JwkUtils.generateEC(keyID, jwksFile);
         }
 
         JsonObject verificationMethodObj = new JsonObject();
@@ -61,7 +60,7 @@ public class TdwCreator {
      * @return
      * @throws IOException
      */
-    String create(String domain, String path, ZonedDateTime now) throws IOException, JOSEException {
+    String create(String domain, String path, ZonedDateTime now) throws IOException {
 
         // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
         // See example https://identity.foundation/didwebvh/v0.3/#example-7
@@ -72,7 +71,7 @@ public class TdwCreator {
 
         var context = new JsonArray();
         context.add("https://www.w3.org/ns/did/v1");
-        context.add("https://w3id.org/security/multikey/v1");
+        context.add("https://w3id.org/security/suites/jws-2020/v1"); // because of the format of generated authentication/assertionMethod keys (JsonWebKey2020)
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();

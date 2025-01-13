@@ -3,28 +3,26 @@ package ch.admin.bj.swiyu.didtoolbox;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.Ed25519Signer;
-import com.nimbusds.jose.crypto.Ed25519Verifier;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.OctetKeyPair;
-import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.*;
-import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.*;
 import java.text.ParseException;
 
+/**
+ * Simple proxy/wrapper to/of com.nimbusds.jose.jwk classes (https://connect2id.com/products/nimbus-jose-jwt)
+ */
 class JwkUtils {
 
     /**
@@ -47,25 +45,28 @@ class JwkUtils {
         return jwk.toPublicJWK().toJSONString();
     }
 
-    /*
-    static JWK loadKeyStore(String keyStoreFile, String password, String kid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-
-        return JWKSet.load(
-                        KeyStore.getInstance(new File(keyStoreFile), password.toCharArray()),
-                        s -> password.toCharArray())
-                .getKeyByKeyId(kid);
-    }
+    /**
+     * Generates a new key pair (in JWKS format) using standard EC digital signature algorithm EC P-256 DSA with SHA-256.
+     * If jwksFile is supplied, the keys are exported in JWKS and PEM format.
+     *
+     * @param keyID
+     * @param jwksFile
+     * @return a new EC key pair in JWKS format
+     * @throws IOException
      */
+    static String generateEC(String keyID, File jwksFile) throws IOException {
 
-    static String generateEd25519(String keyID, File jwksFile) throws com.nimbusds.jose.JOSEException, IOException {
-
-        // Generate Ed25519 Octet key pair in JWK format, attach some metadata
-        OctetKeyPair jwk = new OctetKeyPairGenerator(Curve.Ed25519)
-                //.keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key (optional)
-                //.keyID(UUID.randomUUID().toString()) // give the key a unique ID (optional)
-                .keyID(keyID) // give the key a unique ID (optional)
-                //.issueTime(new Date()) // issued-at timestamp (optional)
-                .generate();
+        ECKey jwk = null;
+        try {
+            jwk = new ECKeyGenerator(Curve.P_256) // see https://connect2id.com/products/nimbus-jose-jwt/examples/jws-with-ec-signature
+                    //.keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key (optional)
+                    //.keyID(UUID.randomUUID().toString()) // give the key a unique ID (optional)
+                    .keyID(keyID) // give the key a unique ID (optional)
+                    //.issueTime(new Date()) // issued-at timestamp (optional)
+                    .generate();
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
 
         if (jwksFile != null) {
 
@@ -82,49 +83,7 @@ class JwkUtils {
                 w.close();
             }
 
-            PemWriter pemWriter = new PemWriter(new FileWriter(jwksFile));
-            PemWriter pemWriterPub = new PemWriter(new FileWriter(new File(jwksFile.getPath() + ".pub")));
-            try {
-
-                var keyFactory = KeyFactory.getInstance("Ed25519");
-
-                PrivateKey privKey = keyFactory.generatePrivate(new EdECPrivateKeySpec(NamedParameterSpec.ED25519, jwk.getDecodedD()));
-
-                pemWriter.writeObject(new PemObject("PRIVATE KEY", privKey.getEncoded()));
-                pemWriter.flush();
-
-                /* checkpoint
-                if (PemUtils.getPrivateKeyEd25519(PemUtils.parsePEMFile(jwksFile)).getEncoded().length != 48) {
-                    throw new RuntimeException("Ed25519 private key loaded from a PEM file should be 48 bytes long");
-                }*/
-
-                var x = jwk.getDecodedX();
-                byte msb = x[x.length - 1]; // Most Significant Byte
-                x[x.length - 1] &= (byte) 0x7F;
-                boolean xOdd = (msb & 0x80) != 0;
-
-                reverse(x); // see https://github.com/openjdk/jdk15/blob/master/src/jdk.crypto.ec/share/classes/sun/security/ec/ed/EdDSAPublicKeyImpl.java#L76
-                PublicKey pubKey = keyFactory.generatePublic(new EdECPublicKeySpec(NamedParameterSpec.ED25519, new EdECPoint(xOdd, new BigInteger(1, x))));
-
-                pemWriterPub.writeObject(new PemObject("PUBLIC KEY", pubKey.getEncoded()));
-                pemWriterPub.flush();
-
-                /* checkpoint
-                if (PemUtils.getPublicKeyEd25519(PemUtils.parsePEMFile(new File(jwksFile.getPath() + ".pub"))).getEncoded().length != 44) {
-                    throw new RuntimeException("Ed25519 public key loaded from a PEM file should be 44 bytes long");
-                }*/
-
-                // sanity check
-                var signer = new Ed25519SignerVerifier(new File(jwksFile.getPath()), new File(jwksFile.getPath() + ".pub"));
-                if (!signer.verify("hello world", signer.signString("hello world"))) {
-                    throw new RuntimeException("keys do not match");
-                }
-
-            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                throw new RuntimeException(e);
-            } finally {
-                pemWriter.close();
-            }
+            exportAsEcKeyToPem(jwk, jwksFile);
 
             // A private key file should always get appropriate file permissions, if feasible
             PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(jwksFile.toPath(), PosixFileAttributeView.class);
@@ -142,43 +101,73 @@ class JwkUtils {
         return jwk.toPublicJWK().toJSONString();
     }
 
-    // See https://github.com/openjdk/jdk15/blob/master/src/jdk.crypto.ec/share/classes/sun/security/ec/ed/EdDSAPublicKeyImpl.java#L120
-    private static void reverse(byte[] arr) {
-        int i = 0;
-        int j = arr.length - 1;
+    /**
+     * PEM export helper.
+     *
+     * @param jwk
+     * @param jwksFile
+     * @throws IOException
+     */
+    private static void exportAsEcKeyToPem(ECKey jwk, File jwksFile) throws IOException {
+        PemWriter pemWriter = new PemWriter(new FileWriter(jwksFile));
+        PemWriter pemWriterPub = new PemWriter(new FileWriter(new File(jwksFile.getPath() + ".pub")));
+        try {
 
-        while (i < j) {
-            //swap(arr, i, j);
-            byte tmp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = tmp;
-            i++;
-            j--;
+            var keyFactory = KeyFactory.getInstance("EC");
+
+            AlgorithmParameters a = AlgorithmParameters.getInstance("EC");
+            a.init(new ECGenParameterSpec("secp256k1"));
+            ECParameterSpec parameterSpec = a.getParameterSpec(ECParameterSpec.class);
+            PrivateKey privKey = keyFactory.generatePrivate(new ECPrivateKeySpec(jwk.getD().decodeToBigInteger(), parameterSpec));
+
+            // as specified by https://www.rfc-editor.org/rfc/rfc5915
+            pemWriter.writeObject(new PemObject("EC PRIVATE KEY", privKey.getEncoded()));
+            pemWriter.flush();
+
+            PublicKey pubKey = keyFactory.generatePublic(new ECPublicKeySpec(new ECPoint(jwk.getX().decodeToBigInteger(), jwk.getY().decodeToBigInteger()), parameterSpec));
+
+            // as specified by https://www.rfc-editor.org/rfc/rfc5208
+            pemWriterPub.writeObject(new PemObject("PUBLIC KEY", pubKey.getEncoded()));
+            pemWriterPub.flush();
+
+            ecPemSanityCheck(new File(jwksFile.getPath()), new File(jwksFile.getPath() + ".pub"));
+
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException |
+                 InvalidKeyException | SignatureException e) {
+            throw new RuntimeException(e);
+        } finally {
+            pemWriter.close();
         }
     }
 
     /**
-     * See https://connect2id.com/products/nimbus-jose-jwt/examples/jws-with-eddsa
+     * Helper for the PEM export.
      *
-     * @param jwk
-     * @return
-     * @throws com.nimbusds.jose.JOSEException
+     * @param privatePemFile
+     * @param publicPemFile
+     * @throws IOException
+     * @throws InvalidKeySpecException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     * @throws SignatureException
      */
-    static boolean sign(OctetKeyPair jwk, String payload) throws com.nimbusds.jose.JOSEException {
+    private static void ecPemSanityCheck(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        PrivateKey privKey = PemUtils.getPrivateKey(PemUtils.parsePEMFile(privatePemFile), "EC");
+        PublicKey publicKey = PemUtils.getPublicKey(PemUtils.parsePEMFile(publicPemFile), "EC");
 
-        // Create the EdDSA signer
-        JWSSigner signer = new Ed25519Signer(jwk);
+        String msg = "hello world";
+        byte[] data = msg.getBytes(StandardCharsets.UTF_8);
 
-        // Creates the JWS object with payload
-        JWSObject jwsObject = new JWSObject(
-                new JWSHeader.Builder(JWSAlgorithm.EdDSA).keyID(jwk.getKeyID()).build(),
-                new Payload(payload));
+        Signature signature = Signature.getInstance("SHA256withECDSA");
+        signature.initSign(privKey);
+        signature.update(data);
 
-        // Compute the EdDSA signature
-        jwsObject.sign(signer);
+        signature.initVerify(publicKey);
+        signature.update(data);
+        signature.verify(data);
 
-        // The recipient creates a verifier with the public EdDSA key
-        return jwsObject.verify(new Ed25519Verifier(jwk.toPublicJWK()));
+        if (!msg.equals(new String(data))) {
+            throw new RuntimeException("exported key do not match");
+        }
     }
-
 }

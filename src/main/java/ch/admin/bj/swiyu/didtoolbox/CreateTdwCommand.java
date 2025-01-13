@@ -82,14 +82,14 @@ class CreateTdwCommand {
     String jksAlias;
 
     @Parameter(names = {"--assert", "-a"},
-            description = "An assertion method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)",
+            description = "An assertion method (comma-separated) parameters: a key name as well as a JWKS file containing EC P-256 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
     List<VerificationMethodParameters> assertionMethodKeys;
 
     @Parameter(names = {"--auth", "-t"},
-            description = "An authentication method (comma-separated) parameters: a key name as well as a JWKS file containing Ed25519 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#authentication)",
+            description = "An authentication method (comma-separated) parameters: a key name as well as a JWKS file containing EC P-256 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#authentication)",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
@@ -170,7 +170,7 @@ class CreateTdwCommand {
         public void validate(String name, String value) throws ParameterException {
             String[] splitted = value.split(",");
             if (splitted.length != 2) {
-                throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (Ed25519 public/verifying key in JWKS format)) (found " + value + ")");
+                throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (EC P-256 public/verifying key in JWKS format)) (found " + value + ")");
             }
 
             String kid = splitted[0];
@@ -183,22 +183,8 @@ class CreateTdwCommand {
             try {
                 JwkUtils.load(f, kid);
             } catch (IOException | ParseException e) {
-                throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an Ed25519 public/verifying key in JWKS format: " + e.getLocalizedMessage());
+                throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 public/verifying key in JWKS format: " + e.getLocalizedMessage());
             }
         }
     }
-
-    /*
-    @Parameter(names = "-i")
-    private Boolean interactive = false;
-
-    @Parameter
-    private List<String> parameters = new ArrayList<>();
-
-    @Parameter(names = {"-v", "--verbose"}, description = "Level of verbosity")
-    private Integer verbose = 1;
-
-    @Parameter(names = "--debug", description = "Debug mode")
-    private boolean debug = false;
-     */
 }
