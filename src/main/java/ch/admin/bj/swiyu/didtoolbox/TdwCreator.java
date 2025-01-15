@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,10 +28,10 @@ import java.util.Map;
  * log goes simply by calling {@link #create(URL)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
- * <li>{@link TdwCreatorBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwCreator.TdwCreatorBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link TdwCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link TdwCreator.TdwCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load keys from the file system, the following helpers are available:
@@ -38,7 +39,7 @@ import java.util.Map;
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(File, File)} for loading the update (Ed25519) key from
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
- * <li>{@link JwkUtils#loadPublicJWKasJSON(File, String)} for loading authentication/assertion
+ * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys from
  * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> files</li>
  * </ul>
@@ -91,11 +92,14 @@ public class TdwCreator {
     private static String SCID_PLACEHOLDER = "{SCID}";
 
     @Getter(AccessLevel.PRIVATE)
+    //@Setter(AccessLevel.PUBLIC)
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PRIVATE)
+    //@Setter(AccessLevel.PUBLIC)
     private Map<String, String> authenticationKeys;
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
+    //@Setter(AccessLevel.PUBLIC)
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     // TODO private File dirToStoreKeyPair;
 

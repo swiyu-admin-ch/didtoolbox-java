@@ -1,4 +1,0 @@
-{"keys":[
-  {"kty":"EC","d":"ZRaWOumNVeyOLWDleaemnutaZjN5GkUdxNvE1pS46ew","crv":"P-256","kid":"my-auth-key-01","x":"NNkYapGrhRxe_GBOBtF2zLyuDqYPefvJAnmbZIi3Srg","y":"Ee9y-aYqlPdxdJHxqAgznxrplJksL5m7KFMTopBN2Kk"},
-  {"kty":"EC","d":"cPsTbB7hkXnLNaNSlAC8g0JwNJRWz5hcRon5fkeOJ3M","crv":"P-256","kid":"my-assert-key-01","x":"eV4ZGw8GUtKOI4mpH5O1cxc_oPJRtbL-u8UzJbtSEHQ","y":"QaNew9zIW6En53YPU4z1FskhdrmTsRPvSO8BUiIaKLY"}
-]}

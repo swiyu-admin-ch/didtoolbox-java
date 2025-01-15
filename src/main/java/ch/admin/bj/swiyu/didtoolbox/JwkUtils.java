@@ -3,22 +3,23 @@ package ch.admin.bj.swiyu.didtoolbox;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.*;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.spec.*;
-import java.text.ParseException;
 
 /**
  * The {@link JwkUtils} is a simple helper for the purpose of <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a>
@@ -26,25 +27,33 @@ import java.text.ParseException;
  */
 public class JwkUtils {
 
+    private JwkUtils() {
+    }
+
     /**
-     * Loads a JWK set from the specified file and returns only the public JWK from the set as identified by its Key ID ({@code kid}) member.
+     * Loads a public EC P-256 key from the specified PEM file and returns its JWK JSON representation
      *
-     * @param file the JWK set file. Must not be {@code null}
-     * @param kid  the key identifier
+     * @param ecPublicPemFile the EC P-256 public key in PEM format
+     * @param kid             the ID (kid) of the JWK that can be used to match this key
      * @return JSON object string representation of the public JWK
-     * @throws IOException    if the file couldn't be read
-     * @throws ParseException if the file couldn't be parsed to a valid JWK set
+     * @throws IOException             if the file couldn't be read
+     * @throws InvalidKeySpecException if the given key specification is inappropriate for the EC key factory to produce a public key
      */
-    public static String loadPublicJWKasJSON(File file, String kid) throws IOException, ParseException {
-        if (!file.isFile() || !file.exists()) {
-            throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", file.getAbsolutePath()));
+    public static String loadECPublicJWKasJSON(File ecPublicPemFile, String kid) throws IOException, InvalidKeySpecException {
+        if (!ecPublicPemFile.isFile() || !ecPublicPemFile.exists()) {
+            throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", ecPublicPemFile.getAbsolutePath()));
         }
 
-        var jwk = JWKSet.load(file).getKeyByKeyId(kid); // might be null
-        if (jwk == null) {
-            throw new ParseException(String.format("No such kid '%s' found in the file.", kid), 0);
+        // see https://connect2id.com/products/nimbus-jose-jwt/examples/pem-encoded-objects
+
+        ECPublicKey publicKey = null;
+        try {
+            publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(ecPublicPemFile), "EC");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
-        return jwk.toPublicJWK().toJSONString();
+
+        return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
     }
 
     /**
@@ -120,11 +129,10 @@ public class JwkUtils {
         PemWriter pemWriter = new PemWriter(new FileWriter(jwksFile));
         PemWriter pemWriterPub = new PemWriter(new FileWriter(new File(jwksFile.getPath() + ".pub")));
         try {
-
             var keyFactory = KeyFactory.getInstance("EC");
 
             AlgorithmParameters a = AlgorithmParameters.getInstance("EC");
-            a.init(new ECGenParameterSpec("secp256k1"));
+            a.init(new ECGenParameterSpec("secp256r1")); // P-256 curve (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7).
             ECParameterSpec parameterSpec = a.getParameterSpec(ECParameterSpec.class);
             PrivateKey privKey = keyFactory.generatePrivate(new ECPrivateKeySpec(jwk.getD().decodeToBigInteger(), parameterSpec));
 
@@ -141,7 +149,7 @@ public class JwkUtils {
             ecPemSanityCheck(new File(jwksFile.getPath()), new File(jwksFile.getPath() + ".pub"));
 
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException |
-                 InvalidKeyException | SignatureException e) {
+                 InvalidKeyException | SignatureException | NoSuchProviderException | JOSEException e) {
             throw new RuntimeException(e);
         } finally {
             pemWriter.close();
@@ -159,22 +167,20 @@ public class JwkUtils {
      * @throws InvalidKeyException
      * @throws SignatureException
      */
-    private static void ecPemSanityCheck(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        PrivateKey privKey = PemUtils.getPrivateKey(PemUtils.parsePEMFile(privatePemFile), "EC");
-        PublicKey publicKey = PemUtils.getPublicKey(PemUtils.parsePEMFile(publicPemFile), "EC");
+    private static void ecPemSanityCheck(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException,
+            NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidParameterSpecException, NoSuchProviderException, JOSEException {
 
-        String msg = "hello world";
-        byte[] data = msg.getBytes(StandardCharsets.UTF_8);
+        ECPrivateKey privKey = (ECPrivateKey) PemUtils.getPrivateKey(PemUtils.parsePEMFile(privatePemFile), "EC");
+        ECPublicKey publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(publicPemFile), "EC");
 
-        Signature signature = Signature.getInstance("SHA256withECDSA");
-        signature.initSign(privKey);
-        signature.update(data);
+        JWSObject jwsObject = new JWSObject(
+                new JWSHeader.Builder(JWSAlgorithm.ES256).build(),
+                new Payload("hello world"));
+        jwsObject.sign(new ECDSASigner(privKey));
 
-        signature.initVerify(publicKey);
-        signature.update(data);
-        signature.verify(data);
+        //String s = jwsObject.serialize(); // compact form
 
-        if (!msg.equals(new String(data))) {
+        if (!jwsObject.verify(new ECDSAVerifier(publicKey)) || (!"hello world".equals(jwsObject.getPayload().toString()))) {
             throw new RuntimeException("exported key do not match");
         }
     }

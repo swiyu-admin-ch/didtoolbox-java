@@ -17,8 +17,10 @@ import java.security.spec.X509EncodedKeySpec;
 
 class PemUtils {
 
+    private PemUtils() {
+    }
+
     /**
-     *
      * @param pemFile
      * @return
      * @throws IOException in case of a parse error.

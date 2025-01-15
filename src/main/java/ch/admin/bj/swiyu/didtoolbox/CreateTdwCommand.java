@@ -5,7 +5,7 @@ import com.beust.jcommander.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
-import java.text.ParseException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,14 +116,14 @@ class CreateTdwCommand {
     String jksAlias;
 
     @Parameter(names = {"--assert", "-a"},
-            description = "An assertion method (comma-separated) parameters: a key name as well as a JWKS file containing EC P-256 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)",
+            description = "An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key)",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
     List<VerificationMethodParameters> assertionMethodKeys;
 
     @Parameter(names = {"--auth", "-t"},
-            description = "An authentication method (comma-separated) parameters: a key name as well as a JWKS file containing EC P-256 public/verifying key, as defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#authentication)",
+            description = "An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key)",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
@@ -186,9 +186,9 @@ class CreateTdwCommand {
                 String jwk = null;
                 try {
 
-                    jwk = JwkUtils.loadPublicJWKasJSON(new File(splitted[1]), kid);
+                    jwk = JwkUtils.loadECPublicJWKasJSON(new File(splitted[1]), kid);
 
-                } catch (IOException | ParseException e) {
+                } catch (IOException | InvalidKeySpecException e) {
                     throw new RuntimeException(e);
                 }
 
@@ -204,20 +204,20 @@ class CreateTdwCommand {
         public void validate(String name, String value) throws ParameterException {
             String[] splitted = value.split(",");
             if (splitted.length != 2) {
-                throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (EC P-256 public/verifying key in JWKS format)) (found " + value + ")");
+                throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (EC P-256 public/verifying key in PEM format)) (found " + value + ")");
             }
 
             String kid = splitted[0];
             String jwkFile = splitted[1];
             File f = new File(jwkFile);
             if (!f.exists() || !f.isFile()) {
-                throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing public/verifying key in JWKS format (found " + jwkFile + ")");
+                throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing EC P-256 public/verifying key in PEM format (found " + jwkFile + ")");
             }
 
             try {
-                JwkUtils.loadPublicJWKasJSON(f, kid);
-            } catch (IOException | ParseException e) {
-                throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 public/verifying key in JWKS format: " + e.getLocalizedMessage());
+                JwkUtils.loadECPublicJWKasJSON(f, kid);
+            } catch (IOException | InvalidKeySpecException e) {
+                throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 public/verifying key in PEM format: " + e.getLocalizedMessage());
             }
         }
     }

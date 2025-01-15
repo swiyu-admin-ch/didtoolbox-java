@@ -28,11 +28,9 @@ Usage: didtoolbox [options] [command] [command options]
       Usage: create [options]
         Options:
           --assert, -a
-            An assertion method (comma-separated) parameters: a key name as well as a JWKS file containing EC P-256 public/verifying key, as defined 
-            by DIDs v1.0 (https://www.w3.org/TR/did-core/#assertion)
+            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key)
           --auth, -t
-            An authentication method (comma-separated) parameters: a key name as well as a JWKS file containing EC P-256 public/verifying key, as 
-            defined by DIDs v1.0 (https://www.w3.org/TR/did-core/#authentication)
+            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key)
           --help, -h
             Display help for the DID toolbox 'create' command
         * --identifier-registry-url, -u
@@ -53,7 +51,7 @@ Usage: didtoolbox [options] [command] [command options]
 
 $ ./bin/didtoolbox.sh -V
 
-didtoolbox 1.0.0-SNAPSHOT
+didtoolbox 1.0.0
 ```
 
 Probably the simplest way to use the generator would be to let it generate as much on its own as possible:
@@ -62,25 +60,29 @@ Probably the simplest way to use the generator would be to let it generate as mu
 ./bin/didtoolbox.sh create -u https://domain.com:443/path1/path2/did.jsonl
 ```
 
-The command would create a valid DID log entry also featuring some assertion/verification keys in [JWKS](https://datatracker.ietf.org/doc/html/rfc7517) format.
+The command would create a valid DID log entry also featuring some assertion/verification keys in various format such as [JWKS](https://datatracker.ietf.org/doc/html/rfc7517) and PEM.
 Beyond that, and since no [verification material](https://www.w3.org/TR/did-core/#verification-material) is supplied explicitly, 
 the generator will take care of that, too. Hence, all required key pairs will also be generated and stored in `.didtoolbox` directory, for later use:
 
 ```shell
 # ll .didtoolbox
-total 32
--rw-------@ 1 u80850818  staff   162B Dec 30 13:51 assert-key-01.json
--rw-------@ 1 u80850818  staff   160B Dec 30 13:51 auth-key-01.json
--rw-------  1 u80850818  staff   119B Dec 30 13:51 id_ed25519
--rw-r--r--  1 u80850818  staff   113B Dec 30 13:51 id_ed25519.pub
+total 64
+-rw-------@ 1 u80850818  staff   154B Jan 15 15:14 assert-key-01
+-rw-------@ 1 u80850818  staff   209B Jan 15 15:14 assert-key-01.json
+-rw-r--r--@ 1 u80850818  staff   178B Jan 15 15:14 assert-key-01.pub
+-rw-------@ 1 u80850818  staff   154B Jan 15 15:14 auth-key-01
+-rw-------@ 1 u80850818  staff   207B Jan 15 15:14 auth-key-01.json
+-rw-r--r--@ 1 u80850818  staff   178B Jan 15 15:14 auth-key-01.pub
+-rw-------@ 1 u80850818  staff   119B Jan 15 13:29 id_ed25519
+-rw-r--r--@ 1 u80850818  staff   113B Jan 15 13:29 id_ed25519.pub
 ```
 
 This implies that you may now also try running the command in a usual/recommended way:
 
 ```shell
 ./bin/didtoolbox.sh create \
-    -a assert-key-01,.didtoolbox/assert-key-01.json \
-    -t auth-key-01,.didtoolbox/auth-key-01.json \
+    -a my-assert-key-01,.didtoolbox/assert-key-01.pub \
+    -t my-auth-key-01,.didtoolbox/auth-key-01.pub \
     -u https://domain.com:443/path1/path2/did.jsonl \
     -s .didtoolbox/id_ed25519 \
     -v .didtoolbox/id_ed25519.pub                                                      
@@ -90,8 +92,8 @@ As this repo already contains some keys intended for testing purposes, feel free
 
 ```shell
 ./bin/didtoolbox.sh create \
-    -a my-assert-key-01,src/test/data/myjsonwebkeys.json \
-    -t my-auth-key-01,src/test/data/myjsonwebkeys.json \
+    -a my-assert-key-01,src/test/data/assert-key-01.pub \
+    -t my-auth-key-01,src/test/data/auth-key-01.pub \
     -u https://domain.com:443/path1/path2/did.jsonl \
     -j src/test/data/mykeystore.jks \
     --jks-password changeit \
@@ -102,8 +104,8 @@ As this repo already contains some keys intended for testing purposes, feel free
 
 ```shell
 ./bin/didtoolbox.sh create \
-    -a my-assert-key-01,src/test/data/myjsonwebkeys.json \
-    -t my-auth-key-01,src/test/data/myjsonwebkeys.json \
+    -a my-assert-key-01,src/test/data/assert-key-01.pub \
+    -t my-auth-key-01,src/test/data/auth-key-01.pub \
     -u https://domain.com:443/path1/path2/did.jsonl \
     -s src/test/data/private.pem \
     -v src/test/data/public.pem                                              

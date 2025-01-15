@@ -35,11 +35,11 @@ class JwkUtilsTest {
     }
 
     @Test
-    void testParseFile() {
+    void testLoadECPublicJWKasJSON() {
         try {
-            var jwk = JwkUtils.loadPublicJWKasJSON(new File("src/test/data/myjsonwebkeys.json"), "my-auth-key-01"); // MUT
+            var jwk = JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"); // MUT
             assertNotNull(jwk);
-            jwk = JwkUtils.loadPublicJWKasJSON(new File("src/test/data/myjsonwebkeys.json"), "my-assert-key-01"); // MUT
+            jwk = JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"); // MUT
             assertNotNull(jwk);
         } catch (Exception e) {
             fail(e);

@@ -110,11 +110,11 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @param jksFile  the input stream from which the keystore is loaded, or null
      * @param password the password used to check the integrity of the keystore, the password used to unlock the keystore, or null
      * @param alias    the alias name the key is associated with
-     * @throws KeyStoreException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws NoSuchAlgorithmException
-     * @throws UnrecoverableEntryException
+     * @throws KeyStoreException           ...
+     * @throws CertificateException        ...
+     * @throws IOException                 ...
+     * @throws NoSuchAlgorithmException    ...
+     * @throws UnrecoverableEntryException ...
      * @see KeyStore#load(InputStream, char[])
      */
     public Ed25519VerificationMethodKeyProviderImpl(InputStream jksFile, String password, String alias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
@@ -271,8 +271,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * The {@link VerificationMethodKeyProvider} interface method implementation using Ed25519 algorithm.
      *
-     * @param message
-     * @return
+     * @param message to sign
+     * @return signed message
      */
     public byte[] generateSignature(byte[] message) {
 
