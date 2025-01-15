@@ -39,9 +39,9 @@ import java.util.Map;
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(File, File)} for loading the update (Ed25519) key from
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
- * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion
- * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys from
- * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> files</li>
+ * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion public
+ * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
  * </ul>
  * For instance:
  * <pre>
@@ -65,12 +65,12 @@ import java.util.Map;
  *
  *             // Using already existing key material
  *             didLogEntryWithExternalKeys = TdwCreator.builder()
- *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("my_private_key.pem"), new File("my_public_key.pem")))
+ *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("private-key.pem"), new File("public-key.pem")))
  *                 .assertionMethodKeys(Map.of(
- *                     "my-assert-key-01", JwkUtils.load(new File("my_json_web_keys.json"), "my-assert-key-01")
+ *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("assert-key-01.pub"), "my-assert-key-01")
  *                 ))
  *                 .authenticationKeys(Map.of(
- *                     "my-auth-key-01", JwkUtils.load(new File("my_json_web_keys.json"), "my-auth-key-01")
+ *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("auth-key-01.pub"), "my-auth-key-01")
  *                 ))
  *                 .build()
  *                 .create(identifierRegistryUrl);
