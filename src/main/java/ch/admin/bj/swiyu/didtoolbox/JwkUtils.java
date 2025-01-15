@@ -21,24 +21,26 @@ import java.security.spec.*;
 import java.text.ParseException;
 
 /**
- * Simple proxy/wrapper to/of com.nimbusds.jose.jwk classes (https://connect2id.com/products/nimbus-jose-jwt)
+ * The {@link JwkUtils} is a simple helper for the purpose of <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a>
+ * key pair generation
  */
-class JwkUtils {
+public class JwkUtils {
 
     /**
-     * See https://connect2id.com/products/nimbus-jose-jwt/examples/jwk-retrieval
+     * Loads a JWK set from the specified file and returns only the public JWK from the set as identified by its Key ID ({@code kid}) member.
      *
-     * @param f
-     * @return
-     * @throws IOException
-     * @throws ParseException
+     * @param file the JWK set file. Must not be {@code null}
+     * @param kid  the key identifier
+     * @return JSON object string representation of the public JWK
+     * @throws IOException    if the file couldn't be read
+     * @throws ParseException if the file couldn't be parsed to a valid JWK set
      */
-    static String load(File f, String kid) throws IOException, ParseException {
-        if (!f.isFile() || !f.exists()) {
-            throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", f.getAbsolutePath()));
+    public static String loadPublicJWKasJSON(File file, String kid) throws IOException, ParseException {
+        if (!file.isFile() || !file.exists()) {
+            throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", file.getAbsolutePath()));
         }
 
-        var jwk = JWKSet.load(f).getKeyByKeyId(kid); // might be null
+        var jwk = JWKSet.load(file).getKeyByKeyId(kid); // might be null
         if (jwk == null) {
             throw new ParseException(String.format("No such kid '%s' found in the file.", kid), 0);
         }
@@ -46,22 +48,28 @@ class JwkUtils {
     }
 
     /**
-     * Generates a new key pair (in JWKS format) using standard EC digital signature algorithm EC P-256 DSA with SHA-256.
-     * If jwksFile is supplied, the keys are exported in JWKS and PEM format.
+     * Generates a new key pair (in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format)
+     * using standard digital signature algorithm
+     * <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.4">ECDSA using P-256 curve and SHA-256 hash function</a>.
+     * If {@code jwksFile} is supplied, the key pair is exported in both
+     * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> and
+     * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format.
      *
-     * @param keyID
-     * @param jwksFile
-     * @return a new EC key pair in JWKS format
-     * @throws IOException
+     * @param kid      the ID of the JWK, that can be used to match a specific key
+     * @param jwksFile if not {@code null}, the file where a generated key pair will be stored
+     *                 (in both <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> and
+     *                 <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format)
+     * @return a new EC key pair in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format
+     * @throws IOException if persisting a key pair fails
      */
-    static String generateEC(String keyID, File jwksFile) throws IOException {
+    public static String generatePublicEC256(String kid, File jwksFile) throws IOException {
 
         ECKey jwk = null;
         try {
             jwk = new ECKeyGenerator(Curve.P_256) // see https://connect2id.com/products/nimbus-jose-jwt/examples/jws-with-ec-signature
                     //.keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key (optional)
                     //.keyID(UUID.randomUUID().toString()) // give the key a unique ID (optional)
-                    .keyID(keyID) // give the key a unique ID (optional)
+                    .keyID(kid) // give the key a unique ID (optional)
                     //.issueTime(new Date()) // issued-at timestamp (optional)
                     .generate();
         } catch (JOSEException e) {

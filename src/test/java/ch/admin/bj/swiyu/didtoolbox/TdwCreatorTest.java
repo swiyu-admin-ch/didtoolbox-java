@@ -62,17 +62,20 @@ public class TdwCreatorTest {
     @DisplayName("Building TDW log entry for various identifierRegistryUrl variants")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testBuild(URL identifierRegistryUrl) {
+    public void testCreate(URL identifierRegistryUrl) {
+
+        var creator = TdwCreator.builder();
 
         String didLogEntry = null;
         try {
 
+            // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry = TdwCreator.builder()
-                    .signer(new Ed25519SignerVerifier())
+                    //.signer(new Ed25519SignerVerifier()) // is the default signer anyway
                     .build()
-                    .create(identifierRegistryUrl, ZonedDateTime.now()); // MUT
+                    .create(identifierRegistryUrl); // MUT
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             fail(e);
         }
 
@@ -88,7 +91,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .signer(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     .build()
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
@@ -119,12 +122,12 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .signer(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     .assertionMethodKeys(Map.of(
-                            "my-assert-key-01", JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "my-assert-key-01")
+                            "my-assert-key-01", JwkUtils.loadPublicJWKasJSON(new File("src/test/data/myjsonwebkeys.json"), "my-assert-key-01")
                     ))
                     .authenticationKeys(Map.of(
-                            "my-auth-key-01", JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "my-auth-key-01")
+                            "my-auth-key-01", JwkUtils.loadPublicJWKasJSON(new File("src/test/data/myjsonwebkeys.json"), "my-auth-key-01")
                     ))
                     .build()
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
@@ -159,7 +162,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .signer(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
@@ -192,7 +195,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .signer(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     //.authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
@@ -226,7 +229,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .signer(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     //.assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
@@ -257,10 +260,10 @@ public class TdwCreatorTest {
 
         assertThrowsExactly(ParseException.class, () -> {
             TdwCreator.builder()
-                    .signer(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     .assertionMethodKeys(Map.of(
                             "nonexisting-key-id",
-                            JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "nonexisting-key-id")
+                            JwkUtils.loadPublicJWKasJSON(new File("src/test/data/myjsonwebkeys.json"), "nonexisting-key-id")
                     ))
                     .build()
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
@@ -268,10 +271,10 @@ public class TdwCreatorTest {
 
         assertThrowsExactly(ParseException.class, () -> {
             TdwCreator.builder()
-                    .signer(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     .authenticationKeys(Map.of(
                             "nonexisting-key-id",
-                            JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "nonexisting-key-id")
+                            JwkUtils.loadPublicJWKasJSON(new File("src/test/data/myjsonwebkeys.json"), "nonexisting-key-id")
                     ))
                     .build()
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT

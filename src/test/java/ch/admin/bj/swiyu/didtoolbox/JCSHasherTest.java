@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -197,7 +196,7 @@ public class JCSHasherTest {
                     JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject(),
                     true,
                     // https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-                    new Ed25519SignerVerifier("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
+                    new Ed25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
                     1, // here irrelevant
                     null, // here irrelevant
                     "assertionMethod",

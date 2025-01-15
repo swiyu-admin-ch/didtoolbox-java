@@ -89,11 +89,11 @@ class JCSHasher {
     }
 
     /**
-     * As specified by https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022.
-     * <p>See example: https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
+     * As specified by <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">...</a>.
+     * <p>See example: <a href="https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022">...</a>
      *
-     * <p>A proof contains the attributes specified in the Proofs section (https://www.w3.org/TR/vc-data-integrity/#proofs)
-     * of [VC-DATA-INTEGRITY (https://www.w3.org/TR/vc-di-eddsa/#bib-vc-data-integrity)] with the following restrictions.
+     * <p>A proof contains the attributes specified in the <a href="https://www.w3.org/TR/vc-data-integrity/#proofs">Proofs</a> section
+     * of <a href="https://www.w3.org/TR/vc-di-eddsa/#bib-vc-data-integrity">VC-DATA-INTEGRITY</a> with the following restrictions.
      *
      * <p>The type property MUST be DataIntegrityProof.
      *
@@ -101,20 +101,27 @@ class JCSHasher {
      * CAUTION This implementation supports currently only "eddsa-jcs-2022" as specified by https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022.
      *
      * <p>The proofValue property of the proof MUST be a detached EdDSA signature produced according to
-     * [RFC8032 (https://www.w3.org/TR/vc-di-eddsa/#bib-rfc8032)],
-     * encoded using the base-58-btc header and alphabet as described in the Multibase section
-     * (https://www.w3.org/TR/controller-document/#multibase-0) of Controlled Identifier Document 1.0 (https://www.w3.org/TR/controller-document/).
+     * <a href="https://www.w3.org/TR/vc-di-eddsa/#bib-rfc8032">RFC8032</a>,
+     * encoded using the base-58-btc header and alphabet as described in the
+     * <a href="https://www.w3.org/TR/controller-document/#multibase-0">Multibase</a> section of
+     * <a href="https://www.w3.org/TR/controller-document/">Controlled Identifier Document</a>.
      *
-     * @param unsecuredDocument to create a proof for
-     * @param signer            to use for signing the proofValue
-     * @param versionId         relevant for the "challenge" property, if required
-     * @param entryHash         relevant for the "challenge" property, if required
-     * @param proofPurpose      typically "assertionMethod" or "authentication"
-     * @param dateTime          of the proof creation
+     * @param unsecuredDocument             to create a proof for
+     * @param verificationMethodKeyProvider to use for signing the proofValue
+     * @param versionId                     relevant for the "challenge" property, if required
+     * @param entryHash                     relevant for the "challenge" property, if required
+     * @param proofPurpose                  typically "assertionMethod" or "authentication"
+     * @param dateTime                      of the proof creation
      * @return JsonObject representing the data integrity proof
      * @throws IOException may come from a hasher
      */
-    static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument, boolean useContext, Ed25519SignerVerifier signer, int versionId, String entryHash, String proofPurpose, ZonedDateTime dateTime)
+    static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument,
+                                              boolean useContext,
+                                              VerificationMethodKeyProvider verificationMethodKeyProvider,
+                                              int versionId,
+                                              String entryHash,
+                                              String proofPurpose,
+                                              ZonedDateTime dateTime)
             throws IOException {
 
         /*
@@ -140,7 +147,7 @@ class JCSHasher {
         /*
         The data integrity proof verificationMethod is the did:key from the first log entry, and the challenge is the versionId from this log entry.
          */
-        proof.addProperty("verificationMethod", "did:key:" + signer.getVerificationKeyMultibase() + '#' + signer.getVerificationKeyMultibase());
+        proof.addProperty("verificationMethod", "did:key:" + verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + verificationMethodKeyProvider.getVerificationKeyMultibase());
         proof.addProperty("proofPurpose", proofPurpose);
         if (entryHash != null && !entryHash.isEmpty()) {
             proof.addProperty("challenge", versionId + "-" + entryHash);
@@ -149,9 +156,9 @@ class JCSHasher {
         String docHashHex = hashJsonObjectAsHex(unsecuredDocument);
         String proofHashHex = hashJsonObjectAsHex(proof);
 
-        var signature = signer.signBytes(HexFormat.of().parseHex(proofHashHex + docHashHex));
+        var signature = verificationMethodKeyProvider.generateSignature(HexFormat.of().parseHex(proofHashHex + docHashHex));
         //String signatureHex = HexFormat.of().formatHex(signature);
-        //String verifyingKeyHex = HexFormat.of().formatHex(signer.verifyingKey);
+        //String verifyingKeyHex = HexFormat.of().formatHex(verificationMethodKeyProvider.verifyingKey);
 
         // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
         //     https://www.w3.org/TR/controller-document/#multibase-0

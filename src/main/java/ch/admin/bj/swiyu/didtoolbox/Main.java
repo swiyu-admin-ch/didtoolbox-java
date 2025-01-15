@@ -16,8 +16,7 @@ import java.util.jar.Manifest;
 
 import static ch.admin.bj.swiyu.didtoolbox.CreateTdwCommand.DEFAULT_METHOD_VERSION;
 
-public class Main {
-
+class Main {
 
     @Parameter(names = {"--help", "-h"},
             description = "Display help for the DID toolbox",
@@ -123,11 +122,11 @@ public class Main {
                 String didLogEntry = null;
                 try {
 
-                    Ed25519SignerVerifier signer = new Ed25519SignerVerifier(); // default with generated key pair
+                    Ed25519VerificationMethodKeyProviderImpl signer = new Ed25519VerificationMethodKeyProviderImpl(); // default with generated key pair
                     if (signingKeyPemFile != null && verifyingKeyPemFile != null) {
-                        signer = new Ed25519SignerVerifier(signingKeyPemFile, verifyingKeyPemFile); // supplied external key pair
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, verifyingKeyPemFile); // supplied external key pair
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
-                        signer = new Ed25519SignerVerifier(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
                     } else {
                         /*
                         File outputDir = createCommand.outputDir;
@@ -143,7 +142,7 @@ public class Main {
                         signer.writePublicKeyAsPem(new File(outputDir, "id_ed25519.pub"));
                     }
 
-                    var tdwBuilder = TdwCreator.builder().signer(signer);
+                    var tdwBuilder = TdwCreator.builder().verificationMethodKeyProvider(signer);
 
                     didLogEntry = tdwBuilder
                             .assertionMethodKeys(assertionMethodsMap)

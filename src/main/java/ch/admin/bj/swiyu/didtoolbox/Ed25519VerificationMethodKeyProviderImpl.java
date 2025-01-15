@@ -8,6 +8,7 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,15 +21,35 @@ import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
 
 /**
- * Builds on top of {@link org.bouncycastle.crypto.signers.Ed25519Signer} by adding further useful helpers.
+ * The {@link Ed25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation used to generate pairs of
+ * public and private keys for the Ed25519 algorithm (or loading them from the file system). Such key pair is used then
+ * for the purpose of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log creation.
+ * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
+ * It builds extensively on top of {@link org.bouncycastle.crypto.signers.Ed25519Signer} and introduces various useful helpers.
+ * <p>
+ * It is predominantly intended to be used within the {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * prior to a {@link TdwCreator#create(URL)} call.
+ * <p>
+ * Thanks to the following methods, it is also capable of loading an already existing key material from the file system:
+ * <ul>
+ * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(File, File)} for loading the update (Ed25519) key from
+ * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
+ * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
+ * </ul>
+ *
+ * @see KeyPairGenerator
+ * @see org.bouncycastle.crypto.signers.Ed25519Signer
  */
-class Ed25519SignerVerifier {
+public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMethodKeyProvider {
 
     byte[] signingKey = new byte[32];
     byte[] verifyingKey = new byte[32];
     private KeyPair keyPair;
 
-    Ed25519SignerVerifier() {
+    /**
+     * @see KeyPairGenerator
+     */
+    Ed25519VerificationMethodKeyProviderImpl() {
 
         try {
             KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("Ed25519");
@@ -50,7 +71,7 @@ class Ed25519SignerVerifier {
     }
 
     /**
-     * The constructor accepting keys in multibase base58btc format, e.g.
+     * Yet another {@link Ed25519VerificationMethodKeyProviderImpl} constructor accepting keys in multibase base58btc format, e.g.
      * <p>
      * {@snippet lang = JSON:
      *     {
@@ -58,11 +79,13 @@ class Ed25519SignerVerifier {
      *         "secretKeyMultibase": "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"
      *     }
      *}
+     * <p>
+     * CAUTION It is assumed the keys do really match. Otherwise, {@link RuntimeException} is thrown.
      *
-     * @param privateKeyMultibase
-     * @param publicKeyMultibase
+     * @param privateKeyMultibase the base58-encoded string to decode as private Ed25519 key
+     * @param publicKeyMultibase  the base58-encoded string to decode as public Ed25519 key
      */
-    Ed25519SignerVerifier(String privateKeyMultibase, String publicKeyMultibase) {
+    public Ed25519VerificationMethodKeyProviderImpl(String privateKeyMultibase, String publicKeyMultibase) {
 
         var signingKey = Base58.decode(privateKeyMultibase.substring(1));
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
@@ -81,25 +104,20 @@ class Ed25519SignerVerifier {
         }
     }
 
-    /*
-    public byte[] getSigningKey() {
-        return signingKey;
-    }
-    */
-
     /**
-     * The Java KeyStore (JKS) compliant constructor.
+     * The Java KeyStore (JKS) compliant {@link Ed25519VerificationMethodKeyProviderImpl} constructor.
      *
-     * @param jksFile
-     * @param password
-     * @param alias
+     * @param jksFile  the input stream from which the keystore is loaded, or null
+     * @param password the password used to check the integrity of the keystore, the password used to unlock the keystore, or null
+     * @param alias    the alias name the key is associated with
      * @throws KeyStoreException
      * @throws CertificateException
      * @throws IOException
      * @throws NoSuchAlgorithmException
      * @throws UnrecoverableEntryException
+     * @see KeyStore#load(InputStream, char[])
      */
-    Ed25519SignerVerifier(InputStream jksFile, String password, String alias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
+    public Ed25519VerificationMethodKeyProviderImpl(InputStream jksFile, String password, String alias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
 
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(jksFile, password.toCharArray()); // java.io.IOException: keystore password was incorrect
@@ -127,15 +145,16 @@ class Ed25519SignerVerifier {
     }
 
     /**
-     * The PEM file based constructor.
+     * The <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> file based {@link Ed25519VerificationMethodKeyProviderImpl} constructor.
+     * <p>
+     * CAUTION It is assumed the keys do really match. Otherwise, {@link RuntimeException} is thrown.
      *
-     * @param privatePemFile
-     * @param publicPemFile
-     * @throws IOException
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
+     * @param privatePemFile file to load a private Ed25519 key from. It is assumed to be encoded according to the PKCS #8 standard.
+     * @param publicPemFile  file to load a public Ed25519 key from. It is assumed to be encoded according to the X.509 standard.
+     * @throws IOException             in case of a parse error.
+     * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
      */
-    Ed25519SignerVerifier(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+    public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException {
 
         byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
@@ -148,14 +167,19 @@ class Ed25519SignerVerifier {
         this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 
         keyPair = new KeyPair(pubKey, privKey);
+
+        // sanity check
+        if (!this.verify("hello world", this.signString("hello world"))) {
+            throw new RuntimeException("keys do not match");
+        }
     }
 
     /**
      * The encoding of an Ed25519 public key MUST start with the two-byte prefix 0xed01 (the varint expression of 0xed),
      * followed by the 32-byte public key data. The resulting 34-byte value MUST then be encoded using the base-58-btc alphabet,
-     * according to Section 2.4 Multibase (https://www.w3.org/TR/controller-document/#multibase-0),
-     * and then prepended with the base-58-btc Multibase header (z).
-     * <p>See https://www.w3.org/TR/controller-document/#Multikey
+     * and then prepended with the <a href="https://www.w3.org/TR/controller-document/#multibase-0">base-58-btc Multibase header (z)</a>.
+     * <p>
+     * See <a href="https://www.w3.org/TR/controller-document/#Multikey">Multikey</a>
      *
      * @param verifyingKey
      * @return
@@ -219,13 +243,16 @@ class Ed25519SignerVerifier {
     }
 
     /**
-     * According to https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020:
-     * <p>The publicKeyMultibase property of the verification method MUST be a public key encoded according to [MULTICODEC] and formatted according to [MULTIBASE].
+     * This {@link VerificationMethodKeyProvider} interface method implementation is done w.r.t.
+     * <a href="https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020">d25519verificationkey2020</a>:
+     * <pre>
+     * The publicKeyMultibase property of the verification method MUST be a public key encoded according to [MULTICODEC] and formatted according to [MULTIBASE].
      * The multicodec encoding of a Ed25519 public key is the two-byte prefix 0xed01 followed by the 32-byte public key data.
+     * </pre>
      *
-     * @return
+     * @return public verification key in multibase format.
      */
-    String getVerificationKeyMultibase() {
+    public String getVerificationKeyMultibase() {
         return buildVerificationKeyMultibase(this.verifyingKey);
     }
 
@@ -241,7 +268,13 @@ class Ed25519SignerVerifier {
         return signer.generateSignature();
     }
 
-    byte[] signBytes(byte[] message) {
+    /**
+     * The {@link VerificationMethodKeyProvider} interface method implementation using Ed25519 algorithm.
+     *
+     * @param message
+     * @return
+     */
+    public byte[] generateSignature(byte[] message) {
 
         Ed25519PrivateKeyParameters secretKeyParameters = new Ed25519PrivateKeyParameters(this.signingKey, 0);
         var signer = new Ed25519Signer();

@@ -10,9 +10,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class JwkUtilsTest {
 
     @Test
-    void testGenerateEC() {
+    void testGeneratePublicEC256() {
         try {
-            String json = JwkUtils.generateEC("auth-key-01", null);
+            String json = JwkUtils.generatePublicEC256("auth-key-01", null);
             assertNotNull(json);
         } catch (Exception e) {
             fail(e);
@@ -20,11 +20,11 @@ class JwkUtilsTest {
     }
 
     @Test
-    void testGenerateECWithOutput() {
+    void testGeneratePublicEC256WithOutput() {
         try {
             File tempFile = File.createTempFile("myprivatekey", "");
             tempFile.deleteOnExit();
-            String json = JwkUtils.generateEC("auth-key-01", tempFile);
+            String json = JwkUtils.generatePublicEC256("auth-key-01", tempFile);
             assertNotNull(json);
             assertNotEquals(0, Files.size(tempFile.toPath()));
             assertNotEquals(0, Files.size(new File(tempFile.getPath() + ".json").toPath()));
@@ -35,11 +35,11 @@ class JwkUtilsTest {
     }
 
     @Test
-    void testParseFile() { //throws JOSEException {
+    void testParseFile() {
         try {
-            var jwk = JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "my-auth-key-01"); // MUT
+            var jwk = JwkUtils.loadPublicJWKasJSON(new File("src/test/data/myjsonwebkeys.json"), "my-auth-key-01"); // MUT
             assertNotNull(jwk);
-            jwk = JwkUtils.load(new File("src/test/data/myjsonwebkeys.json"), "my-assert-key-01"); // MUT
+            jwk = JwkUtils.loadPublicJWKasJSON(new File("src/test/data/myjsonwebkeys.json"), "my-assert-key-01"); // MUT
             assertNotNull(jwk);
         } catch (Exception e) {
             fail(e);

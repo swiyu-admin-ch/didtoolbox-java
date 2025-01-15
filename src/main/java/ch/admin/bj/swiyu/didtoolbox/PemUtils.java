@@ -17,6 +17,12 @@ import java.security.spec.X509EncodedKeySpec;
 
 class PemUtils {
 
+    /**
+     *
+     * @param pemFile
+     * @return
+     * @throws IOException in case of a parse error.
+     */
     static byte[] parsePEMFile(File pemFile) throws IOException {
         if (!pemFile.isFile() || !pemFile.exists()) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", pemFile.getAbsolutePath()));
@@ -38,14 +44,24 @@ class PemUtils {
         return factory.generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
     }
 
-    static PublicKey getPublicKeyEd25519(byte[] keyBytes) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        KeyFactory factory = KeyFactory.getInstance("Ed25519");
-        return factory.generatePublic(new X509EncodedKeySpec(keyBytes));
+    static PublicKey getPublicKeyEd25519(byte[] encodedKey) throws InvalidKeySpecException {
+        KeyFactory factory = null;
+        try {
+            factory = KeyFactory.getInstance("Ed25519");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
     }
 
-    static PrivateKey getPrivateKeyEd25519(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
-        KeyFactory factory = KeyFactory.getInstance("Ed25519");
-        return factory.generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
+    static PrivateKey getPrivateKeyEd25519(byte[] encodedKey) throws InvalidKeySpecException {
+        KeyFactory factory = null;
+        try {
+            factory = KeyFactory.getInstance("Ed25519");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        return factory.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
     }
 
     static PublicKey readPublicKeyFromFile(String filepath, String algorithm) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {

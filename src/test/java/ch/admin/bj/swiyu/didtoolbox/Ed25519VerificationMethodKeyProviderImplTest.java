@@ -21,7 +21,7 @@ import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class Ed25519SignerVerifierTest {
+public class Ed25519VerificationMethodKeyProviderImplTest {
 
     /*
     @BeforeAll
@@ -64,7 +64,7 @@ public class Ed25519SignerVerifierTest {
     @MethodSource("keyMessageSignature")
     public void testSign(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message) {
 
-        String signed = Hex.toHexString(new Ed25519SignerVerifier().signString(message)); // MUT
+        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl().signString(message)); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -77,7 +77,7 @@ public class Ed25519SignerVerifierTest {
         File tempFile = File.createTempFile("myprivatekey", ".pem");
         tempFile.deleteOnExit();
 
-        (new Ed25519SignerVerifier()).writePrivateKeyAsPem(tempFile); // MUT
+        (new Ed25519VerificationMethodKeyProviderImpl()).writePrivateKeyAsPem(tempFile); // MUT
 
         //assertEquals(119, tempFile.length());
         assertEquals(119, Files.size(tempFile.toPath()));
@@ -90,7 +90,7 @@ public class Ed25519SignerVerifierTest {
         File tempFile = File.createTempFile("mypublickey", ".pem");
         tempFile.deleteOnExit();
 
-        (new Ed25519SignerVerifier()).writePublicKeyAsPem(tempFile); // MUT
+        (new Ed25519VerificationMethodKeyProviderImpl()).writePublicKeyAsPem(tempFile); // MUT
 
         //assertEquals(119, tempFile.length());
         assertEquals(113, Files.size(tempFile.toPath()));
@@ -102,7 +102,7 @@ public class Ed25519SignerVerifierTest {
     @MethodSource("keyMessageSignature")
     public void testVerify(String privateKeyMultibase, String publicKeyMultibase, String message, String expected) {
 
-        boolean verified = new Ed25519SignerVerifier(privateKeyMultibase, publicKeyMultibase).verify(message, Hex.decode(expected)); // MUT
+        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).verify(message, Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -112,7 +112,7 @@ public class Ed25519SignerVerifierTest {
     @MethodSource("keysSignature")
     public void testSignUsingKeys(String privateKeyMultibase, String publicKeyMultibase, String expected) {
 
-        String signed = Hex.toHexString(new Ed25519SignerVerifier(privateKeyMultibase, publicKeyMultibase).signString("The quick brown fox jumps over the lazy dog")); // MUT
+        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).signString("The quick brown fox jumps over the lazy dog")); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -124,7 +124,7 @@ public class Ed25519SignerVerifierTest {
     @MethodSource("keysSignature")
     public void testVerifyUsingKeys(String privateKeyMultibase, String publicKeyMultibase, String expected) {
 
-        boolean verified = new Ed25519SignerVerifier(privateKeyMultibase, publicKeyMultibase).verify("The quick brown fox jumps over the lazy dog", Hex.decode(expected)); // MUT
+        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).verify("The quick brown fox jumps over the lazy dog", Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -135,7 +135,7 @@ public class Ed25519SignerVerifierTest {
     public void testSignUsingJKS(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
             throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
 
-        String signed = Hex.toHexString(new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias").signString(message)); // MUT
+        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias").signString(message)); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -148,7 +148,7 @@ public class Ed25519SignerVerifierTest {
     public void testVerifyUsingJKS(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
             throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
 
-        boolean verified = new Ed25519SignerVerifier(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias").verify(message, Hex.decode(expected)); // MUT
+        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias").verify(message, Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -159,7 +159,7 @@ public class Ed25519SignerVerifierTest {
     public void testSignUsingPemKeys(String _unusedPrivateKey, String _unusedPublicKey, String message, String expected)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
-        String signed = Hex.toHexString(new Ed25519SignerVerifier(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")).signString(message)); // MUT
+        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")).signString(message)); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -172,7 +172,7 @@ public class Ed25519SignerVerifierTest {
     public void testVerifyUsingPemKeys(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
-        boolean verified = new Ed25519SignerVerifier(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")).verify(message, Hex.decode(expected)); // MUT
+        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")).verify(message, Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -181,15 +181,15 @@ public class Ed25519SignerVerifierTest {
     public void testThrowsInvalidKeySpecException() throws IOException {
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519SignerVerifier(new File("src/test/data/public.pem"), new File("src/test/data/private.pem")); // keys swapped, both wrong
+            new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/public.pem"), new File("src/test/data/private.pem")); // keys swapped, both wrong
         });
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519SignerVerifier(new File("src/test/data/private.pem"), new File("src/test/data/private.pem")); // wrong public key PEM file
+            new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/private.pem")); // wrong public key PEM file
         });
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519SignerVerifier(new File("src/test/data/public.pem"), new File("src/test/data/public.pem")); // wrong private key PEM file
+            new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/public.pem"), new File("src/test/data/public.pem")); // wrong private key PEM file
         });
     }
 
@@ -197,7 +197,7 @@ public class Ed25519SignerVerifierTest {
     void testGetVerificationKeyMultibaseExample() {
 
         // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-        String actual = new Ed25519SignerVerifier(
+        String actual = new Ed25519VerificationMethodKeyProviderImpl(
                 "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq",
                 "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2")
                 .getVerificationKeyMultibase();
@@ -210,7 +210,7 @@ public class Ed25519SignerVerifierTest {
     @MethodSource("keysSignature")
     void testGetVerificationKeyMultibase(String privateKeyMultibase, String publicKeyMultibase, String expected) {
 
-        String actual = new Ed25519SignerVerifier(privateKeyMultibase, publicKeyMultibase).getVerificationKeyMultibase();
+        String actual = new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).getVerificationKeyMultibase();
 
         assertEquals(publicKeyMultibase, actual);
     }

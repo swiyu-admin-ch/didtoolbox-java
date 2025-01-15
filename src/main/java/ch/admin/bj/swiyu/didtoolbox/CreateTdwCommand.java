@@ -186,7 +186,7 @@ class CreateTdwCommand {
                 String jwk = null;
                 try {
 
-                    jwk = JwkUtils.load(new File(splitted[1]), kid);
+                    jwk = JwkUtils.loadPublicJWKasJSON(new File(splitted[1]), kid);
 
                 } catch (IOException | ParseException e) {
                     throw new RuntimeException(e);
@@ -215,7 +215,7 @@ class CreateTdwCommand {
             }
 
             try {
-                JwkUtils.load(f, kid);
+                JwkUtils.loadPublicJWKasJSON(f, kid);
             } catch (IOException | ParseException e) {
                 throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 public/verifying key in JWKS format: " + e.getLocalizedMessage());
             }

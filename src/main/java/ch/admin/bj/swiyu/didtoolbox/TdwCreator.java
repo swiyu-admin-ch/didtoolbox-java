@@ -3,34 +3,113 @@ package ch.admin.bj.swiyu.didtoolbox;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
+/**
+ * {@link TdwCreator} is the class in charge of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log generation.
+ * <p>
+ * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
+ * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
+ * it is intended to be instantiated exclusively via its static {@link #builder()} method.
+ * <p>
+ * Once a {@link TdwCreator} object is "built", creating a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a>
+ * log goes simply by calling {@link #create(URL)} method. Optionally, but most likely, an already existing key material will
+ * be also used in the process, so for the purpose there are further fluent methods available:
+ * <ul>
+ * <li>{@link TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwCreatorBuilder#authenticationKeys(Map)} for setting authentication
+ * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
+ * <li>{@link TdwCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
+ * </ul>
+ * To load keys from the file system, the following helpers are available:
+ * <ul>
+ * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(File, File)} for loading the update (Ed25519) key from
+ * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
+ * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
+ * <li>{@link JwkUtils#loadPublicJWKasJSON(File, String)} for loading authentication/assertion
+ * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys from
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> files</li>
+ * </ul>
+ * For instance:
+ * <pre>
+ * {@code
+ *     package mypackage;
+ *
+ *     import ch.admin.bj.swiyu.didtoolbox.*;
+ *     import java.net.*;
+ *
+ *     public static void main(String... args) {
+ *
+ *         String didLogEntryWithGeneratedKeys = null;
+ *         String didLogEntryWithExternalKeys = null;
+ *         try {
+ *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
+ *
+ *             // NOTE that all required keys will be generated here as well, as no explicit verificationMethodKeyProvider is set
+ *             didLogEntryWithGeneratedKeys = TdwCreator.builder()
+ *                 .build()
+ *                 .create(identifierRegistryUrl);
+ *
+ *             // Using already existing key material
+ *             didLogEntryWithExternalKeys = TdwCreator.builder()
+ *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("my_private_key.pem"), new File("my_public_key.pem")))
+ *                 .assertionMethodKeys(Map.of(
+ *                     "my-assert-key-01", JwkUtils.load(new File("my_json_web_keys.json"), "my-assert-key-01")
+ *                 ))
+ *                 .authenticationKeys(Map.of(
+ *                     "my-auth-key-01", JwkUtils.load(new File("my_json_web_keys.json"), "my-auth-key-01")
+ *                 ))
+ *                 .build()
+ *                 .create(identifierRegistryUrl);
+ *
+ *         } catch (Exception e) {
+ *             // some exc. handling goes here
+ *             System.exit(1);
+ *         }
+ *
+ *         // do something with the didLogEntry* vars here
+ *     }
+ * }
+ * </pre>
+ */
 @Builder
 @Getter
 public class TdwCreator {
 
     private static String SCID_PLACEHOLDER = "{SCID}";
 
+    @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
+    @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
-    private Ed25519SignerVerifier signer;
+    @Builder.Default
+    @Getter(AccessLevel.PRIVATE)
+    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     // TODO private File dirToStoreKeyPair;
 
     /**
-     * Creates a did:tdw DID Document.
+     * Creates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
+     * features of this {@link TdwCreator} object, optionally customized by previously calling fluent methods like
+     * {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider}, {@link TdwCreator.TdwCreatorBuilder#authenticationKeys(Map)} or
+     * {@link TdwCreator.TdwCreatorBuilder#assertionMethodKeys(Map)}.
      *
-     * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
-     * @return
-     * @throws IOException
+     * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
+     *                              <a href="https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation">he-did-to-https-transformation</a>
+     * @return a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log
+     * @throws IOException if creation fails for whatever reason
+     * @see #create(URL, ZonedDateTime)
      */
     public String create(URL identifierRegistryUrl) throws IOException {
         return create(identifierRegistryUrl, ZonedDateTime.now());
@@ -40,7 +119,7 @@ public class TdwCreator {
 
         String publicKeyJwk = jwk;
         if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generateEC(keyID, jwksFile);
+            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile);
         }
 
         JsonObject verificationMethodObj = new JsonObject();
@@ -54,17 +133,19 @@ public class TdwCreator {
     }
 
     /**
-     * Creates a did:tdw DID Document for a supplied datetime.
+     * Creates a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log for a supplied datetime.
      * <p>
      * This package-scope method is certainly more potent than the public one.
+     * <p>
      * <b>However, it is introduced for the sake of testability only.</b>
      *
-     * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
-     * @param now
+     * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t.
+     *                              <a href="https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation">the-did-to-https-transformation</a>
+     * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
      * @return
      * @throws IOException
      */
-    String create(URL identifierRegistryUrl, ZonedDateTime now) throws IOException {
+    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws IOException {
 
         // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
         // W.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
@@ -157,7 +238,7 @@ public class TdwCreator {
         // Add the versionTime value
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
-        didLogEntryWithoutProofAndSignature.add(DateTimeFormatter.ISO_INSTANT.format(now.truncatedTo(ChronoUnit.SECONDS)));
+        didLogEntryWithoutProofAndSignature.add(DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
 
         // Define the parameters
         // The third item in the input JSON array MUST be the parameters JSON object.
@@ -180,7 +261,7 @@ public class TdwCreator {
         the currently active list continues to apply.
          */
         JsonArray updateKeys = new JsonArray();
-        updateKeys.add(this.signer.getVerificationKeyMultibase());
+        updateKeys.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
         didMethodParameters.add("updateKeys", updateKeys);
 
         /* See https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters
@@ -243,7 +324,7 @@ public class TdwCreator {
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         JsonArray proofs = new JsonArray();
-        proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, this.signer, 1, entryHash, "authentication", now));
+        proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, 1, entryHash, "authentication", zdt));
         didLogEntryWithProof.add(proofs);
 
         return didLogEntryWithProof.toString();
