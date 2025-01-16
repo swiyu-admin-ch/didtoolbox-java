@@ -116,14 +116,14 @@ class CreateTdwCommand {
     String jksAlias;
 
     @Parameter(names = {"--assert", "-a"},
-            description = "An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key)",
+            description = "An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
     List<VerificationMethodParameters> assertionMethodKeys;
 
     @Parameter(names = {"--auth", "-t"},
-            description = "An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key)",
+            description = "An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)

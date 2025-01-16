@@ -10,8 +10,8 @@ Assuming the `mvn package` has already been executed, to create a Podman image f
 So, running the `podman image ls` command right after should result in at least two entries:
 ```text
 REPOSITORY                            TAG         IMAGE ID      CREATED         SIZE
-localhost/e-id-admin/didtoolbox-java  latest      afb7d10ad258  15 minutes ago  607 MB
-docker.io/library/openjdk             23          b37c977c525b  3 months ago    598 MB
+localhost/e-id-admin/didtoolbox-java  latest      bd8ef77fc4bf  46 seconds ago  613 MB
+docker.io/library/openjdk             23          b37c977c525b  4 months ago    598 MB
 ```
 
 Finally, once you manage to build a Podman image in your local repo, to run the DID toolbox (as Podman image), please use the `didtoolbox.sh` script, e.g.:
@@ -28,9 +28,9 @@ Usage: didtoolbox [options] [command] [command options]
       Usage: create [options]
         Options:
           --assert, -a
-            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key)
+            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
           --auth, -t
-            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key)
+            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
           --help, -h
             Display help for the DID toolbox 'create' command
         * --identifier-registry-url, -u
