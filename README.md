@@ -8,13 +8,24 @@ as part of the electronic identity (e-ID) project.
 
 This project implements the DID-Toolbox, a helper to create DIDs of type Trust DID Web (respectively the renamed method "did:webvh") according to the [specification v.0.3](https://identity.foundation/didwebvh/v0.3/).
 
+## Table of contents
+
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [CLI Overview](#cli-overview)
+- [Quickstart – Create Your First DID](#quickstart--create-your-first-did)
+- [Advanced Usage](#advanced-usage)
+- [Additional Information](#additional-information)
+- [Contributions and Feedback](#contributions-and-feedback)
+- [License](#license)
+
 ## Introduction
 
-A **Decentralized Identifier (DID)** is a globally unique identifier that allows individuals and entities to create and manage their own digital identities independently of centralized authorities. To actively participate in the swiyu Public Beta as an Issuer or Verifier, you must create at least one DID and upload the resulting DID log content to the Identifier Registry. New DIDs can be created using the DID-Toolbox, since it involves a set of steps that are error prone or need some time to get familiar with and one might end up with invalid DIDs.
+A **Decentralized Identifier (DID)** is a globally unique identifier that allows individuals and entities to create and manage their own digital identities independently of centralized authorities. To actively participate in the swiyu Public Beta as an issuer or verifier, you must create at least one DID and upload the resulting DID log content to the Identifier Registry. Creating new DIDs involves a set of steps that are error prone or need some time to get familiar with and one might end up with invalid DIDs. The DID-Toolbox supports you with various options for a quick start or advanced usage.
 
 **Currently, the swiyu ecosystem supports the following DID method: did:tdw, version 0.3.**
 
-As of now, it supports creating DIDs with verification relationships of types (see https://www.w3.org/TR/did-core/#verification-relationships):
+As of now, it supports creating DIDs with [verification relationships](https://www.w3.org/TR/did-core/#verification-relationships) of types:
 - authentication 
 - assertionMethod
 
@@ -71,7 +82,7 @@ didtoolbox 1.0.0
 
 ## Quickstart – Create Your First DID
 
-The Quickstart option is designed for users who want to rapidly create one or multiple DIDs without getting too much into the DID method internals. This automates the generation of necessary asymmetric key pairs and builds the initial DID log content, which can be uploaded to the swiyu Identifier Registry.
+The quickstart option is designed for users who want to rapidly create one or multiple DIDs without getting too much into the DID method internals. This automates the generation of necessary asymmetric key pairs and builds the initial DID log content, which can be uploaded to the swiyu Identifier Registry.
 
 ### Command Syntax
 
