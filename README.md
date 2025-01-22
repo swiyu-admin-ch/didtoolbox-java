@@ -6,7 +6,7 @@ An official Swiss Government project made by
 the [Federal Office of Information Technology, Systems and Telecommunication FOITT](https://www.bit.admin.ch/)
 as part of the electronic identity (e-ID) project.
 
-This project implements the DID-Toolbox, a helper to create DIDs of type Trust DID Web (respectively the renamed method "did:webvh") according to the [specification v.0.3](https://identity.foundation/didwebvh/v0.3/).
+This project implements the DID-Toolbox, a helper to create DIDs of type Trust DID Web (respectively the renamed method "did:webvh") according to the [specification v0.3](https://identity.foundation/didwebvh/v0.3/).
 
 ## Table of contents
 

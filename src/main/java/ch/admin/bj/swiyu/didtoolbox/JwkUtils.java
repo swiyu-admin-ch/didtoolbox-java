@@ -60,16 +60,16 @@ public class JwkUtils {
      * Generates a new key pair (in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format)
      * using standard digital signature algorithm
      * <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.4">ECDSA using P-256 curve and SHA-256 hash function</a>.
-     * If {@code jwksFile} is supplied, the key pair is exported in
+     * If {@code keyPairPemFile} is supplied, the key pair is exported in
      * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format.
      *
-     * @param kid      the ID of the JWK, that can be used to match a specific key
-     * @param jwksFile if not {@code null}, the file where a generated key pair will be stored
-     *                 (in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format)
+     * @param kid            the ID of the JWK, that can be used to match a specific key
+     * @param keyPairPemFile if not {@code null}, the file where a generated key pair will be stored
+     *                       (in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format)
      * @return a new public EC JWK (in JSON format).
      * @throws IOException if persisting a key pair fails
      */
-    public static String generatePublicEC256(String kid, File jwksFile) throws IOException {
+    public static String generatePublicEC256(String kid, File keyPairPemFile) throws IOException {
 
         KeyPairGenerator keyPairGenerator = null;
         try {
@@ -83,81 +83,70 @@ public class JwkUtils {
 
         StringWriter stringWriter = new StringWriter();
         try (JcaPEMWriter pemWriter = new JcaPEMWriter(stringWriter)) {
-            pemWriter.writeObject(keyPair);
+            pemWriter.writeObject(keyPair); // CAUTION The whole key pair is expected to be written here, not only the private key
         }
-        String keyPem = stringWriter.toString();
+        String keyPairPem = stringWriter.toString();
 
-        ECKey jwk = null;
+        stringWriter = new StringWriter();
+        try (JcaPEMWriter pemWriter = new JcaPEMWriter(stringWriter)) {
+            pemWriter.writeObject(keyPair.getPublic());
+        }
+        String publicKeyPem = stringWriter.toString();
+
+        ECKey publicJwk = null;
         try {
             // CAUTION By using com.nimbusds.jose.jwk.gen.ECKeyGenerator (see https://connect2id.com/products/nimbus-jose-jwt/examples/jws-with-ec-signature)
             //         to create a com.nimbusds.jose.jwk.JWK object you may end up having incomplete EC PRIVATE KEY export later on.
-            jwk = JWK.parseFromPEMEncodedObjects(keyPem).toECKey();
+            publicJwk = JWK.parseFromPEMEncodedObjects(publicKeyPem).toECKey();
         } catch (JOSEException e) {
             throw new RuntimeException(e);
         }
 
-        var jwkObject = JsonParser.parseString(jwk.toJSONString()).getAsJsonObject();
-        jwkObject.addProperty("kid", kid);
+        var publicJwkJsonObject = JsonParser.parseString(publicJwk.toJSONString()).getAsJsonObject();
+        publicJwkJsonObject.addProperty("kid", kid);
 
-        if (jwksFile != null) {
+        if (keyPairPemFile != null) {
 
-            /*
-            var jsonArray = new JsonArray();
-            jsonArray.add(jwkObject);
-            var keys = new JsonObject();
-            keys.add("keys", jsonArray);
-
-            var w = new BufferedWriter(new FileWriter(new File(jwksFile.getPath() + ".json")));
+            Writer w = new BufferedWriter(new FileWriter(keyPairPemFile));
             try {
-                w.write(keys.toString());
-                w.flush();
-            } finally {
-                w.close();
-            }
-             */
-
-            Writer w = new BufferedWriter(new FileWriter(jwksFile));
-            try {
-                w.write(keyPem);
+                w.write(keyPairPem);
                 w.flush();
             } finally {
                 w.close();
             }
 
-            exportEcPublicKeyToPem(jwk, jwksFile);
+            exportEcPublicKeyToPem(publicJwk, keyPairPemFile);
 
             // A private key file should always get appropriate file permissions, if feasible
-            PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(jwksFile.toPath(), PosixFileAttributeView.class);
+            PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(keyPairPemFile.toPath(), PosixFileAttributeView.class);
             if (!System.getProperty("os.name").toLowerCase().contains("win") && posixFileAttributeView != null) {
-                Files.setPosixFilePermissions(jwksFile.toPath(), PosixFilePermissions.fromString("rw-------"));
+                Files.setPosixFilePermissions(keyPairPemFile.toPath(), PosixFilePermissions.fromString("rw-------"));
             } else {
                 // CAUTION If the underlying file system can not distinguish the owner's read permission from that of others,
                 //         then the permission will apply to everybody, regardless of this value.
-                jwksFile.setReadable(true, true);
-                jwksFile.setWritable(true, true);
+                keyPairPemFile.setReadable(true, true);
+                keyPairPemFile.setWritable(true, true);
             }
         }
 
-        // Output the public JWK parameters only
-        jwkObject.remove("d");
-        return jwkObject.toString();
+        return publicJwkJsonObject.toString();
     }
 
     /**
      * PEM export helper.
      *
      * @param jwk
-     * @param jwksFile
+     * @param keyPairPemFile
      * @throws IOException
      */
-    private static void exportEcPublicKeyToPem(ECKey jwk, File jwksFile) throws IOException {
-        JcaPEMWriter pemWriterPub = new JcaPEMWriter(new FileWriter(new File(jwksFile.getPath() + ".pub")));
+    private static void exportEcPublicKeyToPem(ECKey jwk, File keyPairPemFile) throws IOException {
+        JcaPEMWriter pemWriterPub = new JcaPEMWriter(new FileWriter(keyPairPemFile.getPath() + ".pub"));
         try {
             // as specified by https://www.rfc-editor.org/rfc/rfc5208
             pemWriterPub.writeObject(new PemObject("PUBLIC KEY", jwk.toPublicKey().getEncoded()));
             pemWriterPub.flush();
 
-            ecPemSanityCheck(new File(jwksFile.getPath()), new File(jwksFile.getPath() + ".pub"));
+            ecPemSanityCheck(new File(keyPairPemFile.getPath()), new File(keyPairPemFile.getPath() + ".pub"));
 
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException |
                  InvalidKeyException | SignatureException | NoSuchProviderException | JOSEException e) {
@@ -178,7 +167,7 @@ public class JwkUtils {
      * @throws InvalidKeyException
      * @throws SignatureException
      */
-    private static void ecPemSanityCheck(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException,
+    static void ecPemSanityCheck(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException,
             NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidParameterSpecException, NoSuchProviderException, JOSEException {
 
         ECPrivateKey privKey = (ECPrivateKey) JWK.parseFromPEMEncodedObjects(Files.readString(privatePemFile.toPath())).toECKey().toPrivateKey();
