@@ -6,7 +6,6 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.time.ZonedDateTime;
@@ -14,7 +13,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TdwUpdaterTest {
+class TdwUpdaterTest {
 
     private static void assertDidLogEntry(String didLogEntry) {
 
@@ -58,12 +57,12 @@ public class TdwUpdaterTest {
     }
 
     @Test
-    public void testUpdateThrowsAuthKeyAlreadyExistsException() {
+    void testUpdateThrowsAuthKeyAlreadyExistsException() {
 
-        assertThrowsExactly(IOException.class, () -> {
+        assertThrowsExactly(TdwUpdaterException.class, () -> {
 
             var initialDidLogEntry = buildInitialDidLogEntry();
-            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId;
+            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId; // may throw DidLogMetaPeekerException
 
             TdwUpdater.builder()
                     //.verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")))
@@ -76,12 +75,12 @@ public class TdwUpdaterTest {
     }
 
     @Test
-    public void testUpdateThrowsAssertionKeyAlreadyExistsException() {
+    void testUpdateThrowsAssertionKeyAlreadyExistsException() {
 
-        assertThrowsExactly(IOException.class, () -> {
+        assertThrowsExactly(TdwUpdaterException.class, () -> {
 
             var initialDidLogEntry = buildInitialDidLogEntry();
-            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId;
+            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId; // may throw DidLogMetaPeekerException
 
             TdwUpdater.builder()
                     //.verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")))
@@ -94,12 +93,12 @@ public class TdwUpdaterTest {
     }
 
     @Test
-    public void testThrowsUpdateKeyMismatchException() {
+    void testThrowsUpdateKeyMismatchException() {
 
-        assertThrowsExactly(IOException.class, () -> {
+        assertThrowsExactly(TdwUpdaterException.class, () -> {
 
             var initialDidLogEntry = buildInitialDidLogEntry();
-            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId;
+            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId; // may throw DidLogMetaPeekerException
 
             TdwUpdater.builder()
                     //.verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl("z6Mkg8QqetWTbAuxYN8oAY8N4bXg8UErkRHQhytByfmpdEr4", "z6Mkwf4PgXLq8sRfucTggtZXmigKZP7gQhFamk3XHGV54QvF"))
@@ -109,14 +108,14 @@ public class TdwUpdaterTest {
     }
 
     @Test
-    public void testMultipleUpdates() {
+    void testMultipleUpdates() {
 
         var initialDidLogEntry = buildInitialDidLogEntry();
 
         String nextLogEntry = null;
         StringBuilder updatedDidLog;
         try {
-            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId;
+            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId; // may throw DidLogMetaPeekerException
             var verificationMethodKeyProvider1 = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
 
             updatedDidLog = new StringBuilder(initialDidLogEntry);
@@ -127,12 +126,14 @@ public class TdwUpdaterTest {
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                         .build()
-                        .update(didTDW, updatedDidLog.toString(), ZonedDateTime.parse("2012-12-21T12:12:12Z")); // MUT;
+                        // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                        // The versionTime of the last entry MUST be earlier than the current time.
+                        .update(didTDW, updatedDidLog.toString(), ZonedDateTime.parse("2012-12-1" + i + "T12:12:12Z")); // MUT;
 
                 updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
             }
 
-            new Did(didTDW).resolve(updatedDidLog.toString()); // ultimate test
+            new Did(didTDW).resolve(updatedDidLog.toString()); // the ultimate test
 
         } catch (Exception e) {
             fail(e);

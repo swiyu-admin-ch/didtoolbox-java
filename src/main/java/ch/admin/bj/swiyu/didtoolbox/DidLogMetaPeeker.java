@@ -8,6 +8,9 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * A quite rudimentary DID log parser intended as a sidekick (helper) of {@link TdwUpdater}.
+ */
 class DidLogMetaPeeker {
 
     private DidLogMetaPeeker() {
@@ -125,7 +128,14 @@ class DidLogMetaPeeker {
         }
     }
 
-    static DidLogMeta peek(String didLog) throws IOException {
+    /**
+     * The essential method oh the helper class.
+     *
+     * @param didLog
+     * @return
+     * @throws DidLogMetaPeekerException
+     */
+    static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
 
         AtomicReference<IOException> ioException = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();
@@ -140,6 +150,7 @@ class DidLogMetaPeeker {
 
             var lineReader = new StringReader(line);
             var jsonReader = new Gson().newJsonReader(lineReader);
+            jsonReader.setLenient(false); // default, use JsonReader.setLenient(true) to accept malformed JSON
             try { // note that all jsonReader methods may throw IOException, which will be captured
                 while (jsonReader.hasNext()) {
 
@@ -234,18 +245,26 @@ class DidLogMetaPeeker {
         }
 
         if (ioException.get() != null) {
-            throw ioException.get();
+            throw new DidLogMetaPeekerException("Malformed DID log entry", ioException.get());
         }
 
         var split = lastVersionId.get().split("-");
         if (split.length != 2) {
-            throw new IOException("Every versionId MUST be a dash-separated combination of version number and entry hash, found: " + lastVersionId.get());
+            throw new DidLogMetaPeekerException("Every versionId MUST be a dash-separated combination of version number and entry hash, found: " + lastVersionId.get());
         }
         int lastVersionNumber;
         try {
             lastVersionNumber = Integer.parseInt(split[0]);
         } catch (NumberFormatException e) {
-            throw new IOException(e);
+            throw new DidLogMetaPeekerException("Invalid DID log entry version number: " + split[0], e);
+        }
+
+        if (dateTime.get().isEmpty()) {
+            throw new DidLogMetaPeekerException("The versionTime MUST be a valid ISO8601 date/time string");
+        }
+
+        if (didDocId.get() == null) {
+            throw new DidLogMetaPeekerException("DID doc ID missing");
         }
 
         return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), params.get(), didDocId.get());

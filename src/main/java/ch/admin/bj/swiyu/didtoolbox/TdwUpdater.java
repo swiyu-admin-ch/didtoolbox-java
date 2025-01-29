@@ -55,17 +55,18 @@ import java.util.Map;
  *     public static void main(String... args) {
  *
  *         String didLogEntryWithGeneratedKeys = null;
- *         String didLogEntryWithExternalKeys = null;
+ *         String updatedDidLogEntryWithExternalKeys = null;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
  *
  *             // NOTE that all required keys will be generated here as well, as no explicit verificationMethodKeyProvider is set
  *             didLogEntryWithGeneratedKeys = TdwCreator.builder()
+ *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("private-key.pem"), new File("public-key.pem")))
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
- *             // Using already existing key material
- *             didLogEntryWithExternalKeys = TdwCreator.builder()
+ *             // Update with already existing key material
+ *             updatedDidLogEntryWithExternalKeys = TdwUpdater.builder()
  *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("private-key.pem"), new File("public-key.pem")))
  *                 .assertionMethodKeys(Map.of(
  *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("assert-key-01.pub"), "my-assert-key-01")
@@ -74,7 +75,7 @@ import java.util.Map;
  *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("auth-key-01.pub"), "my-auth-key-01")
  *                 ))
  *                 .build()
- *                 .create(identifierRegistryUrl);
+ *                 .update("did:tdw:...", didLogEntryWithGeneratedKeys);
  *
  *         } catch (Exception e) {
  *             // some exc. handling goes here
@@ -131,19 +132,25 @@ public class TdwUpdater {
      *
      * @param didTDW a TDW-specific identifier in its entirety w.r.t.
      *               <a href="https://identity.foundation/didwebvh/v0.3/#method-specific-identifier">method-specific-identifier</a>
+     * @param didLog to update
      * @return a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log
-     * @throws IOException if creation fails for whatever reason
+     * @return a whole new <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
+     * @throws TdwUpdaterException if update fails for whatever reason
      * @see #update(String, String, ZonedDateTime)
      */
-    public String update(String didTDW, String oldDidLog) throws IOException {
-        return update(didTDW, oldDidLog, ZonedDateTime.now());
+    public String update(String didTDW, String didLog) throws TdwUpdaterException {
+        return update(didTDW, didLog, ZonedDateTime.now());
     }
 
-    private static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws IOException {
+    private static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws TdwUpdaterException {
 
         String publicKeyJwk = jwk;
         if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile);
+            try {
+                publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile);
+            } catch (IOException e) {
+                throw new TdwUpdaterException(e);
+            }
         }
 
         JsonObject verificationMethodObj = new JsonObject();
@@ -165,32 +172,32 @@ public class TdwUpdater {
      *
      * @param didTDW a TDW-specific identifier in its entirety w.r.t.
      *               <a href="https://identity.foundation/didwebvh/v0.3/#method-specific-identifier">method-specific-identifier</a>
+     * @param didLog to update
      * @param zdt    a date-time with a time-zone in the ISO-8601 calendar system
-     * @return
-     * @throws IOException
+     * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
+     * @throws TdwUpdaterException
      */
-    String update(String didTDW, String didLog, ZonedDateTime zdt) throws IOException {
+    String update(String didTDW, String didLog, ZonedDateTime zdt) throws TdwUpdaterException {
 
-        // Common sense
         var did = new Did(didTDW);
         DidDoc oldDidDoc;
+        DidLogMetaPeeker.DidLogMeta didLogMeta;
         try {
-            oldDidDoc = did.resolve(didLog);
-        } catch (DidResolveException e) {
-            throw new IOException(e);
+            oldDidDoc = did.resolve(didLog); // first and foremost
+            didLogMeta = DidLogMetaPeeker.peek(didLog);
+        } catch (DidResolveException | DidLogMetaPeekerException e) {
+            throw new TdwUpdaterException("Unresolvable DID log", e);
         } finally {
             did.close();
         }
 
-        var didLogMeta = DidLogMetaPeeker.peek(didLog);
-
         // CAUTION Only activated DIDs can be updated
         if (didLogMeta.params.deactivated != null && didLogMeta.params.deactivated) {
-            throw new IOException("DID already deactivated");
+            throw new TdwUpdaterException("DID already deactivated");
         }
 
         if (!didLogMeta.params.updateKeys.contains(this.verificationMethodKeyProvider.getVerificationKeyMultibase())) {
-            throw new IOException("Update key mismatch");
+            throw new TdwUpdaterException("Update key mismatch");
         }
 
         List<VerificationMethod> oldAuthentication = oldDidDoc.getAuthentication();
@@ -222,7 +229,7 @@ public class TdwUpdater {
                     String[] split = num.getId().split("#");
                     return split.length == 2 && split[1].equals(key.getKey());
                 })) {
-                    throw new IOException("The authentication key exists already: " + key.getKey());
+                    throw new TdwUpdaterException("The authentication key exists already: " + key.getKey());
                 }
 
                 authentication.add(didTDW + "#" + key.getKey());
@@ -246,7 +253,7 @@ public class TdwUpdater {
                     String[] split = num.getId().split("#");
                     return split.length == 2 && split[1].equals(key.getKey());
                 })) {
-                    throw new IOException("The assertion method key exists already: " + key.getKey());
+                    throw new TdwUpdaterException("The assertion method key exists already: " + key.getKey());
                 }
 
                 assertionMethod.add(didTDW + "#" + key.getKey());
@@ -266,7 +273,7 @@ public class TdwUpdater {
 
             var type = vm.getVerificationType();
             if (!type.equals(VerificationType.JSON_WEB_KEY2020)) {
-                throw new IOException("Verification method type not supported: ");
+                throw new TdwUpdaterException("Verification method type not supported: " + type);
             }
 
             verificationMethod.add(verificationMethodAsJsonObject(vm));
@@ -306,7 +313,12 @@ public class TdwUpdater {
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        var entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
+        String entryHash = null;
+        try {
+            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
+        } catch (IOException e) {
+            throw new TdwUpdaterException(e);
+        }
 
         JsonArray didLogEntryWithProof = new JsonArray();
         didLogEntryWithProof.add(didLogMeta.lastVersionNumber + 1 + "-" + entryHash);
@@ -323,7 +335,12 @@ public class TdwUpdater {
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         var proofs = new JsonArray();
-        var proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, didLogMeta.lastVersionNumber + 1, entryHash, "authentication", zdt);
+        JsonObject proof = null;
+        try {
+            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, didLogMeta.lastVersionNumber + 1, entryHash, "authentication", zdt);
+        } catch (IOException e) {
+            throw new TdwUpdaterException("Fail to build DID doc data integrity proof", e);
+        }
         // CAUTION Set proper "verificationMethod"
         proof.addProperty("verificationMethod", "did:key:" + didLogMeta.params.updateKeys.getLast() + '#' + didLogMeta.params.updateKeys.getLast());
         proofs.add(proof);
