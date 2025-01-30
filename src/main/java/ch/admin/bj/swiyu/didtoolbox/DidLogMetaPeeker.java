@@ -97,32 +97,32 @@ class DidLogMetaPeeker {
         //int ttl;
         Boolean portable;
 
-        void mergeFrom(DidMethodParameters other){
-            if (other.method != null && !other.method.isEmpty()){
+        void mergeFrom(DidMethodParameters other) {
+            if (other.method != null && !other.method.isEmpty()) {
                 this.method = other.method;
             }
-            if (other.scid != null && !other.scid.isEmpty()){
+            if (other.scid != null && !other.scid.isEmpty()) {
                 this.scid = other.scid;
             }
-            if (other.prerotation != null){
+            if (other.prerotation != null) {
                 this.prerotation = other.prerotation;
             }
-            if (other.updateKeys != null && !other.updateKeys.isEmpty()){
+            if (other.updateKeys != null && !other.updateKeys.isEmpty()) {
                 this.updateKeys = other.updateKeys;
             }
-            if (other.nextKeyHashes != null && !other.nextKeyHashes.isEmpty()){
+            if (other.nextKeyHashes != null && !other.nextKeyHashes.isEmpty()) {
                 this.nextKeyHashes = other.nextKeyHashes;
             }
-            if (other.witnesses != null && !other.witnesses.isEmpty()){
+            if (other.witnesses != null && !other.witnesses.isEmpty()) {
                 this.witnesses = other.witnesses;
             }
-            if (other.witnessThreshold != null){
+            if (other.witnessThreshold != null) {
                 this.witnessThreshold = other.witnessThreshold;
             }
-            if (other.deactivated != null){
+            if (other.deactivated != null) {
                 this.deactivated = other.deactivated;
             }
-            if (other.portable != null){
+            if (other.portable != null) {
                 this.portable = other.portable;
             }
         }
@@ -131,9 +131,9 @@ class DidLogMetaPeeker {
     /**
      * The essential method oh the helper class.
      *
-     * @param didLog
-     * @return
-     * @throws DidLogMetaPeekerException
+     * @param didLog to peek into. It does not need to be necessarily "resolvable", however desirable.
+     * @return metadata describing a DID log (to a certain extent).
+     * @throws DidLogMetaPeekerException if peeking fails for whatever reason.
      */
     static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
 

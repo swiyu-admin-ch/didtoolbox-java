@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -26,13 +27,13 @@ import java.util.Map;
  * it is intended to be instantiated exclusively via its static {@link #builder()} method.
  * <p>
  * Once a {@link TdwUpdater} object is "built", creating a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a>
- * log goes simply by calling {@link #update(String, String)} method. Optionally, but most likely, an already existing key material will
+ * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwUpdater.TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
- * <li>{@link TdwUpdater.TdwUpdaterBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwUpdaterBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link TdwUpdater.TdwUpdaterBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link TdwUpdaterBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load keys from the file system, the following helpers are available:
@@ -75,7 +76,7 @@ import java.util.Map;
  *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("auth-key-01.pub"), "my-auth-key-01")
  *                 ))
  *                 .build()
- *                 .update("did:tdw:...", didLogEntryWithGeneratedKeys);
+ *                 .update(didLogEntryWithGeneratedKeys);
  *
  *         } catch (Exception e) {
  *             // some exc. handling goes here
@@ -127,19 +128,27 @@ public class TdwUpdater {
     /**
      * Updates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
      * features of this {@link TdwUpdater} object, optionally customized by previously calling fluent methods like
-     * {@link TdwUpdater.TdwUpdaterBuilder#verificationMethodKeyProvider}, {@link TdwUpdater.TdwUpdaterBuilder#authenticationKeys(Map)} or
-     * {@link TdwUpdater.TdwUpdaterBuilder#assertionMethodKeys(Map)}.
+     * {@link TdwUpdaterBuilder#verificationMethodKeyProvider}, {@link TdwUpdaterBuilder#authenticationKeys(Map)} or
+     * {@link TdwUpdaterBuilder#assertionMethodKeys(Map)}.
      *
-     * @param didTDW a TDW-specific identifier in its entirety w.r.t.
-     *               <a href="https://identity.foundation/didwebvh/v0.3/#method-specific-identifier">method-specific-identifier</a>
-     * @param didLog to update
-     * @return a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log
+     * @param didLog to update. Expected to be resolvable/verifiable already.
      * @return a whole new <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
-     * @throws TdwUpdaterException if update fails for whatever reason
-     * @see #update(String, String, ZonedDateTime)
+     * @throws TdwUpdaterException if update fails for whatever reason.
+     * @see #update(String, ZonedDateTime)
      */
-    public String update(String didTDW, String didLog) throws TdwUpdaterException {
-        return update(didTDW, didLog, ZonedDateTime.now());
+    public String update(String didLog) throws TdwUpdaterException {
+        return update(didLog, ZonedDateTime.now());
+    }
+
+    /**
+     * The file-system-as-input variation of {@link #update(String)}
+     *
+     * @throws TdwUpdaterException if update fails for whatever reason
+     * @throws IOException         if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
+     * @see #update(String)
+     */
+    String update(File didLogFile) throws TdwUpdaterException, IOException {
+        return update(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
     }
 
     private static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws TdwUpdaterException {
@@ -170,25 +179,33 @@ public class TdwUpdater {
      * <p>
      * <b>However, it is introduced for the sake of testability only.</b>
      *
-     * @param didTDW a TDW-specific identifier in its entirety w.r.t.
-     *               <a href="https://identity.foundation/didwebvh/v0.3/#method-specific-identifier">method-specific-identifier</a>
-     * @param didLog to update
+     * @param didLog to update. Expected to be resolvable/verifiable already.
      * @param zdt    a date-time with a time-zone in the ISO-8601 calendar system
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
-     * @throws TdwUpdaterException
+     * @throws TdwUpdaterException if update fails for whatever reason.
      */
-    String update(String didTDW, String didLog, ZonedDateTime zdt) throws TdwUpdaterException {
+    String update(String didLog, ZonedDateTime zdt) throws TdwUpdaterException {
 
-        var did = new Did(didTDW);
-        DidDoc oldDidDoc;
         DidLogMetaPeeker.DidLogMeta didLogMeta;
+        String didTDW;
+        DidDoc oldDidDoc;
+        Did did = null;
         try {
-            oldDidDoc = did.resolve(didLog); // first and foremost
-            didLogMeta = DidLogMetaPeeker.peek(didLog);
+            didLogMeta = DidLogMetaPeeker.peek(didLog); // try extracting DID doc ID
+            didTDW = didLogMeta.didDocId;
+
+            // According to https://identity.foundation/didwebvh/v0.3/#update-rotate:
+            // To update a DID, a new, verifiable DID Log Entry must be generated, witnessed (if necessary),
+            // appended to the existing DID Log (did.jsonl), and published to the web location defined by the DID.
+            did = new Did(didTDW);
+            oldDidDoc = did.resolve(didLog);
+
         } catch (DidResolveException | DidLogMetaPeekerException e) {
-            throw new TdwUpdaterException("Unresolvable DID log", e);
+            throw new TdwUpdaterException("Unresolvable/unverifiable DID log detected", e);
         } finally {
-            did.close();
+            if (did != null) {
+                did.close();
+            }
         }
 
         // CAUTION Only activated DIDs can be updated
@@ -217,6 +234,11 @@ public class TdwUpdater {
         didDoc.addProperty("id", didTDW);
         // "controller" is omitted w.r.t. https://jira.bit.admin.ch/browse/EIDSYS-352
         //didDoc.addProperty("controller", didTDW);
+
+        if ((this.authenticationKeys == null || this.authenticationKeys.isEmpty())
+                && (this.assertionMethodKeys == null || this.assertionMethodKeys.isEmpty())) {
+            throw new TdwUpdaterException("No update will take place as no (authentication/assertion) keys are supplied");
+        }
 
         var verificationMethod = new JsonArray();
 

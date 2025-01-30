@@ -61,16 +61,13 @@ class TdwUpdaterTest {
 
         assertThrowsExactly(TdwUpdaterException.class, () -> {
 
-            var initialDidLogEntry = buildInitialDidLogEntry();
-            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId; // may throw DidLogMetaPeekerException
-
             TdwUpdater.builder()
                     //.verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")))
                     .authenticationKeys(Map.of(
                             "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01") // exists already
                     ))
                     .build()
-                    .update(didTDW, initialDidLogEntry); // MUT
+                    .update(buildInitialDidLogEntry()); // MUT
         });
     }
 
@@ -79,16 +76,13 @@ class TdwUpdaterTest {
 
         assertThrowsExactly(TdwUpdaterException.class, () -> {
 
-            var initialDidLogEntry = buildInitialDidLogEntry();
-            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId; // may throw DidLogMetaPeekerException
-
             TdwUpdater.builder()
                     //.verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")))
                     .assertionMethodKeys(Map.of(
                             "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01") // exists already
                     ))
                     .build()
-                    .update(didTDW, initialDidLogEntry); // MUT
+                    .update(buildInitialDidLogEntry()); // MUT
         });
     }
 
@@ -97,13 +91,10 @@ class TdwUpdaterTest {
 
         assertThrowsExactly(TdwUpdaterException.class, () -> {
 
-            var initialDidLogEntry = buildInitialDidLogEntry();
-            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId; // may throw DidLogMetaPeekerException
-
             TdwUpdater.builder()
                     //.verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl("z6Mkg8QqetWTbAuxYN8oAY8N4bXg8UErkRHQhytByfmpdEr4", "z6Mkwf4PgXLq8sRfucTggtZXmigKZP7gQhFamk3XHGV54QvF"))
                     .build()
-                    .update(didTDW, initialDidLogEntry); // MUT
+                    .update(buildInitialDidLogEntry()); // MUT
         });
     }
 
@@ -115,7 +106,6 @@ class TdwUpdaterTest {
         String nextLogEntry = null;
         StringBuilder updatedDidLog;
         try {
-            var didTDW = DidLogMetaPeeker.peek(initialDidLogEntry).didDocId; // may throw DidLogMetaPeekerException
             var verificationMethodKeyProvider1 = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
 
             updatedDidLog = new StringBuilder(initialDidLogEntry);
@@ -128,12 +118,12 @@ class TdwUpdaterTest {
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.
-                        .update(didTDW, updatedDidLog.toString(), ZonedDateTime.parse("2012-12-1" + i + "T12:12:12Z")); // MUT;
+                        .update(updatedDidLog.toString(), ZonedDateTime.parse("2012-12-1" + i + "T12:12:12Z")); // MUT;
 
                 updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
             }
 
-            new Did(didTDW).resolve(updatedDidLog.toString()); // the ultimate test
+            new Did(DidLogMetaPeeker.peek(initialDidLogEntry).didDocId).resolve(updatedDidLog.toString()); // the ultimate test
 
         } catch (Exception e) {
             fail(e);

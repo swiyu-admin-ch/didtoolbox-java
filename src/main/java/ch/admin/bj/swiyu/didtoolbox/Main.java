@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -41,9 +42,11 @@ class Main {
         var main = new Main();
 
         var createCommand = new CreateTdwCommand();
+        var updateCommand = new UpdateTdwCommand();
         var jc = JCommander.newBuilder()
                 .addObject(main)
                 .addCommand("create", createCommand)
+                .addCommand("update", updateCommand)
                 .programName(main.getImplementationTitle())
                 .columnSize(150)
                 .build();
@@ -54,7 +57,7 @@ class Main {
         try {
             jc.parse(args);
         } catch (ParameterException e) {
-            overAndOut(jc, e.getLocalizedMessage());
+            overAndOut(jc, null, e.getLocalizedMessage());
         }
 
         if (main.version) {
@@ -67,18 +70,18 @@ class Main {
             System.exit(0);
         }
 
-        var parsedCmdStr = jc.getParsedCommand();
-        if (parsedCmdStr == null) {
+        var parsedCommandName = jc.getParsedCommand();
+        if (parsedCommandName == null) {
             jc.usage();
             System.exit(1);
         }
 
-        switch (parsedCmdStr) {
+        switch (parsedCommandName) {
 
             case "create":
 
                 if (createCommand.help) {
-                    jc.usage(parsedCmdStr);
+                    jc.usage(parsedCommandName);
                     System.exit(0);
                 }
 
@@ -88,7 +91,7 @@ class Main {
                 if (methodVersion == null) {
                     methodVersion = DEFAULT_METHOD_VERSION;
                 } else if (!methodVersion.equals(DEFAULT_METHOD_VERSION)) {
-                    overAndOut(jc, "Supplied method version is not supported: '" + methodVersion + "'. Currently supported is: " + DEFAULT_METHOD_VERSION);
+                    overAndOut(jc, parsedCommandName, "Supplied method version is not supported: '" + methodVersion + "'. Currently supported is: " + DEFAULT_METHOD_VERSION);
                 }
 
                 Map<String, String> assertionMethodsMap = new HashMap<>();
@@ -116,7 +119,7 @@ class Main {
 
                 if (signingKeyPemFile != null && verifyingKeyPemFile != null &&
                         jksFile != null && jksPassword != null && jksAlias != null) {
-                    overAndOut(jc, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
+                    overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 
                 String didLogEntry = null;
@@ -151,24 +154,96 @@ class Main {
                             .create(identifierRegistryUrl);
 
                 } catch (Exception e) {
-                    overAndOut(jc, "Command '" + parsedCmdStr + "' failed due to: " + e.getLocalizedMessage());
+                    overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
                 }
 
                 System.out.println(didLogEntry);
 
                 break;
 
+            case "update":
+
+                if (updateCommand.help) {
+                    jc.usage(parsedCommandName);
+                    System.exit(0);
+                }
+
+                File didLogFile = updateCommand.didLogFile;
+
+                assertionMethodsMap = new HashMap<>();
+                var updateCommandAssertionMethodKeys = updateCommand.assertionMethodKeys;
+                if (updateCommandAssertionMethodKeys != null && !updateCommandAssertionMethodKeys.isEmpty()) {
+                    for (UpdateTdwCommand.VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
+                        assertionMethodsMap.put(param.key, param.jwk);
+                    }
+                }
+
+                authMap = new HashMap<>();
+                var updateCommandAuthenticationKeys = updateCommand.authenticationKeys;
+                if (updateCommandAuthenticationKeys != null && !updateCommandAuthenticationKeys.isEmpty()) {
+                    for (UpdateTdwCommand.VerificationMethodParameters param : updateCommandAuthenticationKeys) {
+                        authMap.put(param.key, param.jwk);
+                    }
+                }
+
+                if (authMap.isEmpty() && assertionMethodsMap.isEmpty()) {
+                    overAndOut(jc, parsedCommandName, "No update will take place as no (authentication/assertion) keys are supplied");
+                }
+
+                signingKeyPemFile = updateCommand.signingKeyPemFile;
+                verifyingKeyPemFile = updateCommand.verifyingKeyPemFile;
+
+                jksFile = updateCommand.jksFile;
+                jksPassword = updateCommand.jksPassword;
+                jksAlias = updateCommand.jksAlias;
+
+                if (signingKeyPemFile != null && verifyingKeyPemFile != null &&
+                        jksFile != null && jksPassword != null && jksAlias != null) {
+                    overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
+                }
+
+                try {
+
+                    Ed25519VerificationMethodKeyProviderImpl signer = null; // no default, must be supplied
+                    if (signingKeyPemFile != null && verifyingKeyPemFile != null) {
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, verifyingKeyPemFile); // supplied external key pair
+                    } else if (jksFile != null && jksPassword != null && jksAlias != null) {
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
+                    } else {
+                        overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) keys supplied. Use one of the relevant options to supply keys");
+                    }
+
+                    var tdwBuilder = TdwUpdater.builder().verificationMethodKeyProvider(signer);
+
+                    var newLogEntry = tdwBuilder
+                            .assertionMethodKeys(assertionMethodsMap)
+                            .authenticationKeys(authMap)
+                            .build()
+                            .update(didLogFile);
+
+                    System.out.println(new StringBuilder(Files.readString(didLogFile.toPath()).trim()).append(System.lineSeparator()).append(newLogEntry));
+
+                } catch (Exception e) {
+                    overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
+                }
+
+                break;
+
             default:
-                overAndOut(jc, "Invalid command: " + parsedCmdStr);
+                overAndOut(jc, null, "Invalid command: " + parsedCommandName);
         }
 
         System.exit(0);
     }
 
-    private static void overAndOut(JCommander jc, String message) {
+    private static void overAndOut(JCommander jc, String commandName, String message) {
         System.err.println(message);
         System.err.println();
-        jc.usage();
+        if (commandName != null) {
+            jc.usage(commandName);
+        } else {
+            jc.usage();
+        }
         System.exit(1);
     }
 

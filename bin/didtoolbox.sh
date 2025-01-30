@@ -11,4 +11,4 @@ git_repo=$(      ${GIT} config --get remote.origin.url | rev | cut -d'/' -f1 | r
 
 image=${git_repo_owner}/${git_repo}
 
-${PODMAN} run -v $(pwd):$(pwd):Z -w $(pwd) ${image}:latest "$@"
+${PODMAN} run -v $(pwd):$(pwd):z,exec -v /var/tmp:/var/tmp:z,exec -w $(pwd) ${image}:latest "$@"
