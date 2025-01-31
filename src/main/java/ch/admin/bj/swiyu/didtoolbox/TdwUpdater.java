@@ -2,8 +2,9 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
-import ch.admin.eid.didtoolbox.*;
-
+import ch.admin.eid.didtoolbox.DidDoc;
+import ch.admin.eid.didtoolbox.VerificationMethod;
+import ch.admin.eid.didtoolbox.VerificationType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -11,12 +12,13 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,35 +57,36 @@ import java.util.Map;
  *
  *     public static void main(String... args) {
  *
- *         String didLogEntryWithGeneratedKeys = null;
- *         String updatedDidLogEntryWithExternalKeys = null;
+ *         String initialDidLogEntryWithGeneratedKeys = null;
+ *         String updatedDidLogEntryWithReplacedVerificationMaterial = null;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
+ *             var verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
  *
- *             // NOTE that all required keys will be generated here as well, as no explicit verificationMethodKeyProvider is set
- *             didLogEntryWithGeneratedKeys = TdwCreator.builder()
- *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("private-key.pem"), new File("public-key.pem")))
+ *             // NOTE that all verification material will be generated here as well
+ *             initialDidLogEntryWithGeneratedKeys = TdwCreator.builder()
+ *                 .verificationMethodKeyProvider(verificationMethodKeyProvider)
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
- *             // Update with already existing key material
- *             updatedDidLogEntryWithExternalKeys = TdwUpdater.builder()
- *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("private-key.pem"), new File("public-key.pem")))
+ *             // Now update the previously generated initial single-entry DID log
+ *             updatedDidLogEntryWithReplacedVerificationMaterial = TdwUpdater.builder()
+ *                 .verificationMethodKeyProvider(verificationMethodKeyProvider) // the same used during creation
  *                 .assertionMethodKeys(Map.of(
- *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("assert-key-01.pub"), "my-assert-key-01")
+ *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
  *                 ))
  *                 .authenticationKeys(Map.of(
- *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("auth-key-01.pub"), "my-auth-key-01")
+ *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")
  *                 ))
  *                 .build()
- *                 .update(didLogEntryWithGeneratedKeys);
+ *                 .update(initialDidLogEntryWithGeneratedKeys);
  *
  *         } catch (Exception e) {
  *             // some exc. handling goes here
  *             System.exit(1);
  *         }
  *
- *         // do something with the didLogEntry* vars here
+ *         // do something with the initialDidLogEntryWithGeneratedKeys/updatedDidLogEntryWithReplacedVerificationMaterial vars here
  *     }
  * }
  * </pre>
@@ -125,6 +128,18 @@ public class TdwUpdater {
         return obj;
     }
 
+    private static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String publicKeyJwk) throws TdwUpdaterException {
+
+        JsonObject verificationMethodObj = new JsonObject();
+        verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
+        verificationMethodObj.addProperty("controller", didTDW);
+        verificationMethodObj.addProperty("type", "JsonWebKey2020");
+        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
+        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
+
+        return verificationMethodObj;
+    }
+
     /**
      * Updates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
      * features of this {@link TdwUpdater} object, optionally customized by previously calling fluent methods like
@@ -149,27 +164,6 @@ public class TdwUpdater {
      */
     String update(File didLogFile) throws TdwUpdaterException, IOException {
         return update(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
-    }
-
-    private static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws TdwUpdaterException {
-
-        String publicKeyJwk = jwk;
-        if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            try {
-                publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile);
-            } catch (IOException e) {
-                throw new TdwUpdaterException(e);
-            }
-        }
-
-        JsonObject verificationMethodObj = new JsonObject();
-        verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
-        verificationMethodObj.addProperty("controller", didTDW);
-        verificationMethodObj.addProperty("type", "JsonWebKey2020");
-        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
-        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
-
-        return verificationMethodObj;
     }
 
     /**
@@ -217,10 +211,6 @@ public class TdwUpdater {
             throw new TdwUpdaterException("Update key mismatch");
         }
 
-        List<VerificationMethod> oldAuthentication = oldDidDoc.getAuthentication();
-        List<VerificationMethod> oldAssertionMethod = oldDidDoc.getAssertionMethod();
-        //List<VerificationMethod> oldVerificationMethod = oldDidDoc.getVerificationMethod();
-
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
 
@@ -237,7 +227,7 @@ public class TdwUpdater {
 
         if ((this.authenticationKeys == null || this.authenticationKeys.isEmpty())
                 && (this.assertionMethodKeys == null || this.assertionMethodKeys.isEmpty())) {
-            throw new TdwUpdaterException("No update will take place as no (authentication/assertion) keys are supplied");
+            throw new TdwUpdaterException("No update will take place as no verification material is supplied whatsoever");
         }
 
         var verificationMethod = new JsonArray();
@@ -247,20 +237,8 @@ public class TdwUpdater {
             JsonArray authentication = new JsonArray();
             for (var key : this.authenticationKeys.entrySet()) {
 
-                if (oldAuthentication.stream().anyMatch(num -> {
-                    String[] split = num.getId().split("#");
-                    return split.length == 2 && split[1].equals(key.getKey());
-                })) {
-                    throw new TdwUpdaterException("The authentication key exists already: " + key.getKey());
-                }
-
                 authentication.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue(), null));
-            }
-
-            // add the rest that was there already
-            for (var auth : oldDidDoc.getAuthentication()) {
-                authentication.add(auth.getId());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue()));
             }
 
             didDoc.add("authentication", authentication);
@@ -271,20 +249,8 @@ public class TdwUpdater {
             JsonArray assertionMethod = new JsonArray();
             for (var key : this.assertionMethodKeys.entrySet()) {
 
-                if (oldAssertionMethod.stream().anyMatch(num -> {
-                    String[] split = num.getId().split("#");
-                    return split.length == 2 && split[1].equals(key.getKey());
-                })) {
-                    throw new TdwUpdaterException("The assertion method key exists already: " + key.getKey());
-                }
-
                 assertionMethod.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue(), null));
-            }
-
-            // add the rest that was there already
-            for (var a : oldDidDoc.getAssertionMethod()) {
-                assertionMethod.add(a.getId());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue()));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
@@ -323,8 +289,11 @@ public class TdwUpdater {
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
+        // CAUTION    The params do may remain the same, however calling "didLogEntryWithoutProofAndSignature.add(new JsonObject())" throws
+        //            "ch.admin.eid.didresolver.InternalException: called `Option::unwrap()` on a `None` value", which should be fixed (in didresolver)
+        // TODO       Allow supplying empty params ({}) to didresolver (with no panic triggered)
+        // WORKAROUND To simply supply (unchanged) params in a trivial fashion e.g. {"witnessThreshold": 0}
         didLogEntryWithoutProofAndSignature.add(JsonParser.parseString("{\"witnessThreshold\": 0}").getAsJsonObject()); // CAUTION params remain the same
-        //didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same, but this throws "ch.admin.eid.didresolver.InternalException: called `Option::unwrap()` on a `None` value"
 
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
         var didDocJson = new JsonObject();

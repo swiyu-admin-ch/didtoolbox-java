@@ -75,6 +75,28 @@ Usage: didtoolbox [options] [command] [command options]
           --verifying-key-file, -v
             The ed25519 public key file for the DID Document’s verification method. In PEM format
 
+    update      Update a did:tdw DID log by replacing the existing verification material in DID document
+      Usage: update [options]
+        Options:
+          --assert, -a
+            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+          --auth, -t
+            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+        * --did-log-file, -d
+            The file containing a valid did:tdw DID log to update
+          --help, -h
+            Display help for the DID toolbox 'update' command
+          --jks-alias
+            Java KeyStore alias
+          --jks-file, -j
+            Java KeyStore (PKCS12) file to read the (signing/verifying) keys from
+          --jks-password
+            Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore
+        * --signing-key-file, -s
+            The ed25519 private key file corresponding to the public key, required to sign and output the updated DID log entry. In PEM Format
+        * --verifying-key-file, -v
+            The ed25519 public key file for the DID Document’s verification method. In PEM format
+
 $ java -jar didtoolbox.jar -h -V
 
 didtoolbox 1.0.0

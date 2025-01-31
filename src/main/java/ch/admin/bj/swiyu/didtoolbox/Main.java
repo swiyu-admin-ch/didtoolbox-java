@@ -187,7 +187,7 @@ class Main {
                 }
 
                 if (authMap.isEmpty() && assertionMethodsMap.isEmpty()) {
-                    overAndOut(jc, parsedCommandName, "No update will take place as no (authentication/assertion) keys are supplied");
+                    overAndOut(jc, parsedCommandName, "No update will take place as no verification material is supplied whatsoever");
                 }
 
                 signingKeyPemFile = updateCommand.signingKeyPemFile;

@@ -51,7 +51,7 @@ class DidLogMetaPeekerTest {
     void testThrowsDidLogMetaPeekerException(String invalidDidLogEntry) {
 
         assertThrowsExactly(DidLogMetaPeekerException.class, () -> {
-            var didTDW = DidLogMetaPeeker.peek(invalidDidLogEntry);
+            DidLogMetaPeeker.peek(invalidDidLogEntry);
         });
     }
 

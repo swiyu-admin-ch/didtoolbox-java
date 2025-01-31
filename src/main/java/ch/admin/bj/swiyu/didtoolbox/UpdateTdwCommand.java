@@ -10,7 +10,7 @@ import java.util.List;
 
 @Parameters(
         commandNames = {"update"},
-        commandDescription = "Update a did:tdw DID log"
+        commandDescription = "Update a did:tdw DID log by replacing the existing verification material in DID document"
 )
 class UpdateTdwCommand {
 
