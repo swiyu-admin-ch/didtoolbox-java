@@ -20,22 +20,36 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DidLogMetaPeekerTest {
 
+    final private static Ed25519VerificationMethodKeyProviderImpl VERIFICATION_METHOD_KEY_PROVIDER;
+
+    static {
+        try {
+            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
+        } catch (Exception intolerable) {
+            throw new RuntimeException(intolerable);
+        }
+    }
+
     private static Collection<String> invalidDidLogEntries() throws URISyntaxException, MalformedURLException {
         return Arrays.asList(
+                "[]", // Should cause "Malformed DID log entry" ("Expected at 5 DID log entry elements but got 0")
                 "[\"\",\"\",{},{},[{}]]", // Should cause "Every versionId MUST be a dash-separated combination of version number and entry hash, found: ..."
                 "[\"\",\"\",{},,[{}]]",   // Should cause "Malformed DID log entry"
                 "[\"\",\"\",,{},[{}]]",   // Should cause "Malformed DID log entry"
                 "[\"1-xyz\",\"\",{},{\"\":{}},[{}]]", // Should cause "The versionTime MUST be a valid ISO8601 date/time string"
                 "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{},{\"\":{}},[{}]]", // Should cause "DID doc ID is missing"
+                "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{\"updateKeys\":{}},{},[{}]]", // Should cause "Malformed DID log entry"
+                "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{\"updateKeys\":[{}]},{},[{}]]", // Should cause "Malformed DID log entry"
                 "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{},{\"value\":{}},[{}]]", // Should cause "DID doc ID is missing"
-                "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{},{\"value\":{\"id\":\"tdw:did:...\"}},]" // Should cause "Malformed DID log entry"
+                "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{},{\"value\":{\"id\":\"tdw:did:...\"}},]" // Should cause "Malformed DID log entry" ("Proof is missing")
+                //"[\"1-xyz\",\"2012-12-12T12:12:12Z\",{\"updateKeys\":[\"xyz\"]},{\"value\":{\"id\":\"tdw:did:...\"}},[{}]]" // Should cause "Malformed DID log entry"
         );
     }
 
     private static String buildInitialDidLogEntry() {
         try {
             return TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
                     .assertionMethodKeys(Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")))
                     .authenticationKeys(Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")))
                     .build()
@@ -43,6 +57,35 @@ class DidLogMetaPeekerTest {
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
         }
+    }
+
+    private static String buildDidLog() {
+
+        var initialDidLogEntry = buildInitialDidLogEntry();
+
+        String nextLogEntry = null;
+        StringBuilder updatedDidLog = null;
+        try {
+            updatedDidLog = new StringBuilder(initialDidLogEntry);
+            for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
+
+                nextLogEntry = TdwUpdater.builder()
+                        .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
+                        .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
+                        .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                        .build()
+                        // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                        // The versionTime of the last entry MUST be earlier than the current time.
+                        .update(updatedDidLog.toString(), ZonedDateTime.parse("2012-12-1" + i + "T12:12:12Z"));
+
+                updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
+            }
+
+        } catch (Exception e) {
+            fail(e);
+        }
+
+        return updatedDidLog.toString();
     }
 
     @DisplayName("Peeking (into invalid TDW log entry) for various invalidDidLogEntry variants")
@@ -58,11 +101,9 @@ class DidLogMetaPeekerTest {
     @Test
     void testPeek() {
 
-        var initialDidLogEntry = buildInitialDidLogEntry();
-
         DidLogMetaPeeker.DidLogMeta meta = null;
         try {
-            meta = DidLogMetaPeeker.peek(initialDidLogEntry); // MUT
+            meta = DidLogMetaPeeker.peek(buildDidLog()); // MUT
             assertNotNull(meta);
             assertNotNull(meta.didDocId);
             new Did(meta.didDocId); // ultimate test
@@ -73,7 +114,7 @@ class DidLogMetaPeekerTest {
 
         assertNotNull(meta.lastVersionId);
         assertNotNull(meta.dateTime);
-        assertEquals(1, meta.lastVersionNumber);
+        assertEquals(4, meta.lastVersionNumber);
         assertNotNull(meta.params);
         assertNotNull(meta.params.method);
         assertNotNull(meta.params.scid);

@@ -15,6 +15,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TdwUpdaterTest {
 
+    final private static Ed25519VerificationMethodKeyProviderImpl VERIFICATION_METHOD_KEY_PROVIDER;
+
+    static {
+        try {
+            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
+        } catch (Exception intolerable) {
+            throw new RuntimeException(intolerable);
+        }
+    }
+
     private static void assertDidLogEntry(String didLogEntry) {
 
         assertNotNull(didLogEntry);
@@ -46,7 +56,7 @@ class TdwUpdaterTest {
     private static String buildInitialDidLogEntry() {
         try {
             return TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
                     .assertionMethodKeys(Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")))
                     .authenticationKeys(Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")))
                     .build()
@@ -62,7 +72,7 @@ class TdwUpdaterTest {
         assertThrowsExactly(TdwUpdaterException.class, () -> {
 
             TdwUpdater.builder()
-                    //.verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")))
+                    //.verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
                     .authenticationKeys(Map.of(
                             "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01") // exists already
                     ))
@@ -77,7 +87,7 @@ class TdwUpdaterTest {
         assertThrowsExactly(TdwUpdaterException.class, () -> {
 
             TdwUpdater.builder()
-                    //.verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")))
+                    //.verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
                     .assertionMethodKeys(Map.of(
                             "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01") // exists already
                     ))
@@ -106,13 +116,12 @@ class TdwUpdaterTest {
         String nextLogEntry = null;
         StringBuilder updatedDidLog;
         try {
-            var verificationMethodKeyProvider1 = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
 
             updatedDidLog = new StringBuilder(initialDidLogEntry);
             for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
 
                 nextLogEntry = TdwUpdater.builder()
-                        .verificationMethodKeyProvider(verificationMethodKeyProvider1)
+                        .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                         .build()
