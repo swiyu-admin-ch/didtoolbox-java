@@ -34,68 +34,30 @@ class DidLogMetaPeeker {
             this.params = params;
             this.didDocId = didDocId;
         }
-
-        /*
-        JsonObject paramsAsJsonObject(){
-
-            var obj = new JsonObject();
-            obj.addProperty("method", this.params.method);
-            obj.addProperty("scid", this.lastVersionId);
-
-            if (this.params.updateKeys != null && !this.params.updateKeys.isEmpty()) {
-                var updateKeys = new JsonArray();
-                this.params.updateKeys.forEach(updateKeys::add);
-                obj.add("updateKeys", updateKeys);
-            }
-
-            if (this.params.nextKeyHashes != null && !this.params.nextKeyHashes.isEmpty()) {
-                var nextKeyHashes = new JsonArray();
-                this.params.nextKeyHashes.forEach(nextKeyHashes::add);
-                obj.add("nextKeyHashes", nextKeyHashes);
-            }
-
-            if (this.params.witnesses != null && !this.params.witnesses.isEmpty()) {
-                var witnesses = new JsonArray();
-                this.params.witnesses.forEach(witnesses::add);
-                obj.add("witnesses", witnesses);
-            }
-
-            if (this.params.witnessThreshold != null) {
-                obj.addProperty("witnessThreshold", this.params.witnessThreshold);
-            }
-            if (this.params.deactivated != null) {
-                obj.addProperty("deactivated", this.params.deactivated);
-            }
-            if (this.params.portable != null) {
-                obj.addProperty("portable", this.params.portable);
-            }
-            if (this.params.prerotation != null) {
-                obj.addProperty("prerotation", this.params.prerotation);
-            }
-
-            return obj;
-        }
-         */
     }
 
-    // According to https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters
+    /**
+     * A helper storing the <a href="https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters">didtdw-did-method-parameters</a>.
+     * <p>
+     * However, not all standard params are relevant here, as this class is focusing on quite a few of them such as:
+     * <ul>
+     *     <li>method</li>
+     *     <li>scid</li>
+     *     <li>updateKeys</li>
+     *     <li>deactivated</li>
+     * </ul>
+     */
     static class DidMethodParameters {
+
+        final static String METHOD_PARAM = "method";
+        final static String SCID_PARAM = "scid";
+        final static String UPDATE_KEYS_PARAM = "updateKeys";
+        final static String DEACTIVATED_PARAM = "deactivated";
+
         String method;
         String scid;
-        // Since v0.3 (https://identity.foundation/trustdidweb/v0.3/#didtdw-version-changelog):
-        //            Removes the cryptosuite parameter, moving it to implied based on the method parameter.
-        /*
-        String cryptosuite;
-         */
-        Boolean prerotation;
         List<String> updateKeys;
-        List<String> nextKeyHashes;
-        List<String> witnesses;
-        Integer witnessThreshold;
-        //String moved;
         Boolean deactivated;
-        //int ttl;
-        Boolean portable;
 
         void mergeFrom(DidMethodParameters other) {
             if (other.method != null && !other.method.isEmpty()) {
@@ -104,26 +66,11 @@ class DidLogMetaPeeker {
             if (other.scid != null && !other.scid.isEmpty()) {
                 this.scid = other.scid;
             }
-            if (other.prerotation != null) {
-                this.prerotation = other.prerotation;
-            }
             if (other.updateKeys != null && !other.updateKeys.isEmpty()) {
                 this.updateKeys = other.updateKeys;
             }
-            if (other.nextKeyHashes != null && !other.nextKeyHashes.isEmpty()) {
-                this.nextKeyHashes = other.nextKeyHashes;
-            }
-            if (other.witnesses != null && !other.witnesses.isEmpty()) {
-                this.witnesses = other.witnesses;
-            }
-            if (other.witnessThreshold != null) {
-                this.witnessThreshold = other.witnessThreshold;
-            }
             if (other.deactivated != null) {
                 this.deactivated = other.deactivated;
-            }
-            if (other.portable != null) {
-                this.portable = other.portable;
             }
         }
     }
@@ -140,7 +87,6 @@ class DidLogMetaPeeker {
         AtomicReference<IOException> ioException = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();
         AtomicReference<String> dateTime = new AtomicReference<>();
-        //AtomicReference<List<String>> updateKeys = new AtomicReference<>();
         AtomicReference<DidMethodParameters> params = new AtomicReference<>();
         AtomicReference<String> didDocId = new AtomicReference<>();
 
@@ -151,7 +97,7 @@ class DidLogMetaPeeker {
             var lineReader = new StringReader(line);
             var jsonReader = new Gson().newJsonReader(lineReader);
             jsonReader.setLenient(false); // default, use JsonReader.setLenient(true) to accept malformed JSON
-            try { // note that all jsonReader methods may throw IOException, which will be captured
+            try { // NOTE that all jsonReader methods may throw IOException, which will be caught here
                 while (jsonReader.hasNext()) {
 
                     jsonReader.beginArray(); // begin of entry (5-elements array)
@@ -164,7 +110,8 @@ class DidLogMetaPeeker {
                     var buff = new StringBuilder();
                     while (jsonReader.hasNext()) {
                         var name = jsonReader.nextName();
-                        if (name.equals("updateKeys") || name.equals("nextKeyHashes") || name.equals("witnesses")) {
+                        // CAUTION Not all standard params are relevant here, as this class is focusing on just few
+                        if (name.equals(DidMethodParameters.UPDATE_KEYS_PARAM)) {
                             jsonReader.beginArray();
 
                             buff.append("\"").append(name).append("\":[");
@@ -177,14 +124,12 @@ class DidLogMetaPeeker {
                             buff.append("],");
 
                             jsonReader.endArray();
-                        } else if (name.equals("portable") || name.equals("prerotation") || name.equals("deactivated")) {
+                        } else if (name.equals(DidMethodParameters.DEACTIVATED_PARAM)) {
                             buff.append("\"").append(name).append("\":").append(jsonReader.nextBoolean()).append(",");
-                        } else if (name.equals("witnessThreshold")) {
-                            buff.append("\"").append(name).append("\":").append(jsonReader.nextInt()).append(",");
-                        } else if (name.equals("method") || name.equals("scid")) {
+                        } else if (name.equals(DidMethodParameters.METHOD_PARAM) || name.equals(DidMethodParameters.SCID_PARAM)) {
                             buff.append("\"").append(name).append("\":\"").append(jsonReader.nextString()).append("\",");
                         } else {
-                            // TODO to ignore or to throw en exception
+                            // Not all standard params are relevant here, as this class is focusing on just few
                             jsonReader.skipValue(); // skip the rest
                         }
                     }
