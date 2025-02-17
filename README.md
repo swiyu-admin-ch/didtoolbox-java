@@ -75,6 +75,28 @@ Usage: didtoolbox [options] [command] [command options]
           --verifying-key-file, -v
             The ed25519 public key file for the DID Document’s verification method. In PEM format
 
+    update      Update a did:tdw DID log by replacing the existing verification material in DID document
+      Usage: update [options]
+        Options:
+          --assert, -a
+            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+          --auth, -t
+            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+        * --did-log-file, -d
+            The file containing a valid did:tdw DID log to update
+          --help, -h
+            Display help for the DID toolbox 'update' command
+          --jks-alias
+            Java KeyStore alias
+          --jks-file, -j
+            Java KeyStore (PKCS12) file to read the (signing/verifying) keys from
+          --jks-password
+            Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore
+        * --signing-key-file, -s
+            The ed25519 private key file corresponding to the public key, required to sign and output the updated DID log entry. In PEM Format
+        * --verifying-key-file, -v
+            The ed25519 public key file for the DID Document’s verification method. In PEM format
+
 $ java -jar didtoolbox.jar -h -V
 
 didtoolbox 1.0.0
@@ -208,6 +230,23 @@ $ java -jar didtoolbox.jar create \
     -u https://domain.com:443/path1/path2/did.jsonl \
     -s src/test/data/private.pem \
     -v src/test/data/public.pem                                              
+```
+
+Once a newly created `did.jsonl` file is available, you may use the `update` subcommand at any point to **completely**
+replace the existing [verification material](https://www.w3.org/TR/did-core/#verification-material) in DID document:
+
+```shell
+java -jar didtoolbox.jar create \
+    -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did18fa7c77-9dd1-4e20-a147-fb1bec146085/did.jsonl > /tmp/my-did.jsonl
+
+# bear in mind, the command above will store the generated (auth/assert) keys in the .didtoolbox directory
+
+java -jar didtoolbox.jar update \
+    -d /tmp/did.jsonl \
+    -a my-assert-key-01,.didtoolbox/assert-key-01.pub \
+    -t my-auth-key-01,.didtoolbox/auth-key-01.pub \
+    -s .didtoolbox/id_ed25519 \
+    -v .didtoolbox/id_ed25519.pub > /tmp/did-2.jsonl
 ```
 
 ## Additional Information

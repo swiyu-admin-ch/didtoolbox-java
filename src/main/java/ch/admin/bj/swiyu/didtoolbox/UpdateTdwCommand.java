@@ -4,100 +4,57 @@ import com.beust.jcommander.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(
-        commandNames = {"create"},
-        commandDescription = "Create a did:tdw DID Document. Optionally sign the initial log entry if a private key is provided"
+        commandNames = {"update"},
+        commandDescription = "Update a did:tdw DID log by replacing the existing verification material in DID document"
 )
-class CreateTdwCommand {
-
-    final static String DEFAULT_METHOD_VERSION = "did:tdw:0.3";
+class UpdateTdwCommand {
 
     @Parameter(names = {"--help", "-h"},
-            description = "Display help for the DID toolbox 'create' command",
+            description = "Display help for the DID toolbox 'update' command",
             help = true)
     boolean help;
 
-    public static class IdentifierRegistryUrlParameterValidator implements IParameterValidator {
-        @Override
-        public void validate(String name, String value) throws ParameterException {
-            URL url;
-            var exc = new ParameterException("Parameter " + name + " should be a regular HTTP(S) DID URL (found '" + value + "')");
-            try {
-                url = URL.of(new URI(value), null);
-            } catch (URISyntaxException | MalformedURLException e) {
-                throw exc;
-            }
-
-            if (!url.getProtocol().startsWith("http")) {
-                throw exc;
-            }
-        }
-    }
-
-    static class IdentifierRegistryUrlParameterConverter implements IStringConverter<URL> {
-        @Override
-        public URL convert(String value) {
-            try {
-                return URL.of(new URI(value), null);
-            } catch (URISyntaxException | MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    @Parameter(names = {"--identifier-registry-url", "-u"},
-            description = "A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for",
-            required = true,
-            converter = IdentifierRegistryUrlParameterConverter.class,
-            validateWith = IdentifierRegistryUrlParameterValidator.class)
-    URL identifierRegistryUrl;
-
-    @Parameter(names = {"--method-version", "-m"},
-            description = "Defines the did:tdw specification version to use when generating a DID log. Currently supported is only '" + DEFAULT_METHOD_VERSION + "'",
-            defaultValueDescription = DEFAULT_METHOD_VERSION)
-    //,required = true)
-    String methodVersion;
-
-    /*
-    static class OutputDirParameterConverter implements IStringConverter<File> {
+    static class DidLogFileParameterConverter implements IStringConverter<File> {
         @Override
         public File convert(String value) {
             return new File(value);
         }
     }
 
-    public static class OutputDirParameterValidator implements IParameterValidator {
+    public static class DidLogFileParameterValidator implements IParameterValidator {
         @Override
         public void validate(String name, String value) throws ParameterException {
-            File dir = new File(value);
-            if (dir.exists() && !dir.isDirectory()) {
-                throw new ParameterException("Parameter " + name + " should be a directory, not a file (found " + value + ")");
+            File didLogFile = new File(value);
+            if (!didLogFile.isFile() || !didLogFile.exists()) {
+                throw new ParameterException("Parameter " + name + " should be a regular file containing a valid did:tdw DID log (found " + value + ")");
             }
         }
     }
 
-    @Parameter(names = {"--key-pair-output-dir", "-o"},
-            description = "The directory to store the generated key pair (both in PEM Format), in case no external keys are supplied. Otherwise, ignored",
-            converter = OutputDirParameterConverter.class,
-            validateWith = OutputDirParameterValidator.class)
-    File outputDir;
-     */
+    @Parameter(names = {"--did-log-file", "-d"},
+            description = "The file containing a valid did:tdw DID log to update",
+            converter = DidLogFileParameterConverter.class,
+            validateWith = DidLogFileParameterValidator.class,
+            required = true)
+    File didLogFile;
 
     @Parameter(names = {"--signing-key-file", "-s"},
-            description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format",
-            converter = PemFileParameterConverter.class,
-            validateWith = PemFileParameterValidator.class)
+            description = "The ed25519 private key file corresponding to the public key, required to sign and output the updated DID log entry. In PEM Format",
+            converter = CreateTdwCommand.PemFileParameterConverter.class,
+            validateWith = CreateTdwCommand.PemFileParameterValidator.class,
+            required = true)
     File signingKeyPemFile;
 
     @Parameter(names = {"--verifying-key-file", "-v"},
             description = "The ed25519 public key file for the DID Document’s verification method. In PEM format",
-            converter = PemFileParameterConverter.class,
-            validateWith = PemFileParameterValidator.class)
+            converter = CreateTdwCommand.PemFileParameterConverter.class,
+            validateWith = CreateTdwCommand.PemFileParameterValidator.class,
+            required = true)
     File verifyingKeyPemFile;
 
     @Parameter(names = {"--jks-file", "-j"},

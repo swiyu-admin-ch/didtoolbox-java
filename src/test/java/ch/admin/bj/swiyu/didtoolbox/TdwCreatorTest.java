@@ -64,8 +64,6 @@ public class TdwCreatorTest {
     @MethodSource("identifierRegistryUrl")
     public void testCreate(URL identifierRegistryUrl) {
 
-        var creator = TdwCreator.builder();
-
         String didLogEntry = null;
         try {
 

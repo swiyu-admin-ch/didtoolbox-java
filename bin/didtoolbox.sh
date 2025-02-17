@@ -11,4 +11,7 @@ git_repo=$(      ${GIT} config --get remote.origin.url | rev | cut -d'/' -f1 | r
 
 image=${git_repo_owner}/${git_repo}
 
-${PODMAN} run -v $(pwd):$(pwd):Z -w $(pwd) ${image}:latest "$@"
+# CAUTION The arch MUST be appropriate for the libdidresolver.so shared library (as part of didresolver.jar).
+#         Otherwise, when building image on a machine with arm64 CPU (e.g. on macOS M1/M2 ARM64 CPU), you should see
+#         "WARNING: image platform (linux/amd64) does not match the expected platform (linux/arm64)"
+${PODMAN} run --arch=amd64 -v $(pwd):$(pwd):z,exec -v /var/tmp:/var/tmp:z,exec -w $(pwd) ${image}:latest "$@"
