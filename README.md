@@ -232,6 +232,23 @@ $ java -jar didtoolbox.jar create \
     -v src/test/data/public.pem                                              
 ```
 
+Once a newly created `did.jsonl` file is available, you may use the `update` subcommand at any point to **completely**
+replace the existing [verification material](https://www.w3.org/TR/did-core/#verification-material) in DID document:
+
+```shell
+java -jar didtoolbox.jar create \
+    -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did18fa7c77-9dd1-4e20-a147-fb1bec146085/did.jsonl > /tmp/my-did.jsonl
+
+# bear in mind, the command above will store the generated (auth/assert) keys in the .didtoolbox directory
+
+java -jar didtoolbox.jar update \
+    -d /tmp/did.jsonl \
+    -a my-assert-key-01,.didtoolbox/assert-key-01.pub \
+    -t my-auth-key-01,.didtoolbox/auth-key-01.pub \
+    -s .didtoolbox/id_ed25519 \
+    -v .didtoolbox/id_ed25519.pub > /tmp/did-2.jsonl
+```
+
 ## Additional Information
 - **Output Directory**: The `.didtoolbox` directory is automatically created in the current working directory. Ensure you have the necessary permissions to create and write to this directory.
 - **Multiple DIDs**: If you create multiple DIDs, please make sure to rename the `.didtoolbox` directory (or move/rename the files) after each creation run, since the key material will re-generated on each run and therefore overwritten.

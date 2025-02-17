@@ -256,16 +256,8 @@ public class TdwUpdater {
             didDoc.add("assertionMethod", assertionMethod);
         }
 
-        // add the rest that was there already
-        for (var vm : oldDidDoc.getVerificationMethod()) {
-
-            var type = vm.getVerificationType();
-            if (!type.equals(VerificationType.JSON_WEB_KEY2020)) {
-                throw new TdwUpdaterException("Verification method type not supported: " + type);
-            }
-
-            verificationMethod.add(verificationMethodAsJsonObject(vm));
-        }
+        // NOTE that there is no need to add the rest of the existing (verification method) keys, as they can be
+        //      added, if required, at any point again
 
         didDoc.add("verificationMethod", verificationMethod);
 
