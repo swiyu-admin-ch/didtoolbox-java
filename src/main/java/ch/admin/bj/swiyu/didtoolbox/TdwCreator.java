@@ -1,12 +1,13 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.eid.didresolver.Did;
+import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.io.File;
 import java.io.IOException;
@@ -330,6 +331,18 @@ public class TdwCreator {
         JsonArray proofs = new JsonArray();
         proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, 1, entryHash, "authentication", zdt));
         didLogEntryWithProof.add(proofs);
+
+        Did did = null;
+        try {
+            did = new Did(DidLogMetaPeeker.peek(didLogEntryWithProof.toString()).didDocId);
+            did.resolve(didLogEntryWithProof.toString()); // sanity check
+        } catch (DidResolveException | DidLogMetaPeekerException e) {
+            throw new RuntimeException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
+        } finally {
+            if (did != null) {
+                did.close();
+            }
+        }
 
         return didLogEntryWithProof.toString();
     }

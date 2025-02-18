@@ -4,7 +4,6 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import ch.admin.eid.didtoolbox.DidDoc;
 import ch.admin.eid.didtoolbox.VerificationMethod;
-import ch.admin.eid.didtoolbox.VerificationType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -328,6 +327,16 @@ public class TdwUpdater {
         proof.addProperty("verificationMethod", "did:key:" + didLogMeta.params.updateKeys.getLast() + '#' + didLogMeta.params.updateKeys.getLast());
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
+
+        did = new Did(didLogMeta.didDocId);
+        try {
+            did.resolve(new StringBuilder(didLog).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
+        } catch (DidResolveException e) {
+            throw new RuntimeException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
+        } finally {
+            did.close();
+        }
+
         return didLogEntryWithProof.toString();
     }
 }
