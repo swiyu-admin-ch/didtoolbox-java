@@ -18,6 +18,8 @@ import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,7 +33,7 @@ import java.util.Map;
  * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwUpdaterBuilder#verificationMethodKeyProvider(List)} for setting the update (Ed25519) key</li>
  * <li>{@link TdwUpdaterBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link TdwUpdaterBuilder#assertionMethodKeys(Map)} for setting/assertion
@@ -105,7 +107,8 @@ public class TdwUpdater {
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     //@Setter(AccessLevel.PUBLIC)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private List<VerificationMethodKeyProvider> verificationMethodKeyProvider =
+            new ArrayList<>(List.of(new Ed25519VerificationMethodKeyProviderImpl())); // variable size List
     // TODO private File dirToStoreKeyPair;
 
     private static JsonObject verificationMethodAsJsonObject(VerificationMethod vm) {
@@ -206,9 +209,9 @@ public class TdwUpdater {
             throw new TdwUpdaterException("DID already deactivated");
         }
 
-        if (!didLogMeta.params.updateKeys.contains(this.verificationMethodKeyProvider.getVerificationKeyMultibase())) {
+        /* TODO if (!didLogMeta.params.updateKeys.contains(this.verificationMethodKeyProvider.getVerificationKeyMultibase())) {
             throw new TdwUpdaterException("Update key mismatch");
-        }
+        }*/
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
@@ -319,7 +322,8 @@ public class TdwUpdater {
         var proofs = new JsonArray();
         JsonObject proof = null;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, didLogMeta.lastVersionNumber + 1, entryHash, "authentication", zdt);
+            var verificationMethodKeyProvider = this.verificationMethodKeyProvider.getFirst(); // convention
+            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, verificationMethodKeyProvider, didLogMeta.lastVersionNumber + 1, entryHash, "authentication", zdt);
         } catch (IOException e) {
             throw new TdwUpdaterException("Fail to build DID doc data integrity proof", e);
         }

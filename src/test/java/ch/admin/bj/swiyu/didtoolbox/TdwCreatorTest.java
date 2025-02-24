@@ -13,15 +13,26 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TdwCreatorTest {
+
+    final private static List<VerificationMethodKeyProvider> VERIFICATION_METHOD_KEY_PROVIDERS;
+
+    static {
+        try {
+            //VERIFICATION_METHOD_KEY_PROVIDERS = List.of(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")));
+            VERIFICATION_METHOD_KEY_PROVIDERS = List.of(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"));
+        } catch (Exception intolerable) {
+            throw new RuntimeException(intolerable);
+        }
+    }
 
     private static void assertDidLogEntry(String didLogEntry) {
 
@@ -89,7 +100,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
                     .build()
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
@@ -120,7 +131,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
                     .assertionMethodKeys(Map.of(
                             "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
                     ))
@@ -160,7 +171,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
@@ -193,7 +204,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     //.authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
@@ -227,7 +238,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
                     //.assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()

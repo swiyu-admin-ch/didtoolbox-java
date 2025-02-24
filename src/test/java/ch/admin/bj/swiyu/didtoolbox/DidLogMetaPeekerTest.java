@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,17 +15,19 @@ import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DidLogMetaPeekerTest {
 
-    final private static Ed25519VerificationMethodKeyProviderImpl VERIFICATION_METHOD_KEY_PROVIDER;
+    final private static List<VerificationMethodKeyProvider> VERIFICATION_METHOD_KEY_PROVIDERS;
 
     static {
         try {
-            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
+            //VERIFICATION_METHOD_KEY_PROVIDERS = List.of(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")));
+            VERIFICATION_METHOD_KEY_PROVIDERS = List.of(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"));
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
         }
@@ -49,7 +52,7 @@ class DidLogMetaPeekerTest {
     private static String buildInitialDidLogEntry() {
         try {
             return TdwCreator.builder()
-                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")))
                     .authenticationKeys(Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")))
                     .build()
@@ -70,7 +73,7 @@ class DidLogMetaPeekerTest {
             for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
 
                 nextLogEntry = TdwUpdater.builder()
-                        .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
+                        .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                         .build()

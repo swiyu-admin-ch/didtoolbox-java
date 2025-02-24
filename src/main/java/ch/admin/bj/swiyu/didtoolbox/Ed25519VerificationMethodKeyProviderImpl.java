@@ -27,7 +27,7 @@ import java.util.Arrays;
  * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
  * It builds extensively on top of {@link org.bouncycastle.crypto.signers.Ed25519Signer} and introduces various useful helpers.
  * <p>
- * It is predominantly intended to be used within the {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * It is predominantly intended to be used within the {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(java.util.List)} method
  * prior to a {@link TdwCreator#create(URL)} call.
  * <p>
  * Thanks to the following methods, it is also capable of loading an already existing key material from the file system:

@@ -4,7 +4,10 @@ import com.beust.jcommander.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,15 +93,28 @@ class CreateTdwCommand {
 
     @Parameter(names = {"--signing-key-file", "-s"},
             description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format",
-            converter = PemFileParameterConverter.class,
-            validateWith = PemFileParameterValidator.class)
-    File signingKeyPemFile;
+            listConverter = PemFileParameterListConverter.class,
+            //converter = PemFileParameterConverter.class,
+            validateWith = PemFileParameterValidator.class,
+            variableArity = true)
+    List<File> signingKeyPemFiles;
 
     @Parameter(names = {"--verifying-key-file", "-v"},
             description = "The ed25519 public key file for the DID Document’s verification method. In PEM format",
-            converter = PemFileParameterConverter.class,
-            validateWith = PemFileParameterValidator.class)
-    File verifyingKeyPemFile;
+            listConverter = PemFileParameterListConverter.class,
+            //converter = PemFileParameterConverter.class,
+            validateWith = PemFileParameterValidator.class,
+            variableArity = true)
+    List<File> verifyingKeyPemFiles;
+
+    static class PemFileParameterListConverter implements IStringConverter<List<File>> {
+        @Override
+        public List<File> convert(String value) {
+            List<File> fileList = new ArrayList<>();
+            fileList.add(new File(value));
+            return fileList;
+        }
+    }
 
     @Parameter(names = {"--jks-file", "-j"},
             description = "Java KeyStore (PKCS12) file to read the (signing/verifying) keys from",

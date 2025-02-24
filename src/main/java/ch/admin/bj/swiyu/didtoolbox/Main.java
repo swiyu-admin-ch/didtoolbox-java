@@ -10,9 +10,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.jar.Manifest;
 
 import static ch.admin.bj.swiyu.didtoolbox.CreateTdwCommand.DEFAULT_METHOD_VERSION;
@@ -110,14 +108,18 @@ class Main {
                     }
                 }
 
-                File signingKeyPemFile = createCommand.signingKeyPemFile;
-                File verifyingKeyPemFile = createCommand.verifyingKeyPemFile;
+                List<File> signingKeyPemFiles = createCommand.signingKeyPemFiles;
+                List<File> verifyingKeyPemFiles = createCommand.verifyingKeyPemFiles;
+                if (signingKeyPemFiles != null && verifyingKeyPemFiles != null &&
+                        signingKeyPemFiles.size() != verifyingKeyPemFiles.size()) {
+                    overAndOut(jc, parsedCommandName, "Number of supplied signing keys must match the number of supplied verifying keys");
+                }
 
                 File jksFile = createCommand.jksFile;
                 String jksPassword = createCommand.jksPassword;
                 String jksAlias = createCommand.jksAlias;
 
-                if (signingKeyPemFile != null && verifyingKeyPemFile != null &&
+                if (signingKeyPemFiles != null && verifyingKeyPemFiles != null &&
                         jksFile != null && jksPassword != null && jksAlias != null) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
@@ -125,12 +127,23 @@ class Main {
                 String didLogEntry = null;
                 try {
 
-                    Ed25519VerificationMethodKeyProviderImpl signer = new Ed25519VerificationMethodKeyProviderImpl(); // default with generated key pair
-                    if (signingKeyPemFile != null && verifyingKeyPemFile != null) {
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, verifyingKeyPemFile); // supplied external key pair
+                    List<VerificationMethodKeyProvider> signers = new ArrayList<>();
+
+                    if (signingKeyPemFiles != null && verifyingKeyPemFiles != null) {
+
+                        for (var index = 0; index < signingKeyPemFiles.size(); index++) {
+                            signers.add(new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFiles.get(index), verifyingKeyPemFiles.get(index))); // supplied external key pair
+                        }
+
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
+
+                        signers.add(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias)); // supplied external key pair
+
                     } else {
+
+                        var signer = new Ed25519VerificationMethodKeyProviderImpl(); // default with generated key pair
+                        signers.add(signer);
+
                         /*
                         File outputDir = createCommand.outputDir;
                         if (outputDir == null) {
@@ -145,7 +158,7 @@ class Main {
                         signer.writePublicKeyAsPem(new File(outputDir, "id_ed25519.pub"));
                     }
 
-                    var tdwBuilder = TdwCreator.builder().verificationMethodKeyProvider(signer);
+                    var tdwBuilder = TdwCreator.builder().verificationMethodKeyProvider(signers);
 
                     didLogEntry = tdwBuilder
                             .assertionMethodKeys(assertionMethodsMap)
@@ -190,8 +203,8 @@ class Main {
                     overAndOut(jc, parsedCommandName, "No update will take place as no verification material is supplied whatsoever");
                 }
 
-                signingKeyPemFile = updateCommand.signingKeyPemFile;
-                verifyingKeyPemFile = updateCommand.verifyingKeyPemFile;
+                File signingKeyPemFile = updateCommand.signingKeyPemFile;
+                File verifyingKeyPemFile = updateCommand.verifyingKeyPemFile;
 
                 jksFile = updateCommand.jksFile;
                 jksPassword = updateCommand.jksPassword;
@@ -213,7 +226,7 @@ class Main {
                         overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) keys supplied. Use one of the relevant options to supply keys");
                     }
 
-                    var tdwBuilder = TdwUpdater.builder().verificationMethodKeyProvider(signer);
+                    var tdwBuilder = TdwUpdater.builder().verificationMethodKeyProvider(List.of(signer));
 
                     var newLogEntry = tdwBuilder
                             .assertionMethodKeys(assertionMethodsMap)
