@@ -33,7 +33,7 @@ import java.util.Map;
  * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwUpdaterBuilder#verificationMethodKeyProvider(List)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
  * <li>{@link TdwUpdaterBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link TdwUpdaterBuilder#assertionMethodKeys(Map)} for setting/assertion
@@ -107,8 +107,10 @@ public class TdwUpdater {
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     //@Setter(AccessLevel.PUBLIC)
-    private List<VerificationMethodKeyProvider> verificationMethodKeyProvider =
-            new ArrayList<>(List.of(new Ed25519VerificationMethodKeyProviderImpl())); // variable size List
+    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    @Getter(AccessLevel.PRIVATE)
+    //@Setter(AccessLevel.PUBLIC)
+    private List<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
 
     private static JsonObject verificationMethodAsJsonObject(VerificationMethod vm) {
@@ -209,9 +211,9 @@ public class TdwUpdater {
             throw new TdwUpdaterException("DID already deactivated");
         }
 
-        /* TODO if (!didLogMeta.params.updateKeys.contains(this.verificationMethodKeyProvider.getVerificationKeyMultibase())) {
+        if (!didLogMeta.params.updateKeys.contains(this.verificationMethodKeyProvider.getVerificationKeyMultibase())) {
             throw new TdwUpdaterException("Update key mismatch");
-        }*/
+        }
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
@@ -283,11 +285,26 @@ public class TdwUpdater {
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        // CAUTION    The params do may remain the same, however calling "didLogEntryWithoutProofAndSignature.add(new JsonObject())" throws
-        //            "ch.admin.eid.didresolver.InternalException: called `Option::unwrap()` on a `None` value", which should be fixed (in didresolver)
-        // TODO       Allow supplying empty params ({}) to didresolver (with no panic triggered)
-        // WORKAROUND To simply supply (unchanged) params in a trivial fashion e.g. {"witnessThreshold": 0}
-        didLogEntryWithoutProofAndSignature.add(JsonParser.parseString("{\"witnessThreshold\": 0}").getAsJsonObject()); // CAUTION params remain the same
+        if (this.updateKeys != null) {
+            didLogMeta.params.updateKeys.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
+            for (var p : this.updateKeys) { // ...and then add the rest, if any
+                try {
+                    didLogMeta.params.updateKeys.add(PemUtils.getPublicKeyEd25519Multibase(PemUtils.parsePEMFile(p)));
+                //} catch (InvalidKeySpecException e) {
+                } catch (Exception e) {
+                    throw new TdwUpdaterException(e);
+                }
+            }
+
+            // TODO didLogEntryWithoutProofAndSignature.add(didLogMeta.params...);
+
+        } else {
+            // CAUTION    The params do may remain the same, however calling "didLogEntryWithoutProofAndSignature.add(new JsonObject())" throws
+            //            "ch.admin.eid.didresolver.InternalException: called `Option::unwrap()` on a `None` value", which should be fixed (in didresolver)
+            // TODO       Allow supplying empty params ({}) to didresolver (with no panic triggered)
+            // WORKAROUND To simply supply (unchanged) params in a trivial fashion e.g. {"witnessThreshold": 0}
+            didLogEntryWithoutProofAndSignature.add(JsonParser.parseString("{\"witnessThreshold\": 0}").getAsJsonObject()); // CAUTION params remain the same
+        }
 
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
         var didDocJson = new JsonObject();
@@ -322,8 +339,7 @@ public class TdwUpdater {
         var proofs = new JsonArray();
         JsonObject proof = null;
         try {
-            var verificationMethodKeyProvider = this.verificationMethodKeyProvider.getFirst(); // convention
-            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, verificationMethodKeyProvider, didLogMeta.lastVersionNumber + 1, entryHash, "authentication", zdt);
+            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, didLogMeta.lastVersionNumber + 1, entryHash, "authentication", zdt);
         } catch (IOException e) {
             throw new TdwUpdaterException("Fail to build DID doc data integrity proof", e);
         }

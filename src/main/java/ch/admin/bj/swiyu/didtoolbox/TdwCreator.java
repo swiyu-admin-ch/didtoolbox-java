@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -29,7 +30,7 @@ import java.util.*;
  * log goes simply by calling {@link #create(URL)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(List)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
  * <li>{@link TdwCreator.TdwCreatorBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link TdwCreator.TdwCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
@@ -101,8 +102,10 @@ public class TdwCreator {
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     //@Setter(AccessLevel.PUBLIC)
-    private List<VerificationMethodKeyProvider> verificationMethodKeyProvider =
-            new ArrayList<>(List.of(new Ed25519VerificationMethodKeyProviderImpl())); // variable size List
+    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    @Getter(AccessLevel.PRIVATE)
+    //@Setter(AccessLevel.PUBLIC)
+    private List<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
 
     /**
@@ -267,8 +270,15 @@ public class TdwCreator {
         the currently active list continues to apply.
          */
         JsonArray updateKeys = new JsonArray();
-        for (var p : this.verificationMethodKeyProvider){
-            updateKeys.add(p.getVerificationKeyMultibase());
+        updateKeys.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
+        if (this.updateKeys != null) {
+            for (var p : this.updateKeys) { // ...and then add the rest, if any
+                try {
+                    updateKeys.add(PemUtils.getPublicKeyEd25519Multibase(PemUtils.parsePEMFile(p)));
+                } catch (InvalidKeySpecException e) {
+                    throw new IOException(e);
+                }
+            }
         }
         didMethodParameters.add("updateKeys", updateKeys);
 
@@ -332,8 +342,7 @@ public class TdwCreator {
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         JsonArray proofs = new JsonArray();
-        var verificationMethodKeyProvider = this.verificationMethodKeyProvider.getFirst(); // convention
-        proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, verificationMethodKeyProvider, 1, entryHash, "authentication", zdt));
+        proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, 1, entryHash, "authentication", zdt));
         didLogEntryWithProof.add(proofs);
 
         Did did = null;

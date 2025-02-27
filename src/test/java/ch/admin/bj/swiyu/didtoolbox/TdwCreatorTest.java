@@ -23,12 +23,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TdwCreatorTest {
 
-    final private static List<VerificationMethodKeyProvider> VERIFICATION_METHOD_KEY_PROVIDERS;
+    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDERS;
 
     static {
         try {
             //VERIFICATION_METHOD_KEY_PROVIDERS = List.of(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")));
-            VERIFICATION_METHOD_KEY_PROVIDERS = List.of(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"));
+            VERIFICATION_METHOD_KEY_PROVIDERS = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
         }

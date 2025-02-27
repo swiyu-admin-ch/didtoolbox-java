@@ -52,10 +52,11 @@ class UpdateTdwCommand {
 
     @Parameter(names = {"--verifying-key-file", "-v"},
             description = "The ed25519 public key file for the DID Document’s verification method. In PEM format",
-            converter = CreateTdwCommand.PemFileParameterConverter.class,
+            listConverter = CreateTdwCommand.PemFileParameterListConverter.class,
+            //converter = CreateTdwCommand.PemFileParameterConverter.class,
             validateWith = CreateTdwCommand.PemFileParameterValidator.class,
-            required = true)
-    File verifyingKeyPemFile;
+            variableArity = true)
+    List<File> verifyingKeyPemFiles;
 
     @Parameter(names = {"--jks-file", "-j"},
             description = "Java KeyStore (PKCS12) file to read the (signing/verifying) keys from",

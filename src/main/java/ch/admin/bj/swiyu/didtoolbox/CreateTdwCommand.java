@@ -93,11 +93,9 @@ class CreateTdwCommand {
 
     @Parameter(names = {"--signing-key-file", "-s"},
             description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format",
-            listConverter = PemFileParameterListConverter.class,
-            //converter = PemFileParameterConverter.class,
-            validateWith = PemFileParameterValidator.class,
-            variableArity = true)
-    List<File> signingKeyPemFiles;
+            converter = PemFileParameterConverter.class,
+            validateWith = PemFileParameterValidator.class)
+    File signingKeyPemFile;
 
     @Parameter(names = {"--verifying-key-file", "-v"},
             description = "The ed25519 public key file for the DID Document’s verification method. In PEM format",
