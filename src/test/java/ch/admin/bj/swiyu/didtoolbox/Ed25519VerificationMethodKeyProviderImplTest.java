@@ -79,8 +79,10 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
 
         (new Ed25519VerificationMethodKeyProviderImpl()).writePrivateKeyAsPem(tempFile); // MUT
 
-        //assertEquals(119, tempFile.length());
-        assertEquals(119, Files.size(tempFile.toPath()));
+        assertNotEquals(0, Files.size(tempFile.toPath())); // must not be empty, at least
+        assertDoesNotThrow(() -> {
+            PemUtils.parsePEMFile(tempFile); // and must be a regular PEM file (content-wise), of course
+        });
         assertEquals(3, Files.lines(tempFile.toPath(), StandardCharsets.UTF_8).count());
     }
 
@@ -92,8 +94,10 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
 
         (new Ed25519VerificationMethodKeyProviderImpl()).writePublicKeyAsPem(tempFile); // MUT
 
-        //assertEquals(119, tempFile.length());
-        assertEquals(113, Files.size(tempFile.toPath()));
+        assertNotEquals(0, Files.size(tempFile.toPath())); // must not be empty, at least
+        assertDoesNotThrow(() -> {
+            PemUtils.parsePEMFile(tempFile); // and must be a regular PEM file (content-wise), of course
+        });
         assertEquals(3, Files.lines(tempFile.toPath(), StandardCharsets.UTF_8).count());
     }
 
