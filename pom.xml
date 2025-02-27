@@ -11,7 +11,7 @@
 
     <!--name>???</name-->
     <!--description>A collection of ???</description-->
-    <url>https://github.com/e-id-admin/didtoolbox-java</url>
+    <url>https://github.com/swiyu-admin-ch/didtoolbox-java</url>
 
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
@@ -171,7 +171,7 @@
             <repositories>
                 <repository>
                     <id>github</id>
-                    <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+                    <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
                     <snapshots>
                         <enabled>true</enabled>
                     </snapshots>
@@ -184,11 +184,11 @@
         <repository>
             <id>github</id>
             <name>Github</name>
-            <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+            <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
         </repository>
         <snapshotRepository>
             <id>github</id>
-            <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+            <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
         </snapshotRepository>
     </distributionManagement>
 
