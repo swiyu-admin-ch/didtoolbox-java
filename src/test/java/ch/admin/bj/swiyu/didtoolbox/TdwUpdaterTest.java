@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.net.URI;
 import java.net.URL;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,12 +18,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TdwUpdaterTest {
 
-    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDERS;
+    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER;
 
     static {
         try {
-            //VERIFICATION_METHOD_KEY_PROVIDERS = List.of(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")));
-            VERIFICATION_METHOD_KEY_PROVIDERS = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
+            //VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
+            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
         }
@@ -59,9 +60,10 @@ class TdwUpdaterTest {
     private static String buildInitialDidLogEntry() {
         try {
             return TdwCreator.builder()
-                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
                     .assertionMethodKeys(Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")))
                     .authenticationKeys(Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")))
+                    //.updateKeys(List.of(new File("src/test/data/public.pem")))
                     .build()
                     .create(URL.of(new URI("https://127.0.0.1:54858"), null), ZonedDateTime.parse("2012-12-12T12:12:12Z"));
         } catch (Exception intolerable) {
@@ -95,9 +97,10 @@ class TdwUpdaterTest {
             for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
 
                 nextLogEntry = TdwUpdater.builder()
-                        .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDERS)
+                        .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER)
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                        // TODO .updateKeys(List.of(new File("src/test/data/public.pem")))
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.

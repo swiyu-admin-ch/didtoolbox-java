@@ -286,10 +286,17 @@ public class TdwUpdater {
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         if (this.updateKeys != null) {
-            didLogMeta.params.updateKeys.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
+            var updateKey = this.verificationMethodKeyProvider.getVerificationKeyMultibase();
+            if (!didLogMeta.params.updateKeys.contains(updateKey)){
+                didLogMeta.params.updateKeys.add(updateKey); // first and foremost...
+            }
+
             for (var p : this.updateKeys) { // ...and then add the rest, if any
                 try {
-                    didLogMeta.params.updateKeys.add(PemUtils.getPublicKeyEd25519Multibase(PemUtils.parsePEMFile(p)));
+                    updateKey = PemUtils.getPublicKeyEd25519Multibase(PemUtils.parsePEMFile(p));
+                    if (!didLogMeta.params.updateKeys.contains(updateKey)){
+                        didLogMeta.params.updateKeys.add(updateKey);
+                    }
                 //} catch (InvalidKeySpecException e) {
                 } catch (Exception e) {
                     throw new TdwUpdaterException(e);
