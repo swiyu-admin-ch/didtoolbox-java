@@ -90,7 +90,8 @@ class TdwUpdaterTest {
         StringBuilder updatedDidLog;
         try {
 
-            updatedDidLog = new StringBuilder(initialDidLogEntry);
+            // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
+            updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
             for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
 
                 nextLogEntry = TdwUpdater.builder()
@@ -102,7 +103,7 @@ class TdwUpdaterTest {
                         // The versionTime of the last entry MUST be earlier than the current time.
                         .update(updatedDidLog.toString(), ZonedDateTime.parse("2012-12-1" + i + "T12:12:12Z")); // MUT;
 
-                updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
+                new StringBuilder(updatedDidLog.toString().trim()).append(System.lineSeparator()).append(nextLogEntry);
             }
 
             new Did(DidLogMetaPeeker.peek(initialDidLogEntry).didDocId).resolve(updatedDidLog.toString()); // the ultimate test

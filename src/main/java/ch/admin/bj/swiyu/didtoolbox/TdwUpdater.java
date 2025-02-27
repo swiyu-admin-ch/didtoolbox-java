@@ -350,7 +350,8 @@ public class TdwUpdater {
 
         did = new Did(didLogMeta.didDocId);
         try {
-            did.resolve(new StringBuilder(didLog).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
+            // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
+            did.resolve(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
             throw new RuntimeException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {

@@ -261,6 +261,7 @@ class Main {
                             .build()
                             .update(didLogFile);
 
+                    // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
                     System.out.println(new StringBuilder(Files.readString(didLogFile.toPath()).trim()).append(System.lineSeparator()).append(newLogEntry));
 
                 } catch (Exception e) {
