@@ -167,10 +167,10 @@
 
     <profiles>
         <profile>
-            <id>github</id>
+            <id>github-didtoolbox-java</id>
             <repositories>
                 <repository>
-                    <id>github</id>
+                    <id>github-didtoolbox-java</id>
                     <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
                     <snapshots>
                         <enabled>true</enabled>
@@ -182,12 +182,12 @@
 
     <distributionManagement>
         <repository>
-            <id>github</id>
+            <id>github-didtoolbox-java</id>
             <name>Github</name>
             <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
         </repository>
         <snapshotRepository>
-            <id>github</id>
+            <id>github-didtoolbox-java</id>
             <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
         </snapshotRepository>
     </distributionManagement>
