@@ -24,7 +24,7 @@ Usage: didtoolbox [options] [command] [command options]
     --help, -h    Display help for the DID toolbox
     --version, -V Display version (default: false)
   Commands:
-    create      Create a did:tdw DID Document. Optionally sign the initial log entry if a private key is provided
+    create      Create a did:tdw DID and sign the initial DID log entry with the provided private key
       Usage: create [options]
         Options:
           --assert, -a
@@ -73,7 +73,7 @@ Usage: didtoolbox [options] [command] [command options]
 
 $ ./bin/didtoolbox.sh -V
 
-didtoolbox 1.0.0
+didtoolbox 1.1.0
 ```
 
 Probably the simplest way to use the generator would be to let it generate as much on its own as possible:

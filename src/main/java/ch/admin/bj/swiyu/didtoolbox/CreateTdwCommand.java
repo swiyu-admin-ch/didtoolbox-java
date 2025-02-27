@@ -11,7 +11,7 @@ import java.util.List;
 
 @Parameters(
         commandNames = {"create"},
-        commandDescription = "Create a did:tdw DID Document. Optionally sign the initial log entry if a private key is provided"
+        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key"
 )
 class CreateTdwCommand {
 
