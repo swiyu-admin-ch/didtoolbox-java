@@ -32,7 +32,8 @@ class DidLogMetaPeeker {
         AtomicReference<DidMethodParameters> params = new AtomicReference<>();
         AtomicReference<String> didDocId = new AtomicReference<>();
 
-        BufferedReader reader = new BufferedReader(new StringReader(didLog));
+        // CAUTION Trimming the existing DID log prevents ending up parsing empty lines
+        BufferedReader reader = new BufferedReader(new StringReader(didLog.trim()));
 
         reader.lines().forEach(line -> {
 
