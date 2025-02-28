@@ -155,6 +155,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.5.0</version>
+                <executions>
+                    <execution>
+                        <id>add-third-party</id>
+                        <goals>
+                            <!-- as described here: https://www.mojohaus.org/license-maven-plugin/add-third-party-mojo.html -->
+                            <goal>add-third-party</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}</outputDirectory>
+                            <!-- as specified here: https://confluence.bit.admin.ch/display/EIDTEAM/THIRD-PARTY-LICENSES.md -->
+                            <thirdPartyFilename>THIRD-PARTY-LICENSES.md</thirdPartyFilename>
+                            <!-- available at https://github.com/mojohaus/license-maven-plugin/blob/master/src/main/resources/org/codehaus/mojo/license/third-party-file-groupByLicense.ftl -->
+                            <fileTemplate>/org/codehaus/mojo/license/third-party-file-groupByLicense.ftl</fileTemplate>
+                            <acceptPomPackaging>true</acceptPomPackaging>
+                            <licenseMerges>
+                                <licenseMerge>The Apache License, Version 2.0|The Apache Software License, Version 2.0|Apache License, Version 2.0|Apache 2.0|Apache-2.0</licenseMerge>
+                                <licenseMerge>The MIT License|MIT License</licenseMerge>
+                            </licenseMerges>
+                            <excludedGroups>^ch\.admin</excludedGroups>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
