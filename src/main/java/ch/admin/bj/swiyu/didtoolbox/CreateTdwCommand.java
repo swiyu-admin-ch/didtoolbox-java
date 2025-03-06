@@ -8,10 +8,12 @@ import java.net.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Parameters(
         commandNames = {"create"},
-        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key"
+        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key",
+        parametersValidators = { CreateTdwCommand.KeyPairOutputDirectoryParametersValidator.class }
 )
 class CreateTdwCommand {
 
@@ -87,6 +89,30 @@ class CreateTdwCommand {
             validateWith = OutputDirParameterValidator.class)
     File outputDir;
      */
+
+    public static class KeyPairOutputDirectoryParametersValidator implements IParametersValidator {
+        @Override
+        public void validate(Map<String, Object> parameters) throws ParameterException {
+            final File DEFAULT_KEY_PAIR_OUTPUT_DIRECTORY = new File(".didtoolbox");
+            // If there is no Java KeyStore supplied, check for directory existence, since key pair will be generated if none are provided
+            if(parameters.get("--jks-file") == null) {
+                // Check for signing key parameters. Prevent overwriting existing files if none are supplied
+                if(parameters.get("--signing-key-file") == null || parameters.get("--verifying-key-file") == null) {
+                    if(DEFAULT_KEY_PAIR_OUTPUT_DIRECTORY.exists()) {
+                        throw new ParameterException("The output directory '" + DEFAULT_KEY_PAIR_OUTPUT_DIRECTORY.getAbsolutePath() + "' already exists. " +
+                                "Rename or move it to prevent from overwriting of previously generated key material.");
+                    }
+                }
+            }
+            // Check for assert or auth keys parameters. Prevent overwriting existing files if one or both is/are not supplied.
+            if(parameters.get("--assert") == null || parameters.get("--auth") == null) {
+                if(DEFAULT_KEY_PAIR_OUTPUT_DIRECTORY.exists()) {
+                    throw new ParameterException("The output directory '" + DEFAULT_KEY_PAIR_OUTPUT_DIRECTORY.getAbsolutePath() + "' already exists. " +
+                            "Rename or move it to prevent from overwriting of previously generated key material.");
+                }
+            }
+        }
+    }
 
     @Parameter(names = {"--signing-key-file", "-s"},
             description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format",
