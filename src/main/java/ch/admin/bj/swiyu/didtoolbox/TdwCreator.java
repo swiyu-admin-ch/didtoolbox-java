@@ -167,8 +167,10 @@ public class TdwCreator {
         }
 
         var context = new JsonArray();
+        // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:
+        //     https://github.com/e-id-admin/open-source-community/blob/main/tech-roadmap/swiss-profile.md#did-document-format
         context.add("https://www.w3.org/ns/did/v1");
-        context.add("https://w3id.org/security/suites/jws-2020/v1"); // because of the format of generated authentication/assertionMethod keys (JsonWebKey2020)
+        context.add("https://w3id.org/security/jwk/v1");
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
@@ -245,7 +247,7 @@ public class TdwCreator {
         // and that the represented time MUST be before or equal to the current time.
         didLogEntryWithoutProofAndSignature.add(DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
 
-        // Define the parameters
+        // Define the parameters (https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
@@ -269,14 +271,10 @@ public class TdwCreator {
         updateKeys.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
         didMethodParameters.add("updateKeys", updateKeys);
 
-        /* See https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters
-        didMethodParameters.add("nextKeyHashes", new JsonArray());
-        didMethodParameters.add("witnesses", new JsonArray());
-        didMethodParameters.addProperty("witnessThreshold", 0);
-        didMethodParameters.addProperty("deactivated", false);
+        // MUST set portable to false in the first DID log entry.
+        // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:
+        //     https://github.com/e-id-admin/open-source-community/blob/main/tech-roadmap/swiss-profile.md#didtdwdidwebvh
         didMethodParameters.addProperty("portable", false);
-        didMethodParameters.addProperty("prerotation", false);
-         */
 
         // Since v0.3 (https://identity.foundation/didwebvh/v0.3/#didtdw-version-changelog):
         //            Removes the cryptosuite parameter, moving it to implied based on the method parameter.
