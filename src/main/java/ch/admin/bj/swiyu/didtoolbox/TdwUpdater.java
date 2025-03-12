@@ -280,11 +280,7 @@ public class TdwUpdater {
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        // CAUTION    The params do may remain the same, however calling "didLogEntryWithoutProofAndSignature.add(new JsonObject())" throws
-        //            "ch.admin.eid.didresolver.InternalException: called `Option::unwrap()` on a `None` value", which should be fixed (in didresolver)
-        // TODO       Allow supplying empty params ({}) to didresolver (with no panic triggered)
-        // WORKAROUND To simply supply (unchanged) params in a trivial fashion e.g. {"witnessThreshold": 0}
-        didLogEntryWithoutProofAndSignature.add(JsonParser.parseString("{\"witnessThreshold\": 0}").getAsJsonObject()); // CAUTION params remain the same
+        didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same
 
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
         var didDocJson = new JsonObject();
@@ -305,8 +301,7 @@ public class TdwUpdater {
         JsonArray didLogEntryWithProof = new JsonArray();
         didLogEntryWithProof.add(didLogMeta.lastVersionNumber + 1 + "-" + entryHash);
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
-        didLogEntryWithProof.add(JsonParser.parseString("{\"witnessThreshold\": 0}").getAsJsonObject()); // CAUTION params remain the same
-        //didLogEntryWithProof.add(new JsonObject()); // CAUTION params remain the same, but this throws "ch.admin.eid.didresolver.InternalException: called `Option::unwrap()` on a `None` value"
+        didLogEntryWithProof.add(new JsonObject()); // CAUTION params remain the same
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(3));
 
         /*
