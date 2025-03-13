@@ -14,7 +14,7 @@ This project implements the DID-Toolbox, a helper to create DIDs of type Trust D
 - [Prerequisites](#prerequisites)
 - [CLI Overview](#cli-overview)
 - [Quickstart – Create Your First DID](#quickstart--create-your-first-did)
-- [Update an extisting DID](#update-an-extisting-did)
+- [Update an existing DID](#update-an-existing-did)
 - [Advanced Usage](#advanced-usage)
   - [Create](#did-creation)
   - [Update](#did-update)
@@ -213,9 +213,9 @@ Prettified version of the DID log content above.
 ]
 ```
 
-## Update an extisting DID
+## Update an existing DID
 Currently, we can't guarantee, that a DID generated without the help of the DID-Toolbox can be updated successfully. To keep matters simple, a user needs to supply all the key material (assertion and authentication public keys) that should be contained in the updated version of a DID.
-For illustration purposes, we generated a new DID and then perform a asser key rotation by removing the initial assertion key and adding a new one.
+For illustration purposes, we will generate a new DID and perform an assert key rotation by removing the initial assertion key and adding a new one.
 
 ```shell
 # Step 1 - Generate new DID and redirect stdout to v01_did.jsonl file (contains the created DID log)
@@ -232,14 +232,14 @@ $ java -jar didtoolbox.jar update -d v01_did.jsonl -s .didtoolbox_keys_v01/id_ed
 # -d to supply the initial DID log file of the DID to be updated (v01_did.jsonl)
 # -s to supply a valid updateKey private keyfile (PEM) required to generate the proof of the new DID log line (.didtoolbox_keys_v01/id_ed25519)
 # -v to supply a the matching updateKey public keyfile (PEM) (.didtoolbox_keys_v01/id_ed25519.pub)
-# -a to supply the fargment name and assertion public key that the updated DID should contain (.didtoolbox/assert-key-01.pub)
-# -t to keep also keep the authentication public key (auth-key-01,.didtoolbox_keys_v01/assert-key-01.pub)
+# -a to supply the fragment name and assertion public key that the updated DID should contain (.didtoolbox/assert-key-01.pub)
+# -t to keep the authentication public key (auth-key-01,.didtoolbox_keys_v01/assert-key-01.pub) in the updated DID
 
 ```
 
 The updated DID log file (v02_did.jsonl) should contain two lines, each containing one DID version
 
-```json
+```
 ["1-QmU2vJpqQsC7DQRSR9UhMGJ9E6XdFS21E1y7Hv5kjzvUGm","2025-02-27T13:42:46Z",{"method":"did:tdw:0.3","scid":"QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo","updateKeys":["z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8"]},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"],"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"hELL9Z-5rkg8p8IY04pogDhtNML-xz79MDnOLRJE3n8","y":"4jCz1BwmqWgMDAyp1CRzmm28syN4aH1FvFRjgEyAHK0","kid":"auth-key-01"}},{"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01","controller":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"ngddzGFoi-yZDqasoBX8zvFO73rCHPCQcGVEiLVka3Y","y":"v3x-KtZMZD7FZgT2dh-xwVriocHldTRKaijMvnwV4bQ","kid":"assert-key-01"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-02-27T13:42:46Z","verificationMethod":"did:key:z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8#z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8","proofPurpose":"authentication","challenge":"1-QmU2vJpqQsC7DQRSR9UhMGJ9E6XdFS21E1y7Hv5kjzvUGm","proofValue":"z57X6vPoLKGWfTT8iCp7kD7eRNKuykcNYujbVrXeWqFe8WDc3GUBGvCxbdq5u6m4ZE7WNVM4zedxnVVzLozkcKWXE"}]]
 ["2-QmSwrQpiTmTZrbJPF8q8viuqaZ1ZdxsU5um4zeZ8FbzEw9","2025-02-27T13:44:33Z",{"witnessThreshold":0},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"],"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02"],"verificationMethod":[{"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"auth-key-01","x":"ngddzGFoi-yZDqasoBX8zvFO73rCHPCQcGVEiLVka3Y","y":"v3x-KtZMZD7FZgT2dh-xwVriocHldTRKaijMvnwV4bQ"}},{"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02","controller":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"assert-key-02","x":"7d802vPuAZ-8SyEuTdfCE03-0YeHtrrO4DqcJPRJ8L4","y":"pQsxkJETgGFaz3szf962_e1SMVTUAypKx-Fd7KPA3K4"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-02-27T13:44:33Z","verificationMethod":"did:key:z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8#z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8","proofPurpose":"authentication","challenge":"2-QmSwrQpiTmTZrbJPF8q8viuqaZ1ZdxsU5um4zeZ8FbzEw9","proofValue":"z5ZoqFzYDx2kPPTKAv6kjYAL3SpTqU4UFfRu9i4Xy1ioorGQAV5T3U7qAADe5EhjH3tdaWEpV7qGPQMaJF24vq6Qg"}]]
 ```
