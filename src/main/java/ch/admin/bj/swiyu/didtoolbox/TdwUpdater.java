@@ -293,19 +293,20 @@ public class TdwUpdater {
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash = null;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
+            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
         } catch (IOException e) {
             throw new TdwUpdaterException(e);
         }
 
         JsonArray didLogEntryWithProof = new JsonArray();
-        didLogEntryWithProof.add(didLogMeta.lastVersionNumber + 1 + "-" + entryHash);
+        var challenge = didLogMeta.lastVersionNumber + 1 + "-" + entryHash; // versionId as the proof challenge
+        didLogEntryWithProof.add(challenge);
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
         didLogEntryWithProof.add(new JsonObject()); // CAUTION params remain the same
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(3));
 
         /*
-        https://identity.foundation/trustdidweb/v0.3/#data-integrity-proof-generation-and-first-log-entry:
+        https://identity.foundation/didwebvh/v0.3/#data-integrity-proof-generation-and-first-log-entry:
         The last step in the creation of the first log entry is the generation of the data integrity proof.
         One of the keys in the updateKeys parameter MUST be used (in the form of a did:key) to generate the signature in the proof,
         with the versionId value (item 1 of the did log) used as the challenge item.
@@ -314,7 +315,7 @@ public class TdwUpdater {
         var proofs = new JsonArray();
         JsonObject proof = null;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, didLogMeta.lastVersionNumber + 1, entryHash, "authentication", zdt);
+            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
         } catch (IOException e) {
             throw new TdwUpdaterException("Fail to build DID doc data integrity proof", e);
         }

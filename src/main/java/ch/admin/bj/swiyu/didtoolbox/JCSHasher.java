@@ -17,6 +17,10 @@ import java.util.HexFormat;
 
 class JCSHasher {
 
+    static final String DATA_INTEGRITY_PROOF = "DataIntegrityProof";
+    static final String EDDSA_JCS_2022 = "eddsa-jcs-2022";
+    static final String DID_KEY = "did:key:";
+
     /**
      * To generate the required SCID for a did:tdw DID, the DID Controller MUST execute the following function:
      * <p>base58btc(multihash(JCS(preliminary log entry with placeholders), &lt;hash algorithm&gt;))
@@ -28,14 +32,8 @@ class JCSHasher {
      *
      * @return
      */
-    static String buildSCID(JsonArray didLog) throws IOException {
-        var jsc = (new JsonCanonicalizer(didLog.toString())).getEncodedString();
-        return Base58.encode(multihash(jsc));
-    }
-
-    static String multihashJsonObject(JsonObject obj) throws IOException {
-        var jsc = (new JsonCanonicalizer(obj.toString())).getEncodedString();
-        return Base58.encode(multihash(jsc));
+    static String buildSCID(String jsonData) throws IOException {
+        return Base58.encode(multihash((new JsonCanonicalizer(jsonData)).getEncodedString()));
     }
 
     /**
@@ -108,8 +106,7 @@ class JCSHasher {
      *
      * @param unsecuredDocument             to create a proof for
      * @param verificationMethodKeyProvider to use for signing the proofValue
-     * @param versionId                     relevant for the "challenge" property, if required
-     * @param entryHash                     relevant for the "challenge" property, if required
+     * @param challenge                     self-explanatory
      * @param proofPurpose                  typically "assertionMethod" or "authentication"
      * @param dateTime                      of the proof creation
      * @return JsonObject representing the data integrity proof
@@ -118,14 +115,13 @@ class JCSHasher {
     static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument,
                                               boolean useContext,
                                               VerificationMethodKeyProvider verificationMethodKeyProvider,
-                                              int versionId,
-                                              String entryHash,
+                                              String challenge,
                                               String proofPurpose,
                                               ZonedDateTime dateTime)
             throws IOException {
 
         /*
-        https://identity.foundation/trustdidweb/v0.3/#data-integrity-proof-generation-and-first-log-entry:
+        https://identity.foundation/didwebvh/v0.3/#data-integrity-proof-generation-and-first-log-entry:
         The last step in the creation of the first log entry is the generation of the data integrity proof.
         One of the keys in the updateKeys parameter MUST be used (in the form of a did:key) to generate the signature in the proof,
         with the versionId value (item 1 of the did log) used as the challenge item.
@@ -140,18 +136,17 @@ class JCSHasher {
             proof.add("@context", ctx);
         }
 
-        proof.addProperty("type", "DataIntegrityProof");
-        proof.addProperty("cryptosuite", "eddsa-jcs-2022");
+        proof.addProperty("type", DATA_INTEGRITY_PROOF);
+        // According to https://www.w3.org/TR/vc-di-eddsa/#proof-configuration-eddsa-jcs-2022
+        proof.addProperty("cryptosuite", EDDSA_JCS_2022);
         proof.addProperty("created", DateTimeFormatter.ISO_INSTANT.format(dateTime.truncatedTo(ChronoUnit.SECONDS)));
 
         /*
         The data integrity proof verificationMethod is the did:key from the first log entry, and the challenge is the versionId from this log entry.
          */
-        proof.addProperty("verificationMethod", "did:key:" + verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + verificationMethodKeyProvider.getVerificationKeyMultibase());
+        proof.addProperty("verificationMethod", DID_KEY + verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + verificationMethodKeyProvider.getVerificationKeyMultibase());
         proof.addProperty("proofPurpose", proofPurpose);
-        if (entryHash != null && !entryHash.isEmpty()) {
-            proof.addProperty("challenge", versionId + "-" + entryHash);
-        }
+        proof.addProperty("challenge", challenge);
 
         String docHashHex = hashJsonObjectAsHex(unsecuredDocument);
         String proofHashHex = hashJsonObjectAsHex(proof);
