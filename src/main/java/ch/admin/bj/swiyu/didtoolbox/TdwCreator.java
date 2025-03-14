@@ -103,6 +103,9 @@ public class TdwCreator {
     //@Setter(AccessLevel.PUBLIC)
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     // TODO private File dirToStoreKeyPair;
+    @Getter(AccessLevel.PRIVATE)
+    //@Setter(AccessLevel.PUBLIC)
+    private boolean forceOverwrite;
 
     /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
@@ -124,7 +127,7 @@ public class TdwCreator {
 
         String publicKeyJwk = jwk;
         if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile);
+            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile, this.forceOverwrite);
         }
 
         JsonObject verificationMethodObj = new JsonObject();

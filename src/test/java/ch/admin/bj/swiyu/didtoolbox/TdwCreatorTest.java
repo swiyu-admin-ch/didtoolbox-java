@@ -70,6 +70,7 @@ public class TdwCreatorTest {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry = TdwCreator.builder()
                     //.signer(new Ed25519SignerVerifier()) // is the default signer anyway
+                    .forceOverwrite(true)
                     .build()
                     .create(identifierRegistryUrl); // MUT
 
@@ -90,6 +91,7 @@ public class TdwCreatorTest {
 
             didLogEntry = TdwCreator.builder()
                     .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .forceOverwrite(true)
                     .build()
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
@@ -196,6 +198,7 @@ public class TdwCreatorTest {
                     .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     //.authenticationKeys(Map.of("my-auth-key-01", ""))
+                    .forceOverwrite(true)
                     .build()
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
@@ -230,6 +233,7 @@ public class TdwCreatorTest {
                     .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
                     //.assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
+                    .forceOverwrite(true)
                     .build()
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 

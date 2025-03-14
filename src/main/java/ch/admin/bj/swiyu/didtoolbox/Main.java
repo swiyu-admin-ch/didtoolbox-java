@@ -122,6 +122,8 @@ class Main {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 
+                boolean forceOverwrite = createCommand.forceOverwrite;
+
                 String didLogEntry = null;
                 try {
 
@@ -141,8 +143,14 @@ class Main {
                         if (!outputDir.exists()) {
                             outputDir.mkdirs();
                         }
-                        signer.writePrivateKeyAsPem(new File(outputDir, "id_ed25519"));
-                        signer.writePublicKeyAsPem(new File(outputDir, "id_ed25519.pub"));
+                        var privateKeyFile = new File(outputDir, "id_ed25519");
+                        var publicKeyFile = new File(outputDir, "id_ed25519.pub");
+                        if (!privateKeyFile.exists() || forceOverwrite) {
+                            signer.writePrivateKeyAsPem(privateKeyFile);
+                            signer.writePublicKeyAsPem(publicKeyFile);
+                        } else {
+                            overAndOut(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
+                        }
                     }
 
                     var tdwBuilder = TdwCreator.builder().verificationMethodKeyProvider(signer);
@@ -150,6 +158,7 @@ class Main {
                     didLogEntry = tdwBuilder
                             .assertionMethodKeys(assertionMethodsMap)
                             .authenticationKeys(authMap)
+                            .forceOverwrite(forceOverwrite)
                             .build()
                             .create(identifierRegistryUrl);
 
