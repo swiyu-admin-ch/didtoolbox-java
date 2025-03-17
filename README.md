@@ -60,6 +60,9 @@ Usage: didtoolbox [options] [command] [command options]
             An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
           --auth, -t
             An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+          --force-overwrite, -f
+            Overwrite existing PEM key files, if any
+            Default: false
           --help, -h
             Display help for the DID toolbox 'create' command
         * --identifier-registry-url, -u

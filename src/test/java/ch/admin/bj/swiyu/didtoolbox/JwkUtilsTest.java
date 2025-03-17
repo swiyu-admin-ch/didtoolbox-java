@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,28 +30,100 @@ class JwkUtilsTest {
     void testGeneratePublicEC256() {
         try {
             // No PEM files are exported here
-            assertGeneratePublicEC256(JwkUtils.generatePublicEC256("auth-key-01", null), null); // MUT
+            assertGeneratePublicEC256(JwkUtils.generatePublicEC256("auth-key-01", null, false), null); // MUT
         } catch (Exception e) {
             fail(e);
         }
     }
 
     @Test
-    void testGeneratePublicEC256WithOutput() {
+    void testGeneratePublicEC256WithOutputOverwriteExisting() {
+        File tempFile = null;
+        File pubTempFile = null;
         try {
-            File tempFile = File.createTempFile("myprivatekey", "");
+            tempFile = File.createTempFile("myprivatekey", "");
+            // Exists at the moment of key generation, and should therefore be overwritten if forceOverwritten == true
             tempFile.deleteOnExit();
 
             var kid = "auth-key-01";
-            assertGeneratePublicEC256(JwkUtils.generatePublicEC256(kid, tempFile), kid); // MUT
+            assertGeneratePublicEC256(JwkUtils.generatePublicEC256(kid, tempFile, true), kid); // MUT
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
-            assertNotEquals(0, Files.size(new File(tempFile.getPath() + ".pub").toPath()));
-            JwkUtils.ecPemSanityCheck(tempFile, new File(tempFile.getPath() + ".pub"));
+            pubTempFile = new File(tempFile.getPath() + ".pub");
+            assertNotEquals(0, Files.size(pubTempFile.toPath()));
+            JwkUtils.ecPemSanityCheck(tempFile, pubTempFile);
+            pubTempFile.deleteOnExit(); // clean it up
 
         } catch (Exception e) {
             fail(e);
+        } finally {
+            if (tempFile != null) {
+                tempFile.delete();
+            }
+            if (pubTempFile != null) {
+                pubTempFile.delete();
+            }
+        }
+    }
+
+    @Test
+    void testGeneratePublicEC256WithOutputNoOverwriteExistingThrowsException() {
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("myprivatekey", "");
+            // Exists at the moment of key generation, and should NOT be overwritten if forceOverwritten == false
+            tempFile.deleteOnExit();
+        } catch (Exception e) {
+            fail(e);
+        }
+
+        File finalTempFile = tempFile;
+        var exc = assertThrowsExactly(IOException.class, () -> {
+            // kid is irrelevant here
+            JwkUtils.generatePublicEC256(null, finalTempFile, false); // MUT
+        });
+        assertTrue(exc.getMessage().contains("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged"));
+
+        try {
+            // The temp file should remain empty
+            assertEquals(0, Files.size(tempFile.toPath()));
+            // And NO matching .pub file should be created
+            var pubTempFile = new File(tempFile.getPath() + ".pub");
+            assertFalse((pubTempFile.exists()));
+        } catch (Exception e) {
+            fail(e);
+        }
+    }
+
+    @Test
+    void testGeneratePublicEC256WithOutputOverwriteNonExisting() {
+        File tempFile = null;
+        File pubTempFile = null;
+        try {
+            tempFile = File.createTempFile("myprivatekey", "");
+            // Delete it immediately, so it will NOT exist at the moment of key generation and should therefore be created regardless of forceOverwritten flag
+            tempFile.delete();
+
+            var kid = "auth-key-01";
+            assertGeneratePublicEC256(JwkUtils.generatePublicEC256(kid, tempFile, true), kid); // MUT
+
+            // Verification of the exported PEM files
+            assertNotEquals(0, Files.size(tempFile.toPath()));
+            pubTempFile = new File(tempFile.getPath() + ".pub");
+            assertNotEquals(0, Files.size(pubTempFile.toPath()));
+            JwkUtils.ecPemSanityCheck(tempFile, pubTempFile);
+            pubTempFile.deleteOnExit(); // clean it up
+
+        } catch (Exception e) {
+            fail(e);
+        } finally {
+            if (tempFile != null) {
+                tempFile.delete();
+            }
+            if (pubTempFile != null) {
+                pubTempFile.delete();
+            }
         }
     }
 
