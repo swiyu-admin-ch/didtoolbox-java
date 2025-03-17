@@ -124,7 +124,7 @@ $ java -jar didtoolbox.jar create --identifier-registry-url https://identifier-r
 
 #### What Happens Upon Execution
 
-- Key Pair Generation: Three key pairs are created and stored in the .didtoolbox directory (output directory, will be created automatically) in PEM format
+- Key Pair Generation: Three key pairs are created and stored in the .didtoolbox directory (output directory, will be created automatically) in PEM format.
 **Take good care of the generated key material. You will need it again later on (e.g. to configure it in your Issuers and/or Verifiers**):
   - DID Update Key Pair (required to update the DID at a later point in time):
     - id_ed25519: Private key (not password protected)
