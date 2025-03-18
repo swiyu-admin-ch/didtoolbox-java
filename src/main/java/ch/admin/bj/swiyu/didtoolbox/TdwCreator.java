@@ -107,6 +107,9 @@ public class TdwCreator {
     //@Setter(AccessLevel.PUBLIC)
     private List<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
+    @Getter(AccessLevel.PRIVATE)
+    //@Setter(AccessLevel.PUBLIC)
+    private boolean forceOverwrite;
 
     /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
@@ -128,7 +131,7 @@ public class TdwCreator {
 
         String publicKeyJwk = jwk;
         if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile);
+            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile, this.forceOverwrite);
         }
 
         JsonObject verificationMethodObj = new JsonObject();
@@ -171,8 +174,10 @@ public class TdwCreator {
         }
 
         var context = new JsonArray();
+        // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:
+        //     https://github.com/e-id-admin/open-source-community/blob/main/tech-roadmap/swiss-profile.md#did-document-format
         context.add("https://www.w3.org/ns/did/v1");
-        context.add("https://w3id.org/security/suites/jws-2020/v1"); // because of the format of generated authentication/assertionMethod keys (JsonWebKey2020)
+        context.add("https://w3id.org/security/jwk/v1");
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
@@ -249,7 +254,7 @@ public class TdwCreator {
         // and that the represented time MUST be before or equal to the current time.
         didLogEntryWithoutProofAndSignature.add(DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
 
-        // Define the parameters
+        // Define the parameters (https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
@@ -282,14 +287,10 @@ public class TdwCreator {
         }
         didMethodParameters.add("updateKeys", updateKeys);
 
-        /* See https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters
-        didMethodParameters.add("nextKeyHashes", new JsonArray());
-        didMethodParameters.add("witnesses", new JsonArray());
-        didMethodParameters.addProperty("witnessThreshold", 0);
-        didMethodParameters.addProperty("deactivated", false);
+        // MUST set portable to false in the first DID log entry.
+        // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:
+        //     https://github.com/e-id-admin/open-source-community/blob/main/tech-roadmap/swiss-profile.md#didtdwdidwebvh
         didMethodParameters.addProperty("portable", false);
-        didMethodParameters.addProperty("prerotation", false);
-         */
 
         // Since v0.3 (https://identity.foundation/didwebvh/v0.3/#didtdw-version-changelog):
         //            Removes the cryptosuite parameter, moving it to implied based on the method parameter.
@@ -304,9 +305,9 @@ public class TdwCreator {
         didLogEntryWithoutProofAndSignature.add(initialDidDoc);
 
         // Generate SCID and replace placeholder in did doc
-        var scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
+        var scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
 
-        /* https://identity.foundation/trustdidweb/v0.3/#output-of-the-scid-generation-process:
+        /* https://identity.foundation/didwebvh/v0.3/#output-of-the-scid-generation-process:
         After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
         This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         Once the process has run, the version number of this first version of the DID (1),
@@ -326,23 +327,24 @@ public class TdwCreator {
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
+        String entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature.toString());
 
         JsonArray didLogEntryWithProof = new JsonArray();
-        didLogEntryWithProof.add("1-" + entryHash);
+        var challenge = "1-" + entryHash; // versionId as the proof challenge
+        didLogEntryWithProof.add(challenge);
         didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(1));
         didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(2));
         didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(3));
 
         /*
-        https://identity.foundation/trustdidweb/v0.3/#data-integrity-proof-generation-and-first-log-entry:
+        https://identity.foundation/didwebvh/v0.3/#data-integrity-proof-generation-and-first-log-entry:
         The last step in the creation of the first log entry is the generation of the data integrity proof.
         One of the keys in the updateKeys parameter MUST be used (in the form of a did:key) to generate the signature in the proof,
         with the versionId value (item 1 of the did log) used as the challenge item.
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         JsonArray proofs = new JsonArray();
-        proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, 1, entryHash, "authentication", zdt));
+        proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt));
         didLogEntryWithProof.add(proofs);
 
         Did did = null;

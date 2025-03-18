@@ -6,12 +6,12 @@
 
     <groupId>ch.admin.bj.swiyu</groupId>
     <artifactId>didtoolbox</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
 
     <!--name>???</name-->
     <!--description>A collection of ???</description-->
-    <url>https://github.com/e-id-admin/didtoolbox-java</url>
+    <url>https://github.com/swiyu-admin-ch/didtoolbox-java</url>
 
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
@@ -155,6 +155,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.5.0</version>
+                <executions>
+                    <execution>
+                        <id>add-third-party</id>
+                        <goals>
+                            <!-- as described here: https://www.mojohaus.org/license-maven-plugin/add-third-party-mojo.html -->
+                            <goal>add-third-party</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}</outputDirectory>
+                            <!-- as specified here: https://confluence.bit.admin.ch/display/EIDTEAM/THIRD-PARTY-LICENSES.md -->
+                            <thirdPartyFilename>THIRD-PARTY-LICENSES.md</thirdPartyFilename>
+                            <!-- inspired by https://github.com/mojohaus/license-maven-plugin/blob/master/src/main/resources/org/codehaus/mojo/license/third-party-file-groupByLicense.ftl -->
+                            <fileTemplate>${project.basedir}/src/main/resources/org/codehaus/mojo/license/third-party-file-groupByLicense.ftl</fileTemplate>
+                            <acceptPomPackaging>true</acceptPomPackaging>
+                            <licenseMerges>
+                                <licenseMerge>Apache License, Version 2.0|The Apache License, Version 2.0|The Apache Software License, Version 2.0|Apache 2.0|Apache-2.0</licenseMerge>
+                                <licenseMerge>MIT License|The MIT License</licenseMerge>
+                            </licenseMerges>
+                            <excludedGroups>^ch\.admin</excludedGroups>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -167,11 +194,11 @@
 
     <profiles>
         <profile>
-            <id>github</id>
+            <id>github-didtoolbox-java</id>
             <repositories>
                 <repository>
-                    <id>github</id>
-                    <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+                    <id>github-didtoolbox-java</id>
+                    <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
                     <snapshots>
                         <enabled>true</enabled>
                     </snapshots>
@@ -182,13 +209,13 @@
 
     <distributionManagement>
         <repository>
-            <id>github</id>
+            <id>github-didtoolbox-java</id>
             <name>Github</name>
-            <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+            <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
         </repository>
         <snapshotRepository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/e-id-admin/didtoolbox-java</url>
+            <id>github-didtoolbox-java</id>
+            <url>https://maven.pkg.github.com/swiyu-admin-ch/didtoolbox-java</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -204,7 +231,7 @@
         <dependency>
             <groupId>ch.admin.eid</groupId>
             <artifactId>didresolver</artifactId>
-            <version>1.0.2</version>
+            <version>2.0.1</version>
         </dependency>
         <!-- MANDATORY (required by didresolver) -->
         <dependency>

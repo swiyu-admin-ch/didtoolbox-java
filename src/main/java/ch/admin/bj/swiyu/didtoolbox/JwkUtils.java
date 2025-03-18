@@ -66,10 +66,11 @@ public class JwkUtils {
      * @param kid            the ID of the JWK, that can be used to match a specific key
      * @param keyPairPemFile if not {@code null}, the file where a generated key pair will be stored
      *                       (in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format)
+     * @param forceOverwrite the flag controlling whether the existing PEM files should be overwritten or not
      * @return a new public EC JWK (in JSON format).
      * @throws IOException if persisting a key pair fails
      */
-    public static String generatePublicEC256(String kid, File keyPairPemFile) throws IOException {
+    public static String generatePublicEC256(String kid, File keyPairPemFile, boolean forceOverwrite) throws IOException {
 
         KeyPairGenerator keyPairGenerator = null;
         try {
@@ -107,25 +108,31 @@ public class JwkUtils {
 
         if (keyPairPemFile != null) {
 
-            Writer w = new BufferedWriter(new FileWriter(keyPairPemFile));
-            try {
-                w.write(keyPairPem);
-                w.flush();
-            } finally {
-                w.close();
-            }
+            if (!keyPairPemFile.exists() || forceOverwrite) {
 
-            exportEcPublicKeyToPem(publicJwk, keyPairPemFile);
+                Writer w = new BufferedWriter(new FileWriter(keyPairPemFile));
+                try {
+                    w.write(keyPairPem);
+                    w.flush();
+                } finally {
+                    w.close();
+                }
 
-            // A private key file should always get appropriate file permissions, if feasible
-            PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(keyPairPemFile.toPath(), PosixFileAttributeView.class);
-            if (!System.getProperty("os.name").toLowerCase().contains("win") && posixFileAttributeView != null) {
-                Files.setPosixFilePermissions(keyPairPemFile.toPath(), PosixFilePermissions.fromString("rw-------"));
+                exportEcPublicKeyToPem(publicJwk, keyPairPemFile);
+
+                // A private key file should always get appropriate file permissions, if feasible
+                PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(keyPairPemFile.toPath(), PosixFileAttributeView.class);
+                if (!System.getProperty("os.name").toLowerCase().contains("win") && posixFileAttributeView != null) {
+                    Files.setPosixFilePermissions(keyPairPemFile.toPath(), PosixFilePermissions.fromString("rw-------"));
+                } else {
+                    // CAUTION If the underlying file system can not distinguish the owner's read permission from that of others,
+                    //         then the permission will apply to everybody, regardless of this value.
+                    keyPairPemFile.setReadable(true, true);
+                    keyPairPemFile.setWritable(true, true);
+                }
+
             } else {
-                // CAUTION If the underlying file system can not distinguish the owner's read permission from that of others,
-                //         then the permission will apply to everybody, regardless of this value.
-                keyPairPemFile.setReadable(true, true);
-                keyPairPemFile.setWritable(true, true);
+                throw new IOException("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + keyPairPemFile.getPath());
             }
         }
 

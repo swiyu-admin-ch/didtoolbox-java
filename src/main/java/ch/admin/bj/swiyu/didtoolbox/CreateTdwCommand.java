@@ -14,7 +14,9 @@ import java.util.List;
 
 @Parameters(
         commandNames = {"create"},
-        commandDescription = "Create a did:tdw DID Document. Optionally sign the initial log entry if a private key is provided"
+        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key"
+        // Validate the value for all parameters (currently not really required):
+        // parametersValidators = {CreateTdwCommand.KeyPairOutputDirectoryParametersValidator.class}
 )
 class CreateTdwCommand {
 
@@ -24,6 +26,10 @@ class CreateTdwCommand {
             description = "Display help for the DID toolbox 'create' command",
             help = true)
     boolean help;
+
+    @Parameter(names = {"--force-overwrite", "-f"},
+            description = "Overwrite existing PEM key files, if any")
+    boolean forceOverwrite;
 
     public static class IdentifierRegistryUrlParameterValidator implements IParameterValidator {
         @Override

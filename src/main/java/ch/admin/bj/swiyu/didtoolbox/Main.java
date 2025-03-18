@@ -126,6 +126,8 @@ class Main {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 
+                boolean forceOverwrite = createCommand.forceOverwrite;
+
                 String didLogEntry = null;
                 try {
 
@@ -134,7 +136,7 @@ class Main {
                     if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
                         File verifyingKeyPemFile = null;
-                        for (var pemFile :  verifyingKeyPemFiles) {
+                        for (var pemFile : verifyingKeyPemFiles) {
                             try {
                                 signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, pemFile); // supplied external key pair
                                 // At this point, the matching verifying key is detected, so we are free to break from the loop
@@ -164,8 +166,14 @@ class Main {
                         if (!outputDir.exists()) {
                             outputDir.mkdirs();
                         }
-                        signer.writePrivateKeyAsPem(new File(outputDir, "id_ed25519"));
-                        signer.writePublicKeyAsPem(new File(outputDir, "id_ed25519.pub"));
+                        var privateKeyFile = new File(outputDir, "id_ed25519");
+                        var publicKeyFile = new File(outputDir, "id_ed25519.pub");
+                        if (!privateKeyFile.exists() || forceOverwrite) {
+                            signer.writePrivateKeyAsPem(privateKeyFile);
+                            signer.writePublicKeyAsPem(publicKeyFile);
+                        } else {
+                            overAndOut(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
+                        }
                     }
 
                     var tdwBuilder = TdwCreator.builder().verificationMethodKeyProvider(signer);
@@ -174,6 +182,7 @@ class Main {
                             .assertionMethodKeys(assertionMethodsMap)
                             .authenticationKeys(authMap)
                             .updateKeys(verifyingKeyPemFiles)
+                            .forceOverwrite(forceOverwrite)
                             .build()
                             .create(identifierRegistryUrl);
 
@@ -232,7 +241,7 @@ class Main {
                     if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
                         File verifyingKeyPemFile = null;
-                        for (var pemFile :  verifyingKeyPemFiles) {
+                        for (var pemFile : verifyingKeyPemFiles) {
                             try {
                                 signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, pemFile); // supplied external key pair
                                 // At this point, the matching verifying key is detected, so we are free to break from the loop
