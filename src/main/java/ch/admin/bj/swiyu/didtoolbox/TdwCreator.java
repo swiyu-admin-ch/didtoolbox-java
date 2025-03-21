@@ -5,6 +5,7 @@ import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -105,7 +106,7 @@ public class TdwCreator {
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PRIVATE)
     //@Setter(AccessLevel.PUBLIC)
-    private List<File> updateKeys;
+    private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
     @Getter(AccessLevel.PRIVATE)
     //@Setter(AccessLevel.PUBLIC)
@@ -274,18 +275,23 @@ public class TdwCreator {
         an entry replaces the previously active list. If an entry does not have the updateKeys item,
         the currently active list continues to apply.
          */
-        JsonArray updateKeys = new JsonArray();
-        updateKeys.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
+        var updateKeysJsonArray = new JsonArray();
+        updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
         if (this.updateKeys != null) {
-            for (var p : this.updateKeys) { // ...and then add the rest, if any
+            for (var pemFile : this.updateKeys) { // ...and then add the rest, if any
+                String updateKey;
                 try {
-                    updateKeys.add(PemUtils.getPublicKeyEd25519Multibase(PemUtils.parsePEMFile(p)));
+                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
                 } catch (InvalidKeySpecException e) {
                     throw new IOException(e);
                 }
+
+                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) { // it is a distinct list of keys, after all
+                    updateKeysJsonArray.add(updateKey);
+                }
             }
         }
-        didMethodParameters.add("updateKeys", updateKeys);
+        didMethodParameters.add("updateKeys", updateKeysJsonArray);
 
         // MUST set portable to false in the first DID log entry.
         // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:

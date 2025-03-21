@@ -75,7 +75,7 @@ class Main {
         }
 
         File signingKeyPemFile;
-        List<File> verifyingKeyPemFiles;
+        Set<File> verifyingKeyPemFiles;
         File jksFile;
         String jksPassword;
         String jksAlias;

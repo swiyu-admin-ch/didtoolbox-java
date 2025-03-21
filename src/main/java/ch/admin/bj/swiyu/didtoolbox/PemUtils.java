@@ -59,9 +59,9 @@ class PemUtils {
         return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
     }
 
-    static String getPublicKeyEd25519Multibase(byte[] encodedKey) throws InvalidKeySpecException, IOException {
+    static String parsePEMFilePublicKeyEd25519Multibase(File pemFile) throws InvalidKeySpecException, IOException {
 
-        PublicKey pubKey = PemUtils.getPublicKeyEd25519(encodedKey);
+        PublicKey pubKey = PemUtils.getPublicKeyEd25519(parsePEMFile(pemFile));
         byte[] publicKey = pubKey.getEncoded(); // 44 bytes
         var verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 

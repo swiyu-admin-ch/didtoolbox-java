@@ -7,6 +7,7 @@ import ch.admin.eid.didtoolbox.VerificationMethod;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,9 +19,8 @@ import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link TdwUpdater} is the class in charge of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log update (rotate).
@@ -110,7 +110,7 @@ public class TdwUpdater {
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PRIVATE)
     //@Setter(AccessLevel.PUBLIC)
-    private List<File> updateKeys;
+    private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
 
     private static JsonObject verificationMethodAsJsonObject(VerificationMethod vm) {
@@ -215,6 +215,16 @@ public class TdwUpdater {
             throw new TdwUpdaterException("Update key mismatch");
         }
 
+        // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
+        // and that the represented time MUST be before or equal to the current time.
+        //
+        // The versionTime for each log entry MUST be greater than the previous entry’s time.
+        // The versionTime of the last entry MUST be earlier than the current time.
+        var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.dateTime);
+        if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
+            throw new TdwUpdaterException("The versionTime of the last entry MUST be earlier than the current time");
+        }
+
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
 
@@ -285,25 +295,38 @@ public class TdwUpdater {
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        if (this.updateKeys != null) {
-            var updateKey = this.verificationMethodKeyProvider.getVerificationKeyMultibase();
-            if (!didLogMeta.params.updateKeys.contains(updateKey)) {
-                didLogMeta.params.updateKeys.add(updateKey); // first and foremost...
-            }
 
-            for (var p : this.updateKeys) { // ...and then add the rest, if any
-                try {
-                    updateKey = PemUtils.getPublicKeyEd25519Multibase(PemUtils.parsePEMFile(p));
-                    if (!didLogMeta.params.updateKeys.contains(updateKey)) {
-                        didLogMeta.params.updateKeys.add(updateKey);
+        if (this.updateKeys != null) {
+
+            var updateKeysJsonArray = new JsonArray();
+
+            var updateKey = this.verificationMethodKeyProvider.getVerificationKeyMultibase();
+            if (this.updateKeys.size() > 1 || !didLogMeta.params.updateKeys.contains(updateKey)) { // need for change?
+
+                for (var pemFile : this.updateKeys) {
+                    try {
+                        updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                    } catch (Exception e) {
+                        throw new TdwUpdaterException(e);
                     }
-                    //} catch (InvalidKeySpecException e) {
-                } catch (Exception e) {
-                    throw new TdwUpdaterException(e);
+
+                    // it is a distinct list of keys, after all
+                    if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
+                        updateKeysJsonArray.add(updateKey);
+                    }
                 }
             }
 
-            // TODO didLogEntryWithoutProofAndSignature.add(didLogMeta.params...);
+            // Define the parameters (https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters)
+            // The third item in the input JSON array MUST be the parameters JSON object.
+            // The parameters are used to configure the DID generation and verification processes.
+            // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
+            var didMethodParameters = new JsonObject();
+            if (!updateKeysJsonArray.isEmpty()) {
+                didMethodParameters.add("updateKeys", updateKeysJsonArray);
+            }
+
+            didLogEntryWithoutProofAndSignature.add(didMethodParameters);
 
         } else {
             didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same
@@ -329,7 +352,7 @@ public class TdwUpdater {
         var challenge = didLogMeta.lastVersionNumber + 1 + "-" + entryHash; // versionId as the proof challenge
         didLogEntryWithProof.add(challenge);
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
-        didLogEntryWithProof.add(new JsonObject()); // CAUTION params remain the same
+        didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(2));
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(3));
 
         /*
@@ -347,7 +370,7 @@ public class TdwUpdater {
             throw new TdwUpdaterException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + didLogMeta.params.updateKeys.getLast() + '#' + didLogMeta.params.updateKeys.getLast());
+        proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 

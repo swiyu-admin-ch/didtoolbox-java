@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Parameters(
         commandNames = {"update"},
@@ -51,12 +52,12 @@ class UpdateTdwCommand {
     File signingKeyPemFile;
 
     @Parameter(names = {"--verifying-key-file", "-v"},
-            description = "The ed25519 public key file for the DID Document’s verification method. In PEM format",
+            description = "The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s option. In PEM format",
             listConverter = CreateTdwCommand.PemFileParameterListConverter.class,
             //converter = CreateTdwCommand.PemFileParameterConverter.class,
             validateWith = CreateTdwCommand.PemFileParameterValidator.class,
             variableArity = true)
-    List<File> verifyingKeyPemFiles;
+    Set<File> verifyingKeyPemFiles;
 
     @Parameter(names = {"--jks-file", "-j"},
             description = "Java KeyStore (PKCS12) file to read the (signing/verifying) keys from",
