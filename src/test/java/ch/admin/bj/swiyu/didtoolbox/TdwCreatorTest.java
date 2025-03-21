@@ -28,8 +28,12 @@ public class TdwCreatorTest {
 
     static {
         try {
-            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
-            VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
+            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(
+                    new File("src/test/data/private.pem"),
+                    new File("src/test/data/public.pem"));
+            // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
+            VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
+                    new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
         }

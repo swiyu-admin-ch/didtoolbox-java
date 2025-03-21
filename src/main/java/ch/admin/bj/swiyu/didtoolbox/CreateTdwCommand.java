@@ -96,7 +96,7 @@ class CreateTdwCommand {
     String jksPassword;
 
     @Parameter(names = {"--jks-alias"},
-            description = "Java KeyStore alias")
+            description = "Java KeyStore alias name of the entry to process")
     String jksAlias;
 
     @Parameter(names = {"--assert", "-a"},

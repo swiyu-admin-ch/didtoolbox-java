@@ -153,6 +153,7 @@ class Main {
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
 
                         signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
+                        // TODO Populate verifyingKeyPemFiles (for each jksAlias) from the JKS by calling signer.writePublicKeyAsPem(tempPublicKeyPemFile);
 
                     } else {
 
