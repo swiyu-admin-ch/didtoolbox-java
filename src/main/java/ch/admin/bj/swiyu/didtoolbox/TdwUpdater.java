@@ -300,9 +300,17 @@ public class TdwUpdater {
 
             var updateKeysJsonArray = new JsonArray();
 
-            var updateKey = this.verificationMethodKeyProvider.getVerificationKeyMultibase();
-            if (this.updateKeys.size() > 1 || !didLogMeta.params.updateKeys.contains(updateKey)) { // need for change?
+            var newUpdateKeys = Set.of(this.updateKeys.stream().map(file -> {
+                try {
+                    return PemUtils.parsePEMFilePublicKeyEd25519Multibase(file);
+                } catch (Exception ignore) {
+                }
+                return null;
+            }).toArray(String[]::new));
 
+            if (!didLogMeta.params.updateKeys.containsAll(newUpdateKeys)) { // need for change?
+
+                String updateKey;
                 for (var pemFile : this.updateKeys) {
                     try {
                         updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);

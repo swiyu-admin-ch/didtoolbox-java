@@ -10,7 +10,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.jar.Manifest;
 
 import static ch.admin.bj.swiyu.didtoolbox.CreateTdwCommand.DEFAULT_METHOD_VERSION;
@@ -241,19 +244,21 @@ class Main {
                     Ed25519VerificationMethodKeyProviderImpl signer = null; // no default, must be supplied
                     if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
-                        File verifyingKeyPemFile = null;
-                        for (var pemFile : verifyingKeyPemFiles) {
+                        var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
+                        String matchingUpdateKey = null;
+                        for (var key : didLogMeta.params.updateKeys) {
                             try {
-                                signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, pemFile); // supplied external key pair
+                                // the signing key is supplied externally, but verifying key should be already among updateKeys
+                                signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, key);
                                 // At this point, the matching verifying key is detected, so we are free to break from the loop
-                                verifyingKeyPemFile = pemFile;
+                                matchingUpdateKey = key;
                                 break;
                             } catch (Exception ignoreNonMatchingKey) {
                             }
                         }
 
-                        if (verifyingKeyPemFile == null) {
-                            overAndOut(jc, parsedCommandName, "No matching verifying key supplied");
+                        if (matchingUpdateKey == null) {
+                            overAndOut(jc, parsedCommandName, "No matching signing key supplied");
                         }
 
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {

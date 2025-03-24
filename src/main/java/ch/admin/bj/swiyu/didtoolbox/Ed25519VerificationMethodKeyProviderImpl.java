@@ -27,7 +27,7 @@ import java.util.Arrays;
  * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
  * It builds extensively on top of {@link org.bouncycastle.crypto.signers.Ed25519Signer} and introduces various useful helpers.
  * <p>
- * It is predominantly intended to be used within the {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(java.util.List)} method
+ * It is predominantly intended to be used within the {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider} method
  * prior to a {@link TdwCreator#create(URL)} call.
  * <p>
  * Thanks to the following methods, it is also capable of loading an already existing key material from the file system:
@@ -167,6 +167,36 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 
         keyPair = new KeyPair(pubKey, privKey);
+
+        // sanity check
+        if (!this.verify("hello world", this.signString("hello world"))) {
+            throw new RuntimeException("keys do not match");
+        }
+    }
+
+    /**
+     * Yet another "hybrid" {@link Ed25519VerificationMethodKeyProviderImpl} constructor accepting keys in various formats.
+     * <p>
+     * CAUTION It is assumed the keys do really match. Otherwise, {@link RuntimeException} is thrown.
+     *
+     * @param privatePemFile     file to load a private Ed25519 key from. It is assumed to be encoded according to the PKCS #8 standard.
+     * @param publicKeyMultibase the base58-encoded string to decode as public Ed25519 key.
+     * @throws IOException             in case of a parse error.
+     * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
+     */
+    public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, String publicKeyMultibase) throws IOException, InvalidKeySpecException {
+
+        byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
+        PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
+        byte[] privateKey = privKey.getEncoded(); // 48 bytes
+        this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
+
+        var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
+
+        ByteBuffer buff = ByteBuffer.allocate(32);
+        buff = ByteBuffer.allocate(32);
+        buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
+        this.verifyingKey = buff.array();
 
         // sanity check
         if (!this.verify("hello world", this.signString("hello world"))) {

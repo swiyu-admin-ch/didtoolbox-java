@@ -3,13 +3,14 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.time.ZonedDateTime;
@@ -224,21 +225,11 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testUpdateWithKeyChange(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) {
 
         File publicKeyPemFile = null;
-        Writer wr = null;
         try {
             publicKeyPemFile = File.createTempFile("mypublickey", "");
-            wr = new BufferedWriter(new FileWriter(publicKeyPemFile));
-            wr.write(publicKeyPem);
-            wr.flush();
+            new Ed25519VerificationMethodKeyProviderImpl().writePublicKeyAsPem(publicKeyPemFile);
         } catch (IOException e) {
             fail(e);
-        } finally {
-            try {
-                if (wr != null) {
-                    wr.close();
-                }
-            } catch (IOException ignore) {
-            }
         }
         publicKeyPemFile.deleteOnExit();
 
@@ -292,21 +283,11 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testMultipleUpdates(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) {
 
         File publicKeyPemFile = null;
-        Writer wr = null;
         try {
             publicKeyPemFile = File.createTempFile("mypublickey", "");
-            wr = new BufferedWriter(new FileWriter(publicKeyPemFile));
-            wr.write(publicKeyPem);
-            wr.flush();
+            new Ed25519VerificationMethodKeyProviderImpl().writePublicKeyAsPem(publicKeyPemFile);
         } catch (IOException e) {
             fail(e);
-        } finally {
-            try {
-                if (wr != null) {
-                    wr.close();
-                }
-            } catch (IOException ignore) {
-            }
         }
         publicKeyPemFile.deleteOnExit();
 
@@ -334,15 +315,6 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                         .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(i - 1)); // MUT
 
                 assertDidLogEntry(nextLogEntry);
-
-                // At this point, it should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
-                var params = JsonParser.parseString(nextLogEntry).getAsJsonArray().get(2).getAsJsonObject();
-                assertTrue(params.has("updateKeys"));
-                assertTrue(params.get("updateKeys").isJsonArray());
-                var updateKeysJsonArray = params.get("updateKeys").getAsJsonArray();
-                assertFalse(updateKeysJsonArray.isEmpty());
-                assertEquals(2, updateKeysJsonArray.size());
-                assertTrue(updateKeysJsonArray.contains(new JsonPrimitive(publicKeyMultibase))); // newly supplied update key
 
                 updatedDidLog.append(nextLogEntry).append(System.lineSeparator());
             }
