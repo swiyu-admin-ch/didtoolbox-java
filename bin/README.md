@@ -49,7 +49,7 @@ Usage: didtoolbox [options] [command] [command options]
             Default: did:tdw:0.3
           --signing-key-file, -s
             The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format
-          --verifying-key-file, -v
+          --verifying-key-files, -v
             The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s 
             option. In PEM format
 
@@ -72,9 +72,8 @@ Usage: didtoolbox [options] [command] [command options]
             Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore
         * --signing-key-file, -s
             The ed25519 private key file corresponding to the public key, required to sign and output the updated DID log entry. In PEM Format
-          --verifying-key-file, -v
-            The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s 
-            option. In PEM format
+          --verifying-key-files, -v
+            The ed25519 public key file(s) for the DID Document’s verification method. In PEM format
 
 $ ./bin/didtoolbox.sh -V
 

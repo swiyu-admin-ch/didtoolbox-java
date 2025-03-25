@@ -51,8 +51,8 @@ class UpdateTdwCommand {
             required = true)
     File signingKeyPemFile;
 
-    @Parameter(names = {"--verifying-key-file", "-v"},
-            description = "The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s option. In PEM format",
+    @Parameter(names = {"--verifying-key-files", "-v"},
+            description = "The ed25519 public key file(s) for the DID Document’s verification method. In PEM format",
             listConverter = CreateTdwCommand.PemFileParameterListConverter.class,
             //converter = CreateTdwCommand.PemFileParameterConverter.class,
             validateWith = CreateTdwCommand.PemFileParameterValidator.class,
