@@ -19,6 +19,7 @@ This project implements the DID-Toolbox, a helper to create DIDs of type Trust D
   - [Create](#did-creation)
   - [Update](#did-update)
 - [Additional Information](#additional-information)
+- [Known Issues](#known-issues)
 - [Contributions and Feedback](#contributions-and-feedback)
 - [License](#license)
 
@@ -428,6 +429,10 @@ java -jar didtoolbox.jar update \
 - **Output Directory**: When creating new DIDs, the `.didtoolbox` directory is automatically created in the current working directory. Ensure you have the necessary permissions to create and write to this directory.
 - **Multiple DIDs**: If you create multiple DIDs, please make sure to rename the `.didtoolbox` directory (or move/rename the files) after each creation run, since the key material will re-generated on each run and therefore overwritten.
 - **Security**: Keep your private keys secure. Do not share them or expose them in unsecured environments.
+
+## Known Issues
+
+The swiyu Public Beta Trust Infrastructure was deliberately released at an early stage to enable future ecosystem participants. There may still be minor bugs or security vulnerabilities in the test system. We will publish them in the near future as ‘KnownIssues’ in this repository.
 
 ## Contributions and feedback
 
