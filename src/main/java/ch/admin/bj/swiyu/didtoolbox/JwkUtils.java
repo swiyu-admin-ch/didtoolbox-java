@@ -56,6 +56,15 @@ public class JwkUtils {
         return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
     }
 
+    public static String loadECPublicJWKasJSON(KeyStore keyStore, String alias, String kid) throws KeyStoreException {
+
+        // see https://connect2id.com/products/nimbus-jose-jwt/examples/pem-encoded-objects
+
+        ECPublicKey publicKey = (ECPublicKey) keyStore.getCertificate(alias).getPublicKey();
+
+        return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
+    }
+
     /**
      * Generates a new key pair (in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format)
      * using standard digital signature algorithm

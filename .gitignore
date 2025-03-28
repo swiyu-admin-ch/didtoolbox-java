@@ -41,4 +41,5 @@ build/
 
 .didtoolbox/
 
-
+# e.g. Securosys Primus JCE security provider libraries
+lib/

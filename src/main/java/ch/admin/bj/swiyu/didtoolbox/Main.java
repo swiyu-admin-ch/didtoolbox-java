@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreLoader;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -82,6 +83,9 @@ class Main {
         File jksFile;
         String jksPassword;
         String jksAlias;
+        SecurosysPrimusKeyStoreLoader primus;
+        String primusKeyAlias;
+        String primusKeyPassword;
 
         switch (parsedCommandName) {
 
@@ -124,8 +128,13 @@ class Main {
                 jksPassword = createCommand.jksPassword;
                 jksAlias = createCommand.jksAlias;
 
+                primus = createCommand.securosysPrimusKeyStoreLoader;
+                primusKeyAlias = createCommand.primusKeyAlias;
+                primusKeyPassword = createCommand.primusKeyPassword;
+
                 if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
-                        jksFile != null && jksPassword != null && jksAlias != null) {
+                        jksFile != null && jksPassword != null && jksAlias != null &&
+                        primus != null && primusKeyAlias != null && primusKeyPassword != null) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 
@@ -157,6 +166,10 @@ class Main {
 
                         signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
                         // TODO Populate verifyingKeyPemFiles (for each jksAlias) from the JKS by calling signer.writePublicKeyAsPem(tempPublicKeyPemFile);
+
+                    } else if (primus != null && primusKeyAlias != null && primusKeyPassword != null) {
+
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(primus.getKeyStore(), primusKeyAlias, primusKeyPassword); // supplied external key pair
 
                     } else {
 

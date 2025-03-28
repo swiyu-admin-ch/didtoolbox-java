@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreInitializationException;
+import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreLoader;
 import com.beust.jcommander.*;
 
 import java.io.File;
@@ -8,7 +10,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -99,6 +100,20 @@ class CreateTdwCommand {
             description = "Java KeyStore alias name of the entry to process")
     String jksAlias;
 
+    @Parameter(names = {"--primus-keystore", "-p"},
+            description = "Securosys Primus Keystore credentials file",
+            converter = SecurosysPrimusCredentialsFileParameterConverter.class,
+            validateWith = SecurosysPrimusCredentialsFileParameterValidator.class)
+    SecurosysPrimusKeyStoreLoader securosysPrimusKeyStoreLoader;
+
+    @Parameter(names = {"--primus-keystore-alias", "-r"},
+            description = "Securosys Primus Keystore alias the key is associated with")
+    String primusKeyAlias;
+
+    @Parameter(names = {"--primus-keystore-password", "-q"},
+            description = "Securosys Primus Keystore password for recovering the key")
+    String primusKeyPassword;
+
     @Parameter(names = {"--assert", "-a"},
             description = "An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
@@ -184,6 +199,42 @@ class CreateTdwCommand {
         }
     }
 
+    static class SecurosysPrimusCredentialsFileParameterConverter implements IStringConverter<SecurosysPrimusKeyStoreLoader> {
+        @Override
+        public SecurosysPrimusKeyStoreLoader convert(String value) {
+            try {
+                return new SecurosysPrimusKeyStoreLoader(new File(value));
+            } catch (Exception shouldNeverOccurIfValidationIsDoneRight) {
+                throw new RuntimeException(com.beust.jcommander.IParameterValidator.class.getCanonicalName()
+                        + " has not been implemented (or not set) for the supplied value: " + value);
+            }
+        }
+    }
+
+    public static class SecurosysPrimusCredentialsFileParameterValidator implements IParameterValidator {
+        @Override
+        public void validate(String name, String value) throws ParameterException {
+            File pemFile = new File(value);
+            if (!pemFile.isFile() || !pemFile.exists()) {
+                throw new ParameterException("Parameter " + name + " should be a regular properties file featuring Securosys Primus credentials (found " + value + ")");
+            }
+
+            try {
+                new SecurosysPrimusKeyStoreLoader(new File(value));
+            } catch (SecurosysPrimusKeyStoreInitializationException exc) {
+                throw new ParameterException("Parameter " + name + " do may feature all valid Securosys Primus credentials. "
+                        + "However, Securosys Primus Key Store could not be initialized regardless of it. "
+                        + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system");
+            } catch (IOException exc) {
+                throw new ParameterException("Parameter " + name + " features one or more invalid Securosys Primus credentials causing: " + exc.getMessage());
+                //} catch (CertificateException | NoSuchAlgorithmException exc) {
+            } catch (Exception exc) {
+                throw new ParameterException("Parameter " + name + " do may feature all valid Securosys Primus credentials. "
+                        + "However, Securosys Primus Key Store cannot be accessed due to: " + exc.getMessage());
+            }
+        }
+    }
+
     static class VerificationMethodParameters {
 
         String key;
@@ -209,7 +260,8 @@ class CreateTdwCommand {
 
                     jwk = JwkUtils.loadECPublicJWKasJSON(new File(splitted[1]), kid);
 
-                } catch (IOException | InvalidKeySpecException e) {
+                    //} catch (IOException | InvalidKeySpecException e) {
+                } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
 
@@ -237,7 +289,8 @@ class CreateTdwCommand {
 
             try {
                 JwkUtils.loadECPublicJWKasJSON(f, kid);
-            } catch (IOException | InvalidKeySpecException e) {
+                //} catch (IOException | InvalidKeySpecException e) {
+            } catch (Exception e) {
                 throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 public/verifying key in PEM format: " + e.getLocalizedMessage());
             }
         }

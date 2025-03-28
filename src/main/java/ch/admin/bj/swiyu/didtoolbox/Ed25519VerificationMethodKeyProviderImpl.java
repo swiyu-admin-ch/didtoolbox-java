@@ -7,7 +7,10 @@ import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -142,6 +145,28 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
          */
         byte[] publicKey = cert.getPublicKey().getEncoded(); // 44 bytes
         this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
+
+        // sanity check
+        if (!this.verify("hello world", this.signString("hello world"))) {
+            throw new RuntimeException("keys do not match");
+        }
+    }
+
+    public Ed25519VerificationMethodKeyProviderImpl(KeyStore keyStore, String alias, String password)
+            throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException {
+
+        Key key = keyStore.getKey(alias, password.toCharArray()); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
+        byte[] privateKey = key.getEncoded(); // 48 bytes
+        this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
+
+        // throws KeyStoreException – if the keystore has not been initialized (loaded).
+        byte[] publicKey = keyStore.getCertificate(alias).getPublicKey().getEncoded(); // 44 bytes;
+        this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
+
+        // sanity check
+        if (!this.verify("hello world", this.signString("hello world"))) {
+            throw new RuntimeException("keys do not match");
+        }
     }
 
     /**
