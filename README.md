@@ -39,7 +39,7 @@ The DID-Toolbox forces generated DIDs to have at least one key for each verifica
 
 Before using the DID-Toolbox, ensure your system meets the following requirements:
 
-- **Operating System:** Compatible with the following operating systems: Windows (x86-64), macOS (ARM64), and Linux (x86-64). Ensure your OS is up to date to avoid compatibility issues.
+- **Operating System:** Compatible with the following operating systems: Linux (x86-64 & AArch64), macOS (AArch64) and Windows (x86-64). Ensure your OS is up to date to avoid compatibility issues.
 - **Java Runtime Environment (JRE) 21 or Higher:** The DID-Toolbox requires Java JRE version 21 or above. Verify that Java is installed on your machine. JNA support is required, since the DID-Toolbox depends on another, platform dependent library, used to verify the generated DID log outputs.
 - **Internet Connection:** Required for downloading the tool.
 - **Sufficient Disk Space:** Allocate enough disk space for the tool and the generated key materials. 100 MB should suffice, depending on the number of DIDs you intend to generate.
@@ -121,7 +121,7 @@ To run the DID-Toolbox using the Quickstart option, use the following command st
 $ java -jar didtoolbox.jar create --identifier-registry-url <identifier_registry_url>
 
 # Example
-$ java -jar didtoolbox.jar create --identifier-registry-url https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085/did.jsonl
+$ java -jar didtoolbox.jar create --identifier-registry-url https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085
 ```
 - **create**: Command to create a new DID
 - **<identifier_registry_url>**: URL where the DID is rooted (absolute URL, /did.jsonl is optional)
@@ -145,7 +145,7 @@ $ java -jar didtoolbox.jar create --identifier-registry-url https://identifier-r
 The generated DID log content should look similar as shown below. After creation, it consists of a single, albeit lengthy, line.
 
 ```json
-["1-QmZJLegQtzHoLJN18Qv8NBpUuHDZambgkNtTiSpLf9KJMn","2025-02-27T13:06:59Z",{"method":"did:tdw:0.3","scid":"Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5","updateKeys":["z6MkrmdqL3gtwVQtHHi3NUpLuPoW9gHjwooq9dSFbRDWFAQR"]},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"],"id":"did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"],"verificationMethod":[{"id":"did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"c_3s3uuQ0uBAlm_b1COp3Z_gc4hSkD65OOeeoMYDZbI","y":"OJbcwriVbIATAmdEnMujF3D0VdhyS4MgLr4FVQyu9_4","kid":"auth-key-01"}},{"id":"did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01","controller":"did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"rGbmDnKImy5Mpmg7zs6w-BI1Jad2A13aRK6fyOdQhGA","y":"XuiCtjOHLhMWpGlZH7pYQtGCVo5xqNUef2xxDmB-u3Q","kid":"assert-key-01"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-02-27T13:06:59Z","verificationMethod":"did:key:z6MkrmdqL3gtwVQtHHi3NUpLuPoW9gHjwooq9dSFbRDWFAQR#z6MkrmdqL3gtwVQtHHi3NUpLuPoW9gHjwooq9dSFbRDWFAQR","proofPurpose":"authentication","challenge":"1-QmZJLegQtzHoLJN18Qv8NBpUuHDZambgkNtTiSpLf9KJMn","proofValue":"z4UgxtS8T64H6aG8VSbRcdJMcSoN5FtrFABQrMHTHQim3nXrfFJdoiQg7QqVvbSp6wSY2JH39B53UtMyvquWrGwDu"}]]
+["1-QmRdMTkEvFsfkFv8eJp9nUWnecXF3EzDQJhuetHMTVMFdg","2025-03-21T07:38:51Z",{"method":"did:tdw:0.3","scid":"Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK","updateKeys":["z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC"],"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"],"verificationMethod":[{"id":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"5cice-6ILYCD2gFEVFMLPt3HPf5n_OefzOOoP-3SLDA","y":"lh_YkKQvF_1xv0uYuvy1t6wpDM7au1dMEg2L1I9wDxE","kid":"auth-key-01"}},{"id":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01","controller":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"Z4Hp-L-THKPCUQqYOyICAU7YekPsYwOjrLaiOW_EdXk","y":"tF0NJM4B5J85zFtvgHNtnk6pV7VY52GAq0nppq2Pop0","kid":"assert-key-01"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-03-21T07:38:51Z","verificationMethod":"did:key:z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC#z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC","proofPurpose":"authentication","challenge":"1-QmRdMTkEvFsfkFv8eJp9nUWnecXF3EzDQJhuetHMTVMFdg","proofValue":"z4yxZfm1nG6AerU5Mg3yrrvqn2mmMRjMJC4999BunnS3hg9SVjicugw8ZWEJYsQkarypDNRAqAjo48bH42ekyMa1c"}]]
 
 ```
 
@@ -153,50 +153,51 @@ Prettified version of the DID log content above.
 
 ```json
 [
-  "1-QmZJLegQtzHoLJN18Qv8NBpUuHDZambgkNtTiSpLf9KJMn",
-  "2025-02-27T13:06:59Z",
+  "1-QmRdMTkEvFsfkFv8eJp9nUWnecXF3EzDQJhuetHMTVMFdg",
+  "2025-03-21T07:38:51Z",
   {
     "method": "did:tdw:0.3",
-    "scid": "Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5",
+    "scid": "Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK",
     "updateKeys": [
-      "z6MkrmdqL3gtwVQtHHi3NUpLuPoW9gHjwooq9dSFbRDWFAQR"
-    ]
+      "z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC"
+    ],
+    "portable": false
   },
   {
     "value": {
       "@context": [
         "https://www.w3.org/ns/did/v1",
-        "https://w3id.org/security/suites/jws-2020/v1"
+        "https://w3id.org/security/jwk/v1"
       ],
-      "id": "did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+      "id": "did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
       "authentication": [
-        "did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"
+        "did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"
       ],
       "assertionMethod": [
-        "did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"
+        "did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"
       ],
       "verificationMethod": [
         {
-          "id": "did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01",
-          "controller": "did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+          "id": "did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01",
+          "controller": "did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
           "type": "JsonWebKey2020",
           "publicKeyJwk": {
             "kty": "EC",
             "crv": "P-256",
-            "x": "c_3s3uuQ0uBAlm_b1COp3Z_gc4hSkD65OOeeoMYDZbI",
-            "y": "OJbcwriVbIATAmdEnMujF3D0VdhyS4MgLr4FVQyu9_4",
+            "x": "5cice-6ILYCD2gFEVFMLPt3HPf5n_OefzOOoP-3SLDA",
+            "y": "lh_YkKQvF_1xv0uYuvy1t6wpDM7au1dMEg2L1I9wDxE",
             "kid": "auth-key-01"
           }
         },
         {
-          "id": "did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01",
-          "controller": "did:tdw:Qmc8e3ZUSFw7UE7uq4xWPKYpKvRfzyM5w4qwMALZo2ScH5:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+          "id": "did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01",
+          "controller": "did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
           "type": "JsonWebKey2020",
           "publicKeyJwk": {
             "kty": "EC",
             "crv": "P-256",
-            "x": "rGbmDnKImy5Mpmg7zs6w-BI1Jad2A13aRK6fyOdQhGA",
-            "y": "XuiCtjOHLhMWpGlZH7pYQtGCVo5xqNUef2xxDmB-u3Q",
+            "x": "Z4Hp-L-THKPCUQqYOyICAU7YekPsYwOjrLaiOW_EdXk",
+            "y": "tF0NJM4B5J85zFtvgHNtnk6pV7VY52GAq0nppq2Pop0",
             "kid": "assert-key-01"
           }
         }
@@ -207,11 +208,11 @@ Prettified version of the DID log content above.
     {
       "type": "DataIntegrityProof",
       "cryptosuite": "eddsa-jcs-2022",
-      "created": "2025-02-27T13:06:59Z",
-      "verificationMethod": "did:key:z6MkrmdqL3gtwVQtHHi3NUpLuPoW9gHjwooq9dSFbRDWFAQR#z6MkrmdqL3gtwVQtHHi3NUpLuPoW9gHjwooq9dSFbRDWFAQR",
+      "created": "2025-03-21T07:38:51Z",
+      "verificationMethod": "did:key:z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC#z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC",
       "proofPurpose": "authentication",
-      "challenge": "1-QmZJLegQtzHoLJN18Qv8NBpUuHDZambgkNtTiSpLf9KJMn",
-      "proofValue": "z4UgxtS8T64H6aG8VSbRcdJMcSoN5FtrFABQrMHTHQim3nXrfFJdoiQg7QqVvbSp6wSY2JH39B53UtMyvquWrGwDu"
+      "challenge": "1-QmRdMTkEvFsfkFv8eJp9nUWnecXF3EzDQJhuetHMTVMFdg",
+      "proofValue": "z4yxZfm1nG6AerU5Mg3yrrvqn2mmMRjMJC4999BunnS3hg9SVjicugw8ZWEJYsQkarypDNRAqAjo48bH42ekyMa1c"
     }
   ]
 ]
@@ -223,15 +224,15 @@ For illustration purposes, we will generate a new DID and perform an assert key 
 
 ```shell
 # Step 1 - Generate new DID and redirect stdout to v01_did.jsonl file (contains the created DID log)
-$ java -jar didtoolbox.jar create -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085/did.jsonl > v01_did.jsonl
+$ java -jar didtoolbox.jar create -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085 > v01_did.jsonl
 
 # Step 2 - Rename the generated .didtoobox folder to make sure the initially generated key material remains accessible
 $ mv .didtoolbox .didtoolbox_keys_v01
 
 # Step 3 - To keep it simple, create a new dummy DID so that we get a new set of key material (we're interested in the assertion key for the sake of this example). No stdout redirect required, since we're only aiming for the key material that will be generated in the .didtoolbox directory.
-$ java -jar didtoolbox.jar create -u https://example.com/did.jsonl
+$ java -jar didtoolbox.jar create -u https://example.com
 
-# Step 4 - Update the DID from step 1, so that the assert key is rotated to a new one while the previous one is removed. We'll keep the authentication key. Redirect stdout to v02_did.jsonl file (contains the updated DID log, now wth two versions)
+# Step 4 - Update the DID from step 1, so that the assert key is rotated to a new one while the previous one is removed. We'll keep the authentication key. Redirect stdout to v02_did.jsonl file (contains the updated DID log, now with two versions)
 $ java -jar didtoolbox.jar update -d v01_did.jsonl -s .didtoolbox_keys_v01/id_ed25519 -v .didtoolbox_keys_v01/id_ed25519.pub -a assert-key-02,.didtoolbox/assert-key-01.pub -t auth-key-01,.didtoolbox_keys_v01/assert-key-01.pub > v02_did.jsonl
 # -d to supply the initial DID log file of the DID to be updated (v01_did.jsonl)
 # -s to supply a valid updateKey private keyfile (PEM) required to generate the proof of the new DID log line (.didtoolbox_keys_v01/id_ed25519)
@@ -244,58 +245,59 @@ $ java -jar didtoolbox.jar update -d v01_did.jsonl -s .didtoolbox_keys_v01/id_ed
 The updated DID log file (v02_did.jsonl) should contain two lines, each containing one DID version
 
 ```
-["1-QmU2vJpqQsC7DQRSR9UhMGJ9E6XdFS21E1y7Hv5kjzvUGm","2025-02-27T13:42:46Z",{"method":"did:tdw:0.3","scid":"QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo","updateKeys":["z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8"]},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"],"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"hELL9Z-5rkg8p8IY04pogDhtNML-xz79MDnOLRJE3n8","y":"4jCz1BwmqWgMDAyp1CRzmm28syN4aH1FvFRjgEyAHK0","kid":"auth-key-01"}},{"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01","controller":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"ngddzGFoi-yZDqasoBX8zvFO73rCHPCQcGVEiLVka3Y","y":"v3x-KtZMZD7FZgT2dh-xwVriocHldTRKaijMvnwV4bQ","kid":"assert-key-01"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-02-27T13:42:46Z","verificationMethod":"did:key:z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8#z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8","proofPurpose":"authentication","challenge":"1-QmU2vJpqQsC7DQRSR9UhMGJ9E6XdFS21E1y7Hv5kjzvUGm","proofValue":"z57X6vPoLKGWfTT8iCp7kD7eRNKuykcNYujbVrXeWqFe8WDc3GUBGvCxbdq5u6m4ZE7WNVM4zedxnVVzLozkcKWXE"}]]
-["2-QmSwrQpiTmTZrbJPF8q8viuqaZ1ZdxsU5um4zeZ8FbzEw9","2025-02-27T13:44:33Z",{"witnessThreshold":0},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"],"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02"],"verificationMethod":[{"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"auth-key-01","x":"ngddzGFoi-yZDqasoBX8zvFO73rCHPCQcGVEiLVka3Y","y":"v3x-KtZMZD7FZgT2dh-xwVriocHldTRKaijMvnwV4bQ"}},{"id":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02","controller":"did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"assert-key-02","x":"7d802vPuAZ-8SyEuTdfCE03-0YeHtrrO4DqcJPRJ8L4","y":"pQsxkJETgGFaz3szf962_e1SMVTUAypKx-Fd7KPA3K4"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-02-27T13:44:33Z","verificationMethod":"did:key:z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8#z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8","proofPurpose":"authentication","challenge":"2-QmSwrQpiTmTZrbJPF8q8viuqaZ1ZdxsU5um4zeZ8FbzEw9","proofValue":"z5ZoqFzYDx2kPPTKAv6kjYAL3SpTqU4UFfRu9i4Xy1ioorGQAV5T3U7qAADe5EhjH3tdaWEpV7qGPQMaJF24vq6Qg"}]]
+["1-QmcJJMcAhY1t2DUPEDCRTQGohUq7t8b5vS3yqctMcchtGi","2025-03-31T12:59:30Z",{"method":"did:tdw:0.3","scid":"QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9","updateKeys":["z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg"],"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"j8C2kkSg1wyxhLjxRTy7jW8Bc2V8gPAFD6ophpHpPRw","y":"Zr1xbFYdj8lvrZXDLi57f_dAIgANX2EBWqftQbmq_f8","kid":"auth-key-01"}},{"id":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01","controller":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"3-xR-ApvKYCKtXxjvypxIb4tHJSUTHCl0uUYVAvP6sE","y":"jkQdXwStFmrJjHuWw8PE_AG43c4OQwd6-Rkr4sPiC7Y","kid":"assert-key-01"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-03-31T12:59:30Z","verificationMethod":"did:key:z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg#z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg","proofPurpose":"authentication","challenge":"1-QmcJJMcAhY1t2DUPEDCRTQGohUq7t8b5vS3yqctMcchtGi","proofValue":"z4fmECdwJHXynwZcVYYGtipG5g5ZuzhABUph9SmDJzjSuqQM7Uhp8Mpk4gNNFUiMyzJ7gYDjTDqp7BiEiPJNrzkje"}]]
+["2-Qmbad4Gygs74r1yprZ787YC8NcarfpK5SYu7cAHZBRpE1d","2025-03-31T13:00:51Z",{},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02"],"verificationMethod":[{"id":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"auth-key-01","x":"3-xR-ApvKYCKtXxjvypxIb4tHJSUTHCl0uUYVAvP6sE","y":"jkQdXwStFmrJjHuWw8PE_AG43c4OQwd6-Rkr4sPiC7Y"}},{"id":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02","controller":"did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"assert-key-02","x":"Ja4P63oUfaUageuu9O_6kOHT6bLe5D4myacZpEICwC8","y":"A4JwAyrpKxtsNLX50A0pQ_4G2AYO-NJw0dzne11xUj0"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-03-31T13:00:51Z","verificationMethod":"did:key:z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg#z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg","proofPurpose":"authentication","challenge":"2-Qmbad4Gygs74r1yprZ787YC8NcarfpK5SYu7cAHZBRpE1d","proofValue":"z5wp8P8RA7SEG3hmtewv7kpiZWvuDfvP6wM6vK1744CyJWVdSsr8YVJ5SHRVW9N6mdQ2oL2bXaSQearSvEfLQes52"}]]
 ```
 
 Prettified initial version (version 1) of the created DID (line 1 of v02_did.jsonl)
 
 ```json
 [
-  "1-QmU2vJpqQsC7DQRSR9UhMGJ9E6XdFS21E1y7Hv5kjzvUGm",
-  "2025-02-27T13:42:46Z",
+  "1-QmcJJMcAhY1t2DUPEDCRTQGohUq7t8b5vS3yqctMcchtGi",
+  "2025-03-31T12:59:30Z",
   {
     "method": "did:tdw:0.3",
-    "scid": "QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo",
+    "scid": "QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9",
     "updateKeys": [
-      "z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8"
-    ]
+      "z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg"
+    ],
+    "portable": false
   },
   {
     "value": {
       "@context": [
         "https://www.w3.org/ns/did/v1",
-        "https://w3id.org/security/suites/jws-2020/v1"
+        "https://w3id.org/security/jwk/v1"
       ],
-      "id": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+      "id": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
       "authentication": [
-        "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"
+        "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"
       ],
       "assertionMethod": [
-        "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"
+        "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"
       ],
       "verificationMethod": [
         {
-          "id": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01",
-          "controller": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+          "id": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01",
+          "controller": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
           "type": "JsonWebKey2020",
           "publicKeyJwk": {
             "kty": "EC",
             "crv": "P-256",
-            "x": "hELL9Z-5rkg8p8IY04pogDhtNML-xz79MDnOLRJE3n8",
-            "y": "4jCz1BwmqWgMDAyp1CRzmm28syN4aH1FvFRjgEyAHK0",
+            "x": "j8C2kkSg1wyxhLjxRTy7jW8Bc2V8gPAFD6ophpHpPRw",
+            "y": "Zr1xbFYdj8lvrZXDLi57f_dAIgANX2EBWqftQbmq_f8",
             "kid": "auth-key-01"
           }
         },
         {
-          "id": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01",
-          "controller": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+          "id": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01",
+          "controller": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
           "type": "JsonWebKey2020",
           "publicKeyJwk": {
             "kty": "EC",
             "crv": "P-256",
-            "x": "ngddzGFoi-yZDqasoBX8zvFO73rCHPCQcGVEiLVka3Y",
-            "y": "v3x-KtZMZD7FZgT2dh-xwVriocHldTRKaijMvnwV4bQ",
+            "x": "3-xR-ApvKYCKtXxjvypxIb4tHJSUTHCl0uUYVAvP6sE",
+            "y": "jkQdXwStFmrJjHuWw8PE_AG43c4OQwd6-Rkr4sPiC7Y",
             "kid": "assert-key-01"
           }
         }
@@ -306,11 +308,11 @@ Prettified initial version (version 1) of the created DID (line 1 of v02_did.jso
     {
       "type": "DataIntegrityProof",
       "cryptosuite": "eddsa-jcs-2022",
-      "created": "2025-02-27T13:42:46Z",
-      "verificationMethod": "did:key:z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8#z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8",
+      "created": "2025-03-31T12:59:30Z",
+      "verificationMethod": "did:key:z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg#z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg",
       "proofPurpose": "authentication",
-      "challenge": "1-QmU2vJpqQsC7DQRSR9UhMGJ9E6XdFS21E1y7Hv5kjzvUGm",
-      "proofValue": "z57X6vPoLKGWfTT8iCp7kD7eRNKuykcNYujbVrXeWqFe8WDc3GUBGvCxbdq5u6m4ZE7WNVM4zedxnVVzLozkcKWXE"
+      "challenge": "1-QmcJJMcAhY1t2DUPEDCRTQGohUq7t8b5vS3yqctMcchtGi",
+      "proofValue": "z4fmECdwJHXynwZcVYYGtipG5g5ZuzhABUph9SmDJzjSuqQM7Uhp8Mpk4gNNFUiMyzJ7gYDjTDqp7BiEiPJNrzkje"
     }
   ]
 ]
@@ -319,47 +321,45 @@ Prettified version 2 of the DID (line 2 of v02_did.jsonl)
 
 ```json
 [
-  "2-QmSwrQpiTmTZrbJPF8q8viuqaZ1ZdxsU5um4zeZ8FbzEw9",
-  "2025-02-27T13:44:33Z",
-  {
-    "witnessThreshold": 0
-  },
+  "2-Qmbad4Gygs74r1yprZ787YC8NcarfpK5SYu7cAHZBRpE1d",
+  "2025-03-31T13:00:51Z",
+  {},
   {
     "value": {
       "@context": [
         "https://www.w3.org/ns/did/v1",
-        "https://w3id.org/security/suites/jws-2020/v1"
+        "https://w3id.org/security/jwk/v1"
       ],
-      "id": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+      "id": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
       "authentication": [
-        "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"
+        "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"
       ],
       "assertionMethod": [
-        "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02"
+        "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02"
       ],
       "verificationMethod": [
         {
-          "id": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01",
-          "controller": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+          "id": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01",
+          "controller": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
           "type": "JsonWebKey2020",
           "publicKeyJwk": {
             "kty": "EC",
             "crv": "P-256",
             "kid": "auth-key-01",
-            "x": "ngddzGFoi-yZDqasoBX8zvFO73rCHPCQcGVEiLVka3Y",
-            "y": "v3x-KtZMZD7FZgT2dh-xwVriocHldTRKaijMvnwV4bQ"
+            "x": "3-xR-ApvKYCKtXxjvypxIb4tHJSUTHCl0uUYVAvP6sE",
+            "y": "jkQdXwStFmrJjHuWw8PE_AG43c4OQwd6-Rkr4sPiC7Y"
           }
         },
         {
-          "id": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02",
-          "controller": "did:tdw:QmZnon39bXfMooTmyNzeqA7S7RS3btJPkfFHLoKxHaLreo:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
+          "id": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-02",
+          "controller": "did:tdw:QmNvrTSTX4ix7ykYHrdf4rsN9MNJEy6c8TMk6C4uPjY1h9:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085",
           "type": "JsonWebKey2020",
           "publicKeyJwk": {
             "kty": "EC",
             "crv": "P-256",
             "kid": "assert-key-02",
-            "x": "7d802vPuAZ-8SyEuTdfCE03-0YeHtrrO4DqcJPRJ8L4",
-            "y": "pQsxkJETgGFaz3szf962_e1SMVTUAypKx-Fd7KPA3K4"
+            "x": "Ja4P63oUfaUageuu9O_6kOHT6bLe5D4myacZpEICwC8",
+            "y": "A4JwAyrpKxtsNLX50A0pQ_4G2AYO-NJw0dzne11xUj0"
           }
         }
       ]
@@ -369,11 +369,11 @@ Prettified version 2 of the DID (line 2 of v02_did.jsonl)
     {
       "type": "DataIntegrityProof",
       "cryptosuite": "eddsa-jcs-2022",
-      "created": "2025-02-27T13:44:33Z",
-      "verificationMethod": "did:key:z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8#z6MkuhNUavmMuQrh6rTKyGiGVc4WdKQW41kD12qaSmN5u4Z8",
+      "created": "2025-03-31T13:00:51Z",
+      "verificationMethod": "did:key:z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg#z6MkgQsLSodAq9kwYWBfEYoHA3GZs747zGPRoCisHJZX7Xgg",
       "proofPurpose": "authentication",
-      "challenge": "2-QmSwrQpiTmTZrbJPF8q8viuqaZ1ZdxsU5um4zeZ8FbzEw9",
-      "proofValue": "z5ZoqFzYDx2kPPTKAv6kjYAL3SpTqU4UFfRu9i4Xy1ioorGQAV5T3U7qAADe5EhjH3tdaWEpV7qGPQMaJF24vq6Qg"
+      "challenge": "2-Qmbad4Gygs74r1yprZ787YC8NcarfpK5SYu7cAHZBRpE1d",
+      "proofValue": "z5wp8P8RA7SEG3hmtewv7kpiZWvuDfvP6wM6vK1744CyJWVdSsr8YVJ5SHRVW9N6mdQ2oL2bXaSQearSvEfLQes52"
     }
   ]
 ]
@@ -389,7 +389,7 @@ For more control over the DID creation process, you can use specific CLI options
 $ java -jar didtoolbox.jar create \
     -a my-assert-key-01,src/test/data/assert-key-01.pub \
     -t my-auth-key-01,src/test/data/auth-key-01.pub \
-    -u https://domain.com:443/path1/path2/did.jsonl \
+    -u https://domain.com:443/path1/path2 \
     -j src/test/data/mykeystore.jks \
     --jks-password changeit \
     --jks-alias myalias                                              
@@ -401,7 +401,7 @@ $ java -jar didtoolbox.jar create \
 $ java -jar didtoolbox.jar create \
     -a my-assert-key-01,src/test/data/assert-key-01.pub \
     -t my-auth-key-01,src/test/data/auth-key-01.pub \
-    -u https://domain.com:443/path1/path2/did.jsonl \
+    -u https://domain.com:443/path1/path2 \
     -s src/test/data/private.pem \
     -v src/test/data/public.pem                                              
 ```
@@ -413,7 +413,7 @@ replace the existing [verification material](https://www.w3.org/TR/did-core/#ver
 
 ```shell
 java -jar didtoolbox.jar create \
-    -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did18fa7c77-9dd1-4e20-a147-fb1bec146085/did.jsonl > /tmp/my-did.jsonl
+    -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did18fa7c77-9dd1-4e20-a147-fb1bec146085 > /tmp/my-did.jsonl
 
 # bear in mind, the command above will store the generated (auth/assert) keys in the .didtoolbox directory
 
@@ -427,7 +427,7 @@ java -jar didtoolbox.jar update \
 
 ## Additional Information
 - **Output Directory**: When creating new DIDs, the `.didtoolbox` directory is automatically created in the current working directory. Ensure you have the necessary permissions to create and write to this directory.
-- **Multiple DIDs**: If you create multiple DIDs, please make sure to rename the `.didtoolbox` directory (or move/rename the files) after each creation run, since the key material will re-generated on each run and therefore overwritten.
+- **Multiple DIDs**: If you create multiple DIDs, please make sure to rename the `.didtoolbox` directory (or move/rename the files) after each creation run. The DID-Toolbox will prevent you from overwriting existing key pairs by accident and abort with an error.
 - **Security**: Keep your private keys secure. Do not share them or expose them in unsecured environments.
 
 ## Known Issues
