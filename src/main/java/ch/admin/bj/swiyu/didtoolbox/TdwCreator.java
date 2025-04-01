@@ -5,6 +5,7 @@ import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,10 +14,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
+import java.util.*;
 
 /**
  * {@link TdwCreator} is the class in charge of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log generation.
@@ -102,6 +104,9 @@ public class TdwCreator {
     @Getter(AccessLevel.PRIVATE)
     //@Setter(AccessLevel.PUBLIC)
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    @Getter(AccessLevel.PRIVATE)
+    //@Setter(AccessLevel.PUBLIC)
+    private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
     @Getter(AccessLevel.PRIVATE)
     //@Setter(AccessLevel.PUBLIC)
@@ -270,9 +275,23 @@ public class TdwCreator {
         an entry replaces the previously active list. If an entry does not have the updateKeys item,
         the currently active list continues to apply.
          */
-        JsonArray updateKeys = new JsonArray();
-        updateKeys.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
-        didMethodParameters.add("updateKeys", updateKeys);
+        var updateKeysJsonArray = new JsonArray();
+        updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
+        if (this.updateKeys != null) {
+            for (var pemFile : this.updateKeys) { // ...and then add the rest, if any
+                String updateKey;
+                try {
+                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                } catch (InvalidKeySpecException e) {
+                    throw new IOException(e);
+                }
+
+                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) { // it is a distinct list of keys, after all
+                    updateKeysJsonArray.add(updateKey);
+                }
+            }
+        }
+        didMethodParameters.add("updateKeys", updateKeysJsonArray);
 
         // MUST set portable to false in the first DID log entry.
         // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:

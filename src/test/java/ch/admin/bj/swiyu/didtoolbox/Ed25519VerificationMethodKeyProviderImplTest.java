@@ -163,7 +163,19 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     public void testSignUsingPemKeys(String _unusedPrivateKey, String _unusedPublicKey, String message, String expected)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
-        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")).signString(message)); // MUT
+        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(
+                new File("src/test/data/private.pem"),
+                new File("src/test/data/public.pem")).signString(message)); // MUT
+
+        assertNotNull(signed);
+        assertEquals(128, signed.length());
+        assertEquals(expected, signed);
+
+        // Using another ("hybrid") signature
+
+        signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(
+                new File("src/test/data/private.pem"),
+                PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem"))).signString(message)); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -176,7 +188,17 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     public void testVerifyUsingPemKeys(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
-        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem")).verify(message, Hex.decode(expected)); // MUT
+        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(
+                new File("src/test/data/private.pem"),
+                new File("src/test/data/public.pem")).verify(message, Hex.decode(expected)); // MUT
+
+        assertTrue(verified);
+
+        // Using another ("hybrid") signature
+
+        verified = new Ed25519VerificationMethodKeyProviderImpl(
+                new File("src/test/data/private.pem"),
+                PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem"))).verify(message, Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }
