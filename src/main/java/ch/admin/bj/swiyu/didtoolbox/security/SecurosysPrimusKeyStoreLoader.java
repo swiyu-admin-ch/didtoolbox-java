@@ -22,21 +22,38 @@ import java.util.Properties;
 public class SecurosysPrimusKeyStoreLoader {
 
     final private static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
-    final private static String KEY_STORE_TYPE = "Primus";
+    final private static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
     @Getter
     final private KeyStore keyStore;
 
+    /**
+     * The empty constructor.
+     * <p>
+     * CAUTION This constructor does not make any attempt to load the keystore, as no transport configuration is known at the time.
+     * Use other constructors for the purpose.
+     *
+     * @throws SecurosysPrimusKeyStoreInitializationException
+     */
     public SecurosysPrimusKeyStoreLoader() throws SecurosysPrimusKeyStoreInitializationException {
         try {
             // Add Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries") via reflection
-            var primusProvider = (Provider) Class.forName(PROVIDER_CLASS).getDeclaredConstructor().newInstance();
+            var cls = Class.forName(PROVIDER_CLASS);
+            var primusProvider = (Provider) cls.getDeclaredConstructor().newInstance();
 
             Security.addProvider(primusProvider);
+
+            // This JCE provider also able to deliver the correct type that should be used to instantiate java.security.KeyStore object
+            // (encapsulating the KeyStoreSpi implementation)
+            var type = (String) cls.getDeclaredMethod(KEY_STORE_TYPE_GETTER).invoke(primusProvider);
 
             // Throws: KeyStoreException – if no provider supports a KeyStoreSpi implementation for the specified type
             //                             (it is the same as checking primusProvider.getService("KeyStore", KEY_STORE_TYPE) against null)
             //         NullPointerException – if type is null
-            this.keyStore = KeyStore.getInstance(KEY_STORE_TYPE);
+            this.keyStore = KeyStore.getInstance(type);
+
+            // CAUTION Needless to say, calling this.keyStore.load(null) at this point would cause:
+            //         com.securosys.primus.jce.transport.TransportUnconfiguredException: transport configuration not yet set
+
         } catch (Exception e) {
             throw new SecurosysPrimusKeyStoreInitializationException(
                     "Failed to initialize Securosys Primus Key Store. Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);

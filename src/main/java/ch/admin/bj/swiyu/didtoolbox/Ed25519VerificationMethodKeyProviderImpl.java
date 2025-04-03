@@ -49,9 +49,13 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     byte[] verifyingKey = new byte[32];
     private KeyPair keyPair;
 
-    private Ed25519VerificationMethodKeyProviderImpl(byte[] signingKey, byte[] verifyingKey) {
+    /**
+     * The trivial constructor.
+     */
+    private Ed25519VerificationMethodKeyProviderImpl(byte[] signingKey, byte[] verifyingKey, KeyPair keyPair) {
         this.signingKey = signingKey;
         this.verifyingKey = verifyingKey;
+        this.keyPair = keyPair;
     }
 
     /**
@@ -256,7 +260,20 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (key == null) {
             throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
         }
+
+        // Get the key in its primary encoding format (null is to expect if this key does not support encoding)
         byte[] privateKey = key.getEncoded(); // 48 bytes
+        if (privateKey == null) {
+            // Translate this (opaque cryptographic) key (whose provider may be unknown or potentially untrusted)
+            // into a corresponding key object of this key factory.
+            // CAUTION On Primus HSM, this works only with private keys featuring ACCESS_EXTRACTABLE and ACCESS_SENSITIVE attributes.
+            //         Otherwise, an InvalidKeyException (extends KeyException) may be thrown.
+            key = (PrivateKey) KeyFactory.getInstance(key.getAlgorithm(), keyStore.getProvider()).translateKey(key);
+            privateKey = key.getEncoded(); // 48 bytes
+            if (privateKey == null) {
+                throw new KeyException("This private key (even translated) does not support encoding: " + alias);
+            }
+        }
         byte[] signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
 
         // throws KeyStoreException – if the keystore has not been initialized (loaded)
@@ -267,7 +284,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         byte[] publicKey = cert.getPublicKey().getEncoded(); // 44 bytes
         byte[] verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 
-        var obj = new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey);
+        var obj = new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey, new KeyPair(cert.getPublicKey(), key));
 
         // sanity check
         if (!obj.verify("hello world", obj.signString("hello world"))) {
