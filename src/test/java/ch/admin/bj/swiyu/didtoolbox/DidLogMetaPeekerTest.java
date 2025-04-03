@@ -29,7 +29,7 @@ class DidLogMetaPeekerTest {
 
         try {
             //VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
-            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
+            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit");
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
         }

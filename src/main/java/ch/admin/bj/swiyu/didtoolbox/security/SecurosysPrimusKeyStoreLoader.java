@@ -22,17 +22,21 @@ import java.util.Properties;
 public class SecurosysPrimusKeyStoreLoader {
 
     final private static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
+    final private static String KEY_STORE_TYPE = "Primus";
     @Getter
     final private KeyStore keyStore;
 
-    private SecurosysPrimusKeyStoreLoader() throws SecurosysPrimusKeyStoreInitializationException {
+    public SecurosysPrimusKeyStoreLoader() throws SecurosysPrimusKeyStoreInitializationException {
         try {
             // Add Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries") via reflection
-            Security.addProvider((Provider) Class.forName(PROVIDER_CLASS).getDeclaredConstructor().newInstance());
+            var primusProvider = (Provider) Class.forName(PROVIDER_CLASS).getDeclaredConstructor().newInstance();
+
+            Security.addProvider(primusProvider);
 
             // Throws: KeyStoreException – if no provider supports a KeyStoreSpi implementation for the specified type
+            //                             (it is the same as checking primusProvider.getService("KeyStore", KEY_STORE_TYPE) against null)
             //         NullPointerException – if type is null
-            this.keyStore = KeyStore.getInstance("Primus");
+            this.keyStore = KeyStore.getInstance(KEY_STORE_TYPE);
         } catch (Exception e) {
             throw new SecurosysPrimusKeyStoreInitializationException(
                     "Failed to initialize Securosys Primus Key Store. Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);
@@ -137,7 +141,7 @@ public class SecurosysPrimusKeyStoreLoader {
     /**
      * The system envvars storing the credentials required to load Securosys Primus Key Store.
      */
-    public enum SecurosysPrimusEnvironment {
+    enum SecurosysPrimusEnvironment {
         SECUROSYS_PRIMUS_HOST, SECUROSYS_PRIMUS_PORT, SECUROSYS_PRIMUS_USER, SECUROSYS_PRIMUS_PASSWORD;
 
         /**
@@ -160,11 +164,11 @@ public class SecurosysPrimusKeyStoreLoader {
             return new ByteArrayInputStream(baos.toByteArray());
         }
 
-        String toProperty() {
+        private String toProperty() {
             return this.name().toLowerCase();
         }
 
-        String toCredentialFileLine(String value) {
+        private String toCredentialFileLine(String value) {
             if (this == SECUROSYS_PRIMUS_HOST) {
                 return "com.securosys.primus.jce.credentials.host=" + value + System.lineSeparator();
             } else if (this == SECUROSYS_PRIMUS_PORT) {

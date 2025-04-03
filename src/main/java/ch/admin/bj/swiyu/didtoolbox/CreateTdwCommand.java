@@ -1,11 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommandParametersValidator;
 import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreInitializationException;
 import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreLoader;
 import com.beust.jcommander.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -17,42 +17,42 @@ import java.util.Set;
 
 @Parameters(
         commandNames = {"create"},
-        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key"
+        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key",
         // Validate the value for all parameters (currently not really required):
-        // parametersValidators = {CreateTdwCommand.KeyPairOutputDirectoryParametersValidator.class}
+        parametersValidators = {CreateTdwCommandParametersValidator.class}
 )
-class CreateTdwCommand {
+public class CreateTdwCommand {
 
+    public static final String PARAM_NAME_LONG_PRIMUS_KEYSTORE = "--primus-keystore";
+    public static final String PARAM_NAME_SHORT_PRIMUS_KEYSTORE = "-p";
+    public static final String PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS = "--primus-keystore-alias";
+    public static final String PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS = "-q";
+    public static final String PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD = "--primus-keystore-password";
+    public static final String PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD = "-r";
     final static String DEFAULT_METHOD_VERSION = "did:tdw:0.3";
-
     @Parameter(names = {"--help", "-h"},
             description = "Display help for the DID toolbox 'create' command",
             help = true)
     boolean help;
-
     @Parameter(names = {"--force-overwrite", "-f"},
             description = "Overwrite existing PEM key files, if any")
     boolean forceOverwrite;
-
     @Parameter(names = {"--identifier-registry-url", "-u"},
             description = "A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for",
             required = true,
             converter = IdentifierRegistryUrlParameterConverter.class,
             validateWith = IdentifierRegistryUrlParameterValidator.class)
     URL identifierRegistryUrl;
-
     @Parameter(names = {"--method-version", "-m"},
             description = "Defines the did:tdw specification version to use when generating a DID log. Currently supported is only '" + DEFAULT_METHOD_VERSION + "'",
             defaultValueDescription = DEFAULT_METHOD_VERSION)
     //,required = true)
     String methodVersion;
-
     @Parameter(names = {"--signing-key-file", "-s"},
             description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format",
             converter = PemFileParameterConverter.class,
             validateWith = PemFileParameterValidator.class)
     File signingKeyPemFile;
-
     @Parameter(names = {"--verifying-key-files", "-v"},
             description = "The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s option. In PEM format",
             listConverter = PemFileParameterListConverter.class,
@@ -60,7 +60,6 @@ class CreateTdwCommand {
             validateWith = PemFileParameterValidator.class,
             variableArity = true)
     Set<File> verifyingKeyPemFiles;
-
     /*
     static class OutputDirParameterConverter implements IStringConverter<File> {
         @Override
@@ -90,37 +89,31 @@ class CreateTdwCommand {
             converter = JksFileParameterConverter.class,
             validateWith = JksFileParameterValidator.class)
     File jksFile;
-
     @Parameter(names = {"--jks-password"},
             description = "Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore",
             password = true)
     String jksPassword;
-
     @Parameter(names = {"--jks-alias"},
             description = "Java KeyStore alias name of the entry to process")
     String jksAlias;
-
-    @Parameter(names = {"--primus-keystore", "-p"},
+    @Parameter(names = {PARAM_NAME_LONG_PRIMUS_KEYSTORE, PARAM_NAME_SHORT_PRIMUS_KEYSTORE},
             description = "Securosys Primus Keystore credentials file",
             converter = SecurosysPrimusCredentialsFileParameterConverter.class,
-            validateWith = SecurosysPrimusCredentialsFileParameterValidator.class)
+            validateWith = SecurosysPrimusCredentialsFileParameterValidator.class
+    )
     SecurosysPrimusKeyStoreLoader securosysPrimusKeyStoreLoader;
-
-    @Parameter(names = {"--primus-keystore-alias", "-r"},
+    @Parameter(names = {PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS},
             description = "Securosys Primus Keystore alias the key is associated with")
     String primusKeyAlias;
-
-    @Parameter(names = {"--primus-keystore-password", "-q"},
+    @Parameter(names = {PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD},
             description = "Securosys Primus Keystore password for recovering the key")
     String primusKeyPassword;
-
     @Parameter(names = {"--assert", "-a"},
             description = "An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
     List<VerificationMethodParameters> assertionMethodKeys;
-
     @Parameter(names = {"--auth", "-t"},
             description = "An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
@@ -202,11 +195,21 @@ class CreateTdwCommand {
     static class SecurosysPrimusCredentialsFileParameterConverter implements IStringConverter<SecurosysPrimusKeyStoreLoader> {
         @Override
         public SecurosysPrimusKeyStoreLoader convert(String value) {
+
             try {
                 return new SecurosysPrimusKeyStoreLoader(new File(value));
-            } catch (Exception shouldNeverOccurIfValidationIsDoneRight) {
-                throw new RuntimeException(com.beust.jcommander.IParameterValidator.class.getCanonicalName()
-                        + " has not been implemented (or not set) for the supplied value: " + value);
+            } catch (SecurosysPrimusKeyStoreInitializationException exc) {
+                throw new ParameterException("Parameter value '" + value + "' do may feature all valid Securosys Primus credentials. "
+                        + "However, Securosys Primus Key Store could not be initialized regardless of it. "
+                        + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system");
+            } catch (Exception ignore) {
+            }
+
+            try {
+                return new SecurosysPrimusKeyStoreLoader();
+            } catch (Exception exc) {
+                throw new ParameterException("Securosys Primus Key Store could not be initialized regardless of it. "
+                        + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system");
             }
         }
     }
@@ -214,23 +217,17 @@ class CreateTdwCommand {
     public static class SecurosysPrimusCredentialsFileParameterValidator implements IParameterValidator {
         @Override
         public void validate(String name, String value) throws ParameterException {
-            File pemFile = new File(value);
-            if (!pemFile.isFile() || !pemFile.exists()) {
+            var file = new File(value);
+            if (!file.isFile() || !file.exists()) {
                 throw new ParameterException("Parameter " + name + " should be a regular properties file featuring Securosys Primus credentials (found " + value + ")");
             }
 
             try {
-                new SecurosysPrimusKeyStoreLoader(new File(value));
+                new SecurosysPrimusKeyStoreLoader(file);
             } catch (SecurosysPrimusKeyStoreInitializationException exc) {
-                throw new ParameterException("Parameter " + name + " do may feature all valid Securosys Primus credentials. "
-                        + "However, Securosys Primus Key Store could not be initialized regardless of it. "
-                        + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system");
-            } catch (IOException exc) {
-                throw new ParameterException("Parameter " + name + " features one or more invalid Securosys Primus credentials causing: " + exc.getMessage());
-                //} catch (CertificateException | NoSuchAlgorithmException exc) {
-            } catch (Exception exc) {
-                throw new ParameterException("Parameter " + name + " do may feature all valid Securosys Primus credentials. "
-                        + "However, Securosys Primus Key Store cannot be accessed due to: " + exc.getMessage());
+                throw new ParameterException("Parameter value '" + value + "' do may feature all valid Securosys Primus credentials. "
+                        + "However, Securosys Primus Key Store could not be initialized regardless of it due to: " + exc.getMessage());
+            } catch (Exception ignore) {
             }
         }
     }

@@ -37,7 +37,7 @@ import java.util.Arrays;
  * <ul>
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(File, File)} for loading the update (Ed25519) key from
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
+ * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
  * </ul>
  *
  * @see KeyPairGenerator
@@ -48,6 +48,20 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     byte[] signingKey = new byte[32];
     byte[] verifyingKey = new byte[32];
     private KeyPair keyPair;
+
+    private Ed25519VerificationMethodKeyProviderImpl(byte[] signingKey, byte[] verifyingKey) {
+        this.signingKey = signingKey;
+        this.verifyingKey = verifyingKey;
+    }
+
+    /**
+     * The copy constructor.
+     */
+    private Ed25519VerificationMethodKeyProviderImpl(Ed25519VerificationMethodKeyProviderImpl obj) {
+        this.verifyingKey = obj.verifyingKey;
+        this.signingKey = obj.signingKey;
+        this.keyPair = obj.keyPair;
+    }
 
     /**
      * @see KeyPairGenerator
@@ -110,63 +124,47 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * The Java KeyStore (JKS) compliant {@link Ed25519VerificationMethodKeyProviderImpl} constructor.
      *
-     * @param jksFile  the input stream from which the keystore is loaded, or null
-     * @param password the password used to check the integrity of the keystore, the password used to unlock the keystore, or null
-     * @param alias    the alias name the key is associated with
+     * @param jksFile     the input stream from which the keystore is loaded, or null
+     * @param password    the password used to check the integrity of the keystore, the password used to unlock the keystore, or null
+     * @param alias       the alias name the key is associated with
+     * @param keyPassword the password for recovering the key, or {@code null} if not required
      * @throws KeyStoreException           ...
      * @throws CertificateException        ...
      * @throws IOException                 ...
      * @throws NoSuchAlgorithmException    ...
      * @throws UnrecoverableEntryException ...
+     * @throws KeyException                ...
      * @see KeyStore#load(InputStream, char[])
      */
-    public Ed25519VerificationMethodKeyProviderImpl(InputStream jksFile, String password, String alias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
+    public Ed25519VerificationMethodKeyProviderImpl(InputStream jksFile, String password, String alias, String keyPassword)
+            throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
 
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(jksFile, password.toCharArray()); // java.io.IOException: keystore password was incorrect
 
-        //var entryPassword = new KeyStore.PasswordProtection(password.toCharArray());
-        //KeyStore.Entry keyEntry = keyStore.getEntry(alias, entryPassword);
+        // CAUTION Flexible constructors is a preview feature and is disabled by default. (use --enable-preview to enable flexible constructors)
+        //this(createFromKeyStore(keyStore, alias, keyPassword));
 
-        Key key = keyStore.getKey(alias, password.toCharArray()); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
-        /*
-        if key == null {
-            throw
-        }
-         */
-        byte[] privateKey = key.getEncoded(); // 48 bytes
-        this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
-
-        var cert = keyStore.getCertificate(alias); // may return null if the given alias does not exist or does not contain a certificate
-        /*
-        if cert == null {
-            throw
-        }
-         */
-        byte[] publicKey = cert.getPublicKey().getEncoded(); // 44 bytes
-        this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
-
-        // sanity check
-        if (!this.verify("hello world", this.signString("hello world"))) {
-            throw new RuntimeException("keys do not match");
-        }
+        var obj = createFromKeyStore(keyStore, alias, keyPassword);
+        this.verifyingKey = obj.verifyingKey;
+        this.signingKey = obj.signingKey;
     }
 
+    /**
+     * The KeyStore-compliant {@link Ed25519VerificationMethodKeyProviderImpl} constructor.
+     *
+     * @param keyStore the {@link KeyStore} object (already loaded)
+     * @param alias    the alias name the key is associated with
+     * @param password the password for recovering the key, or {@code null} if not required
+     * @throws KeyStoreException           ...
+     * @throws NoSuchAlgorithmException    ...
+     * @throws UnrecoverableEntryException ...
+     * @throws KeyException                ...
+     */
     public Ed25519VerificationMethodKeyProviderImpl(KeyStore keyStore, String alias, String password)
-            throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException {
+            throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
 
-        Key key = keyStore.getKey(alias, password.toCharArray()); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
-        byte[] privateKey = key.getEncoded(); // 48 bytes
-        this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
-
-        // throws KeyStoreException – if the keystore has not been initialized (loaded).
-        byte[] publicKey = keyStore.getCertificate(alias).getPublicKey().getEncoded(); // 44 bytes;
-        this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
-
-        // sanity check
-        if (!this.verify("hello world", this.signString("hello world"))) {
-            throw new RuntimeException("keys do not match");
-        }
+        this(createFromKeyStore(keyStore, alias, password));
     }
 
     /**
@@ -227,6 +225,56 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (!this.verify("hello world", this.signString("hello world"))) {
             throw new RuntimeException("keys do not match");
         }
+    }
+
+    /**
+     * Yet another static helper. Self-explanatory.
+     *
+     * @param keyStore the {@link KeyStore} object (already loaded)
+     * @param alias    the alias name the key is associated with
+     * @param password the password for recovering the key, or {@code null} if not required
+     * @throws KeyStoreException           ...
+     * @throws NoSuchAlgorithmException    ...
+     * @throws UnrecoverableEntryException ...
+     * @throws KeyException                ...
+     */
+    private static Ed25519VerificationMethodKeyProviderImpl createFromKeyStore(KeyStore keyStore, String alias, String password)
+            throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
+
+        /* Throws:
+        KeyStoreException – if the keystore has not been initialized (loaded).
+        NoSuchAlgorithmException – if the algorithm for recovering the key cannot be found
+        UnrecoverableKeyException – if the key cannot be recovered (e.g., the given password is wrong).
+         */
+        PrivateKey key;
+        if (password != null) {
+            key = (PrivateKey) keyStore.getKey(alias, password.toCharArray()); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
+        } else {
+            key = (PrivateKey) keyStore.getKey(alias, null); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
+        }
+
+        if (key == null) {
+            throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
+        }
+        byte[] privateKey = key.getEncoded(); // 48 bytes
+        byte[] signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
+
+        // throws KeyStoreException – if the keystore has not been initialized (loaded)
+        var cert = keyStore.getCertificate(alias); // may return null if the given alias does not exist or does not contain a certificate
+        if (cert == null) {
+            throw new java.security.KeyException("The alias does not exist or does not contain a certificate: " + alias);
+        }
+        byte[] publicKey = cert.getPublicKey().getEncoded(); // 44 bytes
+        byte[] verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
+
+        var obj = new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey);
+
+        // sanity check
+        if (!obj.verify("hello world", obj.signString("hello world"))) {
+            throw new RuntimeException("keys do not match");
+        }
+
+        return obj;
     }
 
     /**

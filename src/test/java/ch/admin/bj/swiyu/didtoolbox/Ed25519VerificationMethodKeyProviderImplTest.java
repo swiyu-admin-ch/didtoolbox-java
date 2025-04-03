@@ -11,9 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
@@ -133,13 +131,32 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
         assertTrue(verified);
     }
 
+    @Test
+    public void testLoadFromJKSThrowsException() {
+        // the key does not exists
+        assertThrowsExactly(KeyException.class,
+                () -> new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "non-existing-alias", "whatever"));
+
+        // wrong keystore password
+        assertThrowsExactly(IOException.class,
+                () -> new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "wrong", "whatever", "whatever"));
+
+        // wrong key (recovery) password
+        assertThrowsExactly(UnrecoverableKeyException.class,
+                () -> new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "wrong"));
+
+        // wrong file format
+        assertThrowsExactly(IOException.class,
+                () -> new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/com.securosys.primus.jce.credentials.properties"), "whatever", "whatever", "whatever"));
+    }
+
     @DisplayName("Signing using key from a JKS")
     @ParameterizedTest(name = "Signing: {2}")
     @MethodSource("keyMessageSignature")
     public void testSignUsingJKS(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
-            throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+            throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, KeyException {
 
-        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias").signString(message)); // MUT
+        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit").signString(message)); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -150,9 +167,9 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @ParameterizedTest(name = "Verifying signed message: {2}")
     @MethodSource("keyMessageSignature")
     public void testVerifyUsingJKS(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
-            throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+            throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, KeyException {
 
-        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias").verify(message, Hex.decode(expected)); // MUT
+        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit").verify(message, Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }

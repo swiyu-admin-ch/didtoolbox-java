@@ -14,8 +14,8 @@
     <url>https://github.com/swiyu-admin-ch/didtoolbox-java</url>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
 
         <project.main.class>ch.admin.bj.swiyu.didtoolbox.Main</project.main.class>
         <!--project.dependencies.directory>lib/</project.dependencies.directory-->
@@ -53,8 +53,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>23</source>
-                    <target>23</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <!-- CAUTION preview language features are only supported for release 23 -->
+                    <!--enablePreview>true</enablePreview-->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -62,8 +64,6 @@
                             <version>1.18.34</version>
                         </path>
                     </annotationProcessorPaths>
-                    <!-- Equiv. to JAVA_TOOL_OPTIONS=-enable-preview mvn ... -->
-                    <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
             <!--plugin>

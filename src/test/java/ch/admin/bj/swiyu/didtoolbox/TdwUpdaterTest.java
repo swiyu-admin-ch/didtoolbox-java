@@ -73,7 +73,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
              */
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
             VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
-                    new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
+                    new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit");
 
             ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"));
             AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"));
