@@ -3,10 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox.security;
 import lombok.Getter;
 
 import java.io.*;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
-import java.security.Security;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Properties;
 
@@ -21,7 +18,7 @@ import java.util.Properties;
  */
 public class SecurosysPrimusKeyStoreLoader {
 
-    final private static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
+    final public static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
     final private static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
     @Getter
     final private KeyStore keyStore;
@@ -153,6 +150,22 @@ public class SecurosysPrimusKeyStoreLoader {
         //         NoSuchAlgorithmException – if the algorithm used to check the integrity of the keystore cannot be found
         //         CertificateException – if any of the certificates in the keystore could not be loaded
         this.keyStore.load(SecurosysPrimusEnvironment.toStream(host, port, user, password), null);
+    }
+
+    public static boolean isPrimusProvider(Provider provider) {
+        return provider.getClass().getName().equals(PROVIDER_CLASS);
+    }
+
+    public static Object fromPublicKey(PublicKey key) throws SecurosysPrimusKeyStoreInitializationException {
+        try {
+            return Class.forName("com.securosys.primus.jce.spec.EdPublicKeyImpl")
+                    .getMethod("fromPublicKey", PublicKey.class)
+                    .invoke(null, key);
+        } catch (Exception e) {
+            //} catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            throw new SecurosysPrimusKeyStoreInitializationException(
+                    "Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);
+        }
     }
 
     /**

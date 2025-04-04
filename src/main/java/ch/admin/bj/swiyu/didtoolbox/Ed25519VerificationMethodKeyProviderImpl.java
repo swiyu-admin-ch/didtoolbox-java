@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreInitializationException;
+import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreLoader;
 import io.ipfs.multibase.Base58;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
@@ -46,47 +48,60 @@ import java.util.Arrays;
  */
 public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMethodKeyProvider {
 
-    byte[] signingKey = new byte[32];
-    byte[] verifyingKey = new byte[32];
+    final private static String DEFAULT_JCE_PROVIDER_NAME = BouncyCastleProvider.PROVIDER_NAME;
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+        try {
+            Security.removeProvider("SUN");
+        } catch (Exception ignore) {
+        }
+    }
+
+    byte[] signingKey;
+    byte[] verifyingKey;
     private KeyPair keyPair;
-    private Provider provider;
-    private Signature signer;
-    private Signature verifier;
+    private Provider provider = Security.getProvider(DEFAULT_JCE_PROVIDER_NAME);
+    private Signature signature;
 
     /**
      * The trivial constructor.
      */
     private Ed25519VerificationMethodKeyProviderImpl(byte[] signingKey, byte[] verifyingKey, KeyPair keyPair, Provider provider)
-            throws InvalidKeyException, NoSuchAlgorithmException {
+            throws NoSuchAlgorithmException {
         this.signingKey = signingKey;
         this.verifyingKey = verifyingKey;
         this.keyPair = keyPair;
-        this.provider = provider;
 
-        if (this.provider == null) { // fallback
-            Security.addProvider(new BouncyCastleProvider());
-            var bc = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
-            if (bc == null) {
-                throw new RuntimeException("No such provider installed: " + BouncyCastleProvider.PROVIDER_NAME);
+        if (this.keyPair != null) {
+            if (provider != null) {
+                this.provider = provider;
             }
-            this.provider = bc;
+
+            if (this.provider == null) {
+                throw new RuntimeException("No default JCE provider installed: " + DEFAULT_JCE_PROVIDER_NAME);
+            }
+
+            var algorithm = "EdDSA"; // on Primus HSM
+            if (this.provider.getName().equals(DEFAULT_JCE_PROVIDER_NAME)) {
+                algorithm = "Ed25519";
+            }
+
+            // make sense only in conjunction with a keyPair != null
+            this.signature = Signature.getInstance(algorithm, this.provider);
         }
 
-        var algorithm = "EdDSA";
-        if (this.provider.getName().equals(BouncyCastleProvider.PROVIDER_NAME)) {
-            algorithm = "Ed25519";
+        // sanity check
+        if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
+            throw new RuntimeException("keys do not match");
         }
-
-        this.signer = Signature.getInstance(algorithm, this.provider);
-        signer.initSign(this.keyPair.getPrivate());
-        this.verifier = Signature.getInstance(algorithm, this.provider);
-        verifier.initVerify(this.keyPair.getPublic());
     }
 
     /**
      * The copy constructor.
      */
-    private Ed25519VerificationMethodKeyProviderImpl(Ed25519VerificationMethodKeyProviderImpl obj) throws NoSuchAlgorithmException, InvalidKeyException {
+    private Ed25519VerificationMethodKeyProviderImpl(Ed25519VerificationMethodKeyProviderImpl obj)
+            throws NoSuchAlgorithmException {
         this(obj.signingKey, obj.verifyingKey, obj.keyPair, obj.provider);
     }
 
@@ -100,18 +115,24 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             //keyPairGen.initialize(NamedParameterSpec.ED25519, new SecureRandom(secretKey));
             keyPairGen.initialize(NamedParameterSpec.ED25519);
 
-            keyPair = keyPairGen.generateKeyPair();
+            this.signature = Signature.getInstance("Ed25519");
+            this.keyPair = keyPairGen.generateKeyPair();
 
-            byte[] privateKey = keyPair.getPrivate().getEncoded(); // may return null
+            byte[] privateKey = keyPair.getPrivate().getEncoded(); // 48 bytes
+            if (privateKey == null) {
+                throw new RuntimeException("The provider generated a key that does not support encoding: " + keyPairGen.getProvider().getName());
+            }
             this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
 
-            byte[] publicKey = keyPair.getPublic().getEncoded();
+            byte[] publicKey = keyPair.getPublic().getEncoded(); // 44 bytes
+            if (publicKey == null) {
+                throw new RuntimeException("The provider generated a key that does not support encoding: " + keyPairGen.getProvider().getName());
+            }
             this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     /**
@@ -146,10 +167,12 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
             throw new RuntimeException("keys do not match");
         }
+
+        // CAUTION There is no known way to set this.keyPair here
     }
 
     /**
-     * The Java KeyStore (JKS) compliant {@link Ed25519VerificationMethodKeyProviderImpl} constructor.
+     * The Java KeyStore (type: PKCS12) compliant {@link Ed25519VerificationMethodKeyProviderImpl} constructor.
      *
      * @param jksFile     the input stream from which the keystore is loaded, or null
      * @param password    the password used to check the integrity of the keystore, the password used to unlock the keystore, or null
@@ -166,20 +189,19 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     public Ed25519VerificationMethodKeyProviderImpl(InputStream jksFile, String password, String alias, String keyPassword)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
 
-        Security.addProvider(new BouncyCastleProvider());
-        var bc = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
-        if (bc == null) {
-            throw new RuntimeException("No such provider installed: " + BouncyCastleProvider.PROVIDER_NAME);
+        KeyStore keyStore;
+        try {
+            keyStore = KeyStore.getInstance("PKCS12", DEFAULT_JCE_PROVIDER_NAME);
+        } catch (NoSuchProviderException e) {
+            throw new RuntimeException(e);
         }
-
-        KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(jksFile, password.toCharArray()); // java.io.IOException: keystore password was incorrect
 
         // CAUTION Flexible constructors is a preview feature and is disabled by default. (use --enable-preview to enable flexible constructors)
         //this(createFromKeyStore(keyStore, alias, keyPassword));
 
-        // prevent: java.security.NoSuchAlgorithmException: no such algorithm: Ed25519 for provider SUN
-        var obj = createFromKeyStore(keyStore, bc, alias, keyPassword);
+        // bc provider is used here to prevent java.security.NoSuchAlgorithmException: "no such algorithm: EdDSA for provider SUN"
+        var obj = createFromKeyStore(keyStore, alias, keyPassword);
         this.verifyingKey = obj.verifyingKey;
         this.signingKey = obj.signingKey;
     }
@@ -198,7 +220,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     public Ed25519VerificationMethodKeyProviderImpl(KeyStore keyStore, String alias, String password)
             throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
 
-        this(createFromKeyStore(keyStore, keyStore.getProvider(), alias, password));
+        this(createFromKeyStore(keyStore, alias, password));
     }
 
     /**
@@ -216,14 +238,25 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
         byte[] privateKey = privKey.getEncoded(); // 48 bytes
+        if (privateKey == null) {
+            throw new RuntimeException("The key factory generated a private key that does not support encoding");
+        }
         this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
 
         byte[] publicPemBytes = PemUtils.parsePEMFile(publicPemFile);
         PublicKey pubKey = PemUtils.getPublicKeyEd25519(publicPemBytes);
         byte[] publicKey = pubKey.getEncoded(); // 44 bytes
+        if (publicKey == null) {
+            throw new RuntimeException("The key factory generated a public key that does not support encoding");
+        }
         this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 
         keyPair = new KeyPair(pubKey, privKey);
+        try {
+            this.signature = Signature.getInstance("Ed25519");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
 
         // sanity check
         if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
@@ -246,12 +279,14 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
         byte[] privateKey = privKey.getEncoded(); // 48 bytes
+        if (privateKey == null) {
+            throw new RuntimeException("The key factory generated a private key that does not support encoding");
+        }
         this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
 
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
 
         ByteBuffer buff = ByteBuffer.allocate(32);
-        buff = ByteBuffer.allocate(32);
         buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
         this.verifyingKey = buff.array();
 
@@ -259,6 +294,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
             throw new RuntimeException("keys do not match");
         }
+
+        // CAUTION There is no known way to set this.keyPair here
     }
 
     /**
@@ -272,7 +309,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @throws UnrecoverableEntryException ...
      * @throws KeyException                ...
      */
-    private static Ed25519VerificationMethodKeyProviderImpl createFromKeyStore(KeyStore keyStore, Provider provider, String alias, String password)
+    private static Ed25519VerificationMethodKeyProviderImpl createFromKeyStore(KeyStore keyStore, String alias, String password)
             throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
 
         /* KeyStore#getKey throws:
@@ -291,11 +328,11 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
         }
 
-        // Get the key in its primary encoding format (null is to expect if this key does not support encoding)
-        byte[] privateKey = key.getEncoded(); // 48 bytes
         byte[] signingKey = null;
-        if (privateKey != null) {
-            signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
+        // Get the key in its primary encoding format (null is to expect if this key does not support encoding)
+        byte[] privateKeyEncoded = key.getEncoded(); // 48 bytes
+        if (privateKeyEncoded != null) { // CAUTION On Primus HSM, a PrivateKey#getEncoded() call returns null
+            signingKey = Arrays.copyOfRange(privateKeyEncoded, privateKeyEncoded.length - 32, privateKeyEncoded.length); // the last 32 bytes
         }
 
         // throws KeyStoreException – if the keystore has not been initialized (loaded)
@@ -305,24 +342,13 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         }
         byte[] verifyingKey = null;
         // Get the key in its primary encoding format (null is to expect if this key does not support encoding)
-        byte[] publicKey = cert.getPublicKey().getEncoded(); // 44 bytes
-        if (publicKey != null) {
-            verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
+        byte[] publicKeyEncoded = cert.getPublicKey().getEncoded(); // 44 bytes
+        if (publicKeyEncoded == null) {
+            throw new KeyException("The alias features a public key that does not support encoding: " + alias);
         }
+        verifyingKey = Arrays.copyOfRange(publicKeyEncoded, publicKeyEncoded.length - 32, publicKeyEncoded.length); // the last 32 bytes
 
-        Ed25519VerificationMethodKeyProviderImpl obj;
-        if (provider != null) {
-            obj = new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey, new KeyPair(cert.getPublicKey(), key), provider);
-        } else {
-            obj = new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey, new KeyPair(cert.getPublicKey(), key), keyStore.getProvider());
-        }
-
-        // sanity check
-        if (!obj.verify("hello world".getBytes(StandardCharsets.UTF_8), obj.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
-            throw new RuntimeException("keys do not match");
-        }
-
-        return obj;
+        return new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey, new KeyPair(cert.getPublicKey(), key), keyStore.getProvider());
     }
 
     /**
@@ -351,14 +377,17 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     void writePrivateKeyAsPem(File file) throws IOException {
 
-        if (keyPair == null) {
+        if (this.keyPair == null) {
             throw new RuntimeException("This instance features no self-generated key pair.");
         }
 
-        var key = keyPair.getPrivate();
+        var privateKeyEncoded = this.keyPair.getPrivate().getEncoded();
+        if (privateKeyEncoded == null) {
+            throw new RuntimeException("The key pair features a private key that does not support encoding");
+        }
         PemWriter pemWriter = new PemWriter(new FileWriter(file));
         try {
-            pemWriter.writeObject(new PemObject("PRIVATE KEY", key.getEncoded()));
+            pemWriter.writeObject(new PemObject("PRIVATE KEY", privateKeyEncoded));
         } finally {
             pemWriter.close();
         }
@@ -384,10 +413,13 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             throw new RuntimeException("This instance features no self-generated key pair.");
         }
 
-        var key = keyPair.getPublic();
+        var publicKeyEncoded = this.keyPair.getPublic().getEncoded();
+        if (publicKeyEncoded == null) {
+            throw new RuntimeException("The key pair features a public key that does not support encoding");
+        }
         PemWriter pemWriter = new PemWriter(new FileWriter(file));
         try {
-            pemWriter.writeObject(new PemObject("PUBLIC KEY", key.getEncoded()));
+            pemWriter.writeObject(new PemObject("PUBLIC KEY", publicKeyEncoded));
         } finally {
             pemWriter.close();
         }
@@ -404,6 +436,9 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @return public verification key in multibase format.
      */
     public String getVerificationKeyMultibase() {
+        if (this.keyPair != null) {
+            return buildVerificationKeyMultibase(this.keyPair.getPublic().getEncoded());
+        }
         return buildVerificationKeyMultibase(this.verifyingKey);
     }
 
@@ -415,11 +450,13 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     public byte[] generateSignature(byte[] message) {
 
-        if (this.signer != null) {
+        if (this.keyPair != null && this.signature != null) {
             try {
-                this.signer.update(message);
-                return this.signer.sign();
-            } catch (SignatureException e) {
+                // Initialize this object for signing. If this method is called again with a different argument, it negates the effect of this call.
+                this.signature.initSign(this.keyPair.getPrivate());
+                this.signature.update(message);
+                return this.signature.sign();
+            } catch (SignatureException | InvalidKeyException e) {
                 // the verifier should be already properly initialized in the constructor
                 throw new RuntimeException(e);
             }
@@ -435,12 +472,32 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
     boolean verify(byte[] message, byte[] signature) {
 
-        if (this.verifier != null) {
+        if (this.keyPair != null && this.signature != null) {
+
+            var publicKey = this.keyPair.getPublic();
+            // Adapter in case of Primus HSM provider
+            if (SecurosysPrimusKeyStoreLoader.isPrimusProvider(this.signature.getProvider())) {
+                try {
+                    publicKey = (PublicKey) SecurosysPrimusKeyStoreLoader.fromPublicKey(this.keyPair.getPublic());
+                } catch (SecurosysPrimusKeyStoreInitializationException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
             try {
-                this.verifier.update(message);
-                return this.verifier.verify(signature);
+                // Initialize this object for verification. If this method is called again with a different argument, it negates the effect of this call.
+                this.signature.initVerify(publicKey);
+                this.signature.update(message);
+                return this.signature.verify(signature);
             } catch (SignatureException e) {
                 // the verifier should be already properly initialized in the constructor
+                throw new RuntimeException(e);
+            } catch (InvalidKeyException e) {
+                // WORKAROUND On Primus HSM, a Signature#initVerify(PublicKey) call may cause java.security.InvalidKeyException:
+                //            key must be of type com.securosys.primus.jce.PrimusKey, not of type com.securosys.primus.jce.spec.EdPublicKeyImpl
+                //if (SecurosysPrimusKeyStoreLoader.isPrimusProvider(this.signature.getProvider())) {
+                //    return true;
+                //}
                 throw new RuntimeException(e);
             }
         }
@@ -451,6 +508,5 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         verifier.update(message, 0, message.length);
 
         return verifier.verifySignature(signature);
-
     }
 }
