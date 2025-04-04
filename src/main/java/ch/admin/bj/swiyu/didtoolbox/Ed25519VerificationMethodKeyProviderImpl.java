@@ -1,7 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreInitializationException;
-import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreLoader;
 import io.ipfs.multibase.Base58;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
@@ -62,13 +60,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     byte[] verifyingKey;
     private KeyPair keyPair;
     private Provider provider = Security.getProvider(DEFAULT_JCE_PROVIDER_NAME);
-    private Signature signature;
 
-    /**
-     * The trivial constructor.
-     */
-    private Ed25519VerificationMethodKeyProviderImpl(byte[] signingKey, byte[] verifyingKey, KeyPair keyPair, Provider provider)
-            throws NoSuchAlgorithmException {
+    private Ed25519VerificationMethodKeyProviderImpl(byte[] signingKey, byte[] verifyingKey, KeyPair keyPair, Provider provider) {
         this.signingKey = signingKey;
         this.verifyingKey = verifyingKey;
         this.keyPair = keyPair;
@@ -81,14 +74,6 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             if (this.provider == null) {
                 throw new RuntimeException("No default JCE provider installed: " + DEFAULT_JCE_PROVIDER_NAME);
             }
-
-            var algorithm = "EdDSA"; // on Primus HSM
-            if (this.provider.getName().equals(DEFAULT_JCE_PROVIDER_NAME)) {
-                algorithm = "Ed25519";
-            }
-
-            // make sense only in conjunction with a keyPair != null
-            this.signature = Signature.getInstance(algorithm, this.provider);
         }
 
         // sanity check
@@ -100,8 +85,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * The copy constructor.
      */
-    private Ed25519VerificationMethodKeyProviderImpl(Ed25519VerificationMethodKeyProviderImpl obj)
-            throws NoSuchAlgorithmException {
+    private Ed25519VerificationMethodKeyProviderImpl(Ed25519VerificationMethodKeyProviderImpl obj) {
         this(obj.signingKey, obj.verifyingKey, obj.keyPair, obj.provider);
     }
 
@@ -115,7 +99,6 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             //keyPairGen.initialize(NamedParameterSpec.ED25519, new SecureRandom(secretKey));
             keyPairGen.initialize(NamedParameterSpec.ED25519);
 
-            this.signature = Signature.getInstance("Ed25519");
             this.keyPair = keyPairGen.generateKeyPair();
 
             byte[] privateKey = keyPair.getPrivate().getEncoded(); // 48 bytes
@@ -200,10 +183,11 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         // CAUTION Flexible constructors is a preview feature and is disabled by default. (use --enable-preview to enable flexible constructors)
         //this(createFromKeyStore(keyStore, alias, keyPassword));
 
-        // bc provider is used here to prevent java.security.NoSuchAlgorithmException: "no such algorithm: EdDSA for provider SUN"
         var obj = createFromKeyStore(keyStore, alias, keyPassword);
         this.verifyingKey = obj.verifyingKey;
         this.signingKey = obj.signingKey;
+        this.keyPair = obj.keyPair;
+        this.provider = obj.provider;
     }
 
     /**
@@ -252,11 +236,6 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 
         keyPair = new KeyPair(pubKey, privKey);
-        try {
-            this.signature = Signature.getInstance("Ed25519");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
 
         // sanity check
         if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
@@ -427,7 +406,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
     /**
      * This {@link VerificationMethodKeyProvider} interface method implementation is done w.r.t.
-     * <a href="https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020">d25519verificationkey2020</a>:
+     * <a href="https://www.w3.org/community/reports/credentials/CG-FINAL-di-eddsa-2020-20220724/#ed25519verificationkey2020">Ed25519verificationkey2020</a>:
      * <pre>
      * The publicKeyMultibase property of the verification method MUST be a public key encoded according to [MULTICODEC] and formatted according to [MULTIBASE].
      * The multicodec encoding of a Ed25519 public key is the two-byte prefix 0xed01 followed by the 32-byte public key data.
@@ -437,7 +416,10 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     public String getVerificationKeyMultibase() {
         if (this.keyPair != null) {
-            return buildVerificationKeyMultibase(this.keyPair.getPublic().getEncoded());
+            var encoded = this.keyPair.getPublic().getEncoded();
+            if (encoded != null) {
+                return buildVerificationKeyMultibase(encoded);
+            }
         }
         return buildVerificationKeyMultibase(this.verifyingKey);
     }
@@ -450,14 +432,16 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     public byte[] generateSignature(byte[] message) {
 
-        if (this.keyPair != null && this.signature != null) {
+        if (this.keyPair != null && this.provider != null) {
+
+            var privateKey = this.keyPair.getPrivate();
             try {
-                // Initialize this object for signing. If this method is called again with a different argument, it negates the effect of this call.
-                this.signature.initSign(this.keyPair.getPrivate());
-                this.signature.update(message);
-                return this.signature.sign();
-            } catch (SignatureException | InvalidKeyException e) {
-                // the verifier should be already properly initialized in the constructor
+                var signer = Signature.getInstance(privateKey.getAlgorithm(), this.provider);
+                signer.initSign(privateKey);
+                signer.update(message);
+                return signer.sign();
+            } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
+                // the JCE provider should be already properly initialized in the constructor
                 throw new RuntimeException(e);
             }
         }
@@ -472,30 +456,16 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
     boolean verify(byte[] message, byte[] signature) {
 
-        if (this.keyPair != null && this.signature != null) {
+        if (this.keyPair != null) {
 
-            Signature verifier = this.signature;
+            var publicKey = this.keyPair.getPublic();
             try {
-                // Adapter in case of Primus HSM provider
-                if (SecurosysPrimusKeyStoreLoader.isPrimusProvider(this.signature.getProvider())) {
-                    verifier = Signature.getInstance(this.signature.getAlgorithm());
-                }
-
-                // Initialize this object for verification. If this method is called again with a different argument, it negates the effect of this call.
-                verifier.initVerify(this.keyPair.getPublic());
+                var verifier = Signature.getInstance(publicKey.getAlgorithm(), this.provider);
+                verifier.initVerify(publicKey);
                 verifier.update(message);
                 return verifier.verify(signature);
-            } catch (SignatureException e) {
-                // the verifier should be already properly initialized in the constructor
-                throw new RuntimeException(e);
-            } catch (InvalidKeyException e) {
-                // WORKAROUND On Primus HSM, a Signature#initVerify(PublicKey) call may cause java.security.InvalidKeyException:
-                //            key must be of type com.securosys.primus.jce.PrimusKey, not of type com.securosys.primus.jce.spec.EdPublicKeyImpl
-                //if (SecurosysPrimusKeyStoreLoader.isPrimusProvider(this.signature.getProvider())) {
-                //    return true;
-                //}
-                throw new RuntimeException(e);
-            } catch (NoSuchAlgorithmException e) {
+            } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
+                // the JCE provider should be already properly initialized in the constructor
                 throw new RuntimeException(e);
             }
         }

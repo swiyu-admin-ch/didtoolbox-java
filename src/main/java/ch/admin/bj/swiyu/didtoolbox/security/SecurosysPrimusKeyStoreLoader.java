@@ -155,10 +155,6 @@ public class SecurosysPrimusKeyStoreLoader {
         this.keyStore.load(SecurosysPrimusEnvironment.toStream(host, port, user, password), null);
     }
 
-    public static boolean isPrimusProvider(Provider provider) {
-        return provider.getClass().getName().equals(PROVIDER_CLASS);
-    }
-
     /**
      * The system envvars storing the credentials required to load Securosys Primus Key Store.
      */
