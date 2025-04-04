@@ -474,21 +474,17 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         if (this.keyPair != null && this.signature != null) {
 
-            var publicKey = this.keyPair.getPublic();
-            // Adapter in case of Primus HSM provider
-            if (SecurosysPrimusKeyStoreLoader.isPrimusProvider(this.signature.getProvider())) {
-                try {
-                    publicKey = (PublicKey) SecurosysPrimusKeyStoreLoader.fromPublicKey(this.keyPair.getPublic());
-                } catch (SecurosysPrimusKeyStoreInitializationException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
+            Signature verifier = this.signature;
             try {
+                // Adapter in case of Primus HSM provider
+                if (SecurosysPrimusKeyStoreLoader.isPrimusProvider(this.signature.getProvider())) {
+                    verifier = Signature.getInstance(this.signature.getAlgorithm());
+                }
+
                 // Initialize this object for verification. If this method is called again with a different argument, it negates the effect of this call.
-                this.signature.initVerify(publicKey);
-                this.signature.update(message);
-                return this.signature.verify(signature);
+                verifier.initVerify(this.keyPair.getPublic());
+                verifier.update(message);
+                return verifier.verify(signature);
             } catch (SignatureException e) {
                 // the verifier should be already properly initialized in the constructor
                 throw new RuntimeException(e);
@@ -498,6 +494,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
                 //if (SecurosysPrimusKeyStoreLoader.isPrimusProvider(this.signature.getProvider())) {
                 //    return true;
                 //}
+                throw new RuntimeException(e);
+            } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
         }
