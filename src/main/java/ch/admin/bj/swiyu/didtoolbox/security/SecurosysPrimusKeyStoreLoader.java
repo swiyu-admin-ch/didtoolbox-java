@@ -21,7 +21,7 @@ import java.util.Properties;
  */
 public class SecurosysPrimusKeyStoreLoader {
 
-    final public static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
+    final private static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
     final private static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
     @Getter
     final private KeyStore keyStore;

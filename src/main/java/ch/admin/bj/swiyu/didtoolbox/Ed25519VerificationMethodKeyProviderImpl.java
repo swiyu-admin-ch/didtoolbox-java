@@ -40,9 +40,6 @@ import java.util.Arrays;
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
  * </ul>
- *
- * @see KeyPairGenerator
- * @see Ed25519Signer
  */
 public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMethodKeyProvider {
 
@@ -50,10 +47,6 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
     static {
         Security.addProvider(new BouncyCastleProvider());
-        try {
-            Security.removeProvider("SUN");
-        } catch (Exception ignore) {
-        }
     }
 
     byte[] signingKey;
@@ -128,12 +121,14 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      *     }
      *}
      * <p>
+     * CAUTION Intended for testing purposes ONLY, hence its visibility.
+     * <p>
      * CAUTION It is assumed the keys do really match. Otherwise, {@link RuntimeException} is thrown.
      *
      * @param privateKeyMultibase the base58-encoded string to decode as private Ed25519 key
      * @param publicKeyMultibase  the base58-encoded string to decode as public Ed25519 key
      */
-    public Ed25519VerificationMethodKeyProviderImpl(String privateKeyMultibase, String publicKeyMultibase) {
+    Ed25519VerificationMethodKeyProviderImpl(String privateKeyMultibase, String publicKeyMultibase) {
 
         var signingKey = Base58.decode(privateKeyMultibase.substring(1));
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
@@ -146,12 +141,14 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
         this.verifyingKey = buff.array();
 
+        //var pubKey = Ed25519Utils.toJavaSecurityPublicKey(this.verifyingKey);
+        // CAUTION There is no known way to set this.keyPair here
+        //this.keyPair = new KeyPair(pubKey, privKey);
+
         // sanity check
         if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
             throw new RuntimeException("keys do not match");
         }
-
-        // CAUTION There is no known way to set this.keyPair here
     }
 
     /**
@@ -174,6 +171,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         KeyStore keyStore;
         try {
+            // CAUTION Calling KeyStore.getInstance("JKS") may cause:
+            //         "java.security.NoSuchAlgorithmException: no such algorithm: EdDSA for provider SUN"
             keyStore = KeyStore.getInstance("PKCS12", DEFAULT_JCE_PROVIDER_NAME);
         } catch (NoSuchProviderException e) {
             throw new RuntimeException(e);
@@ -253,7 +252,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @throws IOException             in case of a parse error.
      * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
      */
-    public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, String publicKeyMultibase) throws IOException, InvalidKeySpecException {
+    public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, String publicKeyMultibase) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
         byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
@@ -268,6 +267,9 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         ByteBuffer buff = ByteBuffer.allocate(32);
         buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
         this.verifyingKey = buff.array();
+
+        var pubKey = Ed25519Utils.toJavaSecurityPublicKey(this.verifyingKey);
+        this.keyPair = new KeyPair(pubKey, privKey);
 
         // sanity check
         if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
@@ -290,6 +292,10 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     private static Ed25519VerificationMethodKeyProviderImpl createFromKeyStore(KeyStore keyStore, String alias, String password)
             throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
+
+        if (!keyStore.isKeyEntry(alias)) {
+            throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
+        }
 
         /* KeyStore#getKey throws:
         KeyStoreException – if the keystore has not been initialized (loaded).
@@ -327,7 +333,9 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         }
         verifyingKey = Arrays.copyOfRange(publicKeyEncoded, publicKeyEncoded.length - 32, publicKeyEncoded.length); // the last 32 bytes
 
-        return new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey, new KeyPair(cert.getPublicKey(), key), keyStore.getProvider());
+        var keyPair = new KeyPair(cert.getPublicKey(), key);
+
+        return new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey, keyPair, keyStore.getProvider());
     }
 
     /**
@@ -432,7 +440,11 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     public byte[] generateSignature(byte[] message) {
 
-        if (this.keyPair != null && this.provider != null) {
+        if (this.keyPair != null) {
+
+            if (this.provider == null) {
+                throw new RuntimeException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
+            }
 
             var privateKey = this.keyPair.getPrivate();
             try {
@@ -457,6 +469,10 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     boolean verify(byte[] message, byte[] signature) {
 
         if (this.keyPair != null) {
+
+            if (this.provider == null) {
+                throw new RuntimeException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
+            }
 
             var publicKey = this.keyPair.getPublic();
             try {
