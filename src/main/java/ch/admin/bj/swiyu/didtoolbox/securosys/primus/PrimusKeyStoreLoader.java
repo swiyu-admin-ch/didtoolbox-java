@@ -1,5 +1,6 @@
-package ch.admin.bj.swiyu.didtoolbox.security;
+package ch.admin.bj.swiyu.didtoolbox.securosys.primus;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.io.*;
@@ -19,11 +20,11 @@ import java.util.Properties;
  * is expected to be in the <code>CLASSPATH</code>. The library must feature a provider implementation class
  * <code>com.securosys.primus.jce.PrimusProvider</code>.
  */
-public class SecurosysPrimusKeyStoreLoader {
+public class PrimusKeyStoreLoader {
 
-    final private static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
+    final public static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
     final private static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
-    @Getter
+    @Getter(AccessLevel.PACKAGE)
     final private KeyStore keyStore;
 
     /**
@@ -32,9 +33,9 @@ public class SecurosysPrimusKeyStoreLoader {
      * CAUTION This constructor does not make any attempt to load the keystore, as no transport configuration is known at the time.
      * Use other constructors for the purpose.
      *
-     * @throws SecurosysPrimusKeyStoreInitializationException
+     * @throws PrimusKeyStoreInitializationException
      */
-    public SecurosysPrimusKeyStoreLoader() throws SecurosysPrimusKeyStoreInitializationException {
+    public PrimusKeyStoreLoader() throws PrimusKeyStoreInitializationException {
         try {
             // Add Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries") via reflection
             var cls = Class.forName(PROVIDER_CLASS);
@@ -55,7 +56,7 @@ public class SecurosysPrimusKeyStoreLoader {
             //         com.securosys.primus.jce.transport.TransportUnconfiguredException: transport configuration not yet set
 
         } catch (Exception e) {
-            throw new SecurosysPrimusKeyStoreInitializationException(
+            throw new PrimusKeyStoreInitializationException(
                     "Failed to initialize Securosys Primus Key Store. Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);
         }
     }
@@ -70,10 +71,10 @@ public class SecurosysPrimusKeyStoreLoader {
      * @throws CertificateException
      * @throws IOException
      * @throws NoSuchAlgorithmException
-     * @throws SecurosysPrimusKeyStoreInitializationException
+     * @throws PrimusKeyStoreInitializationException
      */
-    public SecurosysPrimusKeyStoreLoader(File credentials)
-            throws CertificateException, IOException, NoSuchAlgorithmException, SecurosysPrimusKeyStoreInitializationException {
+    public PrimusKeyStoreLoader(File credentials)
+            throws CertificateException, IOException, NoSuchAlgorithmException, PrimusKeyStoreInitializationException {
 
         this();
 
@@ -139,11 +140,11 @@ public class SecurosysPrimusKeyStoreLoader {
         this.keyStore.load(SecurosysPrimusEnvironment.toStream(host, port, user, password), null);
     }
 
-    public SecurosysPrimusKeyStoreLoader(String host,
-                                         int port,
-                                         String user,
-                                         String password)
-            throws CertificateException, IOException, NoSuchAlgorithmException, SecurosysPrimusKeyStoreInitializationException {
+    public PrimusKeyStoreLoader(String host,
+                                int port,
+                                String user,
+                                String password)
+            throws CertificateException, IOException, NoSuchAlgorithmException, PrimusKeyStoreInitializationException {
 
         this();
 
@@ -158,7 +159,7 @@ public class SecurosysPrimusKeyStoreLoader {
     /**
      * The system envvars storing the credentials required to load Securosys Primus Key Store.
      */
-    enum SecurosysPrimusEnvironment {
+    public enum SecurosysPrimusEnvironment {
         SECUROSYS_PRIMUS_HOST, SECUROSYS_PRIMUS_PORT, SECUROSYS_PRIMUS_USER, SECUROSYS_PRIMUS_PASSWORD;
 
         /**

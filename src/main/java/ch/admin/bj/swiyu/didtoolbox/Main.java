@@ -1,6 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.security.SecurosysPrimusKeyStoreLoader;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.UpdateTdwCommand;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.VerificationMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -17,7 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.jar.Manifest;
 
-import static ch.admin.bj.swiyu.didtoolbox.CreateTdwCommand.DEFAULT_METHOD_VERSION;
+import static ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand.DEFAULT_METHOD_VERSION;
 
 class Main {
 
@@ -83,7 +87,7 @@ class Main {
         File jksFile;
         String jksPassword;
         String jksAlias;
-        SecurosysPrimusKeyStoreLoader primus;
+        PrimusKeyStoreLoader primus;
         String primusKeyAlias;
         String primusKeyPassword;
 
@@ -108,7 +112,7 @@ class Main {
                 Map<String, String> assertionMethodsMap = new HashMap<>();
                 var assertionMethodKeys = createCommand.assertionMethodKeys;
                 if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
-                    for (CreateTdwCommand.VerificationMethodParameters param : assertionMethodKeys) {
+                    for (VerificationMethodParameters param : assertionMethodKeys) {
                         assertionMethodsMap.put(param.key, param.jwk);
                     }
                 }
@@ -116,7 +120,7 @@ class Main {
                 Map<String, String> authMap = new HashMap<>();
                 var authenticationKeys = createCommand.authenticationKeys;
                 if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
-                    for (CreateTdwCommand.VerificationMethodParameters param : authenticationKeys) {
+                    for (VerificationMethodParameters param : authenticationKeys) {
                         authMap.put(param.key, param.jwk);
                     }
                 }
@@ -170,7 +174,7 @@ class Main {
 
                     } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
 
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(primus.getKeyStore(), primusKeyAlias, primusKeyPassword); // supplied external key pair
+                        signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
 
                     } else {
 
@@ -224,7 +228,7 @@ class Main {
                 assertionMethodsMap = new HashMap<>();
                 var updateCommandAssertionMethodKeys = updateCommand.assertionMethodKeys;
                 if (updateCommandAssertionMethodKeys != null && !updateCommandAssertionMethodKeys.isEmpty()) {
-                    for (UpdateTdwCommand.VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
+                    for (VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
                         assertionMethodsMap.put(param.key, param.jwk);
                     }
                 }
@@ -232,7 +236,7 @@ class Main {
                 authMap = new HashMap<>();
                 var updateCommandAuthenticationKeys = updateCommand.authenticationKeys;
                 if (updateCommandAuthenticationKeys != null && !updateCommandAuthenticationKeys.isEmpty()) {
-                    for (UpdateTdwCommand.VerificationMethodParameters param : updateCommandAuthenticationKeys) {
+                    for (VerificationMethodParameters param : updateCommandAuthenticationKeys) {
                         authMap.put(param.key, param.jwk);
                     }
                 }
@@ -248,8 +252,13 @@ class Main {
                 jksPassword = updateCommand.jksPassword;
                 jksAlias = updateCommand.jksAlias;
 
+                primus = updateCommand.securosysPrimusKeyStoreLoader;
+                primusKeyAlias = updateCommand.primusKeyAlias;
+                primusKeyPassword = updateCommand.primusKeyPassword;
+
                 if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
-                        jksFile != null && jksPassword != null && jksAlias != null) {
+                        jksFile != null && jksPassword != null && jksAlias != null &&
+                        primus != null && primusKeyAlias != null && primusKeyPassword != null) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 
@@ -278,6 +287,11 @@ class Main {
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
                         // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
                         signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+
+                    } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
+
+                        signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
+
                     } else {
                         overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) keys supplied. Use one of the relevant options to supply keys");
                     }

@@ -1,8 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import io.ipfs.multibase.Base58;
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
@@ -34,7 +32,7 @@ import java.util.Arrays;
  * It is predominantly intended to be used within the {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider} method
  * prior to a {@link TdwCreator#create(URL)} call.
  * <p>
- * Thanks to the following methods, it is also capable of loading an already existing key material from the file system:
+ * Thanks to the following constructors, it is also capable of loading an already existing key material from the file system:
  * <ul>
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(File, File)} for loading the update (Ed25519) key from
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
@@ -49,24 +47,18 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    byte[] signingKey;
-    byte[] verifyingKey;
-    private KeyPair keyPair;
-    private Provider provider = Security.getProvider(DEFAULT_JCE_PROVIDER_NAME);
+    protected final KeyPair keyPair;
+    protected Provider provider = Security.getProvider(DEFAULT_JCE_PROVIDER_NAME);
 
-    private Ed25519VerificationMethodKeyProviderImpl(byte[] signingKey, byte[] verifyingKey, KeyPair keyPair, Provider provider) {
-        this.signingKey = signingKey;
-        this.verifyingKey = verifyingKey;
+    protected Ed25519VerificationMethodKeyProviderImpl(KeyPair keyPair, Provider provider) {
         this.keyPair = keyPair;
 
-        if (this.keyPair != null) {
-            if (provider != null) {
-                this.provider = provider;
-            }
+        if (provider != null) {
+            this.provider = provider;
+        }
 
-            if (this.provider == null) {
-                throw new RuntimeException("No default JCE provider installed: " + DEFAULT_JCE_PROVIDER_NAME);
-            }
+        if (this.provider == null) {
+            throw new RuntimeException("No default JCE provider installed: " + DEFAULT_JCE_PROVIDER_NAME);
         }
 
         // sanity check
@@ -79,13 +71,13 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * The copy constructor.
      */
     private Ed25519VerificationMethodKeyProviderImpl(Ed25519VerificationMethodKeyProviderImpl obj) {
-        this(obj.signingKey, obj.verifyingKey, obj.keyPair, obj.provider);
+        this(obj.keyPair, obj.provider);
     }
 
     /**
      * @see KeyPairGenerator
      */
-    Ed25519VerificationMethodKeyProviderImpl() {
+    protected Ed25519VerificationMethodKeyProviderImpl() {
 
         try {
             KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("Ed25519");
@@ -94,60 +86,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
             this.keyPair = keyPairGen.generateKeyPair();
 
-            byte[] privateKey = keyPair.getPrivate().getEncoded(); // 48 bytes
-            if (privateKey == null) {
-                throw new RuntimeException("The provider generated a key that does not support encoding: " + keyPairGen.getProvider().getName());
-            }
-            this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
-
-            byte[] publicKey = keyPair.getPublic().getEncoded(); // 44 bytes
-            if (publicKey == null) {
-                throw new RuntimeException("The provider generated a key that does not support encoding: " + keyPairGen.getProvider().getName());
-            }
-            this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
-
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Yet another {@link Ed25519VerificationMethodKeyProviderImpl} constructor accepting keys in multibase base58btc format, e.g.
-     * <p>
-     * {@snippet lang = JSON:
-     *     {
-     *         "publicKeyMultibase": "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2",
-     *         "secretKeyMultibase": "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"
-     *     }
-     *}
-     * <p>
-     * CAUTION Intended for testing purposes ONLY, hence its visibility.
-     * <p>
-     * CAUTION It is assumed the keys do really match. Otherwise, {@link RuntimeException} is thrown.
-     *
-     * @param privateKeyMultibase the base58-encoded string to decode as private Ed25519 key
-     * @param publicKeyMultibase  the base58-encoded string to decode as public Ed25519 key
-     */
-    Ed25519VerificationMethodKeyProviderImpl(String privateKeyMultibase, String publicKeyMultibase) {
-
-        var signingKey = Base58.decode(privateKeyMultibase.substring(1));
-        var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
-
-        ByteBuffer buff = ByteBuffer.allocate(32);
-        buff.put(Arrays.copyOfRange(signingKey, signingKey.length - 32, signingKey.length));
-        this.signingKey = buff.array();
-
-        buff = ByteBuffer.allocate(32);
-        buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
-        this.verifyingKey = buff.array();
-
-        //var pubKey = Ed25519Utils.toJavaSecurityPublicKey(this.verifyingKey);
-        // CAUTION There is no known way to set this.keyPair here
-        //this.keyPair = new KeyPair(pubKey, privKey);
-
-        // sanity check
-        if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
-            throw new RuntimeException("keys do not match");
         }
     }
 
@@ -183,8 +123,6 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         //this(createFromKeyStore(keyStore, alias, keyPassword));
 
         var obj = createFromKeyStore(keyStore, alias, keyPassword);
-        this.verifyingKey = obj.verifyingKey;
-        this.signingKey = obj.signingKey;
         this.keyPair = obj.keyPair;
         this.provider = obj.provider;
     }
@@ -220,21 +158,11 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
-        byte[] privateKey = privKey.getEncoded(); // 48 bytes
-        if (privateKey == null) {
-            throw new RuntimeException("The key factory generated a private key that does not support encoding");
-        }
-        this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
 
         byte[] publicPemBytes = PemUtils.parsePEMFile(publicPemFile);
         PublicKey pubKey = PemUtils.getPublicKeyEd25519(publicPemBytes);
-        byte[] publicKey = pubKey.getEncoded(); // 44 bytes
-        if (publicKey == null) {
-            throw new RuntimeException("The key factory generated a public key that does not support encoding");
-        }
-        this.verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
 
-        keyPair = new KeyPair(pubKey, privKey);
+        this.keyPair = new KeyPair(pubKey, privKey);
 
         // sanity check
         if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
@@ -256,27 +184,18 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
-        byte[] privateKey = privKey.getEncoded(); // 48 bytes
-        if (privateKey == null) {
-            throw new RuntimeException("The key factory generated a private key that does not support encoding");
-        }
-        this.signingKey = Arrays.copyOfRange(privateKey, privateKey.length - 32, privateKey.length); // the last 32 bytes
 
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
-
         ByteBuffer buff = ByteBuffer.allocate(32);
         buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
-        this.verifyingKey = buff.array();
+        var pubKey = Ed25519Utils.toPublicKey(buff.array());
 
-        var pubKey = Ed25519Utils.toJavaSecurityPublicKey(this.verifyingKey);
         this.keyPair = new KeyPair(pubKey, privKey);
 
         // sanity check
         if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
             throw new RuntimeException("keys do not match");
         }
-
-        // CAUTION There is no known way to set this.keyPair here
     }
 
     /**
@@ -313,49 +232,15 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
         }
 
-        byte[] signingKey = null;
-        // Get the key in its primary encoding format (null is to expect if this key does not support encoding)
-        byte[] privateKeyEncoded = key.getEncoded(); // 48 bytes
-        if (privateKeyEncoded != null) { // CAUTION On Primus HSM, a PrivateKey#getEncoded() call returns null
-            signingKey = Arrays.copyOfRange(privateKeyEncoded, privateKeyEncoded.length - 32, privateKeyEncoded.length); // the last 32 bytes
-        }
-
         // throws KeyStoreException – if the keystore has not been initialized (loaded)
         var cert = keyStore.getCertificate(alias); // may return null if the given alias does not exist or does not contain a certificate
         if (cert == null) {
             throw new KeyException("The alias does not exist or does not contain a certificate: " + alias);
         }
-        byte[] verifyingKey = null;
-        // Get the key in its primary encoding format (null is to expect if this key does not support encoding)
-        byte[] publicKeyEncoded = cert.getPublicKey().getEncoded(); // 44 bytes
-        if (publicKeyEncoded == null) {
-            throw new KeyException("The alias features a public key that does not support encoding: " + alias);
-        }
-        verifyingKey = Arrays.copyOfRange(publicKeyEncoded, publicKeyEncoded.length - 32, publicKeyEncoded.length); // the last 32 bytes
 
-        var keyPair = new KeyPair(cert.getPublicKey(), key);
+        var publicKey = cert.getPublicKey();
 
-        return new Ed25519VerificationMethodKeyProviderImpl(signingKey, verifyingKey, keyPair, keyStore.getProvider());
-    }
-
-    /**
-     * The encoding of an Ed25519 public key MUST start with the two-byte prefix 0xed01 (the varint expression of 0xed),
-     * followed by the 32-byte public key data. The resulting 34-byte value MUST then be encoded using the base-58-btc alphabet,
-     * and then prepended with the <a href="https://www.w3.org/TR/controller-document/#multibase-0">base-58-btc Multibase header (z)</a>.
-     * <p>
-     * See <a href="https://www.w3.org/TR/controller-document/#Multikey">Multikey</a>
-     *
-     * @param verifyingKey
-     * @return
-     */
-    static String buildVerificationKeyMultibase(byte[] verifyingKey) {
-
-        ByteBuffer buff = ByteBuffer.allocate(34);
-        // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
-        buff.put((byte) 0xed); // Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
-        buff.put((byte) 0x01);
-        buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
-        return 'z' + Base58.encode(buff.array());
+        return new Ed25519VerificationMethodKeyProviderImpl(new KeyPair(publicKey, key), keyStore.getProvider());
     }
 
     /**
@@ -396,7 +281,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     void writePublicKeyAsPem(File file) throws IOException {
 
-        if (keyPair == null) {
+        if (this.keyPair == null) {
             throw new RuntimeException("This instance features no self-generated key pair.");
         }
 
@@ -423,13 +308,17 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @return public verification key in multibase format.
      */
     public String getVerificationKeyMultibase() {
-        if (this.keyPair != null) {
-            var encoded = this.keyPair.getPublic().getEncoded();
-            if (encoded != null) {
-                return buildVerificationKeyMultibase(encoded);
-            }
+
+        if (this.keyPair == null) {
+            throw new RuntimeException("This instance features no self-generated key pair.");
         }
-        return buildVerificationKeyMultibase(this.verifyingKey);
+
+        var encoded = this.keyPair.getPublic().getEncoded();
+        if (encoded != null) {
+            return Ed25519Utils.encodeMultibase(encoded);
+        }
+
+        throw new RuntimeException("The public key does not support encoding");
     }
 
     /**
@@ -440,57 +329,43 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     public byte[] generateSignature(byte[] message) {
 
-        if (this.keyPair != null) {
-
-            if (this.provider == null) {
-                throw new RuntimeException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
-            }
-
-            var privateKey = this.keyPair.getPrivate();
-            try {
-                var signer = Signature.getInstance(privateKey.getAlgorithm(), this.provider);
-                signer.initSign(privateKey);
-                signer.update(message);
-                return signer.sign();
-            } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
-                // the JCE provider should be already properly initialized in the constructor
-                throw new RuntimeException(e);
-            }
+        if (this.provider == null) {
+            throw new RuntimeException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
         }
 
-        Ed25519PrivateKeyParameters secretKeyParameters = new Ed25519PrivateKeyParameters(this.signingKey, 0);
-        var signer = new Ed25519Signer();
-        signer.init(true, secretKeyParameters);
-        signer.update(message, 0, message.length);
+        if (this.keyPair == null) {
+            throw new RuntimeException("This instance features no self-generated key pair.");
+        }
 
-        return signer.generateSignature();
+        try {
+            var signer = Signature.getInstance("EdDSA", this.provider);
+            signer.initSign(this.keyPair.getPrivate());
+            signer.update(message);
+            return signer.sign();
+        } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
+            // the JCE provider should be already properly initialized in the constructor
+            throw new RuntimeException(e);
+        }
     }
 
     boolean verify(byte[] message, byte[] signature) {
 
-        if (this.keyPair != null) {
-
-            if (this.provider == null) {
-                throw new RuntimeException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
-            }
-
-            var publicKey = this.keyPair.getPublic();
-            try {
-                var verifier = Signature.getInstance(publicKey.getAlgorithm(), this.provider);
-                verifier.initVerify(publicKey);
-                verifier.update(message);
-                return verifier.verify(signature);
-            } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
-                // the JCE provider should be already properly initialized in the constructor
-                throw new RuntimeException(e);
-            }
+        if (this.provider == null) {
+            throw new RuntimeException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
         }
 
-        Ed25519PublicKeyParameters publicKeyParameters = new Ed25519PublicKeyParameters(this.verifyingKey, 0);
-        var verifier = new Ed25519Signer();
-        verifier.init(false, publicKeyParameters);
-        verifier.update(message, 0, message.length);
+        if (this.keyPair == null) {
+            throw new RuntimeException("This instance features no self-generated key pair.");
+        }
 
-        return verifier.verifySignature(signature);
+        try {
+            var verifier = Signature.getInstance("EdDSA", this.provider);
+            verifier.initVerify(this.keyPair.getPublic());
+            verifier.update(message);
+            return verifier.verify(signature);
+        } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
+            // the JCE provider should be already properly initialized in the constructor
+            throw new RuntimeException(e);
+        }
     }
 }

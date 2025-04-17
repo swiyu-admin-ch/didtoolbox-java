@@ -61,7 +61,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         ISO_DATE_TIME = "2012-12-12T12:12:12Z";
 
         // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-        EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(
+        EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER = new UnsafeEd25519VerificationMethodKeyProviderImpl(
                 "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq",
                 "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2");
 
@@ -233,7 +233,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         }
         publicKeyPemFile.deleteOnExit();
 
-        var verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
+        var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
         var initialDidLogEntry = buildInitialDidLogEntry(verificationMethodKeyProvider);
 
@@ -291,7 +291,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         }
         publicKeyPemFile.deleteOnExit();
 
-        var verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
+        var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
         var initialDidLogEntry = buildInitialDidLogEntry(verificationMethodKeyProvider);
 

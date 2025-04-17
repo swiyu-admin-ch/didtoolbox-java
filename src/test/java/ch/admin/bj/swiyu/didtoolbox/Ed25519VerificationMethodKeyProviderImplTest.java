@@ -104,7 +104,7 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @MethodSource("keyMessageSignature")
     public void testVerify(String privateKeyMultibase, String publicKeyMultibase, String message, String expected) {
 
-        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
+        boolean verified = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -114,7 +114,7 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @MethodSource("keysSignature")
     public void testSignUsingKeys(String privateKeyMultibase, String publicKeyMultibase, String expected) {
 
-        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).generateSignature("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8))); // MUT
+        String signed = Hex.toHexString(new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).generateSignature("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -126,7 +126,7 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @MethodSource("keysSignature")
     public void testVerifyUsingKeys(String privateKeyMultibase, String publicKeyMultibase, String expected) {
 
-        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).verify("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
+        boolean verified = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).verify("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -240,7 +240,7 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     void testGetVerificationKeyMultibaseExample() {
 
         // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-        String actual = new Ed25519VerificationMethodKeyProviderImpl(
+        String actual = new UnsafeEd25519VerificationMethodKeyProviderImpl(
                 "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq",
                 "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2")
                 .getVerificationKeyMultibase();
@@ -253,7 +253,7 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @MethodSource("keysSignature")
     void testGetVerificationKeyMultibase(String privateKeyMultibase, String publicKeyMultibase, String expected) {
 
-        String actual = new Ed25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).getVerificationKeyMultibase();
+        String actual = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase).getVerificationKeyMultibase();
 
         assertEquals(publicKeyMultibase, actual);
     }

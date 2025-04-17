@@ -39,7 +39,7 @@ Usage: didtoolbox [options] [command] [command options]
         * --identifier-registry-url, -u
             A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for
           --jks-alias
-            Java KeyStore alias
+            Java KeyStore alias name of the entry to process
           --jks-file, -j
             Java KeyStore (PKCS12) file to read the (signing/verifying) keys from
           --jks-password
@@ -47,6 +47,12 @@ Usage: didtoolbox [options] [command] [command options]
           --method-version, -m
             Defines the did:tdw specification version to use when generating a DID log. Currently supported is only 'did:tdw:0.3'
             Default: did:tdw:0.3
+          --primus-keystore, -p
+            Securosys Primus Keystore credentials file
+          --primus-keystore-alias, -q
+            Securosys Primus Keystore alias the key is associated with
+          --primus-keystore-password, -r
+            Securosys Primus Keystore password for recovering the key
           --signing-key-file, -s
             The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format
           --verifying-key-files, -v
@@ -70,7 +76,13 @@ Usage: didtoolbox [options] [command] [command options]
             Java KeyStore (PKCS12) file to read the (signing/verifying) keys from
           --jks-password
             Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore
-        * --signing-key-file, -s
+          --primus-keystore, -p
+            Securosys Primus Keystore credentials file
+          --primus-keystore-alias, -q
+            Securosys Primus Keystore alias the key is associated with
+          --primus-keystore-password, -r
+            Securosys Primus Keystore password for recovering the key
+          --signing-key-file, -s
             The ed25519 private key file corresponding to the public key, required to sign and output the updated DID log entry. In PEM Format
           --verifying-key-files, -v
             The ed25519 public key file(s) for the DID Document’s verification method. In PEM format

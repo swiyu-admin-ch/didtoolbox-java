@@ -5,23 +5,37 @@ import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CreateTdwCommandParametersValidatorTest {
+class UpdateTdwCommandParametersValidatorTest {
 
     private static final String CREDENTIALS_FILE_PATH = "src/test/data/com.securosys.primus.jce.credentials.properties";
+
+    private static File dummyDidLogFile = null;
+
+    static {
+        try {
+            dummyDidLogFile = File.createTempFile("mytdwlog", ".jsonl");
+        } catch (IOException e) {
+            fail(e);
+        }
+        dummyDidLogFile.deleteOnExit();
+    }
 
     private static void testValidatePrimusParameters() {
 
         assertDoesNotThrow(() -> {
+
             var jc = JCommander.newBuilder()
-                    .addCommand("create", new CreateTdwCommand())
+                    .addCommand("update", new UpdateTdwCommand())
                     .build();
-            jc.parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
+            jc.parse("update", "-d", dummyDidLogFile.getPath(), // required
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever",
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
@@ -30,9 +44,9 @@ class CreateTdwCommandParametersValidatorTest {
 
         assertDoesNotThrow(() -> {
             var jc = JCommander.newBuilder()
-                    .addCommand("create", new CreateTdwCommand())
+                    .addCommand("update", new UpdateTdwCommand())
                     .build();
-            jc.parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
+            jc.parse("update", "-d", dummyDidLogFile.getPath(), // required
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever",
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD, "whatever"
@@ -117,12 +131,12 @@ class CreateTdwCommandParametersValidatorTest {
 
     private static void assertCreateTdwCommandThrowsParameterException(String... args) {
         var argz = Stream.concat(
-                        Arrays.stream(new String[]{"create", "-u", "https://domain.com:443/path1/path2/did.jsonl"}),
+                        Arrays.stream(new String[]{"update", "-d", dummyDidLogFile.getPath()}), // required
                         Arrays.stream(args))
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));
 
         assertThrowsParameterException(() -> JCommander.newBuilder()
-                        .addCommand("create", new CreateTdwCommand())
+                        .addCommand("update", new UpdateTdwCommand())
                         .build().parse(argz),
                 "Incomplete Primus parameters supplied"
         );
