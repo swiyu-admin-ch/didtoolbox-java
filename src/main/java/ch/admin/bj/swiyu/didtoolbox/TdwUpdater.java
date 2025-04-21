@@ -211,7 +211,7 @@ public class TdwUpdater {
             throw new TdwUpdaterException("DID already deactivated");
         }
 
-        if (!didLogMeta.params.updateKeys.contains(this.verificationMethodKeyProvider.getVerificationKeyMultibase())) {
+        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.params.updateKeys)) {
             throw new TdwUpdaterException("Update key mismatch");
         }
 

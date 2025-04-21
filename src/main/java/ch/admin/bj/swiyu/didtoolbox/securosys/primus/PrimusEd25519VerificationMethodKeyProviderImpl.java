@@ -6,6 +6,7 @@ import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 
 import java.net.URL;
 import java.security.*;
+import java.util.Set;
 
 /**
  * The {@link PrimusEd25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation
@@ -73,7 +74,6 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
         // CAUTION In case of Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries"), key translation is required
         final KeyFactory keyFactory = KeyFactory.getInstance("EC", keyStore.getProvider());
         // Translate a key object (whose provider may be unknown or potentially untrusted) into a corresponding key object of this key factory
-        key = (PrivateKey) keyFactory.translateKey(key); // "exported key"
         publicKey = (PublicKey) keyFactory.translateKey(cert.getPublicKey()); // "exported key"
 
         new PrimusEd25519VerificationMethodKeyProviderImpl(new KeyPair(publicKey, key), keyStore.getProvider());
@@ -82,32 +82,27 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
     /**
      * A simple wrapper for PrimusEncoding#optionallyUnderifyRS helper.
      */
-    private static byte[] optionallyUnderifyRS(byte[] signed) throws PrimusKeyStoreInitializationException {
+    private static byte[] optionallyUnderifyRS(byte[] signed) {
         try {
             return (byte[]) Class.forName(ENCODER_CLASS)
                     .getMethod(UNDERIFY_METHOD, byte[].class)
                     .invoke(null, signed);
         } catch (Exception e) {
             //} catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new PrimusKeyStoreInitializationException(
+            //throw new PrimusKeyStoreInitializationException(
+            throw new RuntimeException(
                     "Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);
         }
     }
 
-    /**
-     * The {@link VerificationMethodKeyProvider} interface method implementation using Ed25519 algorithm.
-     *
-     * @param message to sign
-     * @return signed message
-     */
+    @Override
     public byte[] generateSignature(byte[] message) {
 
-        var signed = super.generateSignature(message);
+        return optionallyUnderifyRS(super.generateSignature(message));
+    }
 
-        try {
-            return optionallyUnderifyRS(signed);
-        } catch (PrimusKeyStoreInitializationException e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys) {
+        return true;
     }
 }

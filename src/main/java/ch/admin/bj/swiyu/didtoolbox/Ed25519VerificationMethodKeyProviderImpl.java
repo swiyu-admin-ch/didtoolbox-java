@@ -21,6 +21,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  * The {@link Ed25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation used to generate pairs of
@@ -109,14 +110,9 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     public Ed25519VerificationMethodKeyProviderImpl(InputStream jksFile, String password, String alias, String keyPassword)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
 
-        KeyStore keyStore;
-        try {
-            // CAUTION Calling KeyStore.getInstance("JKS") may cause:
-            //         "java.security.NoSuchAlgorithmException: no such algorithm: EdDSA for provider SUN"
-            keyStore = KeyStore.getInstance("PKCS12", DEFAULT_JCE_PROVIDER_NAME);
-        } catch (NoSuchProviderException e) {
-            throw new RuntimeException(e);
-        }
+        // CAUTION Calling KeyStore.getInstance("JKS") may cause:
+        //         "java.security.NoSuchAlgorithmException: no such algorithm: EdDSA for provider SUN"
+        KeyStore keyStore = KeyStore.getInstance("PKCS12", this.provider);
         keyStore.load(jksFile, password.toCharArray()); // java.io.IOException: keystore password was incorrect
 
         // CAUTION Flexible constructors is a preview feature and is disabled by default. (use --enable-preview to enable flexible constructors)
@@ -346,6 +342,11 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             // the JCE provider should be already properly initialized in the constructor
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys) {
+        return multibaseEncodedKeys.contains(this.getVerificationKeyMultibase());
     }
 
     boolean verify(byte[] message, byte[] signature) {
