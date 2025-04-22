@@ -11,7 +11,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
 
-class Ed25519Utils {
+public class Ed25519Utils {
 
     static int PUBLIC_KEY_LENGTH = 32;
 
@@ -51,7 +51,7 @@ class Ed25519Utils {
      * @param publicKeyEncoded
      * @return
      */
-    static String encodeMultibase(byte[] publicKeyEncoded) {
+    public static String encodeMultibase(byte[] publicKeyEncoded) {
 
         ByteBuffer buff = ByteBuffer.allocate(34);
         // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98

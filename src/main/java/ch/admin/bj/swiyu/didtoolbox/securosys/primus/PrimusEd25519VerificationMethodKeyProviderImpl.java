@@ -1,11 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox.securosys.primus;
 
+import ch.admin.bj.swiyu.didtoolbox.Ed25519Utils;
 import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.TdwCreator;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 
 import java.net.URL;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 
 /**
  * The {@link PrimusEd25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation
@@ -71,12 +74,10 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
 
         var publicKey = cert.getPublicKey();
 
-        /*
         // CAUTION In case of Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries"), key translation is required
         final KeyFactory keyFactory = KeyFactory.getInstance("EC", keyStore.getProvider());
         // Translate a key object (whose provider may be unknown or potentially untrusted) into a corresponding key object of this key factory
         publicKey = (PublicKey) keyFactory.translateKey(cert.getPublicKey()); // "exported key"
-         */
 
         new PrimusEd25519VerificationMethodKeyProviderImpl(new KeyPair(publicKey, key), keyStore.getProvider());
     }
@@ -96,6 +97,34 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
                     "Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);
         }
     }
+
+    /*
+    @Override
+    public String getVerificationKeyMultibase() {
+
+        if (this.keyPair == null) {
+            throw new RuntimeException("This instance features no self-generated key pair.");
+        }
+
+        // convert
+        final PublicKey localPublicKey;
+        try {
+           final KeyFactory kf = KeyFactory.getInstance("Ed25519");
+            //final PrivateKey key2 = kf.generatePrivate(new PKCS8EncodedKeySpec(((PrimusSpecs.EdPrivateKey)key).getEncodedShort()));
+            localPublicKey = kf.generatePublic(new X509EncodedKeySpec(this.keyPair.getPublic().getEncoded()));
+            // 'sun.security.ec.ed.EdDSAPrivateKeyImpl/sun.security.ec.ed.EdDSAPublicKeyImpl'
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        }
+
+        var encoded = localPublicKey.getEncoded();
+        if (encoded != null) {
+            return Ed25519Utils.encodeMultibase(encoded);
+        }
+
+        throw new RuntimeException("The public key does not support encoding");
+    }
+     */
 
     @Override
     public byte[] generateSignature(byte[] message) {
