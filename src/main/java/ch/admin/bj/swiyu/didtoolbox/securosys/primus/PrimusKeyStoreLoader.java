@@ -23,7 +23,8 @@ import java.util.Properties;
 public class PrimusKeyStoreLoader {
 
     final public static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
-    final private static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
+    final private static String KEY_STORE_TYPE_GETTER = "getImportExportKeyStoreTypeName";
+    final private static String PROVIDER_NAME_GETTER = "getProviderName";
     @Getter(AccessLevel.PACKAGE)
     final private KeyStore keyStore;
 
@@ -47,10 +48,12 @@ public class PrimusKeyStoreLoader {
             // (encapsulating the KeyStoreSpi implementation)
             var type = (String) cls.getDeclaredMethod(KEY_STORE_TYPE_GETTER).invoke(primusProvider);
 
+            var providerName = (String) cls.getDeclaredMethod(PROVIDER_NAME_GETTER).invoke(primusProvider);
+
             // Throws: KeyStoreException – if no provider supports a KeyStoreSpi implementation for the specified type
             //                             (it is the same as checking primusProvider.getService("KeyStore", KEY_STORE_TYPE) against null)
             //         NullPointerException – if type is null
-            this.keyStore = KeyStore.getInstance(type);
+            this.keyStore = KeyStore.getInstance(type, providerName);
 
             // CAUTION Needless to say, calling this.keyStore.load(null) at this point would cause:
             //         com.securosys.primus.jce.transport.TransportUnconfiguredException: transport configuration not yet set

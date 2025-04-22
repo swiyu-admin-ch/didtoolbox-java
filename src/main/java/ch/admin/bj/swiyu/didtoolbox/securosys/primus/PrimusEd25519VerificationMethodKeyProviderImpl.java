@@ -6,7 +6,6 @@ import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 
 import java.net.URL;
 import java.security.*;
-import java.util.Set;
 
 /**
  * The {@link PrimusEd25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation
@@ -39,7 +38,8 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
     /**
      * The only public constructor of the class, capable of loading an already existing key material directly from a Securosys Primus HSM (cluster).
      */
-    public PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, String password) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
+    public PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, String password)
+            throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 
         var keyStore = primus.getKeyStore();
 
@@ -54,9 +54,9 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
          */
         PrivateKey key;
         if (password != null) {
-            key = (PrivateKey) keyStore.getKey(alias, password.toCharArray()); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
+            key = (PrivateKey) keyStore.getKey(alias, password.toCharArray()); // may return null if the given alias does not exist or does not identify a key-related entry
         } else {
-            key = (PrivateKey) keyStore.getKey(alias, null); // 34 bytes, may return null if the given alias does not exist or does not identify a key-related entry
+            key = (PrivateKey) keyStore.getKey(alias, null); // may return null if the given alias does not exist or does not identify a key-related entry
         }
 
         if (key == null) {
@@ -71,10 +71,12 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
 
         var publicKey = cert.getPublicKey();
 
+        /*
         // CAUTION In case of Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries"), key translation is required
         final KeyFactory keyFactory = KeyFactory.getInstance("EC", keyStore.getProvider());
         // Translate a key object (whose provider may be unknown or potentially untrusted) into a corresponding key object of this key factory
         publicKey = (PublicKey) keyFactory.translateKey(cert.getPublicKey()); // "exported key"
+         */
 
         new PrimusEd25519VerificationMethodKeyProviderImpl(new KeyPair(publicKey, key), keyStore.getProvider());
     }
@@ -101,8 +103,10 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
         return optionallyUnderifyRS(super.generateSignature(message));
     }
 
+    /*
     @Override
     public boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys) {
         return true;
     }
+     */
 }
