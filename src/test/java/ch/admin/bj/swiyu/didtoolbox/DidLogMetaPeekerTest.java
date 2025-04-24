@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,11 +21,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DidLogMetaPeekerTest {
 
-    final private static Ed25519VerificationMethodKeyProviderImpl VERIFICATION_METHOD_KEY_PROVIDER;
+    final private static String ISO_DATE_TIME;
+    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER;
 
     static {
+        ISO_DATE_TIME = "2012-12-12T12:12:12Z";
+
         try {
-            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
+            //VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
+            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
         }
@@ -76,7 +81,7 @@ class DidLogMetaPeekerTest {
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.
-                        .update(updatedDidLog.toString(), ZonedDateTime.parse("2012-12-1" + i + "T12:12:12Z"));
+                        .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(i - 1));
 
                 updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
             }

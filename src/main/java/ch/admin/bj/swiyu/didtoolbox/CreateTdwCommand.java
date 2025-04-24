@@ -10,7 +10,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Parameters(
         commandNames = {"create"},
@@ -26,30 +28,37 @@ class CreateTdwCommand {
             description = "Display help for the DID toolbox 'create' command",
             help = true)
     boolean help;
+
+    @Parameter(names = {"--force-overwrite", "-f"},
+            description = "Overwrite existing PEM key files, if any")
+    boolean forceOverwrite;
+
     @Parameter(names = {"--identifier-registry-url", "-u"},
             description = "A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for",
             required = true,
             converter = IdentifierRegistryUrlParameterConverter.class,
             validateWith = IdentifierRegistryUrlParameterValidator.class)
     URL identifierRegistryUrl;
+
     @Parameter(names = {"--method-version", "-m"},
             description = "Defines the did:tdw specification version to use when generating a DID log. Currently supported is only '" + DEFAULT_METHOD_VERSION + "'",
             defaultValueDescription = DEFAULT_METHOD_VERSION)
     //,required = true)
     String methodVersion;
+
     @Parameter(names = {"--signing-key-file", "-s"},
             description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format",
             converter = PemFileParameterConverter.class,
             validateWith = PemFileParameterValidator.class)
     File signingKeyPemFile;
-    @Parameter(names = {"--verifying-key-file", "-v"},
-            description = "The ed25519 public key file for the DID Document’s verification method. In PEM format",
-            converter = PemFileParameterConverter.class,
-            validateWith = PemFileParameterValidator.class)
-    File verifyingKeyPemFile;
-    @Parameter(names = {"--force-overwrite", "-f"},
-            description = "Overwrite existing PEM key files, if any")
-    boolean forceOverwrite;
+
+    @Parameter(names = {"--verifying-key-files", "-v"},
+            description = "The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s option. In PEM format",
+            listConverter = PemFileParameterListConverter.class,
+            //converter = PemFileParameterConverter.class,
+            validateWith = PemFileParameterValidator.class,
+            variableArity = true)
+    Set<File> verifyingKeyPemFiles;
 
     /*
     static class OutputDirParameterConverter implements IStringConverter<File> {
@@ -80,19 +89,23 @@ class CreateTdwCommand {
             converter = JksFileParameterConverter.class,
             validateWith = JksFileParameterValidator.class)
     File jksFile;
+
     @Parameter(names = {"--jks-password"},
             description = "Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore",
             password = true)
     String jksPassword;
+
     @Parameter(names = {"--jks-alias"},
-            description = "Java KeyStore alias")
+            description = "Java KeyStore alias name of the entry to process")
     String jksAlias;
+
     @Parameter(names = {"--assert", "-a"},
             description = "An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
     List<VerificationMethodParameters> assertionMethodKeys;
+
     @Parameter(names = {"--auth", "-t"},
             description = "An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
@@ -125,6 +138,15 @@ class CreateTdwCommand {
             } catch (URISyntaxException | MalformedURLException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    static class PemFileParameterListConverter implements IStringConverter<Set<File>> {
+        @Override
+        public Set<File> convert(String value) {
+            Set<File> fileList = new HashSet<>();
+            fileList.add(new File(value));
+            return fileList;
         }
     }
 

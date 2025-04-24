@@ -13,15 +13,31 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TdwCreatorTest {
+
+    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER;
+    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER_JKS;
+
+    static {
+        try {
+            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(
+                    new File("src/test/data/private.pem"),
+                    new File("src/test/data/public.pem"));
+            // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
+            VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
+                    new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias");
+        } catch (Exception intolerable) {
+            throw new RuntimeException(intolerable);
+        }
+    }
 
     private static void assertDidLogEntry(String didLogEntry) {
 
@@ -31,17 +47,26 @@ public class TdwCreatorTest {
 
         assertTrue(jsonArray.get(2).isJsonObject());
         var params = jsonArray.get(2).getAsJsonObject();
+        assertTrue(params.has("method"));
         assertTrue(params.has("scid"));
         assertTrue(params.has("updateKeys"));
+        assertTrue(params.get("updateKeys").isJsonArray());
 
         assertTrue(jsonArray.get(3).isJsonObject());
         assertTrue(jsonArray.get(3).getAsJsonObject().has("value"));
         var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
         assertTrue(didDoc.has("id"));
-        assertTrue(didDoc.has("authentication"));
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertFalse(authentication.isEmpty());
         assertTrue(didDoc.has("assertionMethod"));
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertFalse(assertionMethod.isEmpty());
         assertTrue(didDoc.has("verificationMethod"));
         assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertFalse(verificationMethod.isEmpty());
 
         var proofs = jsonArray.get(4);
         assertTrue(proofs.isJsonArray());
@@ -69,7 +94,7 @@ public class TdwCreatorTest {
 
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry = TdwCreator.builder()
-                    //.signer(new Ed25519SignerVerifier()) // is the default signer anyway
+                    // the default signer (verificationMethodKeyProvider) is used
                     .forceOverwrite(true)
                     .build()
                     .create(identifierRegistryUrl); // MUT
@@ -81,6 +106,33 @@ public class TdwCreatorTest {
         assertDidLogEntry(didLogEntry);
     }
 
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants (multiple updateKeys)")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testCreateWithMultipleUpdateKeys(URL identifierRegistryUrl) {
+
+        String didLogEntry = null;
+        try {
+
+            // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
+            didLogEntry = TdwCreator.builder()
+                    // the default signer (verificationMethodKeyProvider) is used
+                    .updateKeys(Set.of(new File("src/test/data/public.pem")))
+                    .forceOverwrite(true)
+                    .build()
+                    .create(identifierRegistryUrl); // MUT
+
+        } catch (IOException e) {
+            fail(e);
+        }
+
+        assertDidLogEntry(didLogEntry);
+
+        var params = JsonParser.parseString(didLogEntry).getAsJsonArray().get(2).getAsJsonObject();
+        assertFalse(params.get("updateKeys").getAsJsonArray().isEmpty());
+        assertEquals(2, params.get("updateKeys").getAsJsonArray().size());// Effectively, it is only 2 distinct keys
+    }
+
     @DisplayName("Building TDW log entry for various identifierRegistryUrl variants using Java Keystore (JKS)")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
@@ -90,22 +142,28 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
         }
 
         assertDidLogEntry(didLogEntry);
-        JsonArray jsonArray = JsonParser.parseString(didLogEntry).getAsJsonArray();
-        var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
-        assertTrue(didDoc.get("authentication").getAsJsonArray().get(0).getAsString().endsWith("#auth-key-01"));
-        assertTrue(didDoc.get("assertionMethod").getAsJsonArray().get(0).getAsString().endsWith("#assert-key-01"));
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsString().endsWith("auth-key-01"));
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(1).getAsJsonObject().get("id").getAsString().endsWith("assert-key-01"));
+
+        var didDoc = JsonParser.parseString(didLogEntry).getAsJsonArray().get(3).getAsJsonObject().get("value").getAsJsonObject();
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertTrue(authentication.get(0).getAsString().endsWith("#auth-key-01")); // created by default
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertTrue(assertionMethod.get(0).getAsString().endsWith("#assert-key-01")); // created by default
+        assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("auth-key-01")); // created by default
+        assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("assert-key-01")); // created by default
 
         //System.out.println(didLogEntry);
 
@@ -122,7 +180,7 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .assertionMethodKeys(Map.of(
                             "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
                     ))
@@ -130,6 +188,7 @@ public class TdwCreatorTest {
                             "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")
                     ))
                     .build()
+                    // CAUTION datetime is set explicitly here just to be able to run assertTrue("...".contains(didLogEntry));
                     .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
         } catch (Exception e) {
@@ -137,12 +196,18 @@ public class TdwCreatorTest {
         }
 
         assertDidLogEntry(didLogEntry);
-        JsonArray jsonArray = JsonParser.parseString(didLogEntry).getAsJsonArray();
-        var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
-        assertTrue(didDoc.get("authentication").getAsJsonArray().get(0).getAsString().endsWith("#my-auth-key-01"));
-        assertTrue(didDoc.get("assertionMethod").getAsJsonArray().get(0).getAsString().endsWith("#my-assert-key-01"));
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsString().endsWith("my-auth-key-01"));
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(1).getAsJsonObject().get("id").getAsString().endsWith("my-assert-key-01"));
+
+        var didDoc = JsonParser.parseString(didLogEntry).getAsJsonArray().get(3).getAsJsonObject().get("value").getAsJsonObject();
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertTrue(authentication.get(0).getAsString().endsWith("#my-auth-key-01"));
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertTrue(assertionMethod.get(0).getAsString().endsWith("#my-assert-key-01"));
+        assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("my-auth-key-01"));
+        assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("my-assert-key-01"));
 
         //System.out.println(didLogEntry);
 
@@ -162,23 +227,29 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
-                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
         }
 
         assertDidLogEntry(didLogEntry);
-        JsonArray jsonArray = JsonParser.parseString(didLogEntry).getAsJsonArray();
-        var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
-        assertTrue(didDoc.get("authentication").getAsJsonArray().get(0).getAsString().endsWith("#my-auth-key-01"));
-        assertTrue(didDoc.get("assertionMethod").getAsJsonArray().get(0).getAsString().endsWith("#my-assert-key-01"));
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsString().endsWith("my-auth-key-01"));
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(1).getAsJsonObject().get("id").getAsString().endsWith("my-assert-key-01"));
+
+        var didDoc = JsonParser.parseString(didLogEntry).getAsJsonArray().get(3).getAsJsonObject().get("value").getAsJsonObject();
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertTrue(authentication.get(0).getAsString().endsWith("#my-auth-key-01"));
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertTrue(assertionMethod.get(0).getAsString().endsWith("#my-assert-key-01"));
+        assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("my-auth-key-01"));
+        assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("my-assert-key-01"));
 
         //System.out.println(didLogEntry);
 
@@ -195,24 +266,30 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
-                    //.authenticationKeys(Map.of("my-auth-key-01", ""))
+                    // CAUTION An "authentication" key will be added by default, so need to call method: .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
         }
 
         assertDidLogEntry(didLogEntry);
-        JsonArray jsonArray = JsonParser.parseString(didLogEntry).getAsJsonArray();
-        var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
-        assertTrue(didDoc.get("authentication").getAsJsonArray().get(0).getAsString().endsWith("#auth-key-01")); // default
-        assertTrue(didDoc.get("assertionMethod").getAsJsonArray().get(0).getAsString().endsWith("#my-assert-key-01"));
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsString().endsWith("auth-key-01")); // default
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(1).getAsJsonObject().get("id").getAsString().endsWith("my-assert-key-01"));
+
+        var didDoc = JsonParser.parseString(didLogEntry).getAsJsonArray().get(3).getAsJsonObject().get("value").getAsJsonObject();
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertTrue(authentication.get(0).getAsString().endsWith("auth-key-01")); // created by default
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertTrue(assertionMethod.get(0).getAsString().endsWith("#my-assert-key-01"));
+        assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("auth-key-01")); // created by default
+        assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("my-assert-key-01"));
 
         //System.out.println(didLogEntry);
 
@@ -230,24 +307,30 @@ public class TdwCreatorTest {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias"))
-                    //.assertionMethodKeys(Map.of("my-assert-key-01", ""))
+                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    // CAUTION An "assertionMethod" key will be added by default, so need to call method: .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .create(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
         }
 
         assertDidLogEntry(didLogEntry);
-        JsonArray jsonArray = JsonParser.parseString(didLogEntry).getAsJsonArray();
-        var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
-        assertTrue(didDoc.get("authentication").getAsJsonArray().get(0).getAsString().endsWith("#my-auth-key-01"));
-        assertTrue(didDoc.get("assertionMethod").getAsJsonArray().get(0).getAsString().endsWith("#assert-key-01")); // default
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsString().endsWith("my-auth-key-01"));
-        assertTrue(didDoc.get("verificationMethod").getAsJsonArray().get(1).getAsJsonObject().get("id").getAsString().endsWith("assert-key-01")); // default
+
+        var didDoc = JsonParser.parseString(didLogEntry).getAsJsonArray().get(3).getAsJsonObject().get("value").getAsJsonObject();
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertTrue(authentication.get(0).getAsString().endsWith("my-auth-key-01"));
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertTrue(assertionMethod.get(0).getAsString().endsWith("#assert-key-01")); // created by default
+        assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("my-auth-key-01"));
+        assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("assert-key-01")); // created by default
 
         //System.out.println(didLogEntry);
 

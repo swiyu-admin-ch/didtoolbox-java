@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -155,7 +156,7 @@ class DidLogMetaPeeker {
 
         String method;
         String scid;
-        List<String> updateKeys;
+        Set<String> updateKeys;
         Boolean deactivated;
 
         void mergeFrom(DidMethodParameters other) {

@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.jar.Manifest;
 
 import static ch.admin.bj.swiyu.didtoolbox.CreateTdwCommand.DEFAULT_METHOD_VERSION;
@@ -76,6 +77,12 @@ class Main {
             System.exit(1);
         }
 
+        File signingKeyPemFile;
+        Set<File> verifyingKeyPemFiles;
+        File jksFile;
+        String jksPassword;
+        String jksAlias;
+
         switch (parsedCommandName) {
 
             case "create":
@@ -110,14 +117,14 @@ class Main {
                     }
                 }
 
-                File signingKeyPemFile = createCommand.signingKeyPemFile;
-                File verifyingKeyPemFile = createCommand.verifyingKeyPemFile;
+                signingKeyPemFile = createCommand.signingKeyPemFile;
+                verifyingKeyPemFiles = createCommand.verifyingKeyPemFiles;
 
-                File jksFile = createCommand.jksFile;
-                String jksPassword = createCommand.jksPassword;
-                String jksAlias = createCommand.jksAlias;
+                jksFile = createCommand.jksFile;
+                jksPassword = createCommand.jksPassword;
+                jksAlias = createCommand.jksAlias;
 
-                if (signingKeyPemFile != null && verifyingKeyPemFile != null &&
+                if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
                         jksFile != null && jksPassword != null && jksAlias != null) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
@@ -127,12 +134,32 @@ class Main {
                 String didLogEntry = null;
                 try {
 
-                    Ed25519VerificationMethodKeyProviderImpl signer = new Ed25519VerificationMethodKeyProviderImpl(); // default with generated key pair
-                    if (signingKeyPemFile != null && verifyingKeyPemFile != null) {
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, verifyingKeyPemFile); // supplied external key pair
+                    var signer = new Ed25519VerificationMethodKeyProviderImpl();
+
+                    if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
+
+                        File verifyingKeyPemFile = null;
+                        for (var pemFile : verifyingKeyPemFiles) {
+                            try {
+                                signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, pemFile); // supplied external key pair
+                                // At this point, the matching verifying key is detected, so we are free to break from the loop
+                                verifyingKeyPemFile = pemFile;
+                                break;
+                            } catch (Exception ignoreNonMatchingKey) {
+                            }
+                        }
+
+                        if (verifyingKeyPemFile == null) {
+                            overAndOut(jc, parsedCommandName, "No matching verifying key supplied");
+                        }
+
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
+
                         signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
+                        // TODO Populate verifyingKeyPemFiles (for each jksAlias) from the JKS by calling signer.writePublicKeyAsPem(tempPublicKeyPemFile);
+
                     } else {
+
                         /*
                         File outputDir = createCommand.outputDir;
                         if (outputDir == null) {
@@ -158,6 +185,7 @@ class Main {
                     didLogEntry = tdwBuilder
                             .assertionMethodKeys(assertionMethodsMap)
                             .authenticationKeys(authMap)
+                            .updateKeys(verifyingKeyPemFiles)
                             .forceOverwrite(forceOverwrite)
                             .build()
                             .create(identifierRegistryUrl);
@@ -200,13 +228,13 @@ class Main {
                 }
 
                 signingKeyPemFile = updateCommand.signingKeyPemFile;
-                verifyingKeyPemFile = updateCommand.verifyingKeyPemFile;
+                verifyingKeyPemFiles = updateCommand.verifyingKeyPemFiles;
 
                 jksFile = updateCommand.jksFile;
                 jksPassword = updateCommand.jksPassword;
                 jksAlias = updateCommand.jksAlias;
 
-                if (signingKeyPemFile != null && verifyingKeyPemFile != null &&
+                if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
                         jksFile != null && jksPassword != null && jksAlias != null) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
@@ -214,8 +242,25 @@ class Main {
                 try {
 
                     Ed25519VerificationMethodKeyProviderImpl signer = null; // no default, must be supplied
-                    if (signingKeyPemFile != null && verifyingKeyPemFile != null) {
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, verifyingKeyPemFile); // supplied external key pair
+                    if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
+
+                        var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
+                        String matchingUpdateKey = null;
+                        for (var key : didLogMeta.params.updateKeys) {
+                            try {
+                                // the signing key is supplied externally, but verifying key should be already among updateKeys
+                                signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, key);
+                                // At this point, the matching verifying key is detected, so we are free to break from the loop
+                                matchingUpdateKey = key;
+                                break;
+                            } catch (Exception ignoreNonMatchingKey) {
+                            }
+                        }
+
+                        if (matchingUpdateKey == null) {
+                            overAndOut(jc, parsedCommandName, "No matching signing key supplied");
+                        }
+
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
                         signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
                     } else {
@@ -227,6 +272,7 @@ class Main {
                     var newLogEntry = tdwBuilder
                             .assertionMethodKeys(assertionMethodsMap)
                             .authenticationKeys(authMap)
+                            .updateKeys(verifyingKeyPemFiles)
                             .build()
                             .update(didLogFile);
 
