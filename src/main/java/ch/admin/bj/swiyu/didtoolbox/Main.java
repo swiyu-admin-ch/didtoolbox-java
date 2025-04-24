@@ -23,7 +23,7 @@ import java.util.jar.Manifest;
 
 import static ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand.DEFAULT_METHOD_VERSION;
 
-class Main {
+public class Main {
 
     @Parameter(names = {"--help", "-h"},
             description = "Display help for the DID toolbox",
@@ -147,7 +147,7 @@ class Main {
                 String didLogEntry = null;
                 try {
 
-                    var signer = new Ed25519VerificationMethodKeyProviderImpl();
+                    VerificationMethodKeyProvider signer = null;
 
                     if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
@@ -178,6 +178,8 @@ class Main {
 
                     } else {
 
+                        signer = new Ed25519VerificationMethodKeyProviderImpl();
+
                         /*
                         File outputDir = createCommand.outputDir;
                         if (outputDir == null) {
@@ -191,8 +193,8 @@ class Main {
                         var privateKeyFile = new File(outputDir, "id_ed25519");
                         var publicKeyFile = new File(outputDir, "id_ed25519.pub");
                         if (!privateKeyFile.exists() || forceOverwrite) {
-                            signer.writePrivateKeyAsPem(privateKeyFile);
-                            signer.writePublicKeyAsPem(publicKeyFile);
+                            ((Ed25519VerificationMethodKeyProviderImpl) signer).writePrivateKeyAsPem(privateKeyFile);
+                            ((Ed25519VerificationMethodKeyProviderImpl) signer).writePublicKeyAsPem(publicKeyFile);
                         } else {
                             overAndOut(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
                         }
@@ -264,7 +266,8 @@ class Main {
 
                 try {
 
-                    Ed25519VerificationMethodKeyProviderImpl signer = null; // no default, must be supplied
+                    VerificationMethodKeyProvider signer = null; // no default, must be supplied
+
                     if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
                         var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));

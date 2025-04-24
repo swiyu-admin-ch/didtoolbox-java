@@ -1,14 +1,9 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import io.ipfs.multibase.Base58;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.*;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -16,9 +11,8 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 
-class PemUtils {
+public class PemUtils {
 
     private PemUtils() {
     }
@@ -62,16 +56,28 @@ class PemUtils {
     static String parsePEMFilePublicKeyEd25519Multibase(File pemFile) throws InvalidKeySpecException, IOException {
 
         PublicKey pubKey = PemUtils.getPublicKeyEd25519(parsePEMFile(pemFile));
-        byte[] publicKey = pubKey.getEncoded(); // 44 bytes
-        var verifyingKey = Arrays.copyOfRange(publicKey, publicKey.length - 32, publicKey.length); // the last 32 bytes
+        byte[] publicKeyEncoded = pubKey.getEncoded(); // 44 bytes
+        if (publicKeyEncoded == null) {
+            throw new RuntimeException("The public key does not support encoding");
+        }
 
-        ByteBuffer buff = ByteBuffer.allocate(34);
-        // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
-        buff.put((byte) 0xed); // Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
-        buff.put((byte) 0x01);
-        buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
+        return Ed25519Utils.encodeMultibase(publicKeyEncoded);
+    }
 
-        return 'z' + Base58.encode(buff.array());
+    public static String parsePEMPublicKeyEd25519Multibase(String pemPublicKey) throws InvalidKeySpecException, IOException {
+
+        File tempFile = File.createTempFile("mypublickey", ".pem");
+        tempFile.deleteOnExit();
+
+        Writer w = new BufferedWriter(new FileWriter(tempFile));
+        try {
+            w.write(pemPublicKey);
+            w.flush();
+        } finally {
+            w.close();
+        }
+
+        return parsePEMFilePublicKeyEd25519Multibase(tempFile);
     }
 
     static PrivateKey getPrivateKeyEd25519(byte[] encodedKey) throws InvalidKeySpecException {

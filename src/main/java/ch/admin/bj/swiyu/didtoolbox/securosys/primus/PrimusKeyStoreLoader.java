@@ -4,10 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.io.*;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
-import java.security.Security;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Properties;
 
@@ -203,5 +200,58 @@ public class PrimusKeyStoreLoader {
 
             throw new RuntimeException("The envvar " + this.name() + " is not required as credential for a Securosys Primus Key Store.");
         }
+    }
+
+    /**
+     * Loads a key (pair) from the underlying Primus key store. The key is associated with the given {@code alias},
+     * using the given {@code password} to recover it.
+     *
+     * @param alias    the alias name
+     * @param password the password for recovering the key
+     * @return the requested key, or {@code null} if the given {@code alias} does not exist or does not identify a key-related entry.
+     * @throws UnrecoverableEntryException
+     * @throws KeyStoreException
+     * @throws NoSuchAlgorithmException
+     * @throws KeyException
+     */
+    KeyPair loadKeyPair(String alias, String password)
+            throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
+
+        var keyStore = this.getKeyStore();
+
+        if (!keyStore.isKeyEntry(alias)) {
+            throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
+        }
+
+        /* KeyStore#getKey throws:
+        KeyStoreException – if the keystore has not been initialized (loaded).
+        NoSuchAlgorithmException – if the algorithm for recovering the key cannot be found
+        UnrecoverableKeyException – if the key cannot be recovered (e.g., the given password is wrong).
+         */
+        PrivateKey key;
+        if (password != null) {
+            key = (PrivateKey) keyStore.getKey(alias, password.toCharArray()); // may return null if the given alias does not exist or does not identify a key-related entry
+        } else {
+            key = (PrivateKey) keyStore.getKey(alias, null); // may return null if the given alias does not exist or does not identify a key-related entry
+        }
+
+        if (key == null) {
+            throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
+        }
+
+        // throws KeyStoreException – if the keystore has not been initialized (loaded)
+        var cert = keyStore.getCertificate(alias); // may return null if the given alias does not exist or does not contain a certificate
+        if (cert == null) {
+            throw new KeyException("The alias does not exist or does not contain a certificate: " + alias);
+        }
+
+        var publicKey = cert.getPublicKey();
+
+        // CAUTION In case of Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries"), key translation is required
+        final KeyFactory keyFactory = KeyFactory.getInstance("EC", keyStore.getProvider());
+        // Translate a key object (whose provider may be unknown or potentially untrusted) into a corresponding key object of this key factory
+        publicKey = (PublicKey) keyFactory.translateKey(cert.getPublicKey()); // "exported key"
+
+        return new KeyPair(publicKey, key);
     }
 }

@@ -1,14 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox.securosys.primus;
 
-import ch.admin.bj.swiyu.didtoolbox.Ed25519Utils;
 import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.PemUtils;
 import ch.admin.bj.swiyu.didtoolbox.TdwCreator;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 
+import java.io.IOException;
 import java.net.URL;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 
 /**
  * The {@link PrimusEd25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation
@@ -29,14 +29,7 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
 
     final private static String ENCODER_CLASS = "com.securosys.primus.jce.PrimusEncoding";
     final private static String UNDERIFY_METHOD = "optionallyUnderifyRS";
-
-    private PrimusEd25519VerificationMethodKeyProviderImpl() {
-        super();
-    }
-
-    private PrimusEd25519VerificationMethodKeyProviderImpl(KeyPair keyPair, Provider provider) {
-        super(keyPair, provider);
-    }
+    final private static String PEM_ENCODE_PUBLIC_KEY_METHOD = "pemEncodePublicKey";
 
     /**
      * The only public constructor of the class, capable of loading an already existing key material directly from a Securosys Primus HSM (cluster).
@@ -44,42 +37,7 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
     public PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, String password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 
-        var keyStore = primus.getKeyStore();
-
-        if (!keyStore.isKeyEntry(alias)) {
-            throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
-        }
-
-        /* KeyStore#getKey throws:
-        KeyStoreException – if the keystore has not been initialized (loaded).
-        NoSuchAlgorithmException – if the algorithm for recovering the key cannot be found
-        UnrecoverableKeyException – if the key cannot be recovered (e.g., the given password is wrong).
-         */
-        PrivateKey key;
-        if (password != null) {
-            key = (PrivateKey) keyStore.getKey(alias, password.toCharArray()); // may return null if the given alias does not exist or does not identify a key-related entry
-        } else {
-            key = (PrivateKey) keyStore.getKey(alias, null); // may return null if the given alias does not exist or does not identify a key-related entry
-        }
-
-        if (key == null) {
-            throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
-        }
-
-        // throws KeyStoreException – if the keystore has not been initialized (loaded)
-        var cert = keyStore.getCertificate(alias); // may return null if the given alias does not exist or does not contain a certificate
-        if (cert == null) {
-            throw new KeyException("The alias does not exist or does not contain a certificate: " + alias);
-        }
-
-        var publicKey = cert.getPublicKey();
-
-        // CAUTION In case of Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries"), key translation is required
-        final KeyFactory keyFactory = KeyFactory.getInstance("EC", keyStore.getProvider());
-        // Translate a key object (whose provider may be unknown or potentially untrusted) into a corresponding key object of this key factory
-        publicKey = (PublicKey) keyFactory.translateKey(cert.getPublicKey()); // "exported key"
-
-        new PrimusEd25519VerificationMethodKeyProviderImpl(new KeyPair(publicKey, key), keyStore.getProvider());
+        super(primus.loadKeyPair(alias, password), primus.getKeyStore().getProvider());
     }
 
     /**
@@ -98,7 +56,22 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
         }
     }
 
-    /*
+    /**
+     * A simple wrapper for PrimusEncoding#pemEncodePublicKey helper.
+     */
+    private static String pemEncodePublicKey(PublicKey pubKey) {
+        try {
+            return (String) Class.forName(ENCODER_CLASS)
+                    .getMethod(PEM_ENCODE_PUBLIC_KEY_METHOD, PublicKey.class)
+                    .invoke(null, pubKey);
+        } catch (Exception e) {
+            //} catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            //throw new PrimusKeyStoreInitializationException(
+            throw new RuntimeException(
+                    "Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);
+        }
+    }
+
     @Override
     public String getVerificationKeyMultibase() {
 
@@ -106,36 +79,17 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
             throw new RuntimeException("This instance features no self-generated key pair.");
         }
 
-        // convert
-        final PublicKey localPublicKey;
+        // conversion (from PEM)
         try {
-           final KeyFactory kf = KeyFactory.getInstance("Ed25519");
-            //final PrivateKey key2 = kf.generatePrivate(new PKCS8EncodedKeySpec(((PrimusSpecs.EdPrivateKey)key).getEncodedShort()));
-            localPublicKey = kf.generatePublic(new X509EncodedKeySpec(this.keyPair.getPublic().getEncoded()));
-            // 'sun.security.ec.ed.EdDSAPrivateKeyImpl/sun.security.ec.ed.EdDSAPublicKeyImpl'
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            return PemUtils.parsePEMPublicKeyEd25519Multibase(pemEncodePublicKey(this.keyPair.getPublic()));
+        } catch (IOException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
-
-        var encoded = localPublicKey.getEncoded();
-        if (encoded != null) {
-            return Ed25519Utils.encodeMultibase(encoded);
-        }
-
-        throw new RuntimeException("The public key does not support encoding");
     }
-     */
 
     @Override
     public byte[] generateSignature(byte[] message) {
 
         return optionallyUnderifyRS(super.generateSignature(message));
     }
-
-    /*
-    @Override
-    public boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys) {
-        return true;
-    }
-     */
 }
