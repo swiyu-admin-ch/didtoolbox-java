@@ -197,7 +197,7 @@ public class JCSHasherTest {
                     credentialsWithoutProof,
                     true,
                     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-                    new Ed25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
+                    new UnsafeEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
                     "1-" + JCSHasher.buildSCID(credentialsWithoutProof.toString()), // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
                     "assertionMethod",
                     ZonedDateTime.parse("2023-02-24T23:36:38Z"));

@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import java.util.Set;
+
 /**
  * The interface describes a provider of public keys used as publicKeyMultibase property of the verification method.
  * <p>
@@ -25,4 +27,12 @@ public interface VerificationMethodKeyProvider {
      * @return signed message
      */
     byte[] generateSignature(byte[] message);
+
+    /**
+     * Checks if the public verification key (in multibase format) is part of the supplied set of keys.
+     *
+     * @param multibaseEncodedKeys
+     * @return
+     */
+    boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys);
 }

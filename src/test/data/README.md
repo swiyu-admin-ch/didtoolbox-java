@@ -21,6 +21,7 @@ openssl x509 -sha256 -days 3652 -in myserver.csr -signkey private.pem -out mysel
 openssl pkcs12 -export -name myalias -in myselfsigned.crt -inkey private.pem -out mykeystore.p12
 
 # Convert PKCS12 keystore into a JKS keystore
+# CAUTION Different store and key passwords not supported for PKCS12 KeyStores
 keytool -importkeystore \
     -deststorepass changeit \
     -destkeypass   changeit \

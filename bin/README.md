@@ -19,65 +19,11 @@ Finally, once you manage to build a Podman image in your local repo, to run the 
 ```text
 $ ./bin/didtoolbox.sh -h
 
-Usage: didtoolbox [options] [command] [command options]
-  Options:
-    --help, -h    Display help for the DID toolbox
-    --version, -V Display version (default: false)
-  Commands:
-    create      Create a did:tdw DID and sign the initial DID log entry with the provided private key
-      Usage: create [options]
-        Options:
-          --assert, -a
-            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
-          --auth, -t
-            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
-          --force-overwrite, -f
-            Overwrite existing PEM key files, if any
-            Default: false
-          --help, -h
-            Display help for the DID toolbox 'create' command
-        * --identifier-registry-url, -u
-            A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for
-          --jks-alias
-            Java KeyStore alias
-          --jks-file, -j
-            Java KeyStore (PKCS12) file to read the (signing/verifying) keys from
-          --jks-password
-            Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore
-          --method-version, -m
-            Defines the did:tdw specification version to use when generating a DID log. Currently supported is only 'did:tdw:0.3'
-            Default: did:tdw:0.3
-          --signing-key-file, -s
-            The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format
-          --verifying-key-files, -v
-            The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s 
-            option. In PEM format
-
-    update      Update a did:tdw DID log by replacing the existing verification material in DID document
-      Usage: update [options]
-        Options:
-          --assert, -a
-            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
-          --auth, -t
-            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
-        * --did-log-file, -d
-            The file containing a valid did:tdw DID log to update
-          --help, -h
-            Display help for the DID toolbox 'update' command
-          --jks-alias
-            Java KeyStore alias
-          --jks-file, -j
-            Java KeyStore (PKCS12) file to read the (signing/verifying) keys from
-          --jks-password
-            Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore
-        * --signing-key-file, -s
-            The ed25519 private key file corresponding to the public key, required to sign and output the updated DID log entry. In PEM Format
-          --verifying-key-files, -v
-            The ed25519 public key file(s) for the DID Document’s verification method. In PEM format
+[the entire help page should be displayed here]
 
 $ ./bin/didtoolbox.sh -V
 
-didtoolbox 1.2.0
+didtoolbox 1.3.0
 ```
 
 Probably the simplest way to use the generator would be to let it generate as much on its own as possible:

@@ -1,5 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.UpdateTdwCommand;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.VerificationMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -16,9 +21,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.jar.Manifest;
 
-import static ch.admin.bj.swiyu.didtoolbox.CreateTdwCommand.DEFAULT_METHOD_VERSION;
+import static ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand.DEFAULT_METHOD_VERSION;
 
-class Main {
+public class Main {
 
     @Parameter(names = {"--help", "-h"},
             description = "Display help for the DID toolbox",
@@ -82,6 +87,12 @@ class Main {
         File jksFile;
         String jksPassword;
         String jksAlias;
+        PrimusKeyStoreLoader primus;
+        String primusKeyAlias;
+        String primusKeyPassword;
+        boolean arePemParamsSupplied;
+        boolean areJksParamsSupplied;
+        boolean arePrimusParamsSupplied;
 
         switch (parsedCommandName) {
 
@@ -104,7 +115,7 @@ class Main {
                 Map<String, String> assertionMethodsMap = new HashMap<>();
                 var assertionMethodKeys = createCommand.assertionMethodKeys;
                 if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
-                    for (CreateTdwCommand.VerificationMethodParameters param : assertionMethodKeys) {
+                    for (VerificationMethodParameters param : assertionMethodKeys) {
                         assertionMethodsMap.put(param.key, param.jwk);
                     }
                 }
@@ -112,7 +123,7 @@ class Main {
                 Map<String, String> authMap = new HashMap<>();
                 var authenticationKeys = createCommand.authenticationKeys;
                 if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
-                    for (CreateTdwCommand.VerificationMethodParameters param : authenticationKeys) {
+                    for (VerificationMethodParameters param : authenticationKeys) {
                         authMap.put(param.key, param.jwk);
                     }
                 }
@@ -124,8 +135,16 @@ class Main {
                 jksPassword = createCommand.jksPassword;
                 jksAlias = createCommand.jksAlias;
 
-                if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
-                        jksFile != null && jksPassword != null && jksAlias != null) {
+                primus = createCommand.securosysPrimusKeyStoreLoader;
+                primusKeyAlias = createCommand.primusKeyAlias;
+                primusKeyPassword = createCommand.primusKeyPassword;
+
+                arePemParamsSupplied = signingKeyPemFile != null && verifyingKeyPemFiles != null;
+                areJksParamsSupplied = jksFile != null && jksPassword != null && jksAlias != null;
+                arePrimusParamsSupplied = primus != null && primusKeyAlias != null;
+                if (arePemParamsSupplied && areJksParamsSupplied ||
+                        arePemParamsSupplied && arePrimusParamsSupplied ||
+                        areJksParamsSupplied && arePrimusParamsSupplied) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 
@@ -134,7 +153,7 @@ class Main {
                 String didLogEntry = null;
                 try {
 
-                    var signer = new Ed25519VerificationMethodKeyProviderImpl();
+                    VerificationMethodKeyProvider signer = null;
 
                     if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
@@ -155,10 +174,17 @@ class Main {
 
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
 
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
+                        // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
                         // TODO Populate verifyingKeyPemFiles (for each jksAlias) from the JKS by calling signer.writePublicKeyAsPem(tempPublicKeyPemFile);
 
+                    } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
+
+                        signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
+
                     } else {
+
+                        signer = new Ed25519VerificationMethodKeyProviderImpl();
 
                         /*
                         File outputDir = createCommand.outputDir;
@@ -173,8 +199,8 @@ class Main {
                         var privateKeyFile = new File(outputDir, "id_ed25519");
                         var publicKeyFile = new File(outputDir, "id_ed25519.pub");
                         if (!privateKeyFile.exists() || forceOverwrite) {
-                            signer.writePrivateKeyAsPem(privateKeyFile);
-                            signer.writePublicKeyAsPem(publicKeyFile);
+                            ((Ed25519VerificationMethodKeyProviderImpl) signer).writePrivateKeyAsPem(privateKeyFile);
+                            ((Ed25519VerificationMethodKeyProviderImpl) signer).writePublicKeyAsPem(publicKeyFile);
                         } else {
                             overAndOut(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
                         }
@@ -210,7 +236,7 @@ class Main {
                 assertionMethodsMap = new HashMap<>();
                 var updateCommandAssertionMethodKeys = updateCommand.assertionMethodKeys;
                 if (updateCommandAssertionMethodKeys != null && !updateCommandAssertionMethodKeys.isEmpty()) {
-                    for (UpdateTdwCommand.VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
+                    for (VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
                         assertionMethodsMap.put(param.key, param.jwk);
                     }
                 }
@@ -218,7 +244,7 @@ class Main {
                 authMap = new HashMap<>();
                 var updateCommandAuthenticationKeys = updateCommand.authenticationKeys;
                 if (updateCommandAuthenticationKeys != null && !updateCommandAuthenticationKeys.isEmpty()) {
-                    for (UpdateTdwCommand.VerificationMethodParameters param : updateCommandAuthenticationKeys) {
+                    for (VerificationMethodParameters param : updateCommandAuthenticationKeys) {
                         authMap.put(param.key, param.jwk);
                     }
                 }
@@ -234,14 +260,23 @@ class Main {
                 jksPassword = updateCommand.jksPassword;
                 jksAlias = updateCommand.jksAlias;
 
-                if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
-                        jksFile != null && jksPassword != null && jksAlias != null) {
+                primus = updateCommand.securosysPrimusKeyStoreLoader;
+                primusKeyAlias = updateCommand.primusKeyAlias;
+                primusKeyPassword = updateCommand.primusKeyPassword;
+
+                arePemParamsSupplied = signingKeyPemFile != null && verifyingKeyPemFiles != null;
+                areJksParamsSupplied = jksFile != null && jksPassword != null && jksAlias != null;
+                arePrimusParamsSupplied = primus != null && primusKeyAlias != null;
+                if (arePemParamsSupplied && areJksParamsSupplied ||
+                        arePemParamsSupplied && arePrimusParamsSupplied ||
+                        areJksParamsSupplied && arePrimusParamsSupplied) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 
                 try {
 
-                    Ed25519VerificationMethodKeyProviderImpl signer = null; // no default, must be supplied
+                    VerificationMethodKeyProvider signer = null; // no default, must be supplied
+
                     if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
                         var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
@@ -262,7 +297,13 @@ class Main {
                         }
 
                     } else if (jksFile != null && jksPassword != null && jksAlias != null) {
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias); // supplied external key pair
+                        // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+
+                    } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
+
+                        signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
+
                     } else {
                         overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) keys supplied. Use one of the relevant options to supply keys");
                     }
