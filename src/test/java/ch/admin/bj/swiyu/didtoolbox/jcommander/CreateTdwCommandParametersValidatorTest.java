@@ -25,28 +25,28 @@ class CreateTdwCommandParametersValidatorTest {
 
         assertDoesNotThrow(() -> {
             buildCreateCommand().parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
 
         assertDoesNotThrow(() -> {
             buildCreateCommand().parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
 
         assertDoesNotThrow(() -> {
             buildCreateCommand().parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
 
         assertDoesNotThrow(() -> {
             buildCreateCommand().parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
@@ -55,14 +55,14 @@ class CreateTdwCommandParametersValidatorTest {
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_PASSWORD
 
         assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH
+                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH
         );
 
         assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH
+                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH
         );
 
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE
+        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_PASSWORD
 
         /*
@@ -75,7 +75,7 @@ class CreateTdwCommandParametersValidatorTest {
         );
         */
 
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE
+        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
 
         assertCreateTdwCommandThrowsParameterException(
@@ -99,11 +99,11 @@ class CreateTdwCommandParametersValidatorTest {
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
 
         assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                 CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
         );
 
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE
+        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
 
         /*
         assertCreateTdwCommandThrowsParameterException(

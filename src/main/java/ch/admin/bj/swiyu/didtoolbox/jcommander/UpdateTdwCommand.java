@@ -67,7 +67,7 @@ public class UpdateTdwCommand {
                     "This CLI parameter should always be used exclusively alongside all the other --jks-* CLI parameters")
     public String jksAlias;
 
-    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS},
             description = "A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. " +
                     "It should feature a quartet of the following properties: " +
                     "securosys_primus_host, securosys_primus_port, securosys_primus_user and securosys_primus_password. " +

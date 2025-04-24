@@ -38,7 +38,7 @@ class UpdateTdwCommandParametersValidatorTest {
 
         assertDoesNotThrow(() -> {
             buildUpdateCommand().parse("update", "-d", dummyDidLogFile.getPath(), // required
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
                     //,CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
             );
@@ -46,21 +46,21 @@ class UpdateTdwCommandParametersValidatorTest {
 
         assertDoesNotThrow(() -> {
             buildUpdateCommand().parse("update", "-d", dummyDidLogFile.getPath(), // required
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
 
         assertDoesNotThrow(() -> {
             buildUpdateCommand().parse("update", "-d", dummyDidLogFile.getPath(), // required
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
 
         assertDoesNotThrow(() -> {
             buildUpdateCommand().parse("update", "-d", dummyDidLogFile.getPath(), // required
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
@@ -69,14 +69,14 @@ class UpdateTdwCommandParametersValidatorTest {
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_PASSWORD
 
         assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH
+                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH
         );
 
         assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH
+                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH
         );
 
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE
+        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_PASSWORD
 
         /*
@@ -89,7 +89,7 @@ class UpdateTdwCommandParametersValidatorTest {
         );
         */
 
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE
+        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
 
         assertCreateTdwCommandThrowsParameterException(
@@ -113,11 +113,11 @@ class UpdateTdwCommandParametersValidatorTest {
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
 
         assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
                 CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
         );
 
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE
+        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
 
         /*
         assertCreateTdwCommandThrowsParameterException(

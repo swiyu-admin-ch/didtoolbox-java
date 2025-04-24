@@ -90,6 +90,9 @@ public class Main {
         PrimusKeyStoreLoader primus;
         String primusKeyAlias;
         String primusKeyPassword;
+        boolean arePemParamsSupplied;
+        boolean areJksParamsSupplied;
+        boolean arePrimusParamsSupplied;
 
         switch (parsedCommandName) {
 
@@ -136,9 +139,12 @@ public class Main {
                 primusKeyAlias = createCommand.primusKeyAlias;
                 primusKeyPassword = createCommand.primusKeyPassword;
 
-                if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
-                        jksFile != null && jksPassword != null && jksAlias != null &&
-                        primus != null && primusKeyAlias != null && primusKeyPassword != null) {
+                arePemParamsSupplied = signingKeyPemFile != null && verifyingKeyPemFiles != null;
+                areJksParamsSupplied = jksFile != null && jksPassword != null && jksAlias != null;
+                arePrimusParamsSupplied = primus != null && primusKeyAlias != null;
+                if (arePemParamsSupplied && areJksParamsSupplied ||
+                        arePemParamsSupplied && arePrimusParamsSupplied ||
+                        areJksParamsSupplied && arePrimusParamsSupplied) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 
@@ -258,9 +264,12 @@ public class Main {
                 primusKeyAlias = updateCommand.primusKeyAlias;
                 primusKeyPassword = updateCommand.primusKeyPassword;
 
-                if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
-                        jksFile != null && jksPassword != null && jksAlias != null &&
-                        primus != null && primusKeyAlias != null && primusKeyPassword != null) {
+                arePemParamsSupplied = signingKeyPemFile != null && verifyingKeyPemFiles != null;
+                areJksParamsSupplied = jksFile != null && jksPassword != null && jksAlias != null;
+                arePrimusParamsSupplied = primus != null && primusKeyAlias != null;
+                if (arePemParamsSupplied && areJksParamsSupplied ||
+                        arePemParamsSupplied && arePrimusParamsSupplied ||
+                        areJksParamsSupplied && arePrimusParamsSupplied) {
                     overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
                 }
 

@@ -88,7 +88,7 @@ Usage: didtoolbox [options] [command] [command options]
           --method-version, -m
             Defines the did:tdw specification version to use when generating a DID log. Currently supported is only 'did:tdw:0.3'
             Default: did:tdw:0.3
-          --primus-keystore, -p
+          --primus-credentials, -p
             A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. It should 
             feature a quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and 
             securosys_primus_password. Any credential missing in this file will simply fallback to its system environment counterpart (if set) - the 
@@ -131,7 +131,7 @@ Usage: didtoolbox [options] [command] [command options]
           --jks-password
             Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore. This CLI parameter should 
             always be used exclusively alongside all the other --jks-* CLI parameters
-          --primus-keystore, -p
+          --primus-credentials, -p
             A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. It should 
             feature a quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and 
             securosys_primus_password. Any credential missing in this file will simply fallback to its system environment counterpart (if set) - the 

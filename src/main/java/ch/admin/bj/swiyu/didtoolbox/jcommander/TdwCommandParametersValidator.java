@@ -13,7 +13,7 @@ public class TdwCommandParametersValidator implements IParametersValidator {
         /* TODO "ambiguous signing key source supplied"
         if (signingKeyPemFile != null && verifyingKeyPemFiles != null &&
                 jksFile != null && jksPassword != null && jksAlias != null &&
-                primus != null && primusKeyAlias != null && primusKeyPassword != null) {
+                primus != null && primusKeyAlias != null) {
             overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
         }
          */
@@ -23,29 +23,21 @@ public class TdwCommandParametersValidator implements IParametersValidator {
 
     private static void validatePrimusParameters(Map<String, Object> parameters) throws ParameterException {
 
-        if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE) != null) {
+        if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) != null) {
 
             if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS) == null && parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS) == null) {
                 throw new ParameterException("Incomplete Primus parameters supplied");
-            /*
-            } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD) == null && parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD) == null) {
-                throw new ParameterException("Incomplete Primus parameters supplied");
-            */
             }
 
         } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS) != null) {
 
-            if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE) != null) {
+            if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) != null) {
                 throw new ParameterException("Incomplete Primus parameters supplied");
-            /*
-            } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD) == null) {
-                throw new ParameterException("Incomplete Primus parameters supplied");
-            */
             }
 
         } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD) != null) {
 
-            if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE) == null) {
+            if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) == null) {
                 throw new ParameterException("Incomplete Primus parameters supplied");
             } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS) == null) {
                 throw new ParameterException("Incomplete Primus parameters supplied");
