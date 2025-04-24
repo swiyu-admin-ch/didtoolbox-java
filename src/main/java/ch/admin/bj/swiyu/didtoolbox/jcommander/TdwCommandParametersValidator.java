@@ -43,7 +43,7 @@ public class TdwCommandParametersValidator implements IParametersValidator {
             */
             }
 
-        } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD) != null) {
+        } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD) != null) {
 
             if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE) == null) {
                 throw new ParameterException("Incomplete Primus parameters supplied");

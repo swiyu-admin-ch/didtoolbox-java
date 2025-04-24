@@ -10,7 +10,12 @@ import java.util.Set;
 
 @Parameters(
         commandNames = {"create"},
-        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key",
+        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key. " +
+                "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
+                "each of then denoting a whole another source of such key material: " +
+                "PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. " +
+                "In case of a Securosys Primus (HSM) connection, the required JCE provider (JAR) library is expected to be stored " +
+                "on the system alongside the DID-Toolbox, ideally in the lib subdirectory, e.g. as lib/primusX-java11.jar",
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {TdwCommandParametersValidator.class}
 )
@@ -92,18 +97,26 @@ public class CreateTdwCommand {
     public String jksAlias;
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE},
-            description = "Securosys Primus Keystore credentials file",
+            description = "A safely stored credentials file required when using (signing/verifying) keys stored in the Securosys Primus (HSM) Keystore. " +
+                    "It should feature a quartet of the following properties: " +
+                    "securosys_primus_host, securosys_primus_port, securosys_primus_user and securosys_primus_password. " +
+                    "Any credential missing in this file will be alternatively set by relying on the equivalent set of environment variable counterparts: " +
+                    "SECUROSYS_PRIMUS_HOST, SECUROSYS_PRIMUS_PORT, SECUROSYS_PRIMUS_USER and SECUROSYS_PRIMUS_PASSWORD. " +
+                    "This CLI parameter should always be used exclusively alongside all the other --primus-* parameters, related to Securosys Primus (HSM)",
             converter = PrimusCredentialsFileParameterConverter.class,
             validateWith = PrimusCredentialsFileParameterValidator.class
     )
     public PrimusKeyStoreLoader securosysPrimusKeyStoreLoader;
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS},
-            description = "Securosys Primus Keystore alias the key is associated with")
+            description = "An alias the (signing/verifying) key pair (stored in the Securosys Primus (HSM) Keystore) is associated with. " +
+                    "This CLI parameter should always be used exclusively alongside all the other --primus-* parameters, related to Securosys Primus (HSM)")
     public String primusKeyAlias;
 
-    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD},
-            description = "Securosys Primus Keystore password for recovering the key")
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD},
+            description = "An optional password required for recovering the (signing/verifying) key pair (stored in Securosys Primus (HSM) Keystore). " +
+                    "This CLI parameter should always be used exclusively alongside all the other --primus-* parameters, related to Securosys Primus (HSM)",
+            password = true)
     public String primusKeyPassword;
 
     @Parameter(names = {"--assert", "-a"},

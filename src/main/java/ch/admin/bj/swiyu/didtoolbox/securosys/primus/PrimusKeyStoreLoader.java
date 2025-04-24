@@ -21,7 +21,6 @@ public class PrimusKeyStoreLoader {
 
     final public static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
     final private static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
-    final private static String IMPORT_EXPORT_KEY_STORE_TYPE_GETTER = "getImportExportKeyStoreTypeName";
     final private static String PROVIDER_NAME_GETTER = "getProviderName";
     @Getter(AccessLevel.PACKAGE)
     final private KeyStore keyStore;

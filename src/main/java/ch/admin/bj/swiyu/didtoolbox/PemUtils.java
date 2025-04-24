@@ -12,7 +12,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-public class PemUtils {
+class PemUtils {
 
     private PemUtils() {
     }
@@ -64,7 +64,7 @@ public class PemUtils {
         return Ed25519Utils.encodeMultibase(publicKeyEncoded);
     }
 
-    public static String parsePEMPublicKeyEd25519Multibase(String pemPublicKey) throws InvalidKeySpecException, IOException {
+    static String parsePEMPublicKeyEd25519Multibase(String pemPublicKey) throws InvalidKeySpecException, IOException {
 
         File tempFile = File.createTempFile("mypublickey", ".pem");
         tempFile.deleteOnExit();

@@ -15,27 +15,39 @@ class CreateTdwCommandParametersValidatorTest {
 
     private static final String CREDENTIALS_FILE_PATH = "src/test/data/com.securosys.primus.jce.credentials.properties";
 
+    private static JCommander buildCreateCommand() {
+        return JCommander.newBuilder()
+                .addCommand("create", new CreateTdwCommand())
+                .build();
+    }
+
     private static void testValidatePrimusParameters() {
 
         assertDoesNotThrow(() -> {
-            var jc = JCommander.newBuilder()
-                    .addCommand("create", new CreateTdwCommand())
-                    .build();
-            jc.parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
+            buildCreateCommand().parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever",
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
 
         assertDoesNotThrow(() -> {
-            var jc = JCommander.newBuilder()
-                    .addCommand("create", new CreateTdwCommand())
-                    .build();
-            jc.parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
+            buildCreateCommand().parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever",
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD, "whatever"
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
+            );
+        });
+
+        assertDoesNotThrow(() -> {
+            buildCreateCommand().parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
+            );
+        });
+
+        assertDoesNotThrow(() -> {
+            buildCreateCommand().parse("create", "-u", "https://domain.com:443/path1/path2/did.jsonl",
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
 
@@ -67,10 +79,6 @@ class CreateTdwCommandParametersValidatorTest {
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
 
         assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-        );
-
-        assertCreateTdwCommandThrowsParameterException(
                 CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
         );
 
@@ -89,11 +97,6 @@ class CreateTdwCommandParametersValidatorTest {
          */
 
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
-
-        assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-        );
 
         assertCreateTdwCommandThrowsParameterException(
                 CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
@@ -121,9 +124,7 @@ class CreateTdwCommandParametersValidatorTest {
                         Arrays.stream(args))
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));
 
-        assertThrowsParameterException(() -> JCommander.newBuilder()
-                        .addCommand("create", new CreateTdwCommand())
-                        .build().parse(argz),
+        assertThrowsParameterException(() -> buildCreateCommand().parse(argz),
                 "Incomplete Primus parameters supplied"
         );
     }

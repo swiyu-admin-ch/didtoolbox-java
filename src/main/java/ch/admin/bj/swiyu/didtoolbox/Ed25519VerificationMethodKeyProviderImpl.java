@@ -25,15 +25,20 @@ import java.util.Set;
 
 /**
  * The {@link Ed25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation used to generate pairs of
- * public and private keys for the Ed25519 algorithm (or loading them from the file system). Such key pair is used then
+ * public and private keys for the Ed25519 algorithm (or loading them from the file system). Such key pair is then used
  * for the purpose of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log creation.
  * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
  * It builds extensively on top of {@link Ed25519Signer} and introduces various useful helpers.
  * <p>
- * It is predominantly intended to be used within the {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider} method
- * prior to a {@link TdwCreator#create(URL)} call.
+ * It is predominantly intended to be used within a:
+ * <ul>
+ * <li> {@link ch.admin.bj.swiyu.didtoolbox.TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.TdwCreator#create(URL)} call)</li>
+ * <li>{@link ch.admin.bj.swiyu.didtoolbox.TdwUpdater.TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.TdwUpdater#update(String)} call).</li>
+ * </ul>
  * <p>
- * Thanks to the following constructors, it is also capable of loading an already existing key material from the file system:
+ * Thanks to the following constructor(s), it is also capable of loading an already existing key material from the file system:
  * <ul>
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(File, File)} for loading the update (Ed25519) key from
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>

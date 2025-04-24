@@ -28,28 +28,40 @@ class UpdateTdwCommandParametersValidatorTest {
         dummyDidLogFile.deleteOnExit();
     }
 
+    private static JCommander buildUpdateCommand() {
+        return JCommander.newBuilder()
+                .addCommand("update", new UpdateTdwCommand())
+                .build();
+    }
+
     private static void testValidatePrimusParameters() {
 
         assertDoesNotThrow(() -> {
-
-            var jc = JCommander.newBuilder()
-                    .addCommand("update", new UpdateTdwCommand())
-                    .build();
-            jc.parse("update", "-d", dummyDidLogFile.getPath(), // required
+            buildUpdateCommand().parse("update", "-d", dummyDidLogFile.getPath(), // required
                     CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever",
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
+                    //,CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
             );
         });
 
         assertDoesNotThrow(() -> {
-            var jc = JCommander.newBuilder()
-                    .addCommand("update", new UpdateTdwCommand())
-                    .build();
-            jc.parse("update", "-d", dummyDidLogFile.getPath(), // required
+            buildUpdateCommand().parse("update", "-d", dummyDidLogFile.getPath(), // required
                     CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever",
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD, "whatever"
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
+            );
+        });
+
+        assertDoesNotThrow(() -> {
+            buildUpdateCommand().parse("update", "-d", dummyDidLogFile.getPath(), // required
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
+            );
+        });
+
+        assertDoesNotThrow(() -> {
+            buildUpdateCommand().parse("update", "-d", dummyDidLogFile.getPath(), // required
+                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
+                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
             );
         });
 
@@ -81,10 +93,6 @@ class UpdateTdwCommandParametersValidatorTest {
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
 
         assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-        );
-
-        assertCreateTdwCommandThrowsParameterException(
                 CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
         );
 
@@ -103,11 +111,6 @@ class UpdateTdwCommandParametersValidatorTest {
          */
 
         // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
-
-        assertCreateTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-        );
 
         assertCreateTdwCommandThrowsParameterException(
                 CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
@@ -135,9 +138,7 @@ class UpdateTdwCommandParametersValidatorTest {
                         Arrays.stream(args))
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));
 
-        assertThrowsParameterException(() -> JCommander.newBuilder()
-                        .addCommand("update", new UpdateTdwCommand())
-                        .build().parse(argz),
+        assertThrowsParameterException(() -> buildUpdateCommand().parse(argz),
                 "Incomplete Primus parameters supplied"
         );
     }
