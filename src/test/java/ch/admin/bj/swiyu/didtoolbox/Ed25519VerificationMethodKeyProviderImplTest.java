@@ -6,9 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.*;
@@ -181,8 +179,8 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
         String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(
-                new File("src/test/data/private.pem"),
-                new File("src/test/data/public.pem")).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
+                new FileReader("src/test/data/private.pem"),
+                new FileReader("src/test/data/public.pem")).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -191,7 +189,7 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
         // Using another ("hybrid") signature
 
         signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(
-                new File("src/test/data/private.pem"),
+                new FileReader("src/test/data/private.pem"),
                 PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem"))).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
@@ -206,15 +204,15 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
         boolean verified = new Ed25519VerificationMethodKeyProviderImpl(
-                new File("src/test/data/private.pem"),
-                new File("src/test/data/public.pem")).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
+                new FileReader("src/test/data/private.pem"),
+                new FileReader("src/test/data/public.pem")).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
 
         assertTrue(verified);
 
         // Using another ("hybrid") signature
 
         verified = new Ed25519VerificationMethodKeyProviderImpl(
-                new File("src/test/data/private.pem"),
+                new FileReader("src/test/data/private.pem"),
                 PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem"))).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
 
         assertTrue(verified);
@@ -224,15 +222,15 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     public void testThrowsInvalidKeySpecException() throws IOException {
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/public.pem"), new File("src/test/data/private.pem")); // keys swapped, both wrong
+            new Ed25519VerificationMethodKeyProviderImpl(new FileReader("src/test/data/public.pem"), new FileReader("src/test/data/private.pem")); // keys swapped, both wrong
         });
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/private.pem")); // wrong public key PEM file
+            new Ed25519VerificationMethodKeyProviderImpl(new FileReader("src/test/data/private.pem"), new FileReader("src/test/data/private.pem")); // wrong public key PEM file
         });
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/public.pem"), new File("src/test/data/public.pem")); // wrong private key PEM file
+            new Ed25519VerificationMethodKeyProviderImpl(new FileReader("src/test/data/public.pem"), new FileReader("src/test/data/public.pem")); // wrong private key PEM file
         });
     }
 

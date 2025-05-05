@@ -6,7 +6,6 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -54,10 +53,7 @@ class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519Verification
         // CAUTION There is no known way to set this.keyPair here
         //this.keyPair = new KeyPair(pubKey, privKey);
 
-        // sanity check
-        if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
-            throw new RuntimeException("keys do not match");
-        }
+        sanityCheck();
     }
 
     /**
@@ -83,6 +79,7 @@ class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519Verification
      */
     public byte[] generateSignature(byte[] message) {
 
+        // may throw java.lang.IllegalArgumentException: invalid public key
         Ed25519PrivateKeyParameters secretKeyParameters = new Ed25519PrivateKeyParameters(this.signingKey, 0);
         var signer = new Ed25519Signer();
         signer.init(true, secretKeyParameters);
@@ -93,6 +90,7 @@ class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519Verification
 
     boolean verify(byte[] message, byte[] signature) {
 
+        // may throw java.lang.IllegalArgumentException: invalid public key
         Ed25519PublicKeyParameters publicKeyParameters = new Ed25519PublicKeyParameters(this.verifyingKey, 0);
         var verifier = new Ed25519Signer();
         verifier.init(false, publicKeyParameters);
