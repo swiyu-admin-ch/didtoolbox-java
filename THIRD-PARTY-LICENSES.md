@@ -47,6 +47,7 @@ This is the list of all third-party dependencies grouped by their license type. 
 ## MIT License:
 
 * **multibase** (com.github.multiformats:java-multibase:v1.1.1 - https://github.com/multiformats/java-multibase)
+* **DID Resolver** (io.github.swiyu-admin-ch:didresolver:0.0.999 - https://github.com/swiyu-admin-ch/didresolver)
 * **Project Lombok** (org.projectlombok:lombok:1.18.36 - https://projectlombok.org)
 
 ## Unknown license:
