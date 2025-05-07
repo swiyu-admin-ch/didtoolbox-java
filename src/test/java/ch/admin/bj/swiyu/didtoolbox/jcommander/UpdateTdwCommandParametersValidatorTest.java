@@ -34,6 +34,8 @@ class UpdateTdwCommandParametersValidatorTest {
                 .build();
     }
 
+    // CAUTION For calling this function,
+    //         see the related instructions in pom.xml in regard to Securosys Primus HSM (JCE security provider)
     private static void testValidatePrimusParameters() {
 
         assertDoesNotThrow(() -> {
@@ -152,6 +154,8 @@ class UpdateTdwCommandParametersValidatorTest {
 
     @Test
     void testValidate() {
-        testValidatePrimusParameters();
+        // CAUTION For calling this function,
+        //         see the related instructions in pom.xml in regard to Securosys Primus HSM (JCE security provider)
+        //testValidatePrimusParameters();
     }
 }

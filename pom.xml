@@ -379,18 +379,19 @@
             <version>1.70</version>
         </dependency-->
         <!-- Securosys Primus HSM (JCE security provider) -->
-        <dependency>
-            <!-- https://nexus.bit.admin.ch/#browse/browse:bit-pki-raw-hosted:securosys%2Fjce-provider -->
+        <!-- https://nexus.bit.admin.ch/#browse/browse:bit-pki-raw-hosted:securosys%2Fjce-provider -->
+        <!-- CAUTION using local Maven repo instead, so it becomes integral part of the "fat" jar
+            mvn install:install-file -Dfile=lib/primusX-java11.jar -DgroupId=com.securosys.primus -DartifactId=jce -Dversion=2.4.4 -Dpackaging=jar -DlocalRepositoryPath=$HOME/.m2/repository
+            -->
+        <!-- CAUTION Otherwise, to prevent com.securosys.primus packages to end up in the "fat" JAR (didtoolbox-x.y.z-jar-with-dependencies.jar) set:
+             <scope>test</scope>
+            -->
+        <!--dependency>
             <groupId>com.securosys.primus</groupId>
             <artifactId>jce</artifactId>
             <version>2.4.4</version>
-            <!-- CAUTION using local Maven repo instead, so it becomes integral part of the "fat" jar
-            mvn install:install-file -Dfile=lib/primusX-java11.jar -DgroupId=com.securosys.primus -DartifactId=jce -Dversion=2.4.4 -Dpackaging=jar -DlocalRepositoryPath=$HOME/.m2/repository
-            -->
-            <!-- CAUTION Otherwise, to prevent ending up in the "fat" JAR (didtoolbox-x.y.z-jar-with-dependencies.jar) -->
             <scope>test</scope>
-            <!--systemPath>${user.home}/.m2/repository/com/securosys/primus/jce/2.4.4/jce-2.4.4.jar</systemPath-->
-        </dependency>
+        </dependency-->
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
