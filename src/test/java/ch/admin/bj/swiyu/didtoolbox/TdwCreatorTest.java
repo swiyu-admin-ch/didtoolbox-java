@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -29,8 +30,8 @@ public class TdwCreatorTest {
     static {
         try {
             VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(
-                    new File("src/test/data/private.pem"),
-                    new File("src/test/data/public.pem"));
+                    new FileReader("src/test/data/private.pem"),
+                    new FileReader("src/test/data/public.pem"));
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
             VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
                     new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit");

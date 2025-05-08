@@ -17,16 +17,16 @@ class PemUtils {
     private PemUtils() {
     }
 
-    /**
-     * @param pemFile
-     * @return
-     * @throws IOException in case of a parse error.
-     */
     static byte[] parsePEMFile(File pemFile) throws IOException {
+
         if (!pemFile.isFile() || !pemFile.exists()) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", pemFile.getAbsolutePath()));
         }
-        PemReader reader = new PemReader(new FileReader(pemFile));
+        return readPemObject(new FileReader(pemFile));
+    }
+
+    static byte[] readPemObject(Reader pemKeyReader) throws IOException {
+        PemReader reader = new PemReader(pemKeyReader);
         PemObject pemObject = reader.readPemObject();
         byte[] content = pemObject.getContent();
         reader.close();

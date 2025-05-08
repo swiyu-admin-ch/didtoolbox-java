@@ -1,15 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import io.ipfs.multibase.Base58;
-import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +17,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -28,7 +25,7 @@ import java.util.Set;
  * public and private keys for the Ed25519 algorithm (or loading them from the file system). Such key pair is then used
  * for the purpose of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log creation.
  * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
- * It builds extensively on top of {@link Ed25519Signer} and introduces various useful helpers.
+ * It builds on top of {@link java.security} and introduces various useful helpers.
  * <p>
  * It is predominantly intended to be used within a:
  * <ul>
@@ -40,7 +37,7 @@ import java.util.Set;
  * <p>
  * Thanks to the following constructor(s), it is also capable of loading an already existing key material from the file system:
  * <ul>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(File, File)} for loading the update (Ed25519) key from
+ * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} for loading the update (Ed25519) key from
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
  * </ul>
@@ -56,8 +53,23 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     protected final KeyPair keyPair;
     protected Provider provider = Security.getProvider(DEFAULT_JCE_PROVIDER_NAME);
 
-    protected Ed25519VerificationMethodKeyProviderImpl(KeyPair keyPair, Provider provider) {
-        this.keyPair = keyPair;
+    /**
+     * The explicit constructor featuring an <code>Ed25519</code> {@link KeyPair} object.
+     * It fails (with {@link IllegalArgumentException} thrown) if a supplied {@link KeyPair} object is either <code>null</code> or invalid for whatever reason
+     * e.g. invalid encoding, wrong length, uninitialized, private/public key mismatch etc.
+     * <p>
+     * The (default) JCE provider remains {@link BouncyCastleProvider}.
+     * <p>
+     * CAUTION It is assumed the keys do really match. Otherwise, {@link IllegalArgumentException} is thrown.
+     */
+    public Ed25519VerificationMethodKeyProviderImpl(KeyPair ed25519KeyPair) {
+        this.keyPair = ed25519KeyPair;
+
+        sanityCheck();
+    }
+
+    protected Ed25519VerificationMethodKeyProviderImpl(KeyPair ed25519KeyPair, Provider provider) {
+        this.keyPair = ed25519KeyPair;
 
         if (provider != null) {
             this.provider = provider;
@@ -67,10 +79,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             throw new RuntimeException("No default JCE provider installed: " + DEFAULT_JCE_PROVIDER_NAME);
         }
 
-        // sanity check
-        if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
-            throw new RuntimeException("keys do not match");
-        }
+        sanityCheck();
     }
 
     /**
@@ -148,43 +157,73 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * The <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> file based {@link Ed25519VerificationMethodKeyProviderImpl} constructor.
      * <p>
-     * CAUTION It is assumed the keys do really match. Otherwise, {@link RuntimeException} is thrown.
+     * CAUTION It is assumed the keys do really match. Otherwise, {@link IllegalArgumentException} is thrown.
      *
      * @param privatePemFile file to load a private Ed25519 key from. It is assumed to be encoded according to the PKCS #8 standard.
      * @param publicPemFile  file to load a public Ed25519 key from. It is assumed to be encoded according to the X.509 standard.
      * @throws IOException             in case of a parse error.
      * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
+     * @deprecated use {@link #Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} instead.
      */
     public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException {
+        this(new FileReader(privatePemFile), new FileReader(publicPemFile));
+    }
 
-        byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
+    /**
+     * The {@link Reader}-based {@link Ed25519VerificationMethodKeyProviderImpl} constructor
+     * accepting keys in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format from various sources.
+     * <p>
+     * CAUTION It is assumed the keys do really match. Otherwise, {@link IllegalArgumentException} is thrown.
+     *
+     * @param privateKeyReader reader to load a private Ed25519 key from. It is assumed to be encoded according to the PKCS #8 standard.
+     * @param publicKeyReader  reader to load a public Ed25519 key from. It is assumed to be encoded according to the X.509 standard.
+     * @throws IOException             in case of a parse error.
+     * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
+     */
+    public Ed25519VerificationMethodKeyProviderImpl(Reader privateKeyReader, Reader publicKeyReader) throws IOException, InvalidKeySpecException {
+
+        byte[] privatePemBytes = PemUtils.readPemObject(privateKeyReader);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
 
-        byte[] publicPemBytes = PemUtils.parsePEMFile(publicPemFile);
+        byte[] publicPemBytes = PemUtils.readPemObject(publicKeyReader);
         PublicKey pubKey = PemUtils.getPublicKeyEd25519(publicPemBytes);
 
         this.keyPair = new KeyPair(pubKey, privKey);
 
-        // sanity check
-        if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
-            throw new RuntimeException("keys do not match");
-        }
+        sanityCheck();
     }
 
     /**
      * Yet another "hybrid" {@link Ed25519VerificationMethodKeyProviderImpl} constructor accepting keys in various formats.
      * <p>
-     * CAUTION It is assumed the keys do really match. Otherwise, {@link RuntimeException} is thrown.
+     * CAUTION It is assumed the keys do really match. Otherwise, {@link IllegalArgumentException} is thrown.
      *
      * @param privatePemFile     file to load a private Ed25519 key from. It is assumed to be encoded according to the PKCS #8 standard.
      * @param publicKeyMultibase the base58-encoded string to decode as public Ed25519 key.
      * @throws IOException             in case of a parse error.
      * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
+     * @deprecated use {@link #Ed25519VerificationMethodKeyProviderImpl(Reader, String)} instead.
      */
-    public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, String publicKeyMultibase) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+    public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, String publicKeyMultibase)
+            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
-        byte[] privatePemBytes = PemUtils.parsePEMFile(privatePemFile);
-        PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
+        this(new FileReader(privatePemFile), publicKeyMultibase);
+    }
+
+    /**
+     * Yet another "hybrid" {@link Ed25519VerificationMethodKeyProviderImpl} constructor accepting keys in various formats and from various sources.
+     * <p>
+     * CAUTION It is assumed the keys do really match. Otherwise, {@link IllegalArgumentException} is thrown.
+     *
+     * @param privateKeyReader   reader to load a private Ed25519 key from. It is assumed to be encoded according to the PKCS #8 standard.
+     * @param publicKeyMultibase the base58-encoded string to decode as public Ed25519 key.
+     * @throws IOException             in case of a parse error.
+     * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
+     */
+    public Ed25519VerificationMethodKeyProviderImpl(Reader privateKeyReader, String publicKeyMultibase)
+            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+
+        PrivateKey privKey = PemUtils.getPrivateKeyEd25519(PemUtils.readPemObject(privateKeyReader));
 
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
         ByteBuffer buff = ByteBuffer.allocate(32);
@@ -193,10 +232,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         this.keyPair = new KeyPair(pubKey, privKey);
 
-        // sanity check
-        if (!this.verify("hello world".getBytes(StandardCharsets.UTF_8), this.generateSignature("hello world".getBytes(StandardCharsets.UTF_8)))) {
-            throw new RuntimeException("keys do not match");
-        }
+        sanityCheck();
     }
 
     /**
@@ -242,6 +278,23 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         var publicKey = cert.getPublicKey();
 
         return new Ed25519VerificationMethodKeyProviderImpl(new KeyPair(publicKey, key), keyStore.getProvider());
+    }
+
+    /**
+     * The private/public keys (supplied within {@link #keyPair}) should match. Otherwise, {@link IllegalArgumentException} is thrown.
+     */
+    protected void sanityCheck() {
+
+        // alphanumerical chars falls within  ['0':'z'] range with...
+        var generatedString = new Random().ints(48, 122 + 1)
+                .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97)) // ...with two gaps inbetween
+                .limit(1024) // the higher, the better
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+
+        if (!this.verify(generatedString.getBytes(StandardCharsets.UTF_8), this.generateSignature(generatedString.getBytes(StandardCharsets.UTF_8)))) {
+            throw new IllegalArgumentException("supplied keys do not match");
+        }
     }
 
     /**
@@ -308,6 +361,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      *
      * @return public verification key in multibase format.
      */
+    @Override
     public String getVerificationKeyMultibase() {
 
         if (this.keyPair == null) {
@@ -328,6 +382,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @param message to sign
      * @return signed message
      */
+    @Override
     public byte[] generateSignature(byte[] message) {
 
         if (this.provider == null) {

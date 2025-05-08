@@ -12,6 +12,7 @@ import com.beust.jcommander.UnixStyleUsageFormatter;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -160,7 +161,7 @@ public class Main {
                         File verifyingKeyPemFile = null;
                         for (var pemFile : verifyingKeyPemFiles) {
                             try {
-                                signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, pemFile); // supplied external key pair
+                                signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), new FileReader(pemFile)); // supplied external key pair
                                 // At this point, the matching verifying key is detected, so we are free to break from the loop
                                 verifyingKeyPemFile = pemFile;
                                 break;
@@ -284,7 +285,7 @@ public class Main {
                         for (var key : didLogMeta.params.updateKeys) {
                             try {
                                 // the signing key is supplied externally, but verifying key should be already among updateKeys
-                                signer = new Ed25519VerificationMethodKeyProviderImpl(signingKeyPemFile, key);
+                                signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
                                 // At this point, the matching verifying key is detected, so we are free to break from the loop
                                 matchingUpdateKey = key;
                                 break;
