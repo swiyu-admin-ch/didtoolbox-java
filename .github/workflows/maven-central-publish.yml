@@ -11,6 +11,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Decode GPG private key into file
+        id: write_gpg_file
+        uses: timheuer/base64-to-file@v1.2.4
+        with:
+          fileName: 'GPG_PRIVATE_KEY.gpg'
+          encodedString: ${{ secrets.GPG_PRIVATE_KEY_BASE64 }}
+
+      - name: Read decoded GPG private key file
+        id: read_gpg_file
+        #uses: andstor/file-reader-action@v1
+        uses: juliangruber/read-file-action@v1.1.7
+        with:
+          path: ${{ steps.write_gpg_file.outputs.filePath }}
+          trim: true
+
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v4
         with:
@@ -19,10 +35,13 @@ jobs:
           server-id: central
           server-username: MAVEN_CENTRAL_USERNAME
           server-password: MAVEN_CENTRAL_PASSWORD
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          #gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-private-key: ${{ steps.read_gpg_file.outputs.content }}
           gpg-passphrase: GPG_PASSPHRASE
+
       - name: Set version (from release tag)
         run: mvn versions:set -DnewVersion=${{ github.event.release.tag_name }}
+
       - name: Publish to repo
         run: mvn --batch-mode deploy -DskipTests
         env:
