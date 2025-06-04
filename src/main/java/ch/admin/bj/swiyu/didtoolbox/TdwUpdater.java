@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import ch.admin.eid.didtoolbox.DidDoc;
-import ch.admin.eid.didtoolbox.VerificationMethod;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -13,9 +12,9 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.io.File;
-import java.io.Reader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -114,31 +113,18 @@ public class TdwUpdater {
     private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
 
-    private static JsonObject verificationMethodAsJsonObject(VerificationMethod vm) {
-        var publicKeyJwk = vm.getPublicKeyJwk();
-
-        JsonObject publicKeyJwkJsonObj = new JsonObject();
-        publicKeyJwkJsonObj.addProperty("kty", publicKeyJwk.getKty());
-        publicKeyJwkJsonObj.addProperty("crv", publicKeyJwk.getCrv());
-        publicKeyJwkJsonObj.addProperty("kid", publicKeyJwk.getKid());
-        publicKeyJwkJsonObj.addProperty("x", publicKeyJwk.getX());
-        publicKeyJwkJsonObj.addProperty("y", publicKeyJwk.getY());
-
-        JsonObject obj = new JsonObject();
-        obj.addProperty("id", vm.getId());
-        obj.addProperty("controller", vm.getController());
-        obj.addProperty("type", "JsonWebKey2020");
-        obj.add("publicKeyJwk", publicKeyJwkJsonObj);
-
-        return obj;
-    }
-
     private static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String publicKeyJwk) throws TdwUpdaterException {
 
         JsonObject verificationMethodObj = new JsonObject();
         verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
-        verificationMethodObj.addProperty("controller", didTDW);
+        // CAUTION The "controller" property must not be present w.r.t.:
+        // - https://jira.bit.admin.ch/browse/EIDSYS-35
+        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        //verificationMethodObj.addProperty("controller", didTDW);
         verificationMethodObj.addProperty("type", "JsonWebKey2020");
+        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
+        // - https://jira.bit.admin.ch/browse/EIDOMNI-35
+        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
         //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
         verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
 
@@ -237,7 +223,9 @@ public class TdwUpdater {
         didDoc.add("@context", context);
 
         didDoc.addProperty("id", didTDW);
-        // "controller" is omitted w.r.t. https://jira.bit.admin.ch/browse/EIDSYS-352
+        // CAUTION "controller" property is omitted w.r.t.:
+        // - https://jira.bit.admin.ch/browse/EIDSYS-352
+        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
         //didDoc.addProperty("controller", didTDW);
 
         if ((this.authenticationKeys == null || this.authenticationKeys.isEmpty())
@@ -385,6 +373,11 @@ public class TdwUpdater {
 
         did = new Did(didLogMeta.didDocId);
         try {
+            // NOTE Enforcing DID log conformity by calling:
+            //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
+            //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
+            //          .validate(didLogEntryWithProof.toString());
+            //      would not be necessary here, as it is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
             did.resolve(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {

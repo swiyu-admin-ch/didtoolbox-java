@@ -9,7 +9,7 @@
     <groupId>io.github.swiyu-admin-ch</groupId>
 
     <artifactId>didtoolbox</artifactId>
-    <version>1.3.1</version>
+    <version>1.3.2</version>
     <packaging>jar</packaging>
 
     <!-- required by https://central.sonatype.org/publish/requirements/ -->
@@ -329,7 +329,7 @@
                          For the sake of Maven Central publishing, it must now match the Maven Central namespace. -->
             <groupId>io.github.swiyu-admin-ch</groupId>
             <artifactId>didresolver</artifactId>
-            <version>2.0.1</version>
+            <version>2.1.0</version>
         </dependency>
         <!-- MANDATORY (required by didresolver) -->
         <dependency>

@@ -133,7 +133,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
                     .updateKeys(Set.of(new File("src/test/data/public.pem"))) // to be able to use VERIFICATION_METHOD_KEY_PROVIDER while updating
                     .build()
-                    .create(URL.of(new URI("https://127.0.0.1:54858"), null), ZonedDateTime.parse(ISO_DATE_TIME));
+                    .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null), ZonedDateTime.parse(ISO_DATE_TIME));
         } catch (Exception simplyIntolerable) {
             throw new RuntimeException(simplyIntolerable);
         }

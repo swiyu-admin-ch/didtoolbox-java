@@ -11,15 +11,16 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.io.File;
-import java.io.Reader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.URL;
 import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link TdwCreator} is the class in charge of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log generation.
@@ -138,8 +139,14 @@ public class TdwCreator {
 
         JsonObject verificationMethodObj = new JsonObject();
         verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
-        verificationMethodObj.addProperty("controller", didTDW);
+        // CAUTION The "controller" property must not be present w.r.t.:
+        // - https://jira.bit.admin.ch/browse/EIDSYS-352
+        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        //verificationMethodObj.addProperty("controller", didTDW);
         verificationMethodObj.addProperty("type", "JsonWebKey2020");
+        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
+        // - https://jira.bit.admin.ch/browse/EIDOMNI-35
+        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
         //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
         verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
 
@@ -185,7 +192,9 @@ public class TdwCreator {
         var didDoc = new JsonObject();
         didDoc.add("@context", context);
         didDoc.addProperty("id", didTDW);
-        // "controller" is omitted w.r.t. https://jira.bit.admin.ch/browse/EIDSYS-352
+        // CAUTION The "controller" property must not be present w.r.t.:
+        // - https://jira.bit.admin.ch/browse/EIDSYS-352
+        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
         //didDoc.addProperty("controller", didTDW);
 
         JsonArray verificationMethod = new JsonArray();
@@ -357,6 +366,11 @@ public class TdwCreator {
         Did did = null;
         try {
             did = new Did(DidLogMetaPeeker.peek(didLogEntryWithProof.toString()).didDocId);
+            // NOTE Enforcing DID log conformity by calling:
+            //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
+            //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
+            //          .validate(didLogEntryWithProof.toString());
+            //      would not be necessary here, as it is already part of the `resolve` method.
             did.resolve(didLogEntryWithProof.toString()); // sanity check
         } catch (DidResolveException | DidLogMetaPeekerException e) {
             throw new RuntimeException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);

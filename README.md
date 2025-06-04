@@ -153,7 +153,7 @@ Usage: didtoolbox [options] [command] [command options]
 
 $ java -jar didtoolbox.jar -V
 
-didtoolbox 1.3.0
+didtoolbox 1.3.1
 ```
 
 ## Quickstart – Create Your First DID
@@ -436,7 +436,7 @@ For more control over the DID creation process, you can use specific CLI options
 $ java -jar didtoolbox.jar create \
     -a my-assert-key-01,src/test/data/assert-key-01.pub \
     -t my-auth-key-01,src/test/data/auth-key-01.pub \
-    -u https://domain.com:443/path1/path2 \
+    -u https://domain.com/path1/path2 \
     -j src/test/data/mykeystore.jks \
     --jks-password changeit \
     --jks-alias myalias                                              
@@ -448,7 +448,7 @@ $ java -jar didtoolbox.jar create \
 $ java -jar didtoolbox.jar create \
     -a my-assert-key-01,src/test/data/assert-key-01.pub \
     -t my-auth-key-01,src/test/data/auth-key-01.pub \
-    -u https://domain.com:443/path1/path2 \
+    -u https://domain.com/path1/path2 \
     -s src/test/data/private.pem \
     -v src/test/data/public.pem                                              
 ```

@@ -16,10 +16,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Manifest;
 
 import static ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand.DEFAULT_METHOD_VERSION;
@@ -347,7 +344,7 @@ public class Main {
 
     private String getImplementationTitle() {
         // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
-        return getManifestResourceValue("Implementation-Title");
+        return Arrays.stream(getManifestResourceValue("Implementation-Title").split(":")).toList().getLast();
     }
 
     private String getImplementationVersion() {

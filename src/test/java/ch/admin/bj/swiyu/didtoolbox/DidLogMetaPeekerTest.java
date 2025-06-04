@@ -58,7 +58,7 @@ class DidLogMetaPeekerTest {
                     .assertionMethodKeys(Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")))
                     .authenticationKeys(Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")))
                     .build()
-                    .create(URL.of(new URI("https://127.0.0.1:54858"), null), ZonedDateTime.parse("2012-12-12T12:12:12Z"));
+                    .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null), ZonedDateTime.parse("2012-12-12T12:12:12Z"));
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
         }
