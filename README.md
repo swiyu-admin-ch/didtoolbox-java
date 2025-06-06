@@ -151,6 +151,42 @@ Usage: didtoolbox [options] [command] [command options]
             The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s 
             option. In PEM format. This CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters
 
+    deactivate      Deactivate (revoke) a did:tdw DID log. To supply a signing/verifying key pair, always rely on one of the three available command 
+            parameter sets exclusively, each of then denoting a whole another source of such key material: PEM files, a Java KeyStore (PKCS12) or a 
+            Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) connection, the required JCE provider (JAR) library 
+            (primusX-java8.jar or primusX-java11.jar) is expected to be stored on the system alongside the DID-Toolbox, more specifically in the lib 
+            subdirectory, e.g. as lib/primusX-java11.jar
+      Usage: deactivate [options]
+        Options:
+        * --did-log-file, -d
+            The file containing a valid did:tdw DID log to deactivate
+          --help, -h
+            Display help for the DID toolbox 'deactivate' command
+          --jks-alias
+            Java KeyStore alias name of the entry to process. This CLI parameter should always be used exclusively alongside all the other --jks-* 
+            CLI parameters
+          --jks-file, -j
+            Java KeyStore (PKCS12) file to read the (signing/verifying) keys from. This CLI parameter should always be used exclusively alongside all 
+            the other --jks-* CLI parameters
+          --jks-password
+            Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore. This CLI parameter should 
+            always be used exclusively alongside all the other --jks-* CLI parameters
+          --primus-credentials, -p
+            A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. It should 
+            feature a quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and 
+            securosys_primus_password. Any credential missing in this file will simply fallback to its system environment counterpart (if set) - the 
+            relevant envvars in this case are: SECUROSYS_PRIMUS_HOST, SECUROSYS_PRIMUS_PORT, SECUROSYS_PRIMUS_USER and SECUROSYS_PRIMUS_PASSWORD. 
+            This CLI parameter should always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
+          --primus-keystore-alias, -q
+            An alias the (signing/verifying) key pair (stored in the Securosys Primus (HSM) Keystore) is associated with. This CLI parameter should 
+            always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
+          --primus-keystore-password
+            An optional password required for recovering the (signing/verifying) key pair (stored in Securosys Primus (HSM) Keystore). This CLI 
+            parameter should always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
+          --signing-key-file, -s
+            The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format. This 
+            CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters
+
 $ java -jar didtoolbox.jar -V
 
 didtoolbox 1.3.1
@@ -193,7 +229,6 @@ The generated DID log content should look similar as shown below. After creation
 
 ```json
 ["1-QmRdMTkEvFsfkFv8eJp9nUWnecXF3EzDQJhuetHMTVMFdg","2025-03-21T07:38:51Z",{"method":"did:tdw:0.3","scid":"Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK","updateKeys":["z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC"],"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01"],"assertionMethod":["did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01"],"verificationMethod":[{"id":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#auth-key-01","controller":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"5cice-6ILYCD2gFEVFMLPt3HPf5n_OefzOOoP-3SLDA","y":"lh_YkKQvF_1xv0uYuvy1t6wpDM7au1dMEg2L1I9wDxE","kid":"auth-key-01"}},{"id":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#assert-key-01","controller":"did:tdw:Qmd9bwsodZ1GAz4h8D7Vy6qRio78voXifDrnXokSTsMVQK:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","x":"Z4Hp-L-THKPCUQqYOyICAU7YekPsYwOjrLaiOW_EdXk","y":"tF0NJM4B5J85zFtvgHNtnk6pV7VY52GAq0nppq2Pop0","kid":"assert-key-01"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-03-21T07:38:51Z","verificationMethod":"did:key:z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC#z6MknjdKazKDMB66puMBqbMkg5uR834Mr51RYtmdBC9JFvFC","proofPurpose":"authentication","challenge":"1-QmRdMTkEvFsfkFv8eJp9nUWnecXF3EzDQJhuetHMTVMFdg","proofValue":"z4yxZfm1nG6AerU5Mg3yrrvqn2mmMRjMJC4999BunnS3hg9SVjicugw8ZWEJYsQkarypDNRAqAjo48bH42ekyMa1c"}]]
-
 ```
 
 Prettified version of the DID log content above.
@@ -470,6 +505,28 @@ java -jar didtoolbox.jar update \
     -t my-auth-key-01,.didtoolbox/auth-key-01.pub \
     -s .didtoolbox/id_ed25519 \
     -v .didtoolbox/id_ed25519.pub > /tmp/did-2.jsonl
+```
+
+### DID Deactivation (Revoke)
+
+Once a created `did.jsonl` file is available, you may also use the `deactivate` subcommand at any point to 
+[**deactivate (revoke)**](https://identity.foundation/didwebvh/v0.3/#deactivate-revoke) this DID:
+
+```shell
+java -jar didtoolbox.jar create \
+    -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did18fa7c77-9dd1-4e20-a147-fb1bec146085 > /tmp/my-did.jsonl
+
+# bear in mind, the command above will store the generated (auth/assert) keys in the .didtoolbox directory
+
+java -jar didtoolbox.jar deactivate \
+    -d /tmp/did.jsonl \
+    -s .didtoolbox/id_ed25519 > /tmp/did-deactivated.jsonl
+```
+
+The _deactivated_ DID log file should now contain another DID log entry denoting deactivation (via DID parameter `{"deactivated":true}`) and featuring no key material whatsoever: 
+
+```json
+["2-QmYQzLCTC71ySKKKpS8i5sqmnz2ksD6ExCeMFJJ1FH9XHk","2025-06-05T15:35:28Z",{"deactivated":true},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmWajZPizzrHBJKC3Q7eGbzLnqCNUXiU265k6EufAXu2Uu:domain.com:path1:path2"}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-06-05T15:35:28Z","verificationMethod":"did:key:z6Mksw8VDjDroQwa9gvyZ21oS4xPRdiMLtzd2gZcPh1DNKJK#z6Mksw8VDjDroQwa9gvyZ21oS4xPRdiMLtzd2gZcPh1DNKJK","proofPurpose":"authentication","challenge":"2-QmYQzLCTC71ySKKKpS8i5sqmnz2ksD6ExCeMFJJ1FH9XHk","proofValue":"z4aRg9mEo2TkZna5imoJaQSWViP29mQPB1EgkftTdxzL3NxSQJB9RAeTzBhMLbCaZiUdbumxjwQTH9UGt7PEMz7np"}]]
 ```
 
 ## Additional Information

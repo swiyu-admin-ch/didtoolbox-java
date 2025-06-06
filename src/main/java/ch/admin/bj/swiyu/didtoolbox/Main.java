@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.DeactivateTdwCommand;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.UpdateTdwCommand;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.VerificationMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
@@ -47,10 +48,12 @@ public class Main {
 
         var createCommand = new CreateTdwCommand();
         var updateCommand = new UpdateTdwCommand();
+        var deactivateCommand = new DeactivateTdwCommand();
         var jc = JCommander.newBuilder()
                 .addObject(main)
                 .addCommand("create", createCommand)
                 .addCommand("update", updateCommand)
+                .addCommand("deactivate", deactivateCommand)
                 .programName(main.getImplementationTitle())
                 .columnSize(150)
                 .build();
@@ -91,6 +94,7 @@ public class Main {
         boolean arePemParamsSupplied;
         boolean areJksParamsSupplied;
         boolean arePrimusParamsSupplied;
+        File didLogFile;
 
         switch (parsedCommandName) {
 
@@ -229,7 +233,7 @@ public class Main {
                     System.exit(0);
                 }
 
-                File didLogFile = updateCommand.didLogFile;
+                didLogFile = updateCommand.didLogFile;
 
                 assertionMethodsMap = new HashMap<>();
                 var updateCommandAssertionMethodKeys = updateCommand.assertionMethodKeys;
@@ -314,6 +318,83 @@ public class Main {
                             .updateKeys(verifyingKeyPemFiles)
                             .build()
                             .update(didLogFile);
+
+                    // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
+                    System.out.println(new StringBuilder(Files.readString(didLogFile.toPath()).trim()).append(System.lineSeparator()).append(newLogEntry));
+
+                } catch (Exception e) {
+                    overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
+                }
+
+                break;
+
+            case "deactivate":
+
+                if (deactivateCommand.help) {
+                    jc.usage(parsedCommandName);
+                    System.exit(0);
+                }
+
+                didLogFile = deactivateCommand.didLogFile;
+
+                signingKeyPemFile = deactivateCommand.signingKeyPemFile;
+
+                jksFile = deactivateCommand.jksFile;
+                jksPassword = deactivateCommand.jksPassword;
+                jksAlias = deactivateCommand.jksAlias;
+
+                primus = deactivateCommand.securosysPrimusKeyStoreLoader;
+                primusKeyAlias = deactivateCommand.primusKeyAlias;
+                primusKeyPassword = deactivateCommand.primusKeyPassword;
+
+                arePemParamsSupplied = signingKeyPemFile != null;
+                areJksParamsSupplied = jksFile != null && jksPassword != null && jksAlias != null;
+                arePrimusParamsSupplied = primus != null && primusKeyAlias != null;
+                if (arePemParamsSupplied && areJksParamsSupplied ||
+                        arePemParamsSupplied && arePrimusParamsSupplied ||
+                        areJksParamsSupplied && arePrimusParamsSupplied) {
+                    overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
+                }
+
+                try {
+
+                    VerificationMethodKeyProvider signer = null; // no default, must be supplied
+
+                    if (signingKeyPemFile != null) {
+
+                        var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
+                        String matchingUpdateKey = null;
+                        for (var key : didLogMeta.params.updateKeys) {
+                            try {
+                                // the signing key is supplied externally, but verifying key should be already among updateKeys
+                                signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
+                                // At this point, the matching verifying key is detected, so we are free to break from the loop
+                                matchingUpdateKey = key;
+                                break;
+                            } catch (Exception ignoreNonMatchingKey) {
+                            }
+                        }
+
+                        if (matchingUpdateKey == null) {
+                            overAndOut(jc, parsedCommandName, "No matching signing key supplied");
+                        }
+
+                    } else if (jksFile != null && jksPassword != null && jksAlias != null) {
+                        // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+
+                    } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
+
+                        signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
+
+                    } else {
+                        overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) keys supplied. Use one of the relevant options to supply keys");
+                    }
+
+                    var newLogEntry = TdwDeactivator.builder()
+                            .verificationMethodKeyProvider(signer)
+                            .build()
+                            .deactivate(didLogFile);
 
                     // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
                     System.out.println(new StringBuilder(Files.readString(didLogFile.toPath()).trim()).append(System.lineSeparator()).append(newLogEntry));
