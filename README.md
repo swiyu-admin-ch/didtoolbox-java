@@ -188,7 +188,7 @@ Usage: didtoolbox [options] [command] [command options]
 
 $ java -jar didtoolbox.jar -V
 
-didtoolbox 1.3.1
+didtoolbox 1.4.0
 ```
 
 ## Quickstart – Create Your First DID
