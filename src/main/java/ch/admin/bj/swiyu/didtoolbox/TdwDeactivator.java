@@ -29,13 +29,13 @@ import java.time.temporal.ChronoUnit;
  * log goes simply by calling {@link #deactivate(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwDeactivator.TdwDeactivatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwDeactivator.TdwDeactivatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting a signing (Ed25519) key</li>
  * </ul>
  * To load keys from the file system, the following helpers are available:
  * <ul>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} for loading the update (Ed25519) key from
+ * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} for loading a signing (Ed25519) key from
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
+ * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading a signing (Ed25519) key from Java KeyStore (JKS) files</li>
  * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion public
  * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
  * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
@@ -95,7 +95,7 @@ public class TdwDeactivator {
      *
      * @param didLog to deactivate. Expected to be resolvable/verifiable already.
      * @return a whole new <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
-     * @throws TdwDeactivatorException if update fails for whatever reason.
+     * @throws TdwDeactivatorException if deactivation fails for whatever reason.
      * @see #deactivate(String, ZonedDateTime)
      */
     public String deactivate(String didLog) throws TdwDeactivatorException {
@@ -105,8 +105,8 @@ public class TdwDeactivator {
     /**
      * The file-system-as-input variation of {@link #deactivate(String)}
      *
-     * @throws TdwDeactivatorException if update fails for whatever reason
-     * @throws IOException         if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
+     * @throws TdwDeactivatorException if deactivation fails for whatever reason
+     * @throws IOException             if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
      * @see #deactivate(String)
      */
     String deactivate(File didLogFile) throws TdwDeactivatorException, IOException {
@@ -114,16 +114,16 @@ public class TdwDeactivator {
     }
 
     /**
-     * Updates a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log for a supplied datetime.
+     * Deactivates a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log for a supplied datetime.
      * <p>
      * This package-scope method is certainly more potent than the public one.
      * <p>
      * <b>However, it is introduced for the sake of testability only.</b>
      *
-     * @param didLog to update. Expected to be resolvable/verifiable already.
+     * @param didLog to deactivate. Expected to be resolvable/verifiable already.
      * @param zdt    a date-time with a time-zone in the ISO-8601 calendar system
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
-     * @throws TdwDeactivatorException if update fails for whatever reason.
+     * @throws TdwDeactivatorException if deactivation fails for whatever reason.
      */
     String deactivate(String didLog, ZonedDateTime zdt) throws TdwDeactivatorException {
 
@@ -263,7 +263,7 @@ public class TdwDeactivator {
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
             did.resolve(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
-            throw new RuntimeException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
+            throw new RuntimeException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {
             did.close();
         }
