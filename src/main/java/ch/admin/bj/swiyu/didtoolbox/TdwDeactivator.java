@@ -79,14 +79,9 @@ import java.time.temporal.ChronoUnit;
  * </pre>
  */
 @Builder
-@Getter
 public class TdwDeactivator {
 
-    private static String SCID_PLACEHOLDER = "{SCID}";
-
     @Builder.Default
-    @Getter(AccessLevel.PRIVATE)
-    //@Setter(AccessLevel.PUBLIC)
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
 
     /**
@@ -208,6 +203,10 @@ public class TdwDeactivator {
 
         var didMethodParameters = new JsonObject();
         didMethodParameters.addProperty("deactivated", true);
+        // https://identity.foundation/didwebvh/v0.3/#deactivate-revoke:
+        // A DID MAY update the DIDDoc further to indicate the deactivation of the DID, such as including an empty updateKeys list
+        // ("updateKeys": []) in the parameters, preventing further versions of the DID.
+        didMethodParameters.add("updateKeys", new JsonArray());
 
         didLogEntryWithoutProofAndSignature.add(didMethodParameters);
 

@@ -15,8 +15,8 @@ import java.util.Set;
                 "each of then denoting a whole another source of such key material: " +
                 "PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. " +
                 "In case of a Securosys Primus (HSM) connection, the required JCE provider (JAR) library " +
-                "(primusX-java8.jar or primusX-java11.jar) is expected to be stored on the system alongside the DID-Toolbox, " +
-                "more specifically in the lib subdirectory, e.g. as lib/primusX-java11.jar",
+                "(primusX-java8.jar or primusX-java11.jar) is expected to be stored on the system alongside the DID-Toolbox " +
+                "in the lib subdirectory (e.g. as lib/primusX-java11.jar)",
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {TdwCommandParametersValidator.class}
 )

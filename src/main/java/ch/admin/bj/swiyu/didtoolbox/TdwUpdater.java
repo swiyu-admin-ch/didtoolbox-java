@@ -99,17 +99,13 @@ public class TdwUpdater {
     private static String SCID_PLACEHOLDER = "{SCID}";
 
     @Getter(AccessLevel.PRIVATE)
-    //@Setter(AccessLevel.PUBLIC)
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PRIVATE)
-    //@Setter(AccessLevel.PUBLIC)
     private Map<String, String> authenticationKeys;
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    //@Setter(AccessLevel.PUBLIC)
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PRIVATE)
-    //@Setter(AccessLevel.PUBLIC)
     private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
 

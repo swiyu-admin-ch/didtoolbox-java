@@ -329,7 +329,7 @@
                          For the sake of Maven Central publishing, it must now match the Maven Central namespace. -->
             <groupId>io.github.swiyu-admin-ch</groupId>
             <artifactId>didresolver</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
         </dependency>
         <!-- MANDATORY (required by didresolver) -->
         <dependency>

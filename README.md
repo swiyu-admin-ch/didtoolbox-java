@@ -45,8 +45,7 @@ Before using the DID-Toolbox, ensure your system meets the following requirement
 - **Sufficient Disk Space:** Allocate enough disk space for the tool and the generated key materials. 100 MB should suffice, depending on the number of DIDs you intend to generate.
 - **Third-party JCE provider library (OPTIONAL, only in case of Securosys Primus HSM as the source of signing/verifying key pair):** 
 In this case, the required JCE provider (JAR) library is available for download [here](https://nexus.bit.admin.ch/#browse/browse:bit-pki-raw-hosted:securosys%2Fjce) or (alternatively) [here](https://docs.securosys.com/jce/Downloads/).
-Once downloaded, the relevant JAR file (`primusX-java8.jar` or `primusX-java11.jar`) is then expected to be stored on the system alongside the DID-Toolbox,
-more specifically in the `lib` subdirectory. e.g. as `lib/primusX-java11.jar`.
+Once downloaded, the relevant JAR file (`primusX-java8.jar` or `primusX-java11.jar`) is then expected to be stored on the system alongside the DID-Toolbox in the `lib` subdirectory (e.g. as `lib/primusX-java11.jar`).
 Beware that running the DID-Toolbox with `--primus-*` CLI parameters supplied will inevitably/unconditionally fail if none of these libraries is available on the system. 
 
 ## CLI Overview
@@ -62,8 +61,8 @@ Usage: didtoolbox [options] [command] [command options]
     create      Create a did:tdw DID and sign the initial DID log entry with the provided private key. To supply a signing/verifying key pair, always 
             rely on one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key material: 
             PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) connection, the required 
-            JCE provider (JAR) library (primusX-java8.jar or primusX-java11.jar) is expected to be stored on the system alongside the DID-Toolbox, 
-            more specifically in the lib subdirectory, e.g. as lib/primusX-java11.jar
+            JCE provider (JAR) library (primusX-java8.jar or primusX-java11.jar) is expected to be stored on the system alongside the DID-Toolbox in 
+            the lib subdirectory (e.g. as lib/primusX-java11.jar)
       Usage: create [options]
         Options:
           --assert, -a
@@ -112,7 +111,7 @@ Usage: didtoolbox [options] [command] [command options]
             always rely on one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key 
             material: PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) connection, the 
             required JCE provider (JAR) library (primusX-java8.jar or primusX-java11.jar) is expected to be stored on the system alongside the 
-            DID-Toolbox, more specifically in the lib subdirectory, e.g. as lib/primusX-java11.jar
+            DID-Toolbox in the lib subdirectory (e.g. as lib/primusX-java11.jar)
       Usage: update [options]
         Options:
           --assert, -a
@@ -154,8 +153,8 @@ Usage: didtoolbox [options] [command] [command options]
     deactivate      Deactivate (revoke) a did:tdw DID log. To supply a signing/verifying key pair, always rely on one of the three available command 
             parameter sets exclusively, each of then denoting a whole another source of such key material: PEM files, a Java KeyStore (PKCS12) or a 
             Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) connection, the required JCE provider (JAR) library 
-            (primusX-java8.jar or primusX-java11.jar) is expected to be stored on the system alongside the DID-Toolbox, more specifically in the lib 
-            subdirectory, e.g. as lib/primusX-java11.jar
+            (primusX-java8.jar or primusX-java11.jar) is expected to be stored on the system alongside the DID-Toolbox in the lib subdirectory (e.g. 
+            as lib/primusX-java11.jar)
       Usage: deactivate [options]
         Options:
         * --did-log-file, -d
@@ -526,7 +525,7 @@ java -jar didtoolbox.jar deactivate \
 The _deactivated_ DID log file should now contain another DID log entry denoting deactivation (via DID parameter `{"deactivated":true}`) and featuring no key material whatsoever: 
 
 ```json
-["2-QmYQzLCTC71ySKKKpS8i5sqmnz2ksD6ExCeMFJJ1FH9XHk","2025-06-05T15:35:28Z",{"deactivated":true},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmWajZPizzrHBJKC3Q7eGbzLnqCNUXiU265k6EufAXu2Uu:domain.com:path1:path2"}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-06-05T15:35:28Z","verificationMethod":"did:key:z6Mksw8VDjDroQwa9gvyZ21oS4xPRdiMLtzd2gZcPh1DNKJK#z6Mksw8VDjDroQwa9gvyZ21oS4xPRdiMLtzd2gZcPh1DNKJK","proofPurpose":"authentication","challenge":"2-QmYQzLCTC71ySKKKpS8i5sqmnz2ksD6ExCeMFJJ1FH9XHk","proofValue":"z4aRg9mEo2TkZna5imoJaQSWViP29mQPB1EgkftTdxzL3NxSQJB9RAeTzBhMLbCaZiUdbumxjwQTH9UGt7PEMz7np"}]]
+["2-QmbSZkkCbUFr2EmX2Zop8oBHybrxmoALYjrByK7mEgh19p","2025-06-10T15:33:28Z",{"deactivated":true,"updateKeys":[]},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmSavPQAAUPaC41G71t5i2ePacgJVQHwHHupchM5J2pZLX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085"}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-06-10T15:33:28Z","verificationMethod":"did:key:z6MkrsVnXojRZPSVdHL4CwmwjKkEAAnzj88FhyJcDM2AimnA#z6MkrsVnXojRZPSVdHL4CwmwjKkEAAnzj88FhyJcDM2AimnA","proofPurpose":"authentication","challenge":"2-QmbSZkkCbUFr2EmX2Zop8oBHybrxmoALYjrByK7mEgh19p","proofValue":"z5JeoxtuHruBHZ2NcnKgS2Xbz9TY2zqS1jETHY8xmwvLQRp4FMCtVm6zcXkwMat1g88k8oYqS6PPbA7mwwrpDmoUv"}]]
 ```
 
 ## Additional Information
