@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 @Parameters(
-        commandNames = {"update"},
+        commandNames = {UpdateTdwCommand.COMMAND_NAME},
         commandDescription = "Update a did:tdw DID log by replacing the existing verification material in DID document. " +
                 "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
                 "each of then denoting a whole another source of such key material: " +
@@ -20,6 +20,8 @@ import java.util.Set;
         parametersValidators = {TdwCommandParametersValidator.class}
 )
 public class UpdateTdwCommand extends AbstractTdwCommandBase {
+
+    final public static String COMMAND_NAME = "update";
 
     @Parameter(names = {"--help", "-h"},
             description = "Display help for the DID toolbox 'update' command",

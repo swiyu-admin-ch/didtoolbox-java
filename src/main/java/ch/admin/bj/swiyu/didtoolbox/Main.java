@@ -51,9 +51,9 @@ public class Main {
         var deactivateCommand = new DeactivateTdwCommand();
         var jc = JCommander.newBuilder()
                 .addObject(main)
-                .addCommand("create", createCommand)
-                .addCommand("update", updateCommand)
-                .addCommand("deactivate", deactivateCommand)
+                .addCommand(CreateTdwCommand.COMMAND_NAME, createCommand)
+                .addCommand(UpdateTdwCommand.COMMAND_NAME, updateCommand)
+                .addCommand(DeactivateTdwCommand.COMMAND_NAME, deactivateCommand)
                 .programName(main.getImplementationTitle())
                 .columnSize(150)
                 .build();
@@ -91,14 +91,11 @@ public class Main {
         PrimusKeyStoreLoader primus;
         String primusKeyAlias;
         String primusKeyPassword;
-        boolean arePemParamsSupplied;
-        boolean areJksParamsSupplied;
-        boolean arePrimusParamsSupplied;
         File didLogFile;
 
         switch (parsedCommandName) {
 
-            case "create":
+            case CreateTdwCommand.COMMAND_NAME:
 
                 if (createCommand.help) {
                     jc.usage(parsedCommandName);
@@ -140,15 +137,6 @@ public class Main {
                 primus = createCommand.securosysPrimusKeyStoreLoader;
                 primusKeyAlias = createCommand.primusKeyAlias;
                 primusKeyPassword = createCommand.primusKeyPassword;
-
-                arePemParamsSupplied = signingKeyPemFile != null && verifyingKeyPemFiles != null;
-                areJksParamsSupplied = jksFile != null && jksPassword != null && jksAlias != null;
-                arePrimusParamsSupplied = primus != null && primusKeyAlias != null;
-                if (arePemParamsSupplied && areJksParamsSupplied ||
-                        arePemParamsSupplied && arePrimusParamsSupplied ||
-                        areJksParamsSupplied && arePrimusParamsSupplied) {
-                    overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
-                }
 
                 boolean forceOverwrite = createCommand.forceOverwrite;
 
@@ -226,7 +214,7 @@ public class Main {
 
                 break;
 
-            case "update":
+            case UpdateTdwCommand.COMMAND_NAME:
 
                 if (updateCommand.help) {
                     jc.usage(parsedCommandName);
@@ -265,15 +253,6 @@ public class Main {
                 primus = updateCommand.securosysPrimusKeyStoreLoader;
                 primusKeyAlias = updateCommand.primusKeyAlias;
                 primusKeyPassword = updateCommand.primusKeyPassword;
-
-                arePemParamsSupplied = signingKeyPemFile != null && verifyingKeyPemFiles != null;
-                areJksParamsSupplied = jksFile != null && jksPassword != null && jksAlias != null;
-                arePrimusParamsSupplied = primus != null && primusKeyAlias != null;
-                if (arePemParamsSupplied && areJksParamsSupplied ||
-                        arePemParamsSupplied && arePrimusParamsSupplied ||
-                        areJksParamsSupplied && arePrimusParamsSupplied) {
-                    overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
-                }
 
                 try {
 
@@ -328,7 +307,7 @@ public class Main {
 
                 break;
 
-            case "deactivate":
+            case DeactivateTdwCommand.COMMAND_NAME:
 
                 if (deactivateCommand.help) {
                     jc.usage(parsedCommandName);
@@ -346,15 +325,6 @@ public class Main {
                 primus = deactivateCommand.securosysPrimusKeyStoreLoader;
                 primusKeyAlias = deactivateCommand.primusKeyAlias;
                 primusKeyPassword = deactivateCommand.primusKeyPassword;
-
-                arePemParamsSupplied = signingKeyPemFile != null;
-                areJksParamsSupplied = jksFile != null && jksPassword != null && jksAlias != null;
-                arePrimusParamsSupplied = primus != null && primusKeyAlias != null;
-                if (arePemParamsSupplied && areJksParamsSupplied ||
-                        arePemParamsSupplied && arePrimusParamsSupplied ||
-                        areJksParamsSupplied && arePrimusParamsSupplied) {
-                    overAndOut(jc, parsedCommandName, "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
-                }
 
                 try {
 

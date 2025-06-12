@@ -5,7 +5,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 @Parameters(
-        commandNames = {"deactivate"},
+        commandNames = {DeactivateTdwCommand.COMMAND_NAME},
         commandDescription = "Deactivate (revoke) a did:tdw DID log. " +
                 "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
                 "each of then denoting a whole another source of such key material: " +
@@ -17,6 +17,8 @@ import com.beust.jcommander.Parameters;
         parametersValidators = {TdwCommandParametersValidator.class}
 )
 public class DeactivateTdwCommand extends AbstractTdwCommandBase {
+
+    final public static String COMMAND_NAME = "deactivate";
 
     @Parameter(names = {"--help", "-h"},
             description = "Display help for the DID toolbox 'deactivate' command",

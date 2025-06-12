@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 @Parameters(
-        commandNames = {"create"},
+        commandNames = {CreateTdwCommand.COMMAND_NAME},
         commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key. " +
                 "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
                 "each of then denoting a whole another source of such key material: " +
@@ -21,6 +21,8 @@ import java.util.Set;
         parametersValidators = {TdwCommandParametersValidator.class}
 )
 public class CreateTdwCommand extends AbstractTdwCommandBase {
+
+    final public static String COMMAND_NAME = "create";
 
     final public static String DEFAULT_METHOD_VERSION = "did:tdw:0.3";
     @Parameter(names = {"--help", "-h"},

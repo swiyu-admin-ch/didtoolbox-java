@@ -10,27 +10,27 @@ import java.io.File;
  */
 abstract class AbstractTdwCommandBase {
 
-    @Parameter(names = {"--signing-key-file", "-s"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE},
             description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format. " +
                     "This CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters",
             converter = PemFileParameterConverter.class,
             validateWith = PemFileParameterValidator.class)
     public File signingKeyPemFile;
 
-    @Parameter(names = {"--jks-file", "-j"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_JKS_FILE, CommandParameterNames.PARAM_NAME_SHORT_JKS_FILE},
             description = "Java KeyStore (PKCS12) file to read the (signing/verifying) keys from. " +
                     "This CLI parameter should always be used exclusively alongside all the other --jks-* CLI parameters",
             converter = JksFileParameterConverter.class,
             validateWith = JksFileParameterValidator.class)
     public File jksFile;
 
-    @Parameter(names = {"--jks-password"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_JKS_PASSWORD},
             description = "Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore. " +
                     "This CLI parameter should always be used exclusively alongside all the other --jks-* CLI parameters",
             password = true)
     public String jksPassword;
 
-    @Parameter(names = {"--jks-alias"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_JKS_ALIAS},
             description = "Java KeyStore alias name of the entry to process. " +
                     "This CLI parameter should always be used exclusively alongside all the other --jks-* CLI parameters")
     public String jksAlias;
