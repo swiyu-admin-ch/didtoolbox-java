@@ -12,9 +12,10 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.util.io.pem.PemObject;
 
 import java.io.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.security.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
@@ -34,7 +35,9 @@ public class JwkUtils {
      * Loads a public EC P-256 key from the specified PEM file and returns its JWK JSON representation
      *
      * @param ecPublicPemFile the EC P-256 public key in PEM format
-     * @param kid             the ID (kid) of the JWK that can be used to match this key
+     * @param kid             the ID (kid) of the JWK that can be used to match this key.
+     *                        A regular case-sensitive string featuring no URIs reserved characters is expected.
+     *                        Otherwise, {@link IllegalArgumentException} is thrown
      * @return JSON object string representation of the public JWK
      * @throws IOException             if the file couldn't be read
      * @throws InvalidKeySpecException if the given key specification is inappropriate for the EC key factory to produce a public key
@@ -51,6 +54,10 @@ public class JwkUtils {
             publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(ecPublicPemFile), "EC");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
+        }
+
+        if (!kid.matches("[a-zA-Z0-9~._-]+")) {
+            throw new IllegalArgumentException(String.format("The supplied key ID (kid) of the JWK '%s' must be a regular case-sensitive string featuring no URIs reserved characters", kid));
         }
 
         return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
@@ -71,6 +78,7 @@ public class JwkUtils {
      * <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.4">ECDSA using P-256 curve and SHA-256 hash function</a>.
      * If {@code keyPairPemFile} is supplied, the key pair is exported in
      * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format.
+     * Needless to say, the helper ensures the private key file access is restricted to current user only.
      *
      * @param kid            the ID of the JWK, that can be used to match a specific key
      * @param keyPairPemFile if not {@code null}, the file where a generated key pair will be stored
@@ -119,6 +127,22 @@ public class JwkUtils {
 
             if (!keyPairPemFile.exists() || forceOverwrite) {
 
+                try {
+                    // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
+                    FilesPrivacy.createPrivateFile(keyPairPemFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
+                } catch (DirectoryNotEmptyException ex) {
+                    throw new RuntimeException(ex); // it should be a file, not a directory
+                } catch (FileAlreadyExistsException ex) {
+                    if (!keyPairPemFile.exists()) {
+                        throw new RuntimeException(ex);
+                    }
+                    throw ex;
+                } catch (AccessDeniedException ex) {
+                    throw new AccessDeniedException("Access denied to private key PEM file " + keyPairPemFile.getPath() + " due to: " + ex.getMessage());
+                } catch (Throwable thr) {
+                    throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage());
+                }
+
                 Writer w = new BufferedWriter(new FileWriter(keyPairPemFile));
                 try {
                     w.write(keyPairPem);
@@ -128,17 +152,6 @@ public class JwkUtils {
                 }
 
                 exportEcPublicKeyToPem(publicJwk, keyPairPemFile);
-
-                // A private key file should always get appropriate file permissions, if feasible
-                PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(keyPairPemFile.toPath(), PosixFileAttributeView.class);
-                if (!System.getProperty("os.name").toLowerCase().contains("win") && posixFileAttributeView != null) {
-                    Files.setPosixFilePermissions(keyPairPemFile.toPath(), PosixFilePermissions.fromString("rw-------"));
-                } else {
-                    // CAUTION If the underlying file system can not distinguish the owner's read permission from that of others,
-                    //         then the permission will apply to everybody, regardless of this value.
-                    keyPairPemFile.setReadable(true, true);
-                    keyPairPemFile.setWritable(true, true);
-                }
 
             } else {
                 throw new IOException("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + keyPairPemFile.getPath());

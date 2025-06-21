@@ -66,14 +66,16 @@ Usage: didtoolbox [options] [command] [command options]
       Usage: create [options]
         Options:
           --assert, -a
-            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC P-256 
+            public/verifying key
           --auth, -t
-            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC 
+            P-256 public/verifying key
           --force-overwrite, -f
             Overwrite existing PEM key files, if any
             Default: false
           --help, -h
-            Display help for the DID toolbox 'create' command
+            Display help for the DID toolbox command
         * --identifier-registry-url, -u
             A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for
           --jks-alias
@@ -101,11 +103,10 @@ Usage: didtoolbox [options] [command] [command options]
             An optional password required for recovering the (signing/verifying) key pair (stored in Securosys Primus (HSM) Keystore). This CLI 
             parameter should always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
           --signing-key-file, -s
-            The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format. This 
-            CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters
+            The ed25519 private key file required to sign a DID log entry. In PEM Format. This CLI parameter cannot be used in conjunction with any 
+            of --jks-* or --primus-* CLI parameters
           --verifying-key-files, -v
-            The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s 
-            option. In PEM format. This CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters
+            One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
 
     update      Update a did:tdw DID log by replacing the existing verification material in DID document. To supply a signing/verifying key pair, 
             always rely on one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key 
@@ -115,13 +116,15 @@ Usage: didtoolbox [options] [command] [command options]
       Usage: update [options]
         Options:
           --assert, -a
-            An assertion method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC P-256 
+            public/verifying key
           --auth, -t
-            An authentication method (comma-separated) parameters: a key name as well as a PEM file containing EC P-256 public/verifying key
+            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC 
+            P-256 public/verifying key
         * --did-log-file, -d
             The file containing a valid did:tdw DID log to update
           --help, -h
-            Display help for the DID toolbox 'update' command
+            Display help for the DID toolbox command
           --jks-alias
             Java KeyStore alias name of the entry to process. This CLI parameter should always be used exclusively alongside all the other --jks-* 
             CLI parameters
@@ -144,11 +147,10 @@ Usage: didtoolbox [options] [command] [command options]
             An optional password required for recovering the (signing/verifying) key pair (stored in Securosys Primus (HSM) Keystore). This CLI 
             parameter should always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
           --signing-key-file, -s
-            The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format. This 
-            CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters
+            The ed25519 private key file required to sign a DID log entry. In PEM Format. This CLI parameter cannot be used in conjunction with any 
+            of --jks-* or --primus-* CLI parameters
           --verifying-key-files, -v
-            The ed25519 public key file(s) for the DID Document’s verification method. One should match the ed25519 private key supplied via -s 
-            option. In PEM format. This CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters
+            One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
 
     deactivate      Deactivate (revoke) a did:tdw DID log. To supply a signing/verifying key pair, always rely on one of the three available command 
             parameter sets exclusively, each of then denoting a whole another source of such key material: PEM files, a Java KeyStore (PKCS12) or a 
@@ -160,7 +162,7 @@ Usage: didtoolbox [options] [command] [command options]
         * --did-log-file, -d
             The file containing a valid did:tdw DID log to deactivate
           --help, -h
-            Display help for the DID toolbox 'deactivate' command
+            Display help for the DID toolbox command
           --jks-alias
             Java KeyStore alias name of the entry to process. This CLI parameter should always be used exclusively alongside all the other --jks-* 
             CLI parameters
@@ -183,8 +185,8 @@ Usage: didtoolbox [options] [command] [command options]
             An optional password required for recovering the (signing/verifying) key pair (stored in Securosys Primus (HSM) Keystore). This CLI 
             parameter should always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
           --signing-key-file, -s
-            The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format. This 
-            CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters
+            The ed25519 private key file required to sign a DID log entry. In PEM Format. This CLI parameter cannot be used in conjunction with any 
+            of --jks-* or --primus-* CLI parameters
 
 $ java -jar didtoolbox.jar -V
 

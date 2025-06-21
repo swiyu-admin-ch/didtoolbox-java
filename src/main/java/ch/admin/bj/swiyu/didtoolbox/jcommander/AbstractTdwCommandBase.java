@@ -10,8 +10,13 @@ import java.io.File;
  */
 abstract class AbstractTdwCommandBase {
 
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},
+            description = "Display help for the DID toolbox command",
+            help = true)
+    public boolean help;
+
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE},
-            description = "The ed25519 private key file corresponding to the public key, required to sign and output the initial DID log entry. In PEM Format. " +
+            description = "The ed25519 private key file required to sign a DID log entry. In PEM Format. " +
                     "This CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters",
             converter = PemFileParameterConverter.class,
             validateWith = PemFileParameterValidator.class)

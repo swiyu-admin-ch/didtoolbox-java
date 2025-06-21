@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -136,6 +138,47 @@ class JwkUtilsTest {
             assertNotNull(jwk);
         } catch (Exception e) {
             fail(e);
+        }
+    }
+
+    @Test
+    void testLoadECPublicJWKasJSONThrowsIllegalArgumentException() {
+
+        /* A "kid" featuring URIs "Reserved Characters" (incl. "Percent-Encoding") must fail:
+        pct-encoded = "%" HEXDIG HEXDIG
+        reserved    = gen-delims / sub-delims
+        gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+        sub-delims  = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+         */
+        var kids = new HashSet<>(Arrays.asList(
+                "",
+                "kid-contains-%-gen-delim",
+                "kid-contains-:-gen-delim",
+                "kid-contains-/-gen-delim",
+                "kid-contains-?-gen-delim",
+                "kid-contains-#-gen-delim",
+                "kid-contains-[-gen-delim",
+                "kid-contains-]-gen-delim",
+                "kid-contains-@-gen-delim",
+                "kid-contains-!-sub-delim",
+                "kid-contains-$-sub-delim",
+                "kid-contains-&-sub-delim",
+                "kid-contains-'-sub-delim",
+                "kid-contains-\"-sub-delim",
+                "kid-contains-(-sub-delim",
+                "kid-contains-)-sub-delim",
+                "kid-contains-*-sub-delim",
+                "kid-contains-+-sub-delim",
+                "kid-contains-,-sub-delim",
+                "kid-contains-;-sub-delim",
+                "kid-contains-=-sub-delim"
+        ));
+
+        for (var kid : kids) {
+            var ex = assertThrowsExactly(IllegalArgumentException.class, () -> {
+                JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), kid); // MUT
+            });
+            assertTrue(ex.getMessage().contains("must be a regular case-sensitive string featuring no URIs reserved characters"));
         }
     }
 }

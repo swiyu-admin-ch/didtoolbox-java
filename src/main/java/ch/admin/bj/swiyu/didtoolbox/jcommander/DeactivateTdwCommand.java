@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
 import java.io.File;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
@@ -19,11 +20,6 @@ import com.beust.jcommander.Parameters;
 public class DeactivateTdwCommand extends AbstractTdwCommandBase {
 
     final public static String COMMAND_NAME = "deactivate";
-
-    @Parameter(names = {"--help", "-h"},
-            description = "Display help for the DID toolbox 'deactivate' command",
-            help = true)
-    public boolean help;
 
     @Parameter(names = {"--did-log-file", "-d"},
             description = "The file containing a valid did:tdw DID log to deactivate",

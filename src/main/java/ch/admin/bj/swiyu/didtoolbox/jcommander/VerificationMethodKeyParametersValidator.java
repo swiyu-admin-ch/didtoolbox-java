@@ -15,6 +15,17 @@ public class VerificationMethodKeyParametersValidator implements IParameterValid
         }
 
         String kid = splitted[0];
+        // Prevent any "kid" featuring URIs "Reserved Characters" (incl. "Percent-Encoding", see (https://datatracker.ietf.org/doc/html/rfc3986#section-2.2):
+        //     pct-encoded = "%" HEXDIG HEXDIG
+        //     reserved    = gen-delims / sub-delims
+        //     gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+        //     sub-delims  = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+        // A case-sensitive "kid" string may contain URIs "Unreserved Characters" (https://datatracker.ietf.org/doc/html/rfc3986#section-2.3) though:
+        //     unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
+        if (!kid.matches("[a-zA-Z0-9~._-]+")) {
+            throw new ParameterException("The key ID (kid) of the JWK supplied by " + name + " option must be a regular case-sensitive string featuring no URIs reserved characters (found " + kid + ")");
+        }
+
         String jwkFile = splitted[1];
         File f = new File(jwkFile);
         if (!f.exists() || !f.isFile()) {

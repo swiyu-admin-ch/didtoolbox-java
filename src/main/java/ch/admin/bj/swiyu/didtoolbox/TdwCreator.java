@@ -15,6 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -206,10 +209,7 @@ public class TdwCreator {
 
         } else {
 
-            var outputDir = new File(".didtoolbox");
-            if (!outputDir.exists()) {
-                outputDir.mkdirs();
-            }
+            var outputDir = createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
             verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null, new File(outputDir, "auth-key-01"))); // default
 
             JsonArray authentication = new JsonArray();
@@ -229,10 +229,7 @@ public class TdwCreator {
 
         } else {
 
-            var outputDir = new File(".didtoolbox");
-            if (!outputDir.exists()) {
-                outputDir.mkdirs();
-            }
+            var outputDir = createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
             verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null, new File(outputDir, "assert-key-01"))); // default
 
             JsonArray assertionMethod = new JsonArray();
@@ -376,5 +373,22 @@ public class TdwCreator {
         }
 
         return didLogEntryWithProof.toString();
+    }
+
+    private static File createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws IOException {
+        var outputDir = new File(pathname);
+        if (!outputDir.exists()) {
+            try {
+                return FilesPrivacy.createPrivateDirectory(outputDir.toPath(), false).toFile(); // may throw DirectoryNotEmptyException, SecurityException etc.
+            } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
+                throw new RuntimeException(ex);
+            } catch (AccessDeniedException ex) {
+                throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
+            } catch (Throwable thr) {
+                throw new IOException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
+            }
+        }
+
+        return outputDir;
     }
 }

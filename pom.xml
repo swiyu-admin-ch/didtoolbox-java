@@ -9,7 +9,7 @@
     <groupId>io.github.swiyu-admin-ch</groupId>
 
     <artifactId>didtoolbox</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <!-- required by https://central.sonatype.org/publish/requirements/ -->
@@ -161,6 +161,9 @@
                                             "... class path wild cards are not honored in the Class-Path jar-manifest header."
                                     -->
                                     <Class-Path>lib/primusX-java8.jar lib/primusX-java11.jar</Class-Path>
+                                    <!-- Enable native access for all code on the classpath (including the code in the executable JAR itself)
+                                         to avoid a warning for callers in the module, as required by the latest JDKs - from the JDK 24 onwards (JEP 472) -->
+                                    <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
                                 </manifestEntries>
                             </archive>
                             <descriptorRefs>

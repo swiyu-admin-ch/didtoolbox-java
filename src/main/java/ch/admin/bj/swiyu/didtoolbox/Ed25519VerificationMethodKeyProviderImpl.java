@@ -9,9 +9,6 @@ import java.io.*;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -127,7 +124,11 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         // CAUTION Calling KeyStore.getInstance("JKS") may cause:
         //         "java.security.NoSuchAlgorithmException: no such algorithm: EdDSA for provider SUN"
         KeyStore keyStore = KeyStore.getInstance("PKCS12", this.provider);
-        keyStore.load(jksFile, password.toCharArray()); // java.io.IOException: keystore password was incorrect
+        char[] pass = null;
+        if (password != null) {
+            pass = password.toCharArray();
+        }
+        keyStore.load(jksFile, pass); // java.io.IOException: keystore password was incorrect
 
         // CAUTION Flexible constructors is a preview feature and is disabled by default. (use --enable-preview to enable flexible constructors)
         //this(createFromKeyStore(keyStore, alias, keyPassword));
@@ -298,6 +299,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     }
 
     /**
+     * CAUTION The method does not ensure that the private key file access is restricted to the current user only.
+     *
      * @param file to store the key
      * @throws IOException
      */
@@ -316,16 +319,6 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             pemWriter.writeObject(new PemObject("PRIVATE KEY", privateKeyEncoded));
         } finally {
             pemWriter.close();
-        }
-        // A private key file should always get appropriate file permissions, if feasible
-        PosixFileAttributeView posixFileAttributeView = Files.getFileAttributeView(file.toPath(), PosixFileAttributeView.class);
-        if (!System.getProperty("os.name").toLowerCase().contains("win") && posixFileAttributeView != null) {
-            Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-------"));
-        } else {
-            // CAUTION If the underlying file system can not distinguish the owner's read permission from that of others,
-            //         then the permission will apply to everybody, regardless of this value.
-            file.setReadable(true, true);
-            file.setWritable(true, true);
         }
     }
 

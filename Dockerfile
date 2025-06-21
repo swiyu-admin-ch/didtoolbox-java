@@ -1,23 +1,8 @@
-# https://hub.docker.com/_/openjdk/tags?name=slim
-# openjdk:23-slim is Debian GNU/Linux 12 (bookworm)
-# CAUTION The platform MUST be appropriate for the libdidresolver.so shared library (as part of didresolver.jar).
-FROM --platform=linux/arm64 openjdk:21-slim
-#FROM --platform=linux/arm64 openjdk:21-bookworm
-#FROM --platform=linux/arm64 openjdk:21-slim-bookworm
-#FROM --platform=linux/arm64 gradle:jdk21-alpine
-#FROM --platform=linux/arm64 gradle:jdk21-ubi-minimal
-
-# CAUTION Beware that using either:
-#FROM --platform=linux/arm64    openjdk:21-bullseye
-# or
-#FROM --platform=linux/arm64    openjdk:21-buster
-# will end up with "java.lang.UnsatisfiedLinkError: /lib/aarch64-linux-gnu/libc.so.6: version `GLIBC_2.33' not found (required by /root/.cache/JNA/temp/jna18326432266987702332.tmp)"
-
-# Beware that using either (whereas openjdk:19-alpine is pretty (three years) old):
-#FROM openjdk:19-alpine
-# or
-#FROM --platform=linux/arm64 alpine/java:21-jdk
-# would end up with "Error: initializing source docker://swiyu-admin-ch/didtoolbox-java:latest: reading manifest latest in docker.io/swiyu-admin-ch/didtoolbox-java: requested access to the resource is denied"
+# All OpenJDK "slim" base images are available here: https://hub.docker.com/_/openjdk/tags?name=slim
+# E.g. the openjdk:26-slim has Debian GNU/Linux 12 (bookworm) as foundation.
+# However, beware that using Bullseye-based images on MacOS may result in:
+# "java.lang.UnsatisfiedLinkError: /lib/aarch64-linux-gnu/libc.so.6: version `GLIBC_2.33' not found (required by /root/.cache/JNA/temp/jna18326432266987702332.tmp)"
+FROM --platform=linux/arm64 openjdk:26-slim
 
 MAINTAINER vladica.stojic@bit.admin.ch
 

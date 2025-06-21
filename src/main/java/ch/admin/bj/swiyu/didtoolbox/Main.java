@@ -1,9 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand;
-import ch.admin.bj.swiyu.didtoolbox.jcommander.DeactivateTdwCommand;
-import ch.admin.bj.swiyu.didtoolbox.jcommander.UpdateTdwCommand;
-import ch.admin.bj.swiyu.didtoolbox.jcommander.VerificationMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader;
 import com.beust.jcommander.JCommander;
@@ -16,15 +13,16 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.jar.Manifest;
 
-import static ch.admin.bj.swiyu.didtoolbox.jcommander.CreateTdwCommand.DEFAULT_METHOD_VERSION;
-
 public class Main {
 
-    @Parameter(names = {"--help", "-h"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},
             description = "Display help for the DID toolbox",
             help = true)
     boolean help;
@@ -54,7 +52,7 @@ public class Main {
                 .addCommand(CreateTdwCommand.COMMAND_NAME, createCommand)
                 .addCommand(UpdateTdwCommand.COMMAND_NAME, updateCommand)
                 .addCommand(DeactivateTdwCommand.COMMAND_NAME, deactivateCommand)
-                .programName(main.getImplementationTitle())
+                .programName(getImplementationTitle())
                 .columnSize(150)
                 .build();
 
@@ -68,7 +66,7 @@ public class Main {
         }
 
         if (main.version) {
-            System.out.println(main.getImplementationTitle() + " " + main.getImplementationVersion());
+            System.out.println(getImplementationTitle() + " " + main.getImplementationVersion());
             System.exit(0);
         }
 
@@ -92,6 +90,8 @@ public class Main {
         String primusKeyAlias;
         String primusKeyPassword;
         File didLogFile;
+        Map<String, String> assertionMethodKeysMap;
+        Map<String, String> authenticationKeysMap;
 
         switch (parsedCommandName) {
 
@@ -106,24 +106,24 @@ public class Main {
 
                 var methodVersion = createCommand.methodVersion;
                 if (methodVersion == null) {
-                    methodVersion = DEFAULT_METHOD_VERSION;
-                } else if (!methodVersion.equals(DEFAULT_METHOD_VERSION)) {
-                    overAndOut(jc, parsedCommandName, "Supplied method version is not supported: '" + methodVersion + "'. Currently supported is: " + DEFAULT_METHOD_VERSION);
+                    methodVersion = CreateTdwCommand.DEFAULT_METHOD_VERSION;
+                } else if (!methodVersion.equals(CreateTdwCommand.DEFAULT_METHOD_VERSION)) {
+                    overAndOut(jc, parsedCommandName, "Supplied method version is not supported: '" + methodVersion + "'. Currently supported is: " + CreateTdwCommand.DEFAULT_METHOD_VERSION);
                 }
 
-                Map<String, String> assertionMethodsMap = new HashMap<>();
+                assertionMethodKeysMap = new HashMap<>();
                 var assertionMethodKeys = createCommand.assertionMethodKeys;
                 if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
                     for (VerificationMethodParameters param : assertionMethodKeys) {
-                        assertionMethodsMap.put(param.key, param.jwk);
+                        assertionMethodKeysMap.put(param.key, param.jwk);
                     }
                 }
 
-                Map<String, String> authMap = new HashMap<>();
+                authenticationKeysMap = new HashMap<>();
                 var authenticationKeys = createCommand.authenticationKeys;
                 if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
                     for (VerificationMethodParameters param : authenticationKeys) {
-                        authMap.put(param.key, param.jwk);
+                        authenticationKeysMap.put(param.key, param.jwk);
                     }
                 }
 
@@ -145,7 +145,11 @@ public class Main {
 
                     VerificationMethodKeyProvider signer = null;
 
-                    if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
+                    if (signingKeyPemFile != null && verifyingKeyPemFiles == null) {
+
+                        overAndOut(jc, parsedCommandName, "No matching verifying (public) ed25519 key supplied");
+
+                    } else if (signingKeyPemFile != null) { // at this point, verifyingKeyPemFiles must be non-null already
 
                         File verifyingKeyPemFile = null;
                         for (var pemFile : verifyingKeyPemFiles) {
@@ -159,10 +163,10 @@ public class Main {
                         }
 
                         if (verifyingKeyPemFile == null) {
-                            overAndOut(jc, parsedCommandName, "No matching verifying key supplied");
+                            overAndOut(jc, parsedCommandName, "No matching verifying (public) ed25519 key supplied");
                         }
 
-                    } else if (jksFile != null && jksPassword != null && jksAlias != null) {
+                    } else if (jksFile != null && jksAlias != null) {
 
                         // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
                         signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
@@ -183,14 +187,43 @@ public class Main {
                         }
                          */
                         var outputDir = new File(".didtoolbox");
-                        if (!outputDir.exists()) {
-                            outputDir.mkdirs();
+                        if (!outputDir.exists() || forceOverwrite) {
+
+                            try {
+                                FilesPrivacy.createPrivateDirectory(outputDir.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
+                            } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
+                                if (!outputDir.exists()) {
+                                    throw new RuntimeException(ex); // the delete-create logic is not implemented properly
+                                }
+                                // ignore otherwise
+                            } catch (AccessDeniedException ex) {
+                                overAndOut(jc, parsedCommandName, "Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
+                            } catch (Throwable thr) {
+                                overAndOut(jc, parsedCommandName, "Failed to (re)create " + outputDir.getPath() + " directory due to: " + thr.getMessage());
+                            }
                         }
+
                         var privateKeyFile = new File(outputDir, "id_ed25519");
-                        var publicKeyFile = new File(outputDir, "id_ed25519.pub");
                         if (!privateKeyFile.exists() || forceOverwrite) {
+
+                            try {
+                                // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
+                                FilesPrivacy.createPrivateFile(privateKeyFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
+                            } catch (DirectoryNotEmptyException ex) {
+                                throw new RuntimeException(ex); // it should be a file, not a directory
+                            } catch (FileAlreadyExistsException ex) {
+                                if (!privateKeyFile.exists()) {
+                                    throw new RuntimeException(ex);
+                                }
+                                throw ex;
+                            } catch (AccessDeniedException ex) {
+                                overAndOut(jc, parsedCommandName, "Access denied to private key PEM file " + privateKeyFile.getPath() + " due to: " + ex.getMessage());
+                            } catch (Throwable thr) {
+                                overAndOut(jc, parsedCommandName, "The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath());
+                            }
+
                             ((Ed25519VerificationMethodKeyProviderImpl) signer).writePrivateKeyAsPem(privateKeyFile);
-                            ((Ed25519VerificationMethodKeyProviderImpl) signer).writePublicKeyAsPem(publicKeyFile);
+                            ((Ed25519VerificationMethodKeyProviderImpl) signer).writePublicKeyAsPem(new File(outputDir, privateKeyFile.getName() + ".pub"));
                         } else {
                             overAndOut(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
                         }
@@ -199,8 +232,8 @@ public class Main {
                     var tdwBuilder = TdwCreator.builder().verificationMethodKeyProvider(signer);
 
                     didLogEntry = tdwBuilder
-                            .assertionMethodKeys(assertionMethodsMap)
-                            .authenticationKeys(authMap)
+                            .assertionMethodKeys(assertionMethodKeysMap)
+                            .authenticationKeys(authenticationKeysMap)
                             .updateKeys(verifyingKeyPemFiles)
                             .forceOverwrite(forceOverwrite)
                             .build()
@@ -223,23 +256,23 @@ public class Main {
 
                 didLogFile = updateCommand.didLogFile;
 
-                assertionMethodsMap = new HashMap<>();
+                assertionMethodKeysMap = new HashMap<>();
                 var updateCommandAssertionMethodKeys = updateCommand.assertionMethodKeys;
                 if (updateCommandAssertionMethodKeys != null && !updateCommandAssertionMethodKeys.isEmpty()) {
                     for (VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
-                        assertionMethodsMap.put(param.key, param.jwk);
+                        assertionMethodKeysMap.put(param.key, param.jwk);
                     }
                 }
 
-                authMap = new HashMap<>();
+                authenticationKeysMap = new HashMap<>();
                 var updateCommandAuthenticationKeys = updateCommand.authenticationKeys;
                 if (updateCommandAuthenticationKeys != null && !updateCommandAuthenticationKeys.isEmpty()) {
                     for (VerificationMethodParameters param : updateCommandAuthenticationKeys) {
-                        authMap.put(param.key, param.jwk);
+                        authenticationKeysMap.put(param.key, param.jwk);
                     }
                 }
 
-                if (authMap.isEmpty() && assertionMethodsMap.isEmpty()) {
+                if (authenticationKeysMap.isEmpty() && assertionMethodKeysMap.isEmpty()) {
                     overAndOut(jc, parsedCommandName, "No update will take place as no verification material is supplied whatsoever");
                 }
 
@@ -274,10 +307,10 @@ public class Main {
                         }
 
                         if (matchingUpdateKey == null) {
-                            overAndOut(jc, parsedCommandName, "No matching signing key supplied");
+                            overAndOut(jc, parsedCommandName, "No matching signing (private) ed25519 key supplied");
                         }
 
-                    } else if (jksFile != null && jksPassword != null && jksAlias != null) {
+                    } else if (jksFile != null && jksAlias != null) {
                         // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
                         signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
 
@@ -286,14 +319,14 @@ public class Main {
                         signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
 
                     } else {
-                        overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) keys supplied. Use one of the relevant options to supply keys");
+                        overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
                     }
 
                     var tdwBuilder = TdwUpdater.builder().verificationMethodKeyProvider(signer);
 
                     var newLogEntry = tdwBuilder
-                            .assertionMethodKeys(assertionMethodsMap)
-                            .authenticationKeys(authMap)
+                            .assertionMethodKeys(assertionMethodKeysMap)
+                            .authenticationKeys(authenticationKeysMap)
                             .updateKeys(verifyingKeyPemFiles)
                             .build()
                             .update(didLogFile);
@@ -383,17 +416,17 @@ public class Main {
     }
 
     private static void overAndOut(JCommander jc, String commandName, String message) {
-        System.err.println(message);
-        System.err.println();
+        jc.getConsole().println(message);
+        jc.getConsole().println("");
         if (commandName != null) {
-            jc.usage(commandName);
+            jc.getConsole().println("For detailed usage, run: " + getImplementationTitle() + " " + commandName + " -h");
         } else {
-            jc.usage();
+            jc.getConsole().println("For detailed usage, run: " + getImplementationTitle() + " -h");
         }
         System.exit(1);
     }
 
-    private String getImplementationTitle() {
+    private static String getImplementationTitle() {
         // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
         return Arrays.stream(getManifestResourceValue("Implementation-Title").split(":")).toList().getLast();
     }
