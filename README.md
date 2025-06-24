@@ -39,7 +39,7 @@ The DID-Toolbox forces generated DIDs to have at least one key for each verifica
 
 Before using the DID-Toolbox, ensure your system meets the following requirements:
 
-- **Operating System:** Compatible with the following operating systems: Linux (x86-64 & AArch64), macOS (AArch64) and Windows (x86-64). Ensure your OS is up to date to avoid compatibility issues.
+- **Operating System:** Compatible with the following operating systems: Linux (x86-64 & AArch64), macOS (x86-64 & AArch64) and Windows (x86-64). Ensure your OS is up to date to avoid compatibility issues.
 - **Java Runtime Environment (JRE) 21 or Higher:** The DID-Toolbox requires Java JRE version 21 or above. Verify that Java is installed on your machine. JNA support is required, since the DID-Toolbox depends on another, platform dependent library, used to verify the generated DID log outputs.
 - **Internet Connection:** Required for downloading the tool.
 - **Sufficient Disk Space:** Allocate enough disk space for the tool and the generated key materials. 100 MB should suffice, depending on the number of DIDs you intend to generate.
@@ -190,7 +190,7 @@ Usage: didtoolbox [options] [command] [command options]
 
 $ java -jar didtoolbox.jar -V
 
-didtoolbox 1.4.0
+didtoolbox 1.4.1
 ```
 
 ## Quickstart – Create Your First DID

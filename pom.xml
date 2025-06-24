@@ -9,7 +9,7 @@
     <groupId>io.github.swiyu-admin-ch</groupId>
 
     <artifactId>didtoolbox</artifactId>
-    <version>1.4.1-SNAPSHOT</version>
+    <version>1.4.1</version>
     <packaging>jar</packaging>
 
     <!-- required by https://central.sonatype.org/publish/requirements/ -->
@@ -359,7 +359,7 @@
             <version>1.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on -->
-        <!-- https://www.bouncycastle.org/download/bouncy-castle-java/?filter=java%3Drelease-1-81-->
+        <!-- https://www.bouncycastle.org/download/bouncy-castle-java/?filter=java%3Drelease-1-81 -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
