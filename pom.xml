@@ -330,21 +330,22 @@
         <dependency>
             <!-- CAUTION Until 2.0.1 (GitHub packages), the "groupId" was set to "ch.admin.eid".
                          For the sake of Maven Central publishing, it must now match the Maven Central namespace. -->
+            <!-- https://mvnrepository.com/artifact/io.github.swiyu-admin-ch/didresolver -->
             <groupId>io.github.swiyu-admin-ch</groupId>
             <artifactId>didresolver</artifactId>
-            <version>2.1.1</version>
+            <version>2.1.2</version>
         </dependency>
         <!-- MANDATORY (required by didresolver) -->
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
-            <version>5.16.0</version>
+            <version>5.17.0</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.multiformats</groupId>
@@ -358,22 +359,23 @@
             <version>1.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on -->
+        <!-- https://www.bouncycastle.org/download/bouncy-castle-java/?filter=java%3Drelease-1-81-->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.78.1</version>
+            <version>1.81</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcutil-jdk18on</artifactId>
-            <version>1.78.1</version>
+            <version>1.81</version>
             <optional>true</optional>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
-            <version>1.78.1</version>
+            <version>1.81</version>
         </dependency>
         <!--dependency>
             <groupId>org.bouncycastle</groupId>
@@ -398,7 +400,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.36</version>
+            <version>1.18.38</version>
             <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.jcommander/jcommander -->
@@ -411,14 +413,14 @@
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>9.48</version>
+            <version>10.3</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.crypto.tink/tink -->
-        <dependency>
+        <!--dependency>
             <groupId>com.google.crypto.tink</groupId>
             <artifactId>tink</artifactId>
-            <version>1.16.0</version>
-        </dependency>
+            <version>1.18.0</version>
+        </dependency-->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
