@@ -11,6 +11,16 @@ git_repo=$(      ${GIT} config --get remote.origin.url | rev | cut -d'/' -f1 | r
 
 image=${git_repo_owner}/${git_repo}
 
-# CAUTION The arch MUST be appropriate for the libdidresolver.so shared library (as part of didresolver.jar).
-#${PODMAN} run --arch=amd64 -v $(pwd):$(pwd):z,exec -v /var/tmp:/var/tmp:z,exec -w $(pwd) ${image}:latest "$@"
-${PODMAN} run --arch=arm64/v8 -v $(pwd):$(pwd):z,exec -v /var/tmp:/var/tmp:z,exec -w $(pwd) ${image}:latest "$@"
+#arch=amd64
+arch=arm64/v8
+
+test -n "${BOOTCLASSPATH}" && bootclasspath_podman_opts="-v ${BOOTCLASSPATH}:${BOOTCLASSPATH} -e BOOTCLASSPATH=${BOOTCLASSPATH}"
+
+${PODMAN} run \
+    --arch=${arch} \
+    -v $(pwd):$(pwd):z,exec \
+    -v /var/tmp:/var/tmp:z,exec \
+    -w $(pwd) \
+    ${bootclasspath_podman_opts} \
+    ${image}:latest \
+    "$@"

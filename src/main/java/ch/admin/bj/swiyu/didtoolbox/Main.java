@@ -11,14 +11,14 @@ import com.beust.jcommander.UnixStyleUsageFormatter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.util.*;
-import java.util.jar.Manifest;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class Main {
 
@@ -30,15 +30,6 @@ public class Main {
     @Parameter(names = {"--version", "-V"},
             description = "Display version")
     boolean version;
-
-    private static String getManifestResourceValue(String name) {
-        try {
-            return new Manifest(Objects.requireNonNull(Main.class.getClassLoader().getResource("META-INF/MANIFEST.MF")).openStream()).getMainAttributes().getValue(name);
-        } catch (IOException ignore) {
-            //
-        }
-        return "undefined";
-    }
 
     public static void main(String... args) {
 
@@ -52,7 +43,7 @@ public class Main {
                 .addCommand(CreateTdwCommand.COMMAND_NAME, createCommand)
                 .addCommand(UpdateTdwCommand.COMMAND_NAME, updateCommand)
                 .addCommand(DeactivateTdwCommand.COMMAND_NAME, deactivateCommand)
-                .programName(getImplementationTitle())
+                .programName(ManifestUtils.getImplementationTitle())
                 .columnSize(150)
                 .build();
 
@@ -66,7 +57,7 @@ public class Main {
         }
 
         if (main.version) {
-            System.out.println(getImplementationTitle() + " " + main.getImplementationVersion());
+            System.out.println(ManifestUtils.getImplementationTitle() + " " + ManifestUtils.getImplementationVersion());
             System.exit(0);
         }
 
@@ -419,20 +410,11 @@ public class Main {
         jc.getConsole().println(message);
         jc.getConsole().println("");
         if (commandName != null) {
-            jc.getConsole().println("For detailed usage, run: " + getImplementationTitle() + " " + commandName + " -h");
+            jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " " + commandName + " -h");
         } else {
-            jc.getConsole().println("For detailed usage, run: " + getImplementationTitle() + " -h");
+            jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
         }
         System.exit(1);
     }
 
-    private static String getImplementationTitle() {
-        // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
-        return Arrays.stream(getManifestResourceValue("Implementation-Title").split(":")).toList().getLast();
-    }
-
-    private String getImplementationVersion() {
-        // CAUTION Ensure the maven-assembly-plugin manifest config param 'addDefaultImplementationEntries' is set to true
-        return getManifestResourceValue("Implementation-Version");
-    }
 }

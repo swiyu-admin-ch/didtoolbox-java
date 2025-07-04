@@ -9,7 +9,7 @@
     <groupId>io.github.swiyu-admin-ch</groupId>
 
     <artifactId>didtoolbox</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <!-- required by https://central.sonatype.org/publish/requirements/ -->
@@ -159,6 +159,10 @@
                                     Ensure the Securosys Primus libs are available for a Class.forName() reflection call.
                                     CAUTION (according to https://docs.oracle.com/javase/8/docs/technotes/tools/windows/classpath.html#A1100762):
                                             "... class path wild cards are not honored in the Class-Path jar-manifest header."
+                                    Alternatively, use "-Xbootclasspath/a:directories|zip|JAR-files" option of the java command
+                                    (https://docs.oracle.com/en/java/javase/24/docs/specs/man/java.html#extra-options-for-java)
+                                    to supply the Securosys Primus libs (append them to the default bootstrap classpath) e.g.
+                                            java -Xbootclasspath/a:lib/primusX-java11.jar:lib/primusX-java8.jar -jar didtoolbox.jar ...
                                     -->
                                     <Class-Path>lib/primusX-java8.jar lib/primusX-java11.jar</Class-Path>
                                     <!-- Enable native access for all code on the classpath (including the code in the executable JAR itself)

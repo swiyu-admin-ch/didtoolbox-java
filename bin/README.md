@@ -23,7 +23,7 @@ $ ./bin/didtoolbox.sh -h
 
 $ ./bin/didtoolbox.sh -V
 
-didtoolbox 1.4.0
+didtoolbox 1.4.1
 ```
 
 Probably the simplest way to use the generator would be to let it generate as much on its own as possible:
@@ -175,4 +175,17 @@ The command above should produce the following DID log featuring a whole new DID
 ```json lines
 ["1-QmTZGzit7hSYSXVmuZy8QFaPStCJQG15wWn53SgyXxCSzK","2025-06-04T21:06:36Z",{"method":"did:tdw:0.3","scid":"QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2","authentication":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-06-04T21:06:36Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-QmTZGzit7hSYSXVmuZy8QFaPStCJQG15wWn53SgyXxCSzK","proofValue":"z2j8SuRZUw1LLaXsW8D7oBtckovZoaMxH5VhD8gmSjHUyZuauWZvA2uvm5whWvZXoLTnQjsRxdN9qN1K9BZd6vqrR"}]]
 ["2-QmdKRknBB6t68f35MZccFvMWzAArWNWUz44XhcGgeHJ5xg","2025-06-16T14:58:31Z",{},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2","authentication":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-06-16T14:58:31Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"2-QmdKRknBB6t68f35MZccFvMWzAArWNWUz44XhcGgeHJ5xg","proofValue":"z5r1JC6PuD1ErAKjgCTCaBtauAmdepVB8NbPSWxop1fWNoQpZHUmkELrQR2dFN71Hzsh7U1dLEQ5UpmRfvPG9VVkW"}]]
+```
+
+To be able to use HSM keys, the relevant [Securosys Primus libraries](https://docs.securosys.com/jce/Downloads/) are required.
+For the purpose of referencing them on the file system, the `BOOTCLASSPATH` envvar is available e.g.
+
+```shell
+# Set the correct envvar value before running the script
+BOOTCLASSPATH=$(pwd)/securosys/lib \
+./bin/didtoolbox.sh create \
+    -u https://asd.asd \
+    -p src/test/data/com.securosys.primus.jce.credentials.properties \
+    -q primus \
+    --primus-keystore-password pass
 ```
