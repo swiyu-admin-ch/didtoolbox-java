@@ -10,4 +10,4 @@
 #
 test -d "${BOOTCLASSPATH}" && bootclasspath_java_opt=-Xbootclasspath/a:$(find "${BOOTCLASSPATH}" -type f -name "*.jar" | xargs -I {} echo {} | tr '\n' ':')
 
-java ${bootclasspath_java_opt} -jar /usr/local/bin/didtoolbox/didtoolbox.jar "$@"
+java ${bootclasspath_java_opt} -jar "$@"

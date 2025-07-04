@@ -6,9 +6,11 @@ FROM --platform=linux/arm64 openjdk:26-slim
 
 MAINTAINER vladica.stojic@bit.admin.ch
 
-WORKDIR /usr/local/bin/didtoolbox
-COPY target/didtoolbox-*-jar-with-dependencies.jar didtoolbox.jar
+RUN mkdir -p /didtoolbox
+WORKDIR /didtoolbox
+
+COPY target/didtoolbox-*-jar-with-dependencies.jar app.jar
 COPY bin/entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 
-ENTRYPOINT ["/usr/local/bin/didtoolbox/entrypoint.sh"]
+ENTRYPOINT ["/didtoolbox/entrypoint.sh", "/didtoolbox/app.jar"]
