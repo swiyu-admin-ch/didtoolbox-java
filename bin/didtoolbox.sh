@@ -14,7 +14,7 @@ image=${git_repo_owner}/${git_repo}
 #arch=amd64
 arch=arm64/v8
 
-test -n "${BOOTCLASSPATH}" && bootclasspath_podman_opts="-v ${BOOTCLASSPATH}:${BOOTCLASSPATH} -e BOOTCLASSPATH=${BOOTCLASSPATH}"
+test -n "${DIDTOOLBOX_BOOTCLASSPATH}" && bootclasspath_podman_opts="-v ${DIDTOOLBOX_BOOTCLASSPATH}:${DIDTOOLBOX_BOOTCLASSPATH} -e DIDTOOLBOX_BOOTCLASSPATH=${DIDTOOLBOX_BOOTCLASSPATH}"
 
 ${PODMAN} run \
     --arch=${arch} \

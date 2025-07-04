@@ -13,4 +13,9 @@ COPY target/didtoolbox-*-jar-with-dependencies.jar app.jar
 COPY bin/entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 
+# All image-specific envvars can easiliy be printed out by simply running:
+#     podman inspect <IMAGE_NAME> --format='{{json .Config.Env}}' | jq -r '.[]|select(startswith("DIDTOOLBOX_"))'
+ENV DIDTOOLBOX_BOOTCLASSPATH "./lib"
+VOLUME ${DIDTOOLBOX_BOOTCLASSPATH}
+
 ENTRYPOINT ["/didtoolbox/entrypoint.sh", "/didtoolbox/app.jar"]

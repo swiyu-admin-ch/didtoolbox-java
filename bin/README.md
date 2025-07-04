@@ -178,14 +178,24 @@ The command above should produce the following DID log featuring a whole new DID
 ```
 
 To be able to use HSM keys, the relevant [Securosys Primus libraries](https://docs.securosys.com/jce/Downloads/) are required.
-For the purpose of referencing them on the file system, the `BOOTCLASSPATH` envvar is available e.g.
+For the purpose of referencing them on the file system, the `DIDTOOLBOX_BOOTCLASSPATH` envvar is available e.g.
 
 ```shell
 # Set the correct envvar value before running the script
-BOOTCLASSPATH=$(pwd)/securosys/lib \
+DIDTOOLBOX_BOOTCLASSPATH=$(pwd)/securosys/lib \
 ./bin/didtoolbox.sh create \
     -u https://asd.asd \
     -p src/test/data/com.securosys.primus.jce.credentials.properties \
     -q primus \
     --primus-keystore-password pass
 ```
+
+All image-specific envvars can easily be printed out using the [`podman inspect`](https://docs.podman.io/en/stable/markdown/podman-inspect.1.html) command: 
+
+```
+podman inspect localhost/swiyu-admin-ch/didtoolbox-java --format='{{json .Config.Env}}' | jq -r '.[]|select(startswith("DIDTOOLBOX_"))'
+```
+
+| Image EnvVar             | Description                                                                                                                                                      | Purpose                                                                                                                                                                                   |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| DIDTOOLBOX_BOOTCLASSPATH | Shell interface to the [`-Xbootclasspath/a`](https://docs.oracle.com/en/java/javase/24/docs/specs/man/java.html#extra-options-for-java) option of `java` command | Specifies a directory featuring JAR files to append to the end of the default bootstrap class path.<br><br>Typically used to reference Securosys Primus libs (when working with HSM keys) |

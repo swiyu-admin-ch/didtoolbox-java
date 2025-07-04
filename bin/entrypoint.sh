@@ -8,6 +8,6 @@
 #
 #    On Windows, semicolons (;) separate entities in this list; on other platforms it is a colon (:).
 #
-test -d "${BOOTCLASSPATH}" && bootclasspath_java_opt=-Xbootclasspath/a:$(find "${BOOTCLASSPATH}" -type f -name "*.jar" | xargs -I {} echo {} | tr '\n' ':')
+test -d "${DIDTOOLBOX_BOOTCLASSPATH}" && bootclasspath_java_opt=-Xbootclasspath/a:$(find "${DIDTOOLBOX_BOOTCLASSPATH}" -type f -name "*.jar" | xargs -I {} echo {} | tr '\n' ':')
 
 java ${bootclasspath_java_opt} -jar "$@"
