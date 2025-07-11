@@ -19,7 +19,7 @@ This project implements the DID-Toolbox, a helper to create DIDs of type Trust D
   - [Create](#did-creation)
   - [Update](#did-update)
 - [Additional Information](#additional-information)
-- [Known Issues](#known-issues)
+- [Missing Features and Known Issues](#missing-features-and-known-issues)
 - [Contributions and Feedback](#contributions-and-feedback)
 - [License](#license)
 
@@ -540,9 +540,9 @@ The _deactivated_ DID log file should now contain another DID log entry denoting
 - **Credentials file (e.g. in case of using Securosys Primus HSM):** Keep such files safely stored on the file system.
 Alternatively, you may also fallback to a system user environment, instead.
 
-## Known Issues
+## Missing Features and Known Issues
 
-The swiyu Public Beta Trust Infrastructure was deliberately released at an early stage to enable future ecosystem participants. There may still be minor bugs or security vulnerabilities in the test system. We will publish them in the near future as ‘KnownIssues’ in this repository.
+The swiyu Public Beta Trust Infrastructure was deliberately released at an early stage to enable future ecosystem participants. The [feature roadmap](https://github.com/orgs/swiyu-admin-ch/projects/1/views/7) shows the current discrepancies between Public Beta and the targeted productive Trust Infrastructure. There may still be minor bugs or security vulnerabilities in the test system. These are marked as [‘KnownIssues’](https://github.com/swiyu-admin-ch/didtoolbox-java/issues) in each repository.
 
 ## Contributions and feedback
 
