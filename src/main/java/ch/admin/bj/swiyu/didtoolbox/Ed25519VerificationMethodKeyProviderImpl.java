@@ -361,12 +361,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             throw new RuntimeException("This instance features no self-generated key pair.");
         }
 
-        var encoded = this.keyPair.getPublic().getEncoded();
-        if (encoded != null) {
-            return Ed25519Utils.encodeMultibase(encoded);
-        }
-
-        throw new RuntimeException("The public key does not support encoding");
+        // may throw IllegalArgumentException if the supplied public key does not support encoding
+        return Ed25519Utils.encodeMultibase(this.keyPair.getPublic());
     }
 
     /**

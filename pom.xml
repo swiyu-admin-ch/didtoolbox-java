@@ -168,6 +168,7 @@
                                     <!-- Enable native access for all code on the classpath (including the code in the executable JAR itself)
                                          to avoid a warning for callers in the module, as required by the latest JDKs - from the JDK 24 onwards (JEP 472) -->
                                     <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+                                    <Build-Time>${maven.build.timestamp}</Build-Time>
                                 </manifestEntries>
                             </archive>
                             <descriptorRefs>
