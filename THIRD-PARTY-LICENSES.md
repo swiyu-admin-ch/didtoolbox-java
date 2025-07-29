@@ -7,7 +7,9 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## Apache License, Version 2.0:
 
+* **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
 * **Gson** (com.google.code.gson:gson:2.13.1 - https://github.com/google/gson)
+* **Tink Cryptography API** (com.google.crypto.tink:tink:1.18.0 - http://github.com/tink-crypto/tink-java)
 * **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.38.0 - https://errorprone.info/error_prone_annotations)
 * **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.3 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
 * **java-json-canonicalization** (io.github.erdtman:java-json-canonicalization:1.1 - https://github.com/erdtman/java-json-canonicalization)
@@ -17,6 +19,10 @@ This is the list of all third-party dependencies grouped by their license type. 
 * **IntelliJ IDEA Annotations** (org.jetbrains:annotations:13.0 - http://www.jetbrains.org)
 * **Kotlin Stdlib** (org.jetbrains.kotlin:kotlin-stdlib:1.9.23 - https://kotlinlang.org/)
 * **org.opentest4j:opentest4j** (org.opentest4j:opentest4j:1.3.0 - https://github.com/ota4j-team/opentest4j)
+
+## BSD-3-Clause:
+
+* **Protocol Buffers [Core]** (com.google.protobuf:protobuf-java:4.28.2 - https://developers.google.com/protocol-buffers/protobuf-java/)
 
 ## Bouncy Castle Licence:
 

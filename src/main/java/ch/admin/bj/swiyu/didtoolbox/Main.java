@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader;
+import ch.admin.eid.didtoolbox.TrustDidWeb;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -12,10 +13,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.net.URL;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
+import java.nio.file.*;
+import java.security.PrivateKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -32,17 +31,20 @@ public class Main {
     boolean version;
 
     public static void main(String... args) {
-
         var main = new Main();
 
         var createCommand = new CreateTdwCommand();
         var updateCommand = new UpdateTdwCommand();
         var deactivateCommand = new DeactivateTdwCommand();
+        var createProofOfPossessionCommand = new CreateProofOfPossessionCommand();
+        var verifyProofOfPossessionCommand = new VerifyProofOfPossessionCommand();
         var jc = JCommander.newBuilder()
                 .addObject(main)
                 .addCommand(CreateTdwCommand.COMMAND_NAME, createCommand)
                 .addCommand(UpdateTdwCommand.COMMAND_NAME, updateCommand)
                 .addCommand(DeactivateTdwCommand.COMMAND_NAME, deactivateCommand)
+                .addCommand(CreateProofOfPossessionCommand.COMMAND_NAME, createProofOfPossessionCommand)
+                .addCommand(VerifyProofOfPossessionCommand.COMMAND_NAME, verifyProofOfPossessionCommand)
                 .programName(ManifestUtils.getImplementationTitle())
                 .columnSize(150)
                 .build();
@@ -83,6 +85,7 @@ public class Main {
         File didLogFile;
         Map<String, String> assertionMethodKeysMap;
         Map<String, String> authenticationKeysMap;
+        String nonce;
 
         switch (parsedCommandName) {
 
@@ -393,6 +396,85 @@ public class Main {
                     // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
                     System.out.println(new StringBuilder(Files.readString(didLogFile.toPath()).trim()).append(System.lineSeparator()).append(newLogEntry));
 
+                } catch (Exception e) {
+                    overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
+                }
+
+                break;
+
+            case CreateProofOfPossessionCommand.COMMAND_NAME:
+
+                if (createProofOfPossessionCommand.help) {
+                    jc.usage(parsedCommandName);
+                    System.exit(0);
+                }
+
+                nonce = createProofOfPossessionCommand.nonce;
+                didLogFile = createProofOfPossessionCommand.didLogFile;
+                signingKeyPemFile = createProofOfPossessionCommand.signingKeyPemFile;
+
+                jksFile = updateCommand.jksFile;
+                jksPassword = updateCommand.jksPassword;
+                jksAlias = updateCommand.jksAlias;
+
+                primus = updateCommand.securosysPrimusKeyStoreLoader;
+                primusKeyAlias = updateCommand.primusKeyAlias;
+                primusKeyPassword = updateCommand.primusKeyPassword;
+                try {
+                    PrivateKey privateKey;
+                    if (signingKeyPemFile != null) {
+                        var privatePemBytes = PemUtils.readPemObject(new FileReader(createProofOfPossessionCommand.signingKeyPemFile));
+                        privateKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
+
+                    } else if (jksFile != null && jksAlias != null) {
+                        // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
+                        var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+                        privateKey = signer.keyPair.getPrivate();
+
+                    } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
+                        var primusSigner = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
+                        privateKey = primusSigner.keyPair.getPrivate();
+
+                    } else {
+                        overAndOut(jc, parsedCommandName, "No source for the (signing) ed25519 key supplied. Use one of the relevant options to supply keys");
+                        return;
+                    }
+
+                    var log = String.join("\n", Files.readAllLines(didLogFile.toPath()));
+                    var didDocId = DidLogMetaPeeker.peek(log).didDocId;
+                    var didWeb = TrustDidWeb.Companion.read(didDocId, log);
+
+                    var proof = ProofOfPossessionUtil.createProofOfPossession(privateKey, didWeb, nonce);
+                    System.out.println(proof.serialize());
+
+                } catch (Exception e) {
+                    overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
+                }
+
+                break;
+
+            case VerifyProofOfPossessionCommand.COMMAND_NAME:
+                if (verifyProofOfPossessionCommand.help) {
+                    jc.usage(parsedCommandName);
+                    System.exit(0);
+                }
+
+                didLogFile = verifyProofOfPossessionCommand.didLogFile;
+                nonce = verifyProofOfPossessionCommand.nonce;
+                var jwt = verifyProofOfPossessionCommand.jwt;
+
+                try {
+                    var log = String.join("\n", Files.readAllLines(didLogFile.toPath()));
+                    var didDocId = DidLogMetaPeeker.peek(log).didDocId;
+                    var didWeb = TrustDidWeb.Companion.read(didDocId, log);
+
+                    try {
+                        ProofOfPossessionUtil.verify(jwt, nonce, didWeb);
+                        System.out.println("Provided JWT is valid.");
+                    } catch (ProofOfPossessionVerificationException e) {
+                        System.out.println("Provided JWT is invalid due to: " + e.getLocalizedMessage());
+                    }
+                    System.exit(0);
                 } catch (Exception e) {
                     overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
                 }
