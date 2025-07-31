@@ -7,7 +7,7 @@ import java.io.File;
 
 @Parameters(
       commandNames = {CreateProofOfPossessionCommand.COMMAND_NAME} ,
-        commandDescription = "Create a proof of possession JWT that expires after 24 hours. " +
+        commandDescription = "Create a proof of possession JWT signed with the provided private key that expires after 24 hours. " +
                 "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
                 "each of then denoting a whole another source of such key material: " +
                 "PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. " +
