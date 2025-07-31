@@ -65,8 +65,8 @@ public class Ed25519Utils {
      * The encoding of an Ed25519 public key MUST start with the two-byte prefix 0xed01 (the varint expression of 0xed),
      * followed by the 32-byte public key data. The resulting 34-byte value MUST then be encoded using the base-58-btc alphabet,
      * and then prepended with the <a href="https://www.w3.org/TR/controller-document/#multibase-0">base-58-btc Multibase header (z)</a>.
-     * <p>
-     * See <a href="https://www.w3.org/TR/controller-document/#Multikey">Multikey</a>
+     * </p>
+     * <p>See <a href="https://www.w3.org/TR/controller-document/#Multikey">Multikey</a></p>
      *
      * @param publicKeyEncoded Ed25519 public key in its primary encoding format as in {@link PublicKey#getEncoded()}
      * @return multibase encoded Ed25519 public key
@@ -101,4 +101,31 @@ public class Ed25519Utils {
         }
         return encodeMultibase(publicKeyEncoded);
     }
+
+    /**
+     * <p>
+     * Decodes a multibase key into the 32-byte public key data.
+     * The multikey has the prefix 'z' followed by 34-byte data encoded using the base-58-btc alphabet.
+     * Of those data bytes, the first 2 denote the variant of the key and the rest being the key data.
+     * </p>
+     * <p>See <a href="https://www.w3.org/TR/controller-document/#Multikey">Multikey</a></p>
+     * <p>This method can fail, throwing an {@link IllegalArgumentException} when the provided multibase string is not supported.</p>
+     *
+     * @param multibase is a publicKey encoded as multibase
+     * @return publicKey
+     */
+    public static byte[] decodeMultibase(String multibase) {
+        if (multibase.isEmpty() || multibase.charAt(0) != 'z') {
+            throw new IllegalArgumentException();
+        }
+        multibase = multibase.substring(1);
+        var buf = Base58.decode(multibase);
+
+        // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
+        if (buf[0] == (byte)0xed && buf[1] == (byte)0x01) {// Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
+            return Arrays.copyOfRange(buf, 2, buf.length);
+        }
+        throw new IllegalArgumentException("Only Ed25519 public key is supported");
+    }
+
 }
