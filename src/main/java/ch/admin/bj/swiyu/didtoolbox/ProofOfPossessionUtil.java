@@ -40,7 +40,7 @@ public class ProofOfPossessionUtil {
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      */
-    public static boolean isValid(SignedJWT signedJWT, String nonce, TrustDidWeb didWeb) throws ParseException, JOSEException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public static boolean isValid(SignedJWT signedJWT, String nonce, TrustDidWeb didWeb) throws ParseException, JOSEException {
         try {
             verify(signedJWT, nonce, didWeb);
             return true;
@@ -59,25 +59,24 @@ public class ProofOfPossessionUtil {
      * @param signedJWT proof of possession to be verified
      * @param nonce possession
      * @param didWeb DID log of the owner
-     * @return
-     * @throws ParseException
-     * @throws JOSEException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
+     * @throws ProofOfPossessionVerificationException is thrown in case the JWT is invalid, containing more details as to why
+     * @throws ParseException if the JWT is malformed
+     * @throws JOSEException when the provided keys are invalid or don't match
      */
-    public static void verify(SignedJWT signedJWT, String nonce, TrustDidWeb didWeb) throws ParseException, JOSEException, NoSuchAlgorithmException, InvalidKeySpecException, ProofOfPossessionVerificationException {
+    public static void verify(SignedJWT signedJWT, String nonce, TrustDidWeb didWeb) throws ProofOfPossessionVerificationException, ParseException, JOSEException {
         var algorithm = signedJWT.getHeader().getAlgorithm();
         if (!SUPPORTED_JWS_ALGORITHM.equals(algorithm)) {
             throw ProofOfPossessionVerificationException.UnsupportedAlgorithm(SUPPORTED_JWS_ALGORITHM.toString(), algorithm.toString());
         }
 
         // check nonce
-        var claimedNonce = signedJWT.getJWTClaimsSet().getStringClaim("nonce");
+        var claimedNonce =  signedJWT.getJWTClaimsSet().getStringClaim("nonce");
         if (!nonce.equals(claimedNonce)) {
             throw ProofOfPossessionVerificationException.InvalidNonce(claimedNonce, nonce);
         }
 
         // check timestamp
+        // ParseException is thrown here, if something's wrong with the provided JWT
         var expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         if (expirationTime == null) {
             throw ProofOfPossessionVerificationException.Expired();
@@ -88,12 +87,13 @@ public class ProofOfPossessionUtil {
         }
 
         // check if kid belongs to did
+        // ParseException is thrown here, if something's wrong with the provided JWT
         var kid = signedJWT.getHeader().getKeyID();
 
         var str = didWeb.getDidLog();
-        var jreader = new JsonReader(new StringReader(str));
-        jreader.setStrictness(Strictness.LENIENT);
-        var did = JsonParser.parseReader(jreader).getAsJsonArray();
+        var reader = new JsonReader(new StringReader(str));
+        reader.setStrictness(Strictness.LENIENT);
+        var did = JsonParser.parseReader(reader).getAsJsonArray();
         if (did.size() != 5) {
             throw new IllegalArgumentException("Malformed DID log");
         }
@@ -114,6 +114,8 @@ public class ProofOfPossessionUtil {
                 com.nimbusds.jose.jwk.Curve.Ed25519,
                 com.nimbusds.jose.util.Base64URL.encode(publicKey))
                 .build();
+
+        // JOSEException is throw here, if the keys are invalid or don't match
         var verifier = new Ed25519Verifier(jwk.toPublicJWK());
         if (!signedJWT.verify(verifier)) {
             throw ProofOfPossessionVerificationException.InvalidSignature();
@@ -126,12 +128,15 @@ public class ProofOfPossessionUtil {
      * The expiration date is now {@link #VALID_DURATION} hours after creation.
      * </p>
      *
-     * <p>See <a href="https://datatracker.ietf.org/doc/html/rfc7800>Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)</a></p>
+     * <p>See <a href="https://datatracker.ietf.org/doc/html/rfc7800">Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)</a></p>
      *
      * @param privateKey to sign JWT
      * @param didWeb DID log of the owner
      * @param nonce possession
-     * @return
+     * @return proof of possession in form of a JWT
+     * @throws IllegalArgumentException when:
+     *   it fails to decode the public key from the DID log,
+     *   or the keys are not ED25519/EdDSA.
      */
     public static SignedJWT createProofOfPossession(PrivateKey privateKey, TrustDidWeb didWeb, String nonce) {
         if (!SUPPORTED_ALGORITHM.equals(privateKey.getAlgorithm())) {
@@ -152,7 +157,7 @@ public class ProofOfPossessionUtil {
             var keyID = dataIntegrityProof.getAsJsonObject().get("verificationMethod").getAsString();
             try {
                 return ProofOfPossessionUtil.createProofOfPossession(privateKey, keyID, nonce);
-            } catch (Exception e) {
+            } catch (JOSEException e) {
                 return null;
             }
         }).filter(Objects::nonNull).findFirst();
@@ -170,16 +175,25 @@ public class ProofOfPossessionUtil {
      * The expiration date is now {@link #VALID_DURATION} hours after creation.
      * </p>
      *
-     * <p>See <a href="https://datatracker.ietf.org/doc/html/rfc7800>Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)</a></p>
+     * <p>See <a href="https://datatracker.ietf.org/doc/html/rfc7800">Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)</a></p>
      *
      * @param privateKey to sign JWT
-     * @param keyID
+     * @param keyID expected value of the verificationMethod of the DID Log
      * @param nonce possession
-     * @return
+     * @return proof of possession in form of a JWT
+     * @throws JOSEException when the provided keys are invalid or don't match
      */
-    private static SignedJWT createProofOfPossession(PrivateKey privateKey, String keyID, String nonce) throws JOSEException, IOException, GeneralSecurityException {
-        var publicKeyMultibase = keyID.split("#")[1];
-        var publicKey = Ed25519Utils.decodeMultibase(publicKeyMultibase);
+    private static SignedJWT createProofOfPossession(PrivateKey privateKey, String keyID, String nonce) throws JOSEException {
+        var keyParts = keyID.split("#");
+        if (keyParts.length != 2) {
+            throw new IllegalArgumentException("Expected keyID to contain fragment.");
+        }
+        byte[] publicKey;
+        try {
+            publicKey = Ed25519Utils.decodeMultibase(keyParts[1]);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Failed to decode public key from fragment.", e);
+        }
 
         // Prepare header and claims set of the JWT
         var signedJWT = new com.nimbusds.jwt.SignedJWT(
@@ -201,7 +215,7 @@ public class ProofOfPossessionUtil {
                 .d(com.nimbusds.jose.util.Base64URL.encode(privateKeyBytes))
                 .build();
 
-        // Compute the signature using proper signer
+        // JOSEException is throw here, if the keys are invalid or don't match
         var signer = new Ed25519Signer(jwk);
         signedJWT.sign(signer);
 

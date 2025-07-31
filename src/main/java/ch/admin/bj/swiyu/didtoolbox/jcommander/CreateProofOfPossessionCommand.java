@@ -20,12 +20,12 @@ import java.io.File;
 public class CreateProofOfPossessionCommand extends AbstractTdwCommandBase {
     final public static String COMMAND_NAME = "create-pop";
 
-    @Parameter(names = { "--proof-of-possession", "--nonce", "-n"},
-        description = "",
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},
+        description = "Possession which will be proven by the jwt",
         required = true)
     public String nonce;
 
-    @Parameter(names = {"--did-log-file", "-d"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_DID_LOG_FILE, CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE},
             description = "The file containing a valid did:tdw DID log to verify the JWT",
             converter = DidLogFileParameterConverter.class,
             validateWith = DidLogFileParameterValidator.class,

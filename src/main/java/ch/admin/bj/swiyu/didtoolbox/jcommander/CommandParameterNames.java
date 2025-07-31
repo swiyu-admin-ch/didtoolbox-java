@@ -4,7 +4,6 @@ package ch.admin.bj.swiyu.didtoolbox.jcommander;
  * The home for all CLI parameter names, both short and long.
  */
 public interface CommandParameterNames {
-
     String PARAM_NAME_LONG_USAGE = "--help";
     String PARAM_NAME_SHORT_USAGE = "-h";
 
@@ -30,4 +29,13 @@ public interface CommandParameterNames {
 
     String PARAM_NAME_LONG_AUTHENTICATION_METHOD_KEYS = "--auth";
     String PARAM_NAME_SHORT_AUTHENTICATION_METHOD_KEYS = "-t";
+
+    String PARAM_NAME_LONG_DID_LOG_FILE = "--did-log-file";
+    String PARAM_NAME_SHORT_DID_LOG_FILE = "-d";
+
+    String PARAM_NAME_LONG_NONCE = "--nonce";
+    String PARAM_NAME_SHORT_NONCE = "-n";
+
+    String PARAM_NAME_LONG_JWT = "--jwt";
+    String PARAM_NAME_SHORT_JWT = "-j";
 }

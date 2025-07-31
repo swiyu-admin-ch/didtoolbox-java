@@ -19,19 +19,19 @@ public class VerifyProofOfPossessionCommand {
             help = true)
     public boolean help;
 
-    @Parameter(names = { "--proof-of-possession", "--nonce", "-n"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},
             description = "Text representation of the possession to be included in the proof",
             required = true)
     public String nonce;
 
-    @Parameter(names = {"--did-log-file", "-d"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_DID_LOG_FILE, CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE},
             description = "The file containing a valid did:tdw DID log of the owner.",
             converter = DidLogFileParameterConverter.class,
             validateWith = DidLogFileParameterValidator.class,
             required = true)
     public File didLogFile;
 
-    @Parameter(names = {"--jwt", "-j"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_JWT, CommandParameterNames.PARAM_NAME_SHORT_JWT},
             description = "JWT to be verified",
             converter = JWTParameterConverter.class,
             validateWith = JWTParameterValidator.class,

@@ -23,14 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TdwUpdaterTest {
 
-    final private static String ISO_DATE_TIME;
-    // final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER;
-    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER_JKS;
-    final private static VerificationMethodKeyProvider EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER;
-    final private static Map<String, String> ASSERTION_METHOD_KEYS;
-    final private static Map<String, String> AUTHENTICATION_METHOD_KEYS;
-
-    private static Collection<Object[]> keys() {
+    public static Collection<Object[]> keys() {
         return Arrays.asList(new String[][]{
                 /*
                 All lines in the private/public matrix were generated using openssl command by running the following script:
@@ -54,32 +47,6 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 -----END PUBLIC KEY-----
 """},
         });
-    }
-
-    static {
-
-        ISO_DATE_TIME = "2012-12-12T12:12:12Z";
-
-        // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-        EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER = new UnsafeEd25519VerificationMethodKeyProviderImpl(
-                "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq",
-                "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2");
-
-        try {
-            /*
-            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(
-                    new File("src/test/data/private.pem"),
-                    new File("src/test/data/public.pem"));
-             */
-            // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
-                    new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit");
-
-            ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"));
-            AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"));
-        } catch (Exception intolerable) {
-            throw new RuntimeException(intolerable);
-        }
     }
 
     private static void assertDidLogEntry(String didLogEntry) {
@@ -120,7 +87,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     }
 
     /**
-     * Also features an updateKey matching {@link #VERIFICATION_METHOD_KEY_PROVIDER_JKS}.
+     * Also features an updateKey matching {@link TestUtil#VERIFICATION_METHOD_KEY_PROVIDER_JKS}.
      *
      * @param verificationMethodKeyProvider
      * @return
@@ -129,11 +96,11 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         try {
             return TdwCreator.builder()
                     .verificationMethodKeyProvider(verificationMethodKeyProvider)
-                    .assertionMethodKeys(ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethodKeys(TestUtil.ASSERTION_METHOD_KEYS)
+                    .authenticationKeys(TestUtil.AUTHENTICATION_METHOD_KEYS)
                     .updateKeys(Set.of(new File("src/test/data/public.pem"))) // to be able to use VERIFICATION_METHOD_KEY_PROVIDER while updating
                     .build()
-                    .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null), ZonedDateTime.parse(ISO_DATE_TIME));
+                    .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null), ZonedDateTime.parse(TestUtil.ISO_DATE_TIME));
         } catch (Exception simplyIntolerable) {
             throw new RuntimeException(simplyIntolerable);
         }
@@ -147,16 +114,16 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             TdwUpdater.builder()
                     // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
-                    .update(buildInitialDidLogEntry(VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .update(buildInitialDidLogEntry(TestUtil.VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
 
         exc = assertThrowsExactly(TdwUpdaterException.class, () -> {
             TdwUpdater.builder()
-                    .verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
+                    .verificationMethodKeyProvider(TestUtil.EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
                     .updateKeys(Set.of(new File("src/test/data/public.pem"))) // ...with NO matching key supplied!
                     .build()
-                    .update(buildInitialDidLogEntry(VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .update(buildInitialDidLogEntry(TestUtil.VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
     }
@@ -166,11 +133,11 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         var exc = assertThrowsExactly(TdwUpdaterException.class, () -> {
             TdwUpdater.builder()
-                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .verificationMethodKeyProvider(TestUtil.VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .build()
                     .update( // MUT
-                            buildInitialDidLogEntry(VERIFICATION_METHOD_KEY_PROVIDER_JKS),
-                            ZonedDateTime.parse(ISO_DATE_TIME).minusMinutes(1)); // In the past!
+                            buildInitialDidLogEntry(TestUtil.VERIFICATION_METHOD_KEY_PROVIDER_JKS),
+                            ZonedDateTime.parse(TestUtil.ISO_DATE_TIME).minusMinutes(1)); // In the past!
         });
         assertEquals("The versionTime of the last entry MUST be earlier than the current time", exc.getMessage());
     }
@@ -179,7 +146,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testUpdateWithKeyChangeUsingExistingUpdateKey() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialDidLogEntry(TestUtil.EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER);
 
         String nextLogEntry = null;
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
@@ -189,15 +156,15 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
             nextLogEntry = TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
-                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
-                    .assertionMethodKeys(ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
+                    .verificationMethodKeyProvider(TestUtil.VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
+                    .assertionMethodKeys(TestUtil.ASSERTION_METHOD_KEYS)
+                    .authenticationKeys(TestUtil.AUTHENTICATION_METHOD_KEYS)
                     // CAUTION No need for explicit call of method: .updateKeys(Set.of(new File("src/test/data/public.pem")))
                     //         The updateKey matching VERIFICATION_METHOD_KEY_PROVIDER is already present in initialDidLogEntry.
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1)); // MUT
+                    .update(updatedDidLog.toString(), ZonedDateTime.parse(TestUtil.ISO_DATE_TIME).plusSeconds(1)); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -245,14 +212,14 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
             nextLogEntry = TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using a whole another verification key provider
-                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
-                    .assertionMethodKeys(ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
+                    .verificationMethodKeyProvider(TestUtil.VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
+                    .assertionMethodKeys(TestUtil.ASSERTION_METHOD_KEYS)
+                    .authenticationKeys(TestUtil.AUTHENTICATION_METHOD_KEYS)
                     .updateKeys(Set.of(new File("src/test/data/public.pem"), publicKeyPemFile))
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1)); // MUT
+                    .update(updatedDidLog.toString(), ZonedDateTime.parse(TestUtil.ISO_DATE_TIME).plusSeconds(1)); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -305,14 +272,14 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             for (int i = 2; i < totalEntriesCount + 1; i++) { // update DID log by adding several new entries
 
                 nextLogEntry = TdwUpdater.builder()
-                        .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using another verification key provider
+                        .verificationMethodKeyProvider(TestUtil.VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using another verification key provider
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                         .updateKeys(Set.of(new File("src/test/data/public.pem"), publicKeyPemFile))
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.
-                        .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(i - 1)); // MUT
+                        .update(updatedDidLog.toString(), ZonedDateTime.parse(TestUtil.ISO_DATE_TIME).plusSeconds(i - 1)); // MUT
 
                 assertDidLogEntry(nextLogEntry);
 
