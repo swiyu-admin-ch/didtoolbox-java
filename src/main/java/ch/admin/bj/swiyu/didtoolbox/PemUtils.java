@@ -56,12 +56,9 @@ class PemUtils {
     static String parsePEMFilePublicKeyEd25519Multibase(File pemFile) throws InvalidKeySpecException, IOException {
 
         PublicKey pubKey = PemUtils.getPublicKeyEd25519(parsePEMFile(pemFile));
-        byte[] publicKeyEncoded = pubKey.getEncoded(); // 44 bytes
-        if (publicKeyEncoded == null) {
-            throw new RuntimeException("The public key does not support encoding");
-        }
 
-        return Ed25519Utils.encodeMultibase(publicKeyEncoded);
+        // may throw IllegalArgumentException if the supplied public key does not support encoding
+        return Ed25519Utils.encodeMultibase(pubKey);
     }
 
     static String parsePEMPublicKeyEd25519Multibase(String pemPublicKey) throws InvalidKeySpecException, IOException {

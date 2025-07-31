@@ -202,6 +202,41 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     }
 
     @Test
+    void testUpdateAlreadyDeactivatedThrowsTdwUpdaterException() {
+
+        // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
+        var initialDidLogEntry = buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER);
+
+        // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
+        StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+
+        AtomicReference<String> nextLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            nextLogEntry.set(TdwDeactivator.builder()
+                    .verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
+                    //.verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
+                    .build()
+                    // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                    // The versionTime of the last entry MUST be earlier than the current time.
+                    .deactivate(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+        });
+
+        assertDeactivatedDidLogEntry(nextLogEntry.get());
+
+        // Try updating the DID log
+        var updaterExc = assertThrowsExactly(TdwUpdaterException.class, () -> {
+            TdwUpdater.builder()
+                    .verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .build()
+                    .update(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString(),
+                            // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                            // The versionTime of the last entry MUST be earlier than the current time.
+                            ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2));
+        });
+        assertEquals("DID already deactivated", updaterExc.getMessage());
+    }
+
+    @Test
     void testDeactivateAlreadyDeactivatedThrowsTdwDeactivatorException() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
