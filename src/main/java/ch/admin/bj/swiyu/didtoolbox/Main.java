@@ -3,26 +3,20 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
 import ch.admin.eid.didtoolbox.TrustDidWeb;
-import ch.admin.eid.didtoolbox.TrustDidWebException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.UnixStyleUsageFormatter;
-import com.nimbusds.jose.JOSEException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-import java.text.ParseException;
+import java.security.PrivateKey;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,7 +94,7 @@ public class Main {
         System.exit(0);
     }
 
-    public static void runCreateTdwCommand(JCommander jc, String parsedCommandName, CreateTdwCommand command) throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException {
+    private static void runCreateTdwCommand(JCommander jc, String parsedCommandName, CreateTdwCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -243,7 +237,7 @@ public class Main {
         System.out.println(didLogEntry);
     }
 
-    public static void runUpdateTdwCommand(JCommander jc, String parsedCommandName, UpdateTdwCommand command) throws IOException, UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogMetaPeekerException, CertificateException, TdwUpdaterException {
+    private static void runUpdateTdwCommand(JCommander jc, String parsedCommandName, UpdateTdwCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -328,7 +322,7 @@ public class Main {
         System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() + newLogEntry);
     }
 
-    public static void runDeactivateTdwCommand(JCommander jc, String parsedCommandName, DeactivateTdwCommand command) throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogMetaPeekerException, TdwDeactivatorException {
+    private static void runDeactivateTdwCommand(JCommander jc, String parsedCommandName, DeactivateTdwCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -389,7 +383,7 @@ public class Main {
 
     }
 
-    public static void runCreatePoPCommand(JCommander jc, String parsedCommandName, CreateProofOfPossessionCommand command) throws IOException, InvalidKeySpecException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogMetaPeekerException, TrustDidWebException {
+    private static void runCreatePoPCommand(JCommander jc, String parsedCommandName, CreateProofOfPossessionCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -435,7 +429,7 @@ public class Main {
 
     }
 
-    public static void runVerifyPoPCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws IOException, DidLogMetaPeekerException, TrustDidWebException, ParseException, JOSEException {
+    private static void runVerifyPoPCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
