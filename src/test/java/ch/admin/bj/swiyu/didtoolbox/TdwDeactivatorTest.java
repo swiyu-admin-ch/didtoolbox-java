@@ -5,27 +5,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.net.URI;
-import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TdwDeactivatorTest {
-
-    final private static String ISO_DATE_TIME;
-    // final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER;
-    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER_JKS;
-    final private static VerificationMethodKeyProvider EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER;
-    final private static Map<String, String> ASSERTION_METHOD_KEYS;
-    final private static Map<String, String> AUTHENTICATION_METHOD_KEYS;
+class TdwDeactivatorTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> keys() {
         return Arrays.asList(new String[][]{
@@ -51,32 +38,6 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 -----END PUBLIC KEY-----
 """},
         });
-    }
-
-    static {
-
-        ISO_DATE_TIME = "2012-12-12T12:12:12Z";
-
-        // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-        EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER = new UnsafeEd25519VerificationMethodKeyProviderImpl(
-                "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq",
-                "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2");
-
-        try {
-            /*
-            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(
-                    new File("src/test/data/private.pem"),
-                    new File("src/test/data/public.pem"));
-             */
-            // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
-                    new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit");
-
-            ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"));
-            AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"));
-        } catch (Exception intolerable) {
-            throw new RuntimeException(intolerable);
-        }
     }
 
     private static void assertDeactivatedDidLogEntry(String didLogEntry) {
@@ -106,26 +67,6 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var proof = proofs.getAsJsonArray().get(0);
         assertTrue(proof.isJsonObject());
         assertTrue(proof.getAsJsonObject().has("proofValue"));
-    }
-
-    /**
-     * Also features an updateKey matching {@link #VERIFICATION_METHOD_KEY_PROVIDER_JKS}.
-     *
-     * @param verificationMethodKeyProvider
-     * @return
-     */
-    private static String buildInitialDidLogEntry(VerificationMethodKeyProvider verificationMethodKeyProvider) {
-        try {
-            return TdwCreator.builder()
-                    .verificationMethodKeyProvider(verificationMethodKeyProvider)
-                    .assertionMethodKeys(ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
-                    .updateKeys(Set.of(new File("src/test/data/public.pem"))) // to be able to use VERIFICATION_METHOD_KEY_PROVIDER while updating
-                    .build()
-                    .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null), ZonedDateTime.parse(ISO_DATE_TIME));
-        } catch (Exception simplyIntolerable) {
-            throw new RuntimeException(simplyIntolerable);
-        }
     }
 
     @Test

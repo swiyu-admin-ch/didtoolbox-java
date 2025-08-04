@@ -5,12 +5,14 @@ import java.io.FileInputStream;
 import java.net.URI;
 import java.net.URL;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class TestUtil {
+/**
+ * The base class for all test class in this package relying on test data of any kind.
+ * Some handy helpers included, too.
+ */
+public abstract class AbstractUtilTestBase {
     final public static String DATA_PATH_PREFIX = "src/test/data/";
 
     final public static String ISO_DATE_TIME = "2012-12-12T12:12:12Z";
@@ -25,7 +27,7 @@ public class TestUtil {
     static {
         // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
         EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER = new UnsafeEd25519VerificationMethodKeyProviderImpl(
-                PRIVATE_KEY_MULTIBASE, PUBLIC_KEY_MULTIBASE );
+                PRIVATE_KEY_MULTIBASE, PUBLIC_KEY_MULTIBASE);
 
         try {
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
@@ -38,7 +40,6 @@ public class TestUtil {
             throw new RuntimeException(intolerable);
         }
     }
-
 
     /**
      * Also features an updateKey matching {@link #VERIFICATION_METHOD_KEY_PROVIDER_JKS}.
@@ -59,5 +60,4 @@ public class TestUtil {
             throw new RuntimeException(simplyIntolerable);
         }
     }
-
 }

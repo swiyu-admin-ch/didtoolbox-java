@@ -15,19 +15,20 @@ import java.security.KeyPairGenerator;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
-public class ProofOfPossessionUtilTest {
+public class ProofOfPossessionUtilTest extends AbstractUtilTestBase {
 
     @Test
     void testProofOfPossession() throws IOException, InvalidKeySpecException, TrustDidWebException, ParseException, JOSEException, DidLogMetaPeekerException {
-        var publicKeyFile = new File(TestUtil.DATA_PATH_PREFIX + "public.pem");
-        var privateKeyFile = new File(TestUtil.DATA_PATH_PREFIX + "private.pem");
+        var publicKeyFile = new File(DATA_PATH_PREFIX + "public.pem");
+        var privateKeyFile = new File(DATA_PATH_PREFIX + "private.pem");
         var privateKey = PemUtils.getPrivateKeyEd25519(PemUtils.readPemObject(new FileReader(privateKeyFile)));
         var nonce = "HelloWorld";
 
         var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(privateKeyFile), new FileReader(publicKeyFile)); // supplied external key pair
-        var didLog = TestUtil.buildInitialDidLogEntry(signer);
+        var didLog = buildInitialDidLogEntry(signer);
 
         var didTdw = DidLogMetaPeeker.peek(didLog).didDocId;
         var didWeb = TrustDidWeb.Companion.read(didTdw, didLog);
@@ -45,17 +46,17 @@ public class ProofOfPossessionUtilTest {
 
     @Test
     void testVerifyProofOfPossessionKeysNotMatching() throws IOException, GeneralSecurityException, DidLogMetaPeekerException, TrustDidWebException {
-        var publicKeyFile = new File(TestUtil.DATA_PATH_PREFIX + "public.pem");
-        var privateKeyFile = new File(TestUtil.DATA_PATH_PREFIX + "private.pem");
+        var publicKeyFile = new File(DATA_PATH_PREFIX + "public.pem");
+        var privateKeyFile = new File(DATA_PATH_PREFIX + "private.pem");
         var nonce = "HelloWorld";
 
         var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(privateKeyFile), new FileReader(publicKeyFile)); // supplied external key pair
-        var didLog = TestUtil.buildInitialDidLogEntry(signer);
+        var didLog = buildInitialDidLogEntry(signer);
 
         var didTdw = DidLogMetaPeeker.peek(didLog).didDocId;
         var didWeb = TrustDidWeb.Companion.read(didTdw, didLog);
 
-        var kgp =KeyPairGenerator.getInstance("Ed25519");
+        var kgp = KeyPairGenerator.getInstance("Ed25519");
         var privateKey = kgp.generateKeyPair().getPrivate();
 
         // create proof
@@ -66,10 +67,10 @@ public class ProofOfPossessionUtilTest {
 
     @Test
     void testVerifyProofOfPossessionExpired() throws ParseException, JOSEException {
-        var expiredJWT = SignedJWT.parse( "eyJraWQiOiJkaWQ6a2V5Ono2TWt0ZEFyM2lVUmVVN0hzQ2Y3Sm5vQ2pRNXVycEtUeFpTQzQ5S25qRVZzQTVDQSN6Nk1rdGRBcjNpVVJlVTdIc0NmN0pub0NqUTV1cnBLVHhaU0M0OUtuakVWc0E1Q0EiLCJhbGciOiJFZDI1NTE5In0.eyJleHAiOjE3NTM4NzE5OTAsIm5vbmNlIjoiZm9vIn0.Srooog6HXT8TPReDjkhkvGAwwcqe7MgMDbbOWgqfxo2qs1zrug-DJQPv7_lpTOnJmQpvkO7I_-y9d37QBaC-Cw");
+        var expiredJWT = SignedJWT.parse("eyJraWQiOiJkaWQ6a2V5Ono2TWt0ZEFyM2lVUmVVN0hzQ2Y3Sm5vQ2pRNXVycEtUeFpTQzQ5S25qRVZzQTVDQSN6Nk1rdGRBcjNpVVJlVTdIc0NmN0pub0NqUTV1cnBLVHhaU0M0OUtuakVWc0E1Q0EiLCJhbGciOiJFZDI1NTE5In0.eyJleHAiOjE3NTM4NzE5OTAsIm5vbmNlIjoiZm9vIn0.Srooog6HXT8TPReDjkhkvGAwwcqe7MgMDbbOWgqfxo2qs1zrug-DJQPv7_lpTOnJmQpvkO7I_-y9d37QBaC-Cw");
         try {
             ProofOfPossessionUtil.verify(expiredJWT, "foo", null);
-            assert(false);
+            assert (false);
         } catch (ProofOfPossessionVerificationException e) {
             assertEquals(ProofOfPossessionVerificationException.ErrorCause.Expired, e.getErrorCause());
         }
@@ -77,13 +78,13 @@ public class ProofOfPossessionUtilTest {
 
     @Test
     void testVerifyProofOfPossessionNonceNotMatching() throws ParseException, InvalidKeySpecException, JOSEException, DidLogMetaPeekerException, IOException, TrustDidWebException {
-        var publicKeyFile = new File(TestUtil.DATA_PATH_PREFIX + "public.pem");
-        var privateKeyFile = new File(TestUtil.DATA_PATH_PREFIX + "private.pem");
+        var publicKeyFile = new File(DATA_PATH_PREFIX + "public.pem");
+        var privateKeyFile = new File(DATA_PATH_PREFIX + "private.pem");
         var privateKey = PemUtils.getPrivateKeyEd25519(PemUtils.readPemObject(new FileReader(privateKeyFile)));
         var nonce = "bar";
 
         var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(privateKeyFile), new FileReader(publicKeyFile)); // supplied external key pair
-        var didLog = TestUtil.buildInitialDidLogEntry(signer);
+        var didLog = buildInitialDidLogEntry(signer);
 
         var didTdw = DidLogMetaPeeker.peek(didLog).didDocId;
         var didWeb = TrustDidWeb.Companion.read(didTdw, didLog);
@@ -93,7 +94,7 @@ public class ProofOfPossessionUtilTest {
 
         try {
             ProofOfPossessionUtil.verify(proof, "foo", null);
-            assert(false);
+            assert (false);
         } catch (ProofOfPossessionVerificationException e) {
             assertEquals(ProofOfPossessionVerificationException.ErrorCause.InvalidNonce, e.getErrorCause());
         }
@@ -102,10 +103,10 @@ public class ProofOfPossessionUtilTest {
     @Test
     void testVerifyProofOfPossessionKeyNotFoundInDID() throws ParseException, GeneralSecurityException, JOSEException, DidLogMetaPeekerException, IOException, TrustDidWebException {
         var nonce = "bar";
-        var publicKeyFile = new File(TestUtil.DATA_PATH_PREFIX + "public.pem");
-        var privateKeyFile = new File(TestUtil.DATA_PATH_PREFIX + "private.pem");
+        var publicKeyFile = new File(DATA_PATH_PREFIX + "public.pem");
+        var privateKeyFile = new File(DATA_PATH_PREFIX + "private.pem");
         var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(privateKeyFile), new FileReader(publicKeyFile)); // supplied external key pair
-        var didLog = TestUtil.buildInitialDidLogEntry(signer);
+        var didLog = buildInitialDidLogEntry(signer);
         var didTdw = DidLogMetaPeeker.peek(didLog).didDocId;
         var didWeb = TrustDidWeb.Companion.read(didTdw, didLog);
 
@@ -133,7 +134,7 @@ public class ProofOfPossessionUtilTest {
 
         try {
             ProofOfPossessionUtil.verify(signedJWT, nonce, didWeb);
-            assert(false);
+            assert (false);
         } catch (ProofOfPossessionVerificationException e) {
             assertEquals(ProofOfPossessionVerificationException.ErrorCause.KeyNotFoundInDID, e.getErrorCause());
         }
@@ -147,7 +148,7 @@ public class ProofOfPossessionUtilTest {
 
         try {
             ProofOfPossessionUtil.verify(signedJWT, "", null);
-            assert(false);
+            assert (false);
         } catch (ProofOfPossessionVerificationException e) {
             assertEquals(ProofOfPossessionVerificationException.ErrorCause.UnsupportedAlgorithm, e.getErrorCause());
         }
