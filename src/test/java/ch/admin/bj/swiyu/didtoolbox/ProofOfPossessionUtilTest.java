@@ -1,3 +1,4 @@
+
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.eid.didtoolbox.TrustDidWeb;
@@ -111,15 +112,13 @@ public class ProofOfPossessionUtilTest extends AbstractUtilTestBase {
         var didWeb = TrustDidWeb.Companion.read(didTdw, didLog);
 
         // build JWT using different keys
-        var keyPair = com.google.crypto.tink.subtle.Ed25519Sign.KeyPair.newKeyPair();
         var jwk = new com.nimbusds.jose.jwk.OctetKeyPair.Builder(
                 com.nimbusds.jose.jwk.Curve.Ed25519,
-                com.nimbusds.jose.util.Base64URL.encode(keyPair.getPublicKey()
-                ))
-                .d(com.nimbusds.jose.util.Base64URL.encode(keyPair.getPrivateKey()))
+                com.nimbusds.jose.util.Base64URL.encode(PUBLIC_KEY))
+                .d(com.nimbusds.jose.util.Base64URL.encode(PRIVATE_KEY))
                 .build();
 
-        var publicKeyMultibase = ch.admin.bj.swiyu.didtoolbox.Ed25519Utils.encodeMultibase(keyPair.getPublicKey());
+        var publicKeyMultibase = ch.admin.bj.swiyu.didtoolbox.Ed25519Utils.encodeMultibase(PUBLIC_KEY);
         var keyID = "did:key:" + publicKeyMultibase + "#" + publicKeyMultibase;
         var signedJWT = new com.nimbusds.jwt.SignedJWT(
                 new com.nimbusds.jose.JWSHeader.Builder(com.nimbusds.jose.JWSAlgorithm.Ed25519)

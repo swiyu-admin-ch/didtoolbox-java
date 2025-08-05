@@ -420,7 +420,8 @@
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>10.3</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.crypto.tink/tink -->
+        <!-- https://mvnrepository.com/artifact/com.google.crypto.tink/tink
+            Required by com.nimbusds.jose.crypto.Ed25519Signer -->
         <dependency>
             <groupId>com.google.crypto.tink</groupId>
             <artifactId>tink</artifactId>

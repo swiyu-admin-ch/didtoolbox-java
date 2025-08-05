@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
+import java.io.FileReader;
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.Arrays;
@@ -15,7 +17,7 @@ import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class Ed25519UtilsTest {
+class Ed25519UtilsTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> publicKeyMultibase() {
         return Arrays.asList(new String[][]{
@@ -126,11 +128,7 @@ class Ed25519UtilsTest {
 
     @DisplayName("Attempt to decode various invalid Multibase")
     @Test
-    void testFromMultibaseWithInvalidValues() throws GeneralSecurityException {
-        var keyPair = com.google.crypto.tink.subtle.Ed25519Sign.KeyPair.newKeyPair();
-        var privateKey = keyPair.getPrivateKey();
-        var publicKey = keyPair.getPublicKey();
-
+    void testFromMultibaseWithInvalidValues() throws Exception {
         var nonMultibaseValue = "just some random string";
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(nonMultibaseValue));
 
@@ -143,7 +141,7 @@ class Ed25519UtilsTest {
         var buff = ByteBuffer.allocate(34);
         buff.put((byte)0xed);
         buff.put((byte)0x01);
-        buff.put(Arrays.copyOfRange(publicKey, 0, publicKey.length));
+        buff.put(Arrays.copyOfRange(PUBLIC_KEY, 0, PUBLIC_KEY.length));
         // base64, see https://github.com/multiformats/multibase/blob/master/multibase.csv#L23
         var base64MultibaseValue = "m" + Base64.encode(buff.array());
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(base64MultibaseValue));
@@ -152,7 +150,7 @@ class Ed25519UtilsTest {
         // private key Ed25519, see https://github.com/multiformats/multicodec/blob/master/table.csv#L182
         buff.put((byte) 0x13);
         buff.put((byte) 0x00);
-        buff.put(Arrays.copyOfRange(privateKey, 0, privateKey.length));
+        buff.put(Arrays.copyOfRange(PRIVATE_KEY, 0, PRIVATE_KEY.length));
         var unsupportedTypeMultibaseValue = "z" + Base58.encode(buff.array());
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(unsupportedTypeMultibaseValue));
     }

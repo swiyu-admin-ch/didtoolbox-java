@@ -1,10 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
+import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,6 +25,10 @@ public abstract class AbstractUtilTestBase {
     final public static String PRIVATE_KEY_MULTIBASE = "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq";
     final public static String PUBLIC_KEY_MULTIBASE = "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2";
 
+    // PRIVATE_KEY & PUBLIC_KEY are a different keypair than their MULTIBASE counterparts.
+    final public static byte[] PRIVATE_KEY;
+    final public static byte[] PUBLIC_KEY;
+
     static {
         // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
         EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER = new UnsafeEd25519VerificationMethodKeyProviderImpl(
@@ -38,6 +43,16 @@ public abstract class AbstractUtilTestBase {
             AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File(DATA_PATH_PREFIX + "auth-key-01.pub"), "my-auth-key-01"));
         } catch (Exception intolerable) {
             throw new RuntimeException(intolerable);
+        }
+
+        try {
+            var publicKeyFile = new File(DATA_PATH_PREFIX + "public01.pem");
+            var privateKeyFile = new File(DATA_PATH_PREFIX + "private01.pem");
+            var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(privateKeyFile), new FileReader(publicKeyFile)); // supplied external key pair
+            PRIVATE_KEY = decodeEncodedKey(signer.keyPair.getPrivate().getEncoded());
+            PUBLIC_KEY = decodeEncodedKey(signer.keyPair.getPublic().getEncoded());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -60,4 +75,10 @@ public abstract class AbstractUtilTestBase {
             throw new RuntimeException(simplyIntolerable);
         }
     }
+
+    static byte[] decodeEncodedKey(byte[] encodedKey) {
+        final int KEY_LENGTH = 32;
+        return Arrays.copyOfRange(encodedKey, encodedKey.length-KEY_LENGTH, encodedKey.length);
+    }
+
 }
