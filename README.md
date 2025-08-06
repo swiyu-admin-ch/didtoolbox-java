@@ -55,7 +55,7 @@ Beware that running the DID-Toolbox with `--primus-*` CLI parameters supplied wi
 ```text
 $ java -jar didtoolbox.jar -h
 
-            Usage: didtoolbox [options] [command] [command options]
+Usage: didtoolbox [options] [command] [command options]
   Options:
     --help, -h    Display help for the DID toolbox
     --version, -V Display version (default: false)
