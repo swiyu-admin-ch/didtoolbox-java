@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import io.ipfs.multibase.Base58;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
@@ -182,7 +183,6 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
      */
     public Ed25519VerificationMethodKeyProviderImpl(Reader privateKeyReader, Reader publicKeyReader) throws IOException, InvalidKeySpecException {
-
         byte[] privatePemBytes = PemUtils.readPemObject(privateKeyReader);
         PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
 
@@ -418,4 +418,10 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public Set<JWSAlgorithm> supportedJWSAlgorithms() {
+        return Set.of(JWSAlgorithm.Ed25519);
+    }
+
 }

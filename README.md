@@ -528,10 +528,10 @@ The below example includes the command to create such a DID log.
 
 ```shell
 # Create quickstart to generate an initial Did log along required keys.
-$ java -jar didtoolbox.jar create -u https://example.com > log.jsonl
+java -jar didtoolbox.jar create -u https://example.com > log.jsonl
 
 # Create proof
-$ java -jar didtoolbox.jar create-pop -s .didtoolbox/id_ed25519 -d log.jsonl -n "Your Nonce" 
+java -jar didtoolbox.jar create-pop -s .didtoolbox/id_ed25519 -d log.jsonl -n "Your Nonce" 
 ```
 
 The result is valid JWT token that looks like this:
@@ -562,13 +562,13 @@ Ar
 
 ```shell
 # Create quickstart to generate an initial Did log along required keys.
-$ java -jar didtoolbox.jar create -u https://example.com > log.jsonl
+java -jar didtoolbox.jar create -u https://example.com > log.jsonl
 # Create proof of possession and store it in the file jwt
-$ java -jar didtoolbox.jar create-pop -s .didtoolbox/id_ed25519 -d log.jsonl -n "Your Nonce" > jwt
+java -jar didtoolbox.jar create-pop -s .didtoolbox/id_ed25519 -d log.jsonl -n "Your Nonce" > jwt
 
 # verify created proof
-$ JWT=$(cat jwt)
-$ java -jar didtoolbox.jar verify-pop -d v01_log.jsonl -n "Your Nonce" -j $JWT
+JWT=$(cat jwt)
+java -jar didtoolbox.jar verify-pop -d log.jsonl -n "Your Nonce" -j $JWT
 ```
 
 ## Advanced Usage

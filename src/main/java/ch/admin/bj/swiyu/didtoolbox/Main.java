@@ -16,7 +16,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.security.PrivateKey;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -389,6 +389,9 @@ public class Main {
             System.exit(0);
         }
 
+        // Duration after which the JWT expires
+        Duration validDuration = Duration.ofDays(1);
+
         var nonce = command.nonce;
         var didLogFile = command.didLogFile;
         var signingKeyPemFile = command.signingKeyPemFile;
@@ -401,30 +404,35 @@ public class Main {
         var primusKeyAlias = command.primusKeyAlias;
         var primusKeyPassword = command.primusKeyPassword;
 
-        PrivateKey privateKey;
+        var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
+
+        VerificationMethodKeyProvider signer = null;
         if (signingKeyPemFile != null) {
-            var privatePemBytes = PemUtils.readPemObject(new FileReader(command.signingKeyPemFile));
-            privateKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
+            for (var key : didLogMeta.params.updateKeys) {
+                try {
+                    // the signing key is supplied externally, but verifying key should be already among updateKeys
+                    signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
+                    break;
+                } catch (Exception ignoreNonMatchingKey) {
+                }
+            }
 
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
-            privateKey = signer.keyPair.getPrivate();
-
+            signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
-            var primusSigner = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
-            privateKey = primusSigner.keyPair.getPrivate();
-
+            signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
         } else {
             overAndOut(jc, parsedCommandName, "No source for the (signing) ed25519 key supplied. Use one of the relevant options to supply keys");
             return;
         }
 
         var log = String.join("\n", Files.readAllLines(didLogFile.toPath()));
-        var didDocId = DidLogMetaPeeker.peek(log).didDocId;
-        var didWeb = TrustDidWeb.Companion.read(didDocId, log);
+        var didWeb = TrustDidWeb.Companion.read(didLogMeta.didDocId, log);
 
-        var proof = ProofOfPossessionUtil.createProofOfPossession(privateKey, didWeb, nonce);
+        var popCreator = new ProofOfPossessionCreator(signer, didWeb);
+        var proof = popCreator.create(nonce, validDuration);
+
         System.out.println(proof.serialize());
 
     }
@@ -443,14 +451,14 @@ public class Main {
         var didDocId = DidLogMetaPeeker.peek(log).didDocId;
         var didWeb = TrustDidWeb.Companion.read(didDocId, log);
 
-        try {
-            ProofOfPossessionUtil.verify(jwt, nonce, didWeb);
-            System.out.println("Provided JWT is valid.");
-        } catch (ProofOfPossessionVerificationException e) {
-            System.out.println("Provided JWT is invalid due to: " + e.getLocalizedMessage());
-        }
-        System.exit(0);
+        var verifier = new ProofOfPossessionVerifier(didWeb);
 
+        try {
+            verifier.verify(jwt, nonce);
+            System.out.println("Provided JWT is valid.");
+        } catch (ProofOfPossessionVerifierException e) {
+            System.out.println("Provided JWT is invalid: " + e.getLocalizedMessage());
+        }
     }
 
     private static void overAndOut(JCommander jc, String commandName, String message) {
