@@ -249,7 +249,7 @@ Usage: didtoolbox [options] [command] [command options]
 
 $ java -jar didtoolbox.jar -V
 
-didtoolbox 1.4.2
+didtoolbox 1.5.0
 ```
 
 ## Quickstart – Create Your First DID
@@ -523,9 +523,8 @@ Prettified version 2 of the DID (line 2 of v02_did.jsonl)
 
 ## Proof of Possession (PoP)
 
-The DID-Toolbox also offers various other options not closely related to DID. One of those is possibility to generate 
-generate a [Proof-of-Possession (PoP)](https://www.rfc-editor.org/rfc/rfc7800.html) using the very same signing key used
-while creating/updating DID.
+The DID-Toolbox also offers various other options not closely related to DID. One of those is possibility to generate
+a [Proof-of-Possession (PoP)](https://www.rfc-editor.org/rfc/rfc7800.html) using the very same Ed25519 signing/verifying key pair used while creating/updating DID logs.
 
 A PoP is nothing but a [JSON Web Token (JWT)](https://www.rfc-editor.org/rfc/rfc7519), signed cryptographically to ensure authenticity -
 such JWT can declare that the _presenter_ of the JWT possesses a particular proof-of-possession (PoP) key.
