@@ -24,6 +24,9 @@ public interface CommandParameterNames {
     String PARAM_NAME_LONG_VERIFYING_KEY_FILES = "--verifying-key-files";
     String PARAM_NAME_SHORT_VERIFYING_KEY_FILES = "-v";
 
+    String PARAM_NAME_LONG_VERIFYING_KEY_FILE = "--verifying-key-file";
+    String PARAM_NAME_SHORT_VERIFYING_KEY_FILE = "-v";
+
     String PARAM_NAME_LONG_ASSERTION_METHOD_KEYS = "--assert";
     String PARAM_NAME_SHORT_ASSERTION_METHOD_KEYS = "-a";
 

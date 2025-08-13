@@ -20,8 +20,7 @@ public class CreateProofOfPossessionParametersValidatorTest extends AbstractTdwC
         return Stream.concat(
                         Arrays.stream(new String[]{
                                 CreateProofOfPossessionCommand.COMMAND_NAME,
-                                CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE, dummyDidLogFile.getPath(),
-                                CommandParameterNames.PARAM_NAME_SHORT_NONCE, "foo"
+                                CommandParameterNames.PARAM_NAME_SHORT_NONCE, "nonce" // required
                         }),
                         Arrays.stream(args))
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));

@@ -6,7 +6,7 @@ import com.beust.jcommander.Parameters;
 import java.io.File;
 
 @Parameters(
-      commandNames = {CreateProofOfPossessionCommand.COMMAND_NAME} ,
+        commandNames = {CreateProofOfPossessionCommand.COMMAND_NAME},
         commandDescription = "Create a proof of possession JWT signed with the provided private key that expires after 24 hours. " +
                 "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
                 "each of then denoting a whole another source of such key material: " +
@@ -21,14 +21,15 @@ public class CreateProofOfPossessionCommand extends AbstractTdwCommandBase {
     final public static String COMMAND_NAME = "create-pop";
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},
-        description = "Possession which will be proven by the jwt",
-        required = true)
+            description = "Possession which will be proven by the JWT",
+            required = true)
     public String nonce;
 
-    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_DID_LOG_FILE, CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE},
-            description = "The file containing a valid did:tdw DID log to verify the JWT",
-            converter = DidLogFileParameterConverter.class,
-            validateWith = DidLogFileParameterValidator.class,
-            required = true)
-    public File didLogFile;
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_VERIFYING_KEY_FILE, CommandParameterNames.PARAM_NAME_SHORT_VERIFYING_KEY_FILE},
+            description = "An ed25519 public key file matching the supplied ed25519 private key file, required for signing the PoP JWT. In PEM format. " +
+                    "This CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters",
+            converter = PemFileParameterConverter.class,
+            validateWith = PemFileParameterValidator.class,
+            variableArity = true)
+    public File verifyingKeyPemFile;
 }

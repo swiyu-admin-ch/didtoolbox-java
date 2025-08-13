@@ -167,6 +167,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
      * @deprecated use {@link #Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} instead.
      */
+    @Deprecated
     public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException {
         this(new FileReader(privatePemFile), new FileReader(publicPemFile));
     }
@@ -205,6 +206,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
      * @deprecated use {@link #Ed25519VerificationMethodKeyProviderImpl(Reader, String)} instead.
      */
+    @Deprecated
     public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, String publicKeyMultibase)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 

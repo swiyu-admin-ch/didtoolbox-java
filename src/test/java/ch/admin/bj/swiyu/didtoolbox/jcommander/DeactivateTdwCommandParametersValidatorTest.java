@@ -18,7 +18,10 @@ class DeactivateTdwCommandParametersValidatorTest extends AbstractTdwCommandPara
     @Override
     protected String[] appendToRequiredCommandArgs(String... args) {
         return Stream.concat(
-                        Arrays.stream(new String[]{DeactivateTdwCommand.COMMAND_NAME, "-d", dummyDidLogFile.getPath()}), // required
+                        Arrays.stream(new String[]{
+                                DeactivateTdwCommand.COMMAND_NAME,
+                                CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE, dummyDidLogFile.getPath() // required
+                        }),
                         Arrays.stream(args))
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));
     }

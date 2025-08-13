@@ -2,7 +2,6 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
-import ch.admin.eid.didtoolbox.TrustDidWeb;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -11,6 +10,7 @@ import com.beust.jcommander.UnixStyleUsageFormatter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -393,8 +393,8 @@ public class Main {
         Duration validDuration = Duration.ofDays(1);
 
         var nonce = command.nonce;
-        var didLogFile = command.didLogFile;
         var signingKeyPemFile = command.signingKeyPemFile;
+        var verifyingKeyPemFile = command.verifyingKeyPemFile;
 
         var jksFile = command.jksFile;
         var jksPassword = command.jksPassword;
@@ -404,17 +404,18 @@ public class Main {
         var primusKeyAlias = command.primusKeyAlias;
         var primusKeyPassword = command.primusKeyPassword;
 
-        var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
-
         VerificationMethodKeyProvider signer = null;
-        if (signingKeyPemFile != null) {
-            for (var key : didLogMeta.params.updateKeys) {
-                try {
-                    // the signing key is supplied externally, but verifying key should be already among updateKeys
-                    signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
-                    break;
-                } catch (Exception ignoreNonMatchingKey) {
-                }
+
+        if (signingKeyPemFile != null && verifyingKeyPemFile == null) {
+
+            overAndOut(jc, parsedCommandName, "No matching verifying (public) ed25519 key supplied");
+
+        } else if (signingKeyPemFile != null) { // at this point, verifyingKeyPemFiles must be non-null already
+
+            try {
+                signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), new FileReader(verifyingKeyPemFile)); // supplied external key pair
+            } catch (Exception ex) {
+                overAndOut(jc, parsedCommandName, "The supplied ed25519 key pair mismatch: " + ex.getLocalizedMessage());
             }
 
         } else if (jksFile != null && jksAlias != null) {
@@ -424,20 +425,15 @@ public class Main {
             signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
         } else {
             overAndOut(jc, parsedCommandName, "No source for the (signing) ed25519 key supplied. Use one of the relevant options to supply keys");
-            return;
         }
 
-        var log = String.join("\n", Files.readAllLines(didLogFile.toPath()));
-        var didWeb = TrustDidWeb.Companion.read(didLogMeta.didDocId, log);
-
-        var popCreator = new ProofOfPossessionCreator(signer, didWeb);
-        var proof = popCreator.create(nonce, validDuration);
+        var proof = new ProofOfPossessionCreator(signer)
+                .create(nonce, validDuration);
 
         System.out.println(proof.serialize());
-
     }
 
-    private static void runVerifyPoPCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws Exception {
+    private static void runVerifyPoPCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws IOException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -447,17 +443,14 @@ public class Main {
         var nonce = command.nonce;
         var jwt = command.jwt;
 
-        var log = String.join("\n", Files.readAllLines(didLogFile.toPath()));
-        var didDocId = DidLogMetaPeeker.peek(log).didDocId;
-        var didWeb = TrustDidWeb.Companion.read(didDocId, log);
-
-        var verifier = new ProofOfPossessionVerifier(didWeb);
+        var didLog = Files.readString(didLogFile.toPath());
 
         try {
-            verifier.verify(jwt, nonce);
+            new ProofOfPossessionVerifier(didLog)
+                    .verify(jwt, nonce);
             System.out.println("Provided JWT is valid.");
         } catch (ProofOfPossessionVerifierException e) {
-            System.out.println("Provided JWT is invalid: " + e.getLocalizedMessage());
+            overAndOut(jc, parsedCommandName, "Provided JWT is invalid: " + e.getLocalizedMessage());
         }
     }
 
@@ -471,5 +464,4 @@ public class Main {
         }
         System.exit(1);
     }
-
 }

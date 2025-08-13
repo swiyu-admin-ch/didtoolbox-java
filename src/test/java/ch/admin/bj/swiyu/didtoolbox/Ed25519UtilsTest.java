@@ -7,8 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.io.FileReader;
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.Arrays;
@@ -21,18 +19,18 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> publicKeyMultibase() {
         return Arrays.asList(new String[][]{
-            /*
-            All lines in the private/public matrix were generated using openssl command by running the following script:
+                /*
+                All lines in the private/public matrix were generated using openssl command by running the following script:
 
-            openssl genpkey -algorithm ed25519 -out private.pem
-            openssl pkey -inform pem -in private.pem -outform der -out private.der
-            cat private.pem | openssl pkey -pubout -outform der -out public.der
-            public_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 public.der)  | xxd -r -p | bs58)
-            echo "{\"${public_key_multibase}\"}"
-             */
-            {"z6MkrBQ9BhY6odonjhdwpkZ5eD7BawVXiyR1S24wsD7xXvPS"},
-            {"z6Mkwf4PgXLq8sRfucTggtZXmigKZP7gQhFamk3XHGV54QvF"},
-            {"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"},
+                openssl genpkey -algorithm ed25519 -out private.pem
+                openssl pkey -inform pem -in private.pem -outform der -out private.der
+                cat private.pem | openssl pkey -pubout -outform der -out public.der
+                public_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 public.der)  | xxd -r -p | bs58)
+                echo "{\"${public_key_multibase}\"}"
+                 */
+                {"z6MkrBQ9BhY6odonjhdwpkZ5eD7BawVXiyR1S24wsD7xXvPS"},
+                {"z6Mkwf4PgXLq8sRfucTggtZXmigKZP7gQhFamk3XHGV54QvF"},
+                {"z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"},
         });
     }
 
@@ -139,9 +137,9 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(missingPrefixMultibaseValue));
 
         var buff = ByteBuffer.allocate(34);
-        buff.put((byte)0xed);
-        buff.put((byte)0x01);
-        buff.put(Arrays.copyOfRange(PUBLIC_KEY, 0, PUBLIC_KEY.length));
+        buff.put((byte) 0xed);
+        buff.put((byte) 0x01);
+        buff.put(Arrays.copyOfRange(PUBLIC_KEY_ANOTHER, 0, PUBLIC_KEY_ANOTHER.length));
         // base64, see https://github.com/multiformats/multibase/blob/master/multibase.csv#L23
         var base64MultibaseValue = "m" + Base64.encode(buff.array());
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(base64MultibaseValue));
@@ -150,7 +148,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         // private key Ed25519, see https://github.com/multiformats/multicodec/blob/master/table.csv#L182
         buff.put((byte) 0x13);
         buff.put((byte) 0x00);
-        buff.put(Arrays.copyOfRange(PRIVATE_KEY, 0, PRIVATE_KEY.length));
+        buff.put(Arrays.copyOfRange(PRIVATE_KEY_ANOTHER, 0, PRIVATE_KEY_ANOTHER.length));
         var unsupportedTypeMultibaseValue = "z" + Base58.encode(buff.array());
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(unsupportedTypeMultibaseValue));
     }

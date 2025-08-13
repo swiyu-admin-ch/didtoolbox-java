@@ -7,8 +7,9 @@ import com.nimbusds.jwt.SignedJWT;
 import java.io.File;
 
 @Parameters(
-        commandNames = {VerifyProofOfPossessionCommand.COMMAND_NAME} ,
-        commandDescription = "Verifies the validity of the provided proof of possession JWT."
+        commandNames = {VerifyProofOfPossessionCommand.COMMAND_NAME},
+        commandDescription = "Verifies the validity of the provided proof of possession JWT.",
+        parametersValidators = {TdwCommandParametersValidator.class}
 )
 public class VerifyProofOfPossessionCommand {
 
@@ -25,7 +26,7 @@ public class VerifyProofOfPossessionCommand {
     public String nonce;
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_DID_LOG_FILE, CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE},
-            description = "The file containing a valid did:tdw DID log of the owner.",
+            description = "The file containing a valid DID log of the owner.",
             converter = DidLogFileParameterConverter.class,
             validateWith = DidLogFileParameterValidator.class,
             required = true)

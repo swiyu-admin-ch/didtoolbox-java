@@ -18,7 +18,10 @@ class CreateTdwCommandParametersValidatorTest extends AbstractTdwCommandParamete
     @Override
     protected String[] appendToRequiredCommandArgs(String... args) {
         return Stream.concat(
-                        Arrays.stream(new String[]{CreateTdwCommand.COMMAND_NAME, "-u", "https://domain.com:443/path1/path2/did.jsonl"}), // required
+                        Arrays.stream(new String[]{
+                                CreateTdwCommand.COMMAND_NAME,
+                                "-u", "https://domain.com:443/path1/path2/did.jsonl" // required
+                        }),
                         Arrays.stream(args))
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));
     }

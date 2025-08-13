@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
-import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Map;
@@ -20,14 +19,15 @@ public abstract class AbstractUtilTestBase {
     // final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER;
     final public static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER_JKS;
     final public static VerificationMethodKeyProvider EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER;
+    final public static VerificationMethodKeyProvider EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER;
     final public static Map<String, String> ASSERTION_METHOD_KEYS;
     final public static Map<String, String> AUTHENTICATION_METHOD_KEYS;
     final public static String PRIVATE_KEY_MULTIBASE = "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq";
     final public static String PUBLIC_KEY_MULTIBASE = "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2";
 
     // PRIVATE_KEY & PUBLIC_KEY are a different keypair than their MULTIBASE counterparts.
-    final public static byte[] PRIVATE_KEY;
-    final public static byte[] PUBLIC_KEY;
+    final public static byte[] PRIVATE_KEY_ANOTHER;
+    final public static byte[] PUBLIC_KEY_ANOTHER;
 
     static {
         // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
@@ -49,8 +49,9 @@ public abstract class AbstractUtilTestBase {
             var publicKeyFile = new File(DATA_PATH_PREFIX + "public01.pem");
             var privateKeyFile = new File(DATA_PATH_PREFIX + "private01.pem");
             var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(privateKeyFile), new FileReader(publicKeyFile)); // supplied external key pair
-            PRIVATE_KEY = decodeEncodedKey(signer.keyPair.getPrivate().getEncoded());
-            PUBLIC_KEY = decodeEncodedKey(signer.keyPair.getPublic().getEncoded());
+            EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER = signer;
+            PRIVATE_KEY_ANOTHER = decodeEncodedKey(signer.keyPair.getPrivate().getEncoded());
+            PUBLIC_KEY_ANOTHER = decodeEncodedKey(signer.keyPair.getPublic().getEncoded());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -78,7 +79,7 @@ public abstract class AbstractUtilTestBase {
 
     static byte[] decodeEncodedKey(byte[] encodedKey) {
         final int KEY_LENGTH = 32;
-        return Arrays.copyOfRange(encodedKey, encodedKey.length-KEY_LENGTH, encodedKey.length);
+        return Arrays.copyOfRange(encodedKey, encodedKey.length - KEY_LENGTH, encodedKey.length);
     }
 
 }
