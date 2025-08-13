@@ -1,6 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import com.nimbusds.jose.JWSAlgorithm;
 import io.ipfs.multibase.Base58;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
