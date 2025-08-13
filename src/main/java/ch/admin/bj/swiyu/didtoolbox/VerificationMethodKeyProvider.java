@@ -1,11 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.jca.JCAContext;
-import com.nimbusds.jose.util.Base64URL;
-
 import java.util.Set;
 
 /**
@@ -15,7 +9,7 @@ import java.util.Set;
  * <p>
  * It also describes a signing of hash verification proof.
  */
-public interface VerificationMethodKeyProvider extends JWSSigner {
+public interface VerificationMethodKeyProvider {
     /**
      * Delivers the publicKeyMultibase property of the verification method, that  MUST be a public key encoded according to
      * [MULTICODEC] and formatted according to [MULTIBASE].
@@ -41,12 +35,4 @@ public interface VerificationMethodKeyProvider extends JWSSigner {
      * @return
      */
     boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys);
-
-    default Base64URL sign(JWSHeader header, byte[] signingInput) throws JOSEException {
-        return Base64URL.encode(generateSignature(signingInput));
-    }
-
-   default JCAContext getJCAContext() {
-        return null;
-    }
 }

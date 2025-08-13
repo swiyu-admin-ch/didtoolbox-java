@@ -420,10 +420,4 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             throw new RuntimeException(e);
         }
     }
-
-    @Override
-    public Set<JWSAlgorithm> supportedJWSAlgorithms() {
-        return Set.of(JWSAlgorithm.Ed25519);
-    }
-
 }

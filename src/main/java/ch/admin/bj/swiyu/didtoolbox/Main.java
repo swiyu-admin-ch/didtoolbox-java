@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
+import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -404,7 +405,7 @@ public class Main {
         var primusKeyAlias = command.primusKeyAlias;
         var primusKeyPassword = command.primusKeyPassword;
 
-        VerificationMethodKeyProvider signer = null;
+        ProofOfPossessionJWSSigner signer = null;
 
         if (signingKeyPemFile != null && verifyingKeyPemFile == null) {
 
@@ -413,16 +414,16 @@ public class Main {
         } else if (signingKeyPemFile != null) { // at this point, verifyingKeyPemFiles must be non-null already
 
             try {
-                signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), new FileReader(verifyingKeyPemFile)); // supplied external key pair
+                signer = new Ed25519ProofOfPossessionJWSSignerImpl(new FileReader(signingKeyPemFile), new FileReader(verifyingKeyPemFile)); // supplied external key pair
             } catch (Exception ex) {
                 overAndOut(jc, parsedCommandName, "The supplied ed25519 key pair mismatch: " + ex.getLocalizedMessage());
             }
 
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519ProofOfPossessionJWSSignerImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
-            signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
+            signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
         } else {
             overAndOut(jc, parsedCommandName, "No source for the (signing) ed25519 key supplied. Use one of the relevant options to supply keys");
         }

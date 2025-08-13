@@ -15,7 +15,7 @@ import java.util.Date;
  * used to create/update a DID log. In other words, a JWT header claim {@code kid} value will match an
  * <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">eddsa-jcs-2022 DataIntegrityProof</a>
  * {@code verificationMethod} attribute's value, as seen in any DID log created using the very same
- * {@link VerificationMethodKeyProvider} ({@code signer}) object.
+ * {@link ProofOfPossessionJWSSigner} ({@code signer}) object.
  * <p>
  * Example usage:
  * <pre>
@@ -34,7 +34,7 @@ import java.util.Date;
  *         SignedJWT jwt;
  *
  *         try {
- *             var signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader("src/test/data/private.pem"), new FileReader("src/test/data/public.pem"));
+ *             var signer = new Ed25519ProofOfPossessionJWSSignerImpl(new FileReader("src/test/data/private.pem"), new FileReader("src/test/data/public.pem"));
  *             var creator = new ProofOfPossessionCreator(signer);
  *             // may throw ProofOfPossessionCreatorException
  *             jwt = creator.create("Foo", Duration.ofDays(1));
@@ -49,9 +49,9 @@ import java.util.Date;
  * </pre>
  */
 public class ProofOfPossessionCreator {
-    private final VerificationMethodKeyProvider signer;
+    private final ProofOfPossessionJWSSigner signer;
 
-    public ProofOfPossessionCreator(VerificationMethodKeyProvider signer) {
+    public ProofOfPossessionCreator(ProofOfPossessionJWSSigner signer) {
         this.signer = signer;
     }
 
