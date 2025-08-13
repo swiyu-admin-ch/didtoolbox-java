@@ -22,7 +22,7 @@ public class UpdateTdwCommand extends AbstractKeyMaterialTdwCommand {
 
     final public static String COMMAND_NAME = "update";
 
-    @Parameter(names = {"--did-log-file", "-d"},
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_DID_LOG_FILE, CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE},
             description = "The file containing a valid did:tdw DID log to update",
             converter = DidLogFileParameterConverter.class,
             validateWith = DidLogFileParameterValidator.class,

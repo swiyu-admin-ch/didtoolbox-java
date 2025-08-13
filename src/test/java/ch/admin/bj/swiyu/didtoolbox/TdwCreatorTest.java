@@ -7,8 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -22,23 +20,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TdwCreatorTest {
-
-    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER;
-    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER_JKS;
-
-    static {
-        try {
-            VERIFICATION_METHOD_KEY_PROVIDER = new Ed25519VerificationMethodKeyProviderImpl(
-                    new FileReader("src/test/data/private.pem"),
-                    new FileReader("src/test/data/public.pem"));
-            // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
-                    new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit");
-        } catch (Exception intolerable) {
-            throw new RuntimeException(intolerable);
-        }
-    }
+public class TdwCreatorTest extends AbstractUtilTestBase {
 
     private static void assertDidLogEntry(String didLogEntry) {
 

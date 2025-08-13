@@ -31,8 +31,8 @@ import java.security.UnrecoverableEntryException;
  */
 public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519VerificationMethodKeyProviderImpl {
 
-    final private static String ENCODER_CLASS = "com.securosys.primus.jce.PrimusEncoding";
-    final private static String UNDERIFY_METHOD = "optionallyUnderifyRS";
+    final protected static String ENCODER_CLASS = "com.securosys.primus.jce.PrimusEncoding";
+    final protected static String UNDERIFY_METHOD = "optionallyUnderifyRS";
 
     /**
      * The only public constructor of the class, capable of loading an already existing key material directly from a Securosys Primus HSM (cluster).
@@ -46,7 +46,7 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
     /**
      * A simple wrapper for PrimusEncoding#optionallyUnderifyRS helper.
      */
-    private static byte[] optionallyUnderifyRS(byte[] signed) {
+    protected static byte[] optionallyUnderifyRS(byte[] signed) {
         try {
             return (byte[]) Class.forName(ENCODER_CLASS)
                     .getMethod(UNDERIFY_METHOD, byte[].class)

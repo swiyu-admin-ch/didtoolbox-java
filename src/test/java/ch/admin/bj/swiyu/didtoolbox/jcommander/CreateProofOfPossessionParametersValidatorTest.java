@@ -6,12 +6,12 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-class CreateTdwCommandParametersValidatorTest extends AbstractTdwCommandParametersValidatorTest {
+public class CreateProofOfPossessionParametersValidatorTest extends AbstractTdwCommandParametersValidatorTest {
 
     @Override
     protected JCommander buildCommandParser() {
         return JCommander.newBuilder()
-                .addCommand(CreateTdwCommand.COMMAND_NAME, new CreateTdwCommand())
+                .addCommand(CreateProofOfPossessionCommand.COMMAND_NAME, new CreateProofOfPossessionCommand())
                 .build();
     }
 
@@ -19,18 +19,10 @@ class CreateTdwCommandParametersValidatorTest extends AbstractTdwCommandParamete
     protected String[] appendToRequiredCommandArgs(String... args) {
         return Stream.concat(
                         Arrays.stream(new String[]{
-                                CreateTdwCommand.COMMAND_NAME,
-                                "-u", "https://domain.com:443/path1/path2/did.jsonl" // required
+                                CreateProofOfPossessionCommand.COMMAND_NAME,
+                                CommandParameterNames.PARAM_NAME_SHORT_NONCE, "nonce" // required
                         }),
                         Arrays.stream(args))
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));
     }
-
-    /* Use it as template, as soon some class-specific test cases emerge
-    @Test
-    void testValidate() {
-        // NOTE no need to call the super method explicitly here, as it will be called anyway (as long as annotated with @Test)
-        //super.testAbstractValidate();
-    }
-     */
 }

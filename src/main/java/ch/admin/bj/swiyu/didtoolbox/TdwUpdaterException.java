@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 /**
- * The class {@code TdwUpdaterException} is a <em>checked exception</em> class indicating conditions related to
- * {@code TdwUpdater} class that any reasonable application might want to catch.
+ * The class {@link TdwUpdaterException} is a <em>checked exception</em> class indicating conditions related to
+ * {@link TdwUpdater} class that any reasonable application might want to catch.
  *
  * @see TdwUpdater
  */

@@ -9,7 +9,7 @@
     <groupId>io.github.swiyu-admin-ch</groupId>
 
     <artifactId>didtoolbox</artifactId>
-    <version>1.4.2</version>
+    <version>1.5.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <!-- required by https://central.sonatype.org/publish/requirements/ -->
@@ -51,6 +51,7 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
 
         <project.main.class>ch.admin.bj.swiyu.didtoolbox.Main</project.main.class>
         <!--project.dependencies.directory>lib/</project.dependencies.directory-->
@@ -87,16 +88,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <release>${maven.compiler.release}</release>
                     <!-- CAUTION preview language features are only supported for release 23 -->
                     <!--enablePreview>true</enablePreview-->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.34</version>
+                            <version>1.18.38</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -420,12 +423,13 @@
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>10.3</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.crypto.tink/tink -->
-        <!--dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.crypto.tink/tink
+            Required by com.nimbusds.jose.crypto.Ed25519Signer -->
+        <dependency>
             <groupId>com.google.crypto.tink</groupId>
             <artifactId>tink</artifactId>
             <version>1.18.0</version>
-        </dependency-->
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>

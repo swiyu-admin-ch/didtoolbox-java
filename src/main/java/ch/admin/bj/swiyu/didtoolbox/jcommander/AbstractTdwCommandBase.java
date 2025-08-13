@@ -16,7 +16,7 @@ abstract class AbstractTdwCommandBase {
     public boolean help;
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE},
-            description = "The ed25519 private key file required to sign a DID log entry. In PEM Format. " +
+            description = "The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. " +
                     "This CLI parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters",
             converter = PemFileParameterConverter.class,
             validateWith = PemFileParameterValidator.class)
