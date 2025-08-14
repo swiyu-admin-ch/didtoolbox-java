@@ -1,7 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+/* TODO As soon EIDOMNI-126 is done
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
+ */
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -21,20 +24,20 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * {@link TdwCreator} is the class in charge of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log generation.
+ * {@link WebVerifiableHistoryCreator} is the class in charge of <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log generation.
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
  * it is intended to be instantiated exclusively via its static {@link #builder()} method.
  * <p>
- * Once a {@link TdwCreator} object is "built", creating a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a>
+ * Once a {@link WebVerifiableHistoryCreator} object is "built", creating a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
  * log goes simply by calling {@link #create(URL)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
- * <li>{@link TdwCreator.TdwCreatorBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link TdwCreator.TdwCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load keys from the file system, the following helpers are available:
@@ -62,12 +65,12 @@ import java.util.Set;
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
  *
  *             // NOTE that all required keys will be generated here as well, as no explicit verificationMethodKeyProvider is set
- *             didLogEntryWithGeneratedKeys = TdwCreator.builder()
+ *             didLogEntryWithGeneratedKeys = WebVerifiableHistoryCreator.builder()
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
  *             // Using already existing key material
- *             didLogEntryWithExternalKeys = TdwCreator.builder()
+ *             didLogEntryWithExternalKeys = WebVerifiableHistoryCreator.builder()
  *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("private-key.pem"), new File("public-key.pem")))
  *                 .assertionMethodKeys(Map.of(
  *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("assert-key-01.pub"), "my-assert-key-01")
@@ -90,7 +93,7 @@ import java.util.Set;
  */
 @Builder
 @Getter
-public class TdwCreator extends AbstractDidLogEntryCreator {
+public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
@@ -106,14 +109,14 @@ public class TdwCreator extends AbstractDidLogEntryCreator {
     private boolean forceOverwrite;
 
     /**
-     * Creates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
-     * features of this {@link TdwCreator} object, optionally customized by previously calling fluent methods like
-     * {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider}, {@link TdwCreator.TdwCreatorBuilder#authenticationKeys(Map)} or
-     * {@link TdwCreator.TdwCreatorBuilder#assertionMethodKeys(Map)}.
+     * Creates a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log by taking into account other
+     * features of this {@link WebVerifiableHistoryCreator} object, optionally customized by previously calling fluent methods like
+     * {@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider}, {@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} or
+     * {@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)}.
      *
      * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
-     *                              <a href="https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation">he-did-to-https-transformation</a>
-     * @return a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log
+     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">he-did-to-https-transformation</a>
+     * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
      * @throws IOException if creation fails for whatever reason
      * @see #create(URL, ZonedDateTime)
      */
@@ -122,14 +125,14 @@ public class TdwCreator extends AbstractDidLogEntryCreator {
     }
 
     /**
-     * Creates a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log for a supplied datetime.
+     * Creates a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log for a supplied datetime.
      * <p>
      * This package-scope method is certainly more potent than the public one.
      * <p>
      * <b>However, it is introduced for the sake of testability only.</b>
      *
      * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t.
-     *                              <a href="https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation">the-did-to-https-transformation</a>
+     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
      * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
      * @return
      * @throws IOException
@@ -139,33 +142,32 @@ public class TdwCreator extends AbstractDidLogEntryCreator {
         // Create initial did doc with placeholder
         var didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
 
-        var didLogEntryWithoutProofAndSignature = new JsonArray();
+        // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
+        var didLogEntryWithoutProofAndSignature = new JsonObject();
 
         // Add a preliminary versionId value
         // The first item in the input JSON array MUST be the placeholder string {SCID}.
-        didLogEntryWithoutProofAndSignature.add(SCID_PLACEHOLDER);
+        didLogEntryWithoutProofAndSignature.addProperty("versionId", SCID_PLACEHOLDER);
         // Add the versionTime value
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
-        didLogEntryWithoutProofAndSignature.add(DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
+        didLogEntryWithoutProofAndSignature.addProperty("versionTime", DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
 
-        // Define the parameters (https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters)
+        // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
-        didLogEntryWithoutProofAndSignature.add(createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
+        didLogEntryWithoutProofAndSignature.add("parameters", createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
-        JsonObject initialDidDoc = new JsonObject();
-        initialDidDoc.add("value", didDoc);
-        didLogEntryWithoutProofAndSignature.add(initialDidDoc);
+        didLogEntryWithoutProofAndSignature.add("state", didDoc);
 
         // Generate SCID and replace placeholder in did doc
         var scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
 
-        /* https://identity.foundation/didwebvh/v0.3/#output-of-the-scid-generation-process:
+        /* https://identity.foundation/didwebvh/v1.0/#output-of-the-scid-generation-process:
         After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
         This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         Once the process has run, the version number of this first version of the DID (1),
@@ -178,35 +180,41 @@ public class TdwCreator extends AbstractDidLogEntryCreator {
 
         // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
         String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
-        JsonArray didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonArray();
+        //JsonArray didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonArray();
+        var didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonObject();
 
-        // See https://identity.foundation/didwebvh/v0.3/#generate-entry-hash
+        // See https://identity.foundation/didwebvh/v1.0/#generate-entry-hash
         // After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature.toString());
 
-        JsonArray didLogEntryWithProof = new JsonArray();
+        // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
+        var didLogEntryWithProof = new JsonObject();
+
         var challenge = "1-" + entryHash; // versionId as the proof challenge
-        didLogEntryWithProof.add(challenge);
-        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(1));
-        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(2));
-        didLogEntryWithProof.add(didLogEntryWithSCIDWithoutProofAndSignature.get(3));
+        didLogEntryWithProof.addProperty("versionId", challenge);
+        didLogEntryWithProof.add("versionTime", didLogEntryWithSCIDWithoutProofAndSignature.get("versionTime"));
+        didLogEntryWithProof.add("parameters", didLogEntryWithSCIDWithoutProofAndSignature.get("parameters"));
+        didLogEntryWithProof.add("state", didLogEntryWithSCIDWithoutProofAndSignature.get("state"));
 
         /*
-        https://identity.foundation/didwebvh/v0.3/#data-integrity-proof-generation-and-first-log-entry:
-        The last step in the creation of the first log entry is the generation of the data integrity proof.
-        One of the keys in the updateKeys parameter MUST be used (in the form of a did:key) to generate the signature in the proof,
-        with the versionId value (item 1 of the did log) used as the challenge item.
-        The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
+        https://identity.foundation/didwebvh/v1.0/#create-register:
+        "5.5. Generate the Data Integrity proof: A Data Integrity proof on the preliminary JSON object as updated in the
+        previous step MUST be generated using an authorized key in the required updateKeys property in the parameters
+        object and the proofPurpose set to assertionMethod."
+        Since did.tdw:0.4 ->
+            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
+            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
         JsonArray proofs = new JsonArray();
         proofs.add(JCSHasher.buildDataIntegrityProof(
-                didDoc, false, this.verificationMethodKeyProvider, challenge, JCSHasher.PROOF_PURPOSE_AUTHENTICATION, zdt
+                didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt
         ));
-        didLogEntryWithProof.add(proofs);
+        didLogEntryWithProof.add("proof", proofs);
 
+        /* TODO As soon EIDOMNI-126 is done
         Did did = null;
         try {
             did = new Did(DidLogMetaPeeker.peek(didLogEntryWithProof.toString()).didDocId);
@@ -223,17 +231,18 @@ public class TdwCreator extends AbstractDidLogEntryCreator {
                 did.close();
             }
         }
+         */
 
         return didLogEntryWithProof.toString();
     }
 
     @Override
     protected String getDidMethod() {
-        return "did:tdw";
+        return "did:webvh";
     }
 
     @Override
     protected String getDidMethodVersion() {
-        return "0.3";
+        return "1.0";
     }
 }

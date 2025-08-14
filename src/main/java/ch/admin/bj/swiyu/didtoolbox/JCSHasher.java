@@ -20,6 +20,8 @@ class JCSHasher {
     static final String DATA_INTEGRITY_PROOF = "DataIntegrityProof";
     static final String EDDSA_JCS_2022 = "eddsa-jcs-2022";
     static final String DID_KEY = "did:key:";
+    static final String PROOF_PURPOSE_AUTHENTICATION = "authentication";
+    static final String PROOF_PURPOSE_ASSERTION_METHOD = "assertionMethod";
 
     /**
      * To generate the required SCID for a did:tdw DID, the DID Controller MUST execute the following function:
@@ -146,7 +148,9 @@ class JCSHasher {
          */
         proof.addProperty("verificationMethod", DID_KEY + verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + verificationMethodKeyProvider.getVerificationKeyMultibase());
         proof.addProperty("proofPurpose", proofPurpose);
-        proof.addProperty("challenge", challenge);
+        if (challenge != null) {
+            proof.addProperty("challenge", challenge);
+        }
 
         String docHashHex = hashJsonObjectAsHex(unsecuredDocument);
         String proofHashHex = hashJsonObjectAsHex(proof);
