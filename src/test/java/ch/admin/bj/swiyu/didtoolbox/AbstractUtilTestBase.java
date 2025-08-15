@@ -8,11 +8,13 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 /**
  * The base class for all test class in this package relying on test data of any kind.
  * Some handy helpers included, too.
  */
-abstract class AbstractUtilTestBase {
+public abstract class AbstractUtilTestBase {
     final protected static String TEST_DATA_PATH_PREFIX = "src/test/data/";
 
     final protected static String ISO_DATE_TIME = "2012-12-12T12:12:12Z";
@@ -149,6 +151,38 @@ abstract class AbstractUtilTestBase {
         } catch (Exception simplyIntolerable) {
             throw new RuntimeException(simplyIntolerable);
         }
+    }
+
+    protected static String buildTdwDidLog(VerificationMethodKeyProvider signer) {
+
+        String nextLogEntry;
+        StringBuilder updatedDidLog = null;
+        try {
+            updatedDidLog = new StringBuilder(buildInitialTdwDidLogEntry(signer));
+            for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
+
+                nextLogEntry = TdwUpdater.builder()
+                        .verificationMethodKeyProvider(signer)
+                        .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
+                        .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                        .build()
+                        // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                        // The versionTime of the last entry MUST be earlier than the current time.
+                        .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(i - 1));
+
+                updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
+            }
+
+        } catch (Exception e) {
+            fail(e);
+        }
+
+        return updatedDidLog.toString();
+    }
+
+    protected static String buildWebVhDidLog(VerificationMethodKeyProvider signer) {
+        // TODO Implement buildWebVhDidLog() helper properly (as soon as the WebVhUpdater class is ready)
+        return buildInitialWebVhDidLogEntry(signer);
     }
 
     protected static byte[] decodeEncodedKey(byte[] encodedKey) {

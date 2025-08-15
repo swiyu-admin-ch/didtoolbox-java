@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
 import com.beust.jcommander.JCommander;
@@ -78,14 +79,14 @@ public class Main {
 
         try {
             switch (parsedCommandName) {
-                case CreateTdwCommand.COMMAND_NAME -> runCreateTdwCommand(jc, parsedCommandName, createCommand);
-                case UpdateTdwCommand.COMMAND_NAME -> runUpdateTdwCommand(jc, parsedCommandName, updateCommand);
+                case CreateTdwCommand.COMMAND_NAME -> runTdwCreateCommand(jc, parsedCommandName, createCommand);
+                case UpdateTdwCommand.COMMAND_NAME -> runTdwUpdateCommand(jc, parsedCommandName, updateCommand);
                 case DeactivateTdwCommand.COMMAND_NAME ->
-                        runDeactivateTdwCommand(jc, parsedCommandName, deactivateCommand);
+                        runTdwDeactivateCommand(jc, parsedCommandName, deactivateCommand);
                 case CreateProofOfPossessionCommand.COMMAND_NAME ->
-                        runCreatePoPCommand(jc, parsedCommandName, createProofOfPossessionCommand);
+                        runPoPCreateCommand(jc, parsedCommandName, createProofOfPossessionCommand);
                 case VerifyProofOfPossessionCommand.COMMAND_NAME ->
-                        runVerifyPoPCommand(jc, parsedCommandName, verifyProofOfPossessionCommand);
+                        runPoPVerifyCommand(jc, parsedCommandName, verifyProofOfPossessionCommand);
                 default -> overAndOut(jc, null, "Invalid command: " + parsedCommandName);
             }
         } catch (Exception e) {
@@ -95,7 +96,7 @@ public class Main {
         System.exit(0);
     }
 
-    private static void runCreateTdwCommand(JCommander jc, String parsedCommandName, CreateTdwCommand command) throws Exception {
+    private static void runTdwCreateCommand(JCommander jc, String parsedCommandName, CreateTdwCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -238,7 +239,7 @@ public class Main {
         System.out.println(didLogEntry);
     }
 
-    private static void runUpdateTdwCommand(JCommander jc, String parsedCommandName, UpdateTdwCommand command) throws Exception {
+    private static void runTdwUpdateCommand(JCommander jc, String parsedCommandName, UpdateTdwCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -281,9 +282,9 @@ public class Main {
 
         if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
-            var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
+            var didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
             String matchingUpdateKey = null;
-            for (var key : didLogMeta.params.updateKeys) {
+            for (var key : didLogMeta.getParams().getUpdateKeys()) {
                 try {
                     // the signing key is supplied externally, but verifying key should be already among updateKeys
                     signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
@@ -323,7 +324,7 @@ public class Main {
         System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() + newLogEntry);
     }
 
-    private static void runDeactivateTdwCommand(JCommander jc, String parsedCommandName, DeactivateTdwCommand command) throws Exception {
+    private static void runTdwDeactivateCommand(JCommander jc, String parsedCommandName, DeactivateTdwCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -345,9 +346,9 @@ public class Main {
 
         if (signingKeyPemFile != null) {
 
-            var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
+            var didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
             String matchingUpdateKey = null;
-            for (var key : didLogMeta.params.updateKeys) {
+            for (var key : didLogMeta.getParams().getUpdateKeys()) {
                 try {
                     // the signing key is supplied externally, but verifying key should be already among updateKeys
                     signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
@@ -384,7 +385,7 @@ public class Main {
 
     }
 
-    private static void runCreatePoPCommand(JCommander jc, String parsedCommandName, CreateProofOfPossessionCommand command) throws Exception {
+    private static void runPoPCreateCommand(JCommander jc, String parsedCommandName, CreateProofOfPossessionCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -434,7 +435,7 @@ public class Main {
         System.out.println(proof.serialize());
     }
 
-    private static void runVerifyPoPCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws IOException {
+    private static void runPoPVerifyCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws IOException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);

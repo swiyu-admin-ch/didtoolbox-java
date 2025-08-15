@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -158,8 +159,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
-            assertEquals(2, DidLogMetaPeeker.peek(finalUpdatedDidLog).lastVersionNumber); // there should be another entry i.e. one more
-            new Did(DidLogMetaPeeker.peek(initialDidLogEntry).didDocId).resolve(finalUpdatedDidLog); // the ultimate test
+            assertEquals(2, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
+            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -216,8 +217,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
-            assertEquals(2, DidLogMetaPeeker.peek(finalUpdatedDidLog).lastVersionNumber); // there should be another entry i.e. one more
-            new Did(DidLogMetaPeeker.peek(initialDidLogEntry).didDocId).resolve(finalUpdatedDidLog); // the ultimate test
+            assertEquals(2, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
+            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -270,8 +271,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
-            assertEquals(totalEntriesCount, DidLogMetaPeeker.peek(finalUpdatedDidLog).lastVersionNumber); // the loop should have created that many
-            new Did(DidLogMetaPeeker.peek(finalUpdatedDidLog).didDocId).resolve(finalUpdatedDidLog); // the ultimate test
+            assertEquals(totalEntriesCount, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
+            new Did(TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
         });
     }
 }

@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -137,8 +138,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                 """.contains(finalUpdatedDidLog));
 
         assertDoesNotThrow(() -> {
-            assertEquals(2, DidLogMetaPeeker.peek(finalUpdatedDidLog).lastVersionNumber); // there should be another entry i.e. one more
-            new Did(DidLogMetaPeeker.peek(initialDidLogEntry).didDocId).resolve(finalUpdatedDidLog); // the ultimate test
+            assertEquals(2, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
+            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
         });
     }
 

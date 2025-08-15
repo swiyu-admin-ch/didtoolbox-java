@@ -1,10 +1,10 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.model;
 
 /**
- * The class {@code DidLogMetaPeekerException} is a <em>checked exception</em> class indicating conditions related to
- * {@code DidLogMetaPeeker} class that any reasonable application might want to catch.
+ * The class {@link DidLogMetaPeekerException} is a <em>checked exception</em> class indicating conditions related to
+ * any of {@link TdwDidLogMetaPeeker} or {@link WebVhDidLogMetaPeeker} helpers that any reasonable application might want to catch.
  *
- * @see DidLogMetaPeeker
+ * @see TdwDidLogMetaPeeker
  */
 public class DidLogMetaPeekerException extends Exception {
     public DidLogMetaPeekerException(String message) {

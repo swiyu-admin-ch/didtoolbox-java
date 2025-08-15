@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -209,7 +211,7 @@ public class TdwCreator extends AbstractDidLogEntryCreator {
 
         Did did = null;
         try {
-            did = new Did(DidLogMetaPeeker.peek(didLogEntryWithProof.toString()).didDocId);
+            did = new Did(TdwDidLogMetaPeeker.peek(didLogEntryWithProof.toString()).getDidDocId());
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
             //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)

@@ -1,13 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import ch.admin.eid.didtoolbox.DidDoc;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
@@ -122,13 +123,13 @@ public class TdwDeactivator {
      */
     String deactivate(String didLog, ZonedDateTime zdt) throws TdwDeactivatorException {
 
-        DidLogMetaPeeker.DidLogMeta didLogMeta;
+        DidLogMeta didLogMeta;
         String didTDW;
         DidDoc oldDidDoc;
         Did did = null;
         try {
-            didLogMeta = DidLogMetaPeeker.peek(didLog); // try extracting DID doc ID
-            didTDW = didLogMeta.didDocId;
+            didLogMeta = TdwDidLogMetaPeeker.peek(didLog); // try extracting DID doc ID
+            didTDW = didLogMeta.getDidDocId();
 
             // According to https://identity.foundation/didwebvh/v0.3/#update-rotate:
             // To update a DID, a new, verifiable DID Log Entry must be generated, witnessed (if necessary),
@@ -145,11 +146,11 @@ public class TdwDeactivator {
         }
 
         // CAUTION Only activated DIDs can be updated
-        if (didLogMeta.params.deactivated != null && didLogMeta.params.deactivated) {
+        if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
             throw new TdwDeactivatorException("DID already deactivated");
         }
 
-        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.params.updateKeys)) {
+        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new TdwDeactivatorException("Deactivation key mismatch");
         }
 
@@ -158,7 +159,7 @@ public class TdwDeactivator {
         //
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
         // The versionTime of the last entry MUST be earlier than the current time.
-        var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.dateTime);
+        var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.getDateTime());
         if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
             throw new TdwDeactivatorException("The versionTime of the last entry MUST be earlier than the current time");
         }
@@ -187,7 +188,7 @@ public class TdwDeactivator {
         // https://identity.foundation/didwebvh/v0.3/#entry-hash-generation-and-verification:
         // For the first log entry, the predecessor versionId is the SCID (itself a hash),
         // while for all other entries it is the versionId item from the previous log entry.
-        didLogEntryWithoutProofAndSignature.add(didLogMeta.lastVersionId);
+        didLogEntryWithoutProofAndSignature.add(didLogMeta.getLastVersionId());
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
@@ -227,7 +228,7 @@ public class TdwDeactivator {
         }
 
         JsonArray didLogEntryWithProof = new JsonArray();
-        var challenge = didLogMeta.lastVersionNumber + 1 + "-" + entryHash; // versionId as the proof challenge
+        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + entryHash; // versionId as the proof challenge
         didLogEntryWithProof.add(challenge);
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(2));
@@ -252,7 +253,7 @@ public class TdwDeactivator {
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
-        did = new Did(didLogMeta.didDocId);
+        did = new Did(didLogMeta.getDidDocId());
         try {
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
