@@ -14,10 +14,10 @@ public class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
     void testCreateValidJWT() throws Exception {
         var nonce = "my_nonce";
 
-        var didLog = buildInitialDidLogEntry(EXAMPLE_POP_JWS_SIGNER);
+        var didLog = buildInitialTdwDidLogEntry(TEST_POP_JWS_SIGNER);
 
         // create proof
-        var proof = new ProofOfPossessionCreator(EXAMPLE_POP_JWS_SIGNER)
+        var proof = new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER)
                 .create(nonce, ONE_DAY_LONG);
 
         // verify JWT (head/payload) claims
@@ -42,10 +42,10 @@ public class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
         //      - EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER and EXAMPLE_POP_JWS_SIGNER_ANOTHER
 
         // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER_ANOTHER here, instead
-        var didLog = buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER);
+        var didLog = buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER);
 
         // create proof
-        var proof = new ProofOfPossessionCreator(EXAMPLE_POP_JWS_SIGNER)
+        var proof = new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER)
                 .create(nonce, ONE_DAY_LONG);
 
         // verify JWT (head/payload) claims
