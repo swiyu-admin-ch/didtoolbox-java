@@ -93,7 +93,7 @@ import java.util.Set;
  */
 @Builder
 @Getter
-public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
+public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder {
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
@@ -108,6 +108,11 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
 
+    @Override
+    protected DidMethodEnum getDidMethod() {
+        return DidMethodEnum.WEBVH_1_0;
+    }
+
     /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log by taking into account other
      * features of this {@link WebVerifiableHistoryCreator} object, optionally customized by previously calling fluent methods like
@@ -117,10 +122,10 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
      * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
      *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">he-did-to-https-transformation</a>
      * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
-     * @throws IOException if creation fails for whatever reason
+     * @throws WebVerifiableHistoryCreatorException if creation fails for whatever reason
      * @see #create(URL, ZonedDateTime)
      */
-    public String create(URL identifierRegistryUrl) throws IOException {
+    public String create(URL identifierRegistryUrl) throws WebVerifiableHistoryCreatorException {
         return create(identifierRegistryUrl, ZonedDateTime.now());
     }
 
@@ -137,10 +142,15 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
      * @return
      * @throws IOException
      */
-    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws IOException {
+    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws WebVerifiableHistoryCreatorException {
 
         // Create initial did doc with placeholder
-        var didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
+        JsonObject didDoc;
+        try {
+            didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
+        } catch (IOException e) {
+            throw new WebVerifiableHistoryCreatorException(e);
+        }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
         var didLogEntryWithoutProofAndSignature = new JsonObject();
@@ -157,15 +167,22 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
+        try {
+            didLogEntryWithoutProofAndSignature.add("parameters", createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
+        } catch (IOException e) {
+            throw new WebVerifiableHistoryCreatorException(e);
+        }
 
-        didLogEntryWithoutProofAndSignature.add("parameters", createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
-
-        // Add the initial DIDDoc
-        // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
+        // The JSON object "state" contains the DIDDoc for this version of the DID.
         didLogEntryWithoutProofAndSignature.add("state", didDoc);
 
         // Generate SCID and replace placeholder in did doc
-        var scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+        String scid;
+        try {
+            scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+        } catch (IOException e) {
+            throw new WebVerifiableHistoryCreatorException(e);
+        }
 
         /* https://identity.foundation/didwebvh/v1.0/#output-of-the-scid-generation-process:
         After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
@@ -188,7 +205,12 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature.toString());
+        String entryHash;
+        try {
+            entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature.toString());
+        } catch (IOException e) {
+            throw new WebVerifiableHistoryCreatorException(e);
+        }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
         var didLogEntryWithProof = new JsonObject();
@@ -209,9 +231,13 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
             Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
         JsonArray proofs = new JsonArray();
-        proofs.add(JCSHasher.buildDataIntegrityProof(
-                didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt
-        ));
+        try {
+            proofs.add(JCSHasher.buildDataIntegrityProof(
+                    didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt
+            ));
+        } catch (IOException e) {
+            throw new WebVerifiableHistoryCreatorException(e);
+        }
         didLogEntryWithProof.add("proof", proofs);
 
         /* TODO As soon EIDOMNI-126 is done
@@ -220,12 +246,12 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
             did = new Did(DidLogMetaPeeker.peek(didLogEntryWithProof.toString()).didDocId);
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
-            //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
+            //          .from(DidLogEntryJsonSchema.V1_0_EID_CONFORM)
             //          .validate(didLogEntryWithProof.toString());
             //      would not be necessary here, as it is already part of the `resolve` method.
             did.resolve(didLogEntryWithProof.toString()); // sanity check
         } catch (DidResolveException | DidLogMetaPeekerException e) {
-            throw new RuntimeException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
+            throw new WebVerifiableCreatorException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {
             if (did != null) {
                 did.close();
@@ -236,13 +262,4 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryCreator {
         return didLogEntryWithProof.toString();
     }
 
-    @Override
-    protected String getDidMethod() {
-        return "did:webvh";
-    }
-
-    @Override
-    protected String getDidMethodVersion() {
-        return "1.0";
-    }
 }

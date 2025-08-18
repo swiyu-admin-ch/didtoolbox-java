@@ -6,7 +6,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -95,7 +94,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .build()
                     .create(identifierRegistryUrl); // MUT
 
-        } catch (IOException e) {
+        } catch (WebVerifiableHistoryCreatorException e) {
             fail(e);
         }
 
@@ -118,7 +117,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .build()
                     .create(identifierRegistryUrl); // MUT
 
-        } catch (IOException e) {
+        } catch (WebVerifiableHistoryCreatorException e) {
             fail(e);
         }
 

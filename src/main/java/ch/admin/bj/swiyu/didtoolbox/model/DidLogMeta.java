@@ -29,13 +29,16 @@ public class DidLogMeta {
     @Getter
     final private DidMethodParameters params;
     @Getter
+    final private DidDocument didDoc;
+    @Getter
     final private String didDocId;
 
-    DidLogMeta(String lastVersionId, int lastVersionNumber, String dateTime, DidMethodParameters params, String didDocId) {
+    DidLogMeta(String lastVersionId, int lastVersionNumber, String dateTime, DidMethodParameters params, DidDocument didDoc, String didDocId) {
         this.lastVersionId = lastVersionId;
         this.lastVersionNumber = lastVersionNumber;
         this.dateTime = dateTime;
         this.params = params;
+        this.didDoc = didDoc;
         this.didDocId = didDocId;
     }
 }

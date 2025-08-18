@@ -40,6 +40,7 @@ public class WebVhDidLogMetaPeeker {
         AtomicReference<String> lastVersionId = new AtomicReference<>();
         AtomicReference<String> dateTime = new AtomicReference<>();
         AtomicReference<DidMethodParameters> params = new AtomicReference<>();
+        AtomicReference<DidDocument> didDoc = new AtomicReference<>();
         AtomicReference<String> didDocId = new AtomicReference<>();
         AtomicReference<DataIntegrityProof[]> proof = new AtomicReference<>();
 
@@ -67,8 +68,9 @@ public class WebVhDidLogMetaPeeker {
                 }
 
                 var didDocument = didLogEntry.didDocument;
-                if (didDocument != null && didDocument.id != null) {
-                    didDocId.set(didDocument.id);
+                if (didDocument != null && didDocument.getId() != null) {
+                    didDoc.set(didDocument);
+                    didDocId.set(didDocument.getId());
                 }
 
                 if (didLogEntry.proof != null) {
@@ -138,6 +140,6 @@ public class WebVhDidLogMetaPeeker {
             throw new DidLogMetaPeekerException("Missing DID integrity proof");
         }
 
-        return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), params.get(), didDocId.get());
+        return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), params.get(), didDoc.get(), didDocId.get());
     }
 }

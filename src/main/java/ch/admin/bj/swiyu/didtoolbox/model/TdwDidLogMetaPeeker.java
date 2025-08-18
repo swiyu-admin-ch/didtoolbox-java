@@ -60,7 +60,7 @@ public class TdwDidLogMetaPeeker {
 
                 var didDocValue = gson.fromJson(gson.toJson(didLogEntryElements[3]), DidDocValue.class);
                 if (didDocValue != null && didDocValue.value != null) {
-                    didDocId.set(didDocValue.value.id);
+                    didDocId.set(didDocValue.value.getId());
                 }
 
                 var proof = gson.fromJson(gson.toJson(didLogEntryElements[4]), DataIntegrityProof[].class);
@@ -117,7 +117,7 @@ public class TdwDidLogMetaPeeker {
             throw new DidLogMetaPeekerException("DID doc ID missing");
         }
 
-        return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), params.get(), didDocId.get());
+        return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), params.get(), null, didDocId.get());
     }
 
     static class DidDocValue {

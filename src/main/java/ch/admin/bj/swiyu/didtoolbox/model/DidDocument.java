@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
 
 import java.util.Set;
 
@@ -12,12 +13,12 @@ import java.util.Set;
  *     <li>id</li>
  * </ul>
  */
-class DidDocument {
+public class DidDocument {
+    @Getter
     @SerializedName("@context")
     Set<String> context;
+    @Getter
     String id;
-    /* TODO Implement as soon is needed
     Set<String> authentication;
     Set<String> assertionMethod;
-     */
 }

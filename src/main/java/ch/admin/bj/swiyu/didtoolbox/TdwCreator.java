@@ -92,7 +92,7 @@ import java.util.Set;
  */
 @Builder
 @Getter
-public class TdwCreator extends AbstractDidLogEntryCreator {
+public class TdwCreator extends AbstractDidLogEntryBuilder {
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
@@ -106,6 +106,11 @@ public class TdwCreator extends AbstractDidLogEntryCreator {
     // TODO private File dirToStoreKeyPair;
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
+
+    @Override
+    protected DidMethodEnum getDidMethod() {
+        return DidMethodEnum.TDW_0_3;
+    }
 
     /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
@@ -227,15 +232,5 @@ public class TdwCreator extends AbstractDidLogEntryCreator {
         }
 
         return didLogEntryWithProof.toString();
-    }
-
-    @Override
-    protected String getDidMethod() {
-        return "did:tdw";
-    }
-
-    @Override
-    protected String getDidMethodVersion() {
-        return "0.3";
     }
 }

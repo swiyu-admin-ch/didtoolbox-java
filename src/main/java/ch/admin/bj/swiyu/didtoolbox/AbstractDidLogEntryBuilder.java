@@ -1,9 +1,13 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.WebVhDidLogMetaPeeker;
+import ch.admin.eid.didresolver.Did;
+import ch.admin.eid.didresolver.DidResolveException;
+import ch.admin.eid.didtoolbox.DidDoc;
+import com.google.gson.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +19,104 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractDidLogEntryCreator {
+abstract class AbstractDidLogEntryBuilder {
+
+    protected final static String SCID_PLACEHOLDER = "{SCID}";
+    protected DidLogMeta didLogMeta;
+    protected String didLogId;
+    protected DidDoc oldDidDoc;
+    protected Set<String> didDocContext;
+
+    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile,
+                                                                        boolean forceOverwrite) throws IOException {
+
+        String publicKeyJwk = jwk;
+        if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
+            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile, forceOverwrite);
+        }
+
+        return buildVerificationMethodWithPublicKeyJwk(didTDW, keyID, publicKeyJwk);
+    }
+
+    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String publicKeyJwk) {
+
+        JsonObject verificationMethodObj = new JsonObject();
+        verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
+        // CAUTION The "controller" property must not be present w.r.t.:
+        // - https://jira.bit.admin.ch/browse/EIDSYS-35
+        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        //verificationMethodObj.addProperty("controller", didTDW);
+        verificationMethodObj.addProperty("type", "JsonWebKey2020");
+        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
+        // - https://jira.bit.admin.ch/browse/EIDOMNI-35
+        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
+        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
+
+        return verificationMethodObj;
+    }
+
+    protected static File createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws IOException {
+        var outputDir = new File(pathname);
+        if (!outputDir.exists()) {
+            try {
+                return FilesPrivacy.createPrivateDirectory(outputDir.toPath(), false).toFile(); // may throw DirectoryNotEmptyException, SecurityException etc.
+            } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
+                throw new RuntimeException(ex);
+            } catch (AccessDeniedException ex) {
+                throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
+            } catch (Throwable thr) {
+                throw new IOException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
+            }
+        }
+
+        return outputDir;
+    }
+
+    /**
+     * Setup the class members w.r.t. outcome of the supplied DID log resolution process.
+     *
+     * @param didLogToResolve
+     * @throws DidResolveException
+     * @throws DidLogMetaPeekerException
+     */
+    protected void resolve(String didLogToResolve)
+            throws DidResolveException, DidLogMetaPeekerException {
+
+        Did did = null;
+        try {
+            // try extracting DID doc ID
+            if (getDidMethod().isTdw03()) {
+                didLogMeta = TdwDidLogMetaPeeker.peek(didLogToResolve);
+            } else if (getDidMethod().isWebVh10()) {
+                didLogMeta = WebVhDidLogMetaPeeker.peek(didLogToResolve);
+            } else {
+                throw new RuntimeException("Unsupported DID method");
+            }
+
+            didLogId = didLogMeta.getDidDocId();
+
+            // According to https://identity.foundation/didwebvh/v1.0/#update-rotate:
+            // To update a DID, a new, verifiable DID Log Entry must be generated, witnessed (if necessary),
+            // appended to the existing DID Log (did.jsonl), and published to the web location defined by the DID.
+            if (getDidMethod().isTdw03()) {
+                did = new Did(didLogId);
+                oldDidDoc = did.resolve(didLogToResolve);
+            } else if (getDidMethod().isWebVh10()) {
+                // TODO As soon as EIDOMNI-126 is done
+                //did = new Did(didLogId);
+                //oldDidDoc = did.resolve(didLogToResolve);
+                didDocContext = didLogMeta.getDidDoc().getContext();
+            } else {
+                throw new RuntimeException("Unsupported DID method");
+            }
+
+        } finally {
+            if (did != null) {
+                did.close();
+            }
+        }
+    }
 
     /**
      * Specifies a specification version to be used for processing the DID’s log.
@@ -29,47 +130,7 @@ abstract class AbstractDidLogEntryCreator {
      *
      * @return name of the DID method
      */
-    protected abstract String getDidMethod();
-
-    /**
-     * Specifies a specification version to be used for processing the DID’s log.
-     * Each acceptable value in turn defines what cryptographic algorithms are permitted for the current and subsequent DID log entries.
-     * <p>
-     * As required by either of:
-     * <ul>
-     *   <li><a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">did:tdw</a> or</li>
-     *   <li><a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">did:webvh</a></li>
-     * </il>
-     *
-     * @return name of the DID method
-     */
-    protected abstract String getDidMethodVersion();
-
-    protected final static String SCID_PLACEHOLDER = "{SCID}";
-
-    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile,
-                                                                        boolean forceOverwrite) throws IOException {
-
-        String publicKeyJwk = jwk;
-        if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile, forceOverwrite);
-        }
-
-        JsonObject verificationMethodObj = new JsonObject();
-        verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
-        // CAUTION The "controller" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("controller", didTDW);
-        verificationMethodObj.addProperty("type", "JsonWebKey2020");
-        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDOMNI-35
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
-        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
-
-        return verificationMethodObj;
-    }
+    protected abstract DidMethodEnum getDidMethod();
 
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
                                          Set<File> updateKeys) throws IOException {
@@ -79,7 +140,7 @@ abstract class AbstractDidLogEntryCreator {
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         JsonObject didMethodParameters = new JsonObject();
-        didMethodParameters.addProperty("method", getDidMethod() + ":" + getDidMethodVersion());
+        didMethodParameters.addProperty("method", getDidMethod().asString());
         didMethodParameters.addProperty("scid", SCID_PLACEHOLDER);
 
         /*
@@ -132,7 +193,7 @@ abstract class AbstractDidLogEntryCreator {
         // Method-Specific Identifier: https://identity.foundation/didwebvh/v1.0/#method-specific-identifier
         // W.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation
         // See also https://identity.foundation/didwebvh/v1.0/#example-7
-        String didTDW = getDidMethod() + ":{SCID}:" + identifierRegistryUrl.getHost();
+        var didTDW = "%s:{SCID}:%s".formatted(getDidMethod().getPrefix(), identifierRegistryUrl.getHost());
         int port = identifierRegistryUrl.getPort(); // the port number, or -1 if the port is not set
         if (port != -1) {
             didTDW += "%3A" + port;
@@ -205,20 +266,55 @@ abstract class AbstractDidLogEntryCreator {
         return didDoc;
     }
 
-    protected static File createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws IOException {
-        var outputDir = new File(pathname);
-        if (!outputDir.exists()) {
-            try {
-                return FilesPrivacy.createPrivateDirectory(outputDir.toPath(), false).toFile(); // may throw DirectoryNotEmptyException, SecurityException etc.
-            } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
-                throw new RuntimeException(ex);
-            } catch (AccessDeniedException ex) {
-                throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
-            } catch (Throwable thr) {
-                throw new IOException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
+    /**
+     * The enumeration describing/modelling all the supported specifications
+     */
+    protected enum DidMethodEnum {
+        /**
+         * Refers to <a href="https://identity.foundation/didwebvh/v0.3/">Trust DID Web - did:tdw - v0.3</a>
+         */
+        TDW_0_3("did:tdw:0.3") {
+            @Override
+            public boolean isTdw03() {
+                return true;
             }
+        },
+        /**
+         * Refers to <a href="https://identity.foundation/didwebvh/v1.0/">The did:webvh DID Method v1.0</a>
+         */
+        WEBVH_1_0("did:webvh:1.0") {
+            @Override
+            public boolean isWebVh10() {
+                return true;
+            }
+        };
+
+        private final String didMethod;
+        private final String prefix;
+
+        DidMethodEnum(String didMethod) {
+            this.didMethod = didMethod;
+            var split = didMethod.split(":", 3);
+            if (split.length != 3) {
+                throw new IllegalArgumentException("A DID method must be supplied in format: 'did:<method-name>:<version>'");
+            }
+            this.prefix = split[0] + ":" + split[1];
         }
 
-        return outputDir;
+        boolean isTdw03() {
+            return false;
+        }
+
+        boolean isWebVh10() {
+            return false;
+        }
+
+        String asString() {
+            return didMethod;
+        }
+
+        String getPrefix() {
+            return prefix;
+        }
     }
 }
