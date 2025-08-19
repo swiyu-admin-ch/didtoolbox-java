@@ -5,6 +5,7 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
  */
 
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

@@ -1,9 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta;
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.model.WebVhDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import ch.admin.eid.didtoolbox.DidDoc;
@@ -264,57 +261,5 @@ abstract class AbstractDidLogEntryBuilder {
         didDoc.add("verificationMethod", verificationMethod);
 
         return didDoc;
-    }
-
-    /**
-     * The enumeration describing/modelling all the supported specifications
-     */
-    protected enum DidMethodEnum {
-        /**
-         * Refers to <a href="https://identity.foundation/didwebvh/v0.3/">Trust DID Web - did:tdw - v0.3</a>
-         */
-        TDW_0_3("did:tdw:0.3") {
-            @Override
-            public boolean isTdw03() {
-                return true;
-            }
-        },
-        /**
-         * Refers to <a href="https://identity.foundation/didwebvh/v1.0/">The did:webvh DID Method v1.0</a>
-         */
-        WEBVH_1_0("did:webvh:1.0") {
-            @Override
-            public boolean isWebVh10() {
-                return true;
-            }
-        };
-
-        private final String didMethod;
-        private final String prefix;
-
-        DidMethodEnum(String didMethod) {
-            this.didMethod = didMethod;
-            var split = didMethod.split(":", 3);
-            if (split.length != 3) {
-                throw new IllegalArgumentException("A DID method must be supplied in format: 'did:<method-name>:<version>'");
-            }
-            this.prefix = split[0] + ":" + split[1];
-        }
-
-        boolean isTdw03() {
-            return false;
-        }
-
-        boolean isWebVh10() {
-            return false;
-        }
-
-        String asString() {
-            return didMethod;
-        }
-
-        String getPrefix() {
-            return prefix;
-        }
     }
 }

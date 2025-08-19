@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
-import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
 import com.beust.jcommander.JCommander;
@@ -36,15 +36,15 @@ public class Main {
     public static void main(String... args) {
         var main = new Main();
 
-        var createCommand = new CreateTdwCommand();
-        var updateCommand = new UpdateTdwCommand();
+        var createDidLogCommand = new CreateDidLogCommand();
+        var updateDidLogCommand = new UpdateDidLogCommand();
         var deactivateCommand = new DeactivateTdwCommand();
         var createProofOfPossessionCommand = new CreateProofOfPossessionCommand();
         var verifyProofOfPossessionCommand = new VerifyProofOfPossessionCommand();
         var jc = JCommander.newBuilder()
                 .addObject(main)
-                .addCommand(CreateTdwCommand.COMMAND_NAME, createCommand)
-                .addCommand(UpdateTdwCommand.COMMAND_NAME, updateCommand)
+                .addCommand(CreateDidLogCommand.COMMAND_NAME, createDidLogCommand)
+                .addCommand(UpdateDidLogCommand.COMMAND_NAME, updateDidLogCommand)
                 .addCommand(DeactivateTdwCommand.COMMAND_NAME, deactivateCommand)
                 .addCommand(CreateProofOfPossessionCommand.COMMAND_NAME, createProofOfPossessionCommand)
                 .addCommand(VerifyProofOfPossessionCommand.COMMAND_NAME, verifyProofOfPossessionCommand)
@@ -79,8 +79,8 @@ public class Main {
 
         try {
             switch (parsedCommandName) {
-                case CreateTdwCommand.COMMAND_NAME -> runTdwCreateCommand(jc, parsedCommandName, createCommand);
-                case UpdateTdwCommand.COMMAND_NAME -> runTdwUpdateCommand(jc, parsedCommandName, updateCommand);
+                case CreateDidLogCommand.COMMAND_NAME -> runCreateDidLogCommand(jc, parsedCommandName, createDidLogCommand);
+                case UpdateDidLogCommand.COMMAND_NAME -> runUpdateDidLogCommand(jc, parsedCommandName, updateDidLogCommand);
                 case DeactivateTdwCommand.COMMAND_NAME ->
                         runTdwDeactivateCommand(jc, parsedCommandName, deactivateCommand);
                 case CreateProofOfPossessionCommand.COMMAND_NAME ->
@@ -96,7 +96,7 @@ public class Main {
         System.exit(0);
     }
 
-    private static void runTdwCreateCommand(JCommander jc, String parsedCommandName, CreateTdwCommand command) throws Exception {
+    private static void runCreateDidLogCommand(JCommander jc, String parsedCommandName, CreateDidLogCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -104,11 +104,9 @@ public class Main {
 
         URL identifierRegistryUrl = command.identifierRegistryUrl;
 
-        var methodVersion = command.methodVersion;
+        var methodVersion = DidMethodEnum.parse(command.methodVersion); // may return null
         if (methodVersion == null) {
-            methodVersion = CreateTdwCommand.DEFAULT_METHOD_VERSION;
-        } else if (!methodVersion.equals(CreateTdwCommand.DEFAULT_METHOD_VERSION)) {
-            overAndOut(jc, parsedCommandName, "Supplied method version is not supported: '" + methodVersion + "'. Currently supported is: " + CreateTdwCommand.DEFAULT_METHOD_VERSION);
+            methodVersion = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
         }
 
         Map<String, String> assertionMethodKeysMap = new HashMap<>();
@@ -226,26 +224,55 @@ public class Main {
             }
         }
 
-        var tdwBuilder = TdwCreator.builder().verificationMethodKeyProvider(signer);
-
-        String didLogEntry = tdwBuilder
-                .assertionMethodKeys(assertionMethodKeysMap)
-                .authenticationKeys(authenticationKeysMap)
-                .updateKeys(verifyingKeyPemFiles)
-                .forceOverwrite(forceOverwrite)
-                .build()
-                .create(identifierRegistryUrl);
-
-        System.out.println(didLogEntry);
+        // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
+        switch (methodVersion) {
+            case TDW_0_3 -> System.out.println(
+                    TdwCreator.builder()
+                            .verificationMethodKeyProvider(signer)
+                            .assertionMethodKeys(assertionMethodKeysMap)
+                            .authenticationKeys(authenticationKeysMap)
+                            .updateKeys(verifyingKeyPemFiles)
+                            .forceOverwrite(forceOverwrite)
+                            .build()
+                            .create(identifierRegistryUrl));
+            case WEBVH_1_0 -> System.out.println(
+                    WebVerifiableHistoryCreator.builder()
+                            .verificationMethodKeyProvider(signer)
+                            .assertionMethodKeys(assertionMethodKeysMap)
+                            .authenticationKeys(authenticationKeysMap)
+                            .updateKeys(verifyingKeyPemFiles)
+                            .forceOverwrite(forceOverwrite)
+                            .build()
+                            .create(identifierRegistryUrl));
+            default -> throw new RuntimeException("The supplied method version is not supported: '" + methodVersion +
+                    "'. Currently supported: '" + DidMethodEnum.TDW_0_3 + "', '" + DidMethodEnum.WEBVH_1_0 + "'");
+        }
     }
 
-    private static void runTdwUpdateCommand(JCommander jc, String parsedCommandName, UpdateTdwCommand command) throws Exception {
+    private static void runUpdateDidLogCommand(JCommander jc, String parsedCommandName, UpdateDidLogCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
         }
 
         var didLogFile = command.didLogFile;
+
+        DidLogMeta didLogMeta = null;
+        try {
+            didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:tdw log
+        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+            try {
+                didLogMeta = WebVhDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:webvh log
+            } catch (DidLogMetaPeekerException exc1) { // not a did:webvh log
+                overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
+            }
+        }
+
+        if (didLogMeta == null || didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
+            throw new RuntimeException("Incomplete metadata");
+        }
+
+        // CAUTION At this point, it should be all in place to update to be able to update the supplied DID log
 
         Map<String, String> assertionMethodKeysMap = new HashMap<>();
         var updateCommandAssertionMethodKeys = command.assertionMethodKeys;
@@ -282,7 +309,6 @@ public class Main {
 
         if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
-            var didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
             String matchingUpdateKey = null;
             for (var key : didLogMeta.getParams().getUpdateKeys()) {
                 try {
@@ -311,17 +337,31 @@ public class Main {
             overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
         }
 
-        var tdwBuilder = TdwUpdater.builder().verificationMethodKeyProvider(signer);
-
-        var newLogEntry = tdwBuilder
-                .assertionMethodKeys(assertionMethodKeysMap)
-                .authenticationKeys(authenticationKeysMap)
-                .updateKeys(verifyingKeyPemFiles)
-                .build()
-                .update(didLogFile);
-
-        // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-        System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() + newLogEntry);
+        // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
+        var didMethod = didLogMeta.getParams().getDidMethodEnum();
+        switch (didMethod) {
+            case TDW_0_3 -> // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
+                    System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
+                            TdwUpdater.builder()
+                                    .verificationMethodKeyProvider(signer)
+                                    .assertionMethodKeys(assertionMethodKeysMap)
+                                    .authenticationKeys(authenticationKeysMap)
+                                    .updateKeys(verifyingKeyPemFiles)
+                                    .build()
+                                    .update(didLogFile)
+                    );
+            case WEBVH_1_0 -> // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
+                    System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
+                            WebVerifiableHistoryUpdater.builder()
+                                    .verificationMethodKeyProvider(signer)
+                                    .assertionMethodKeys(assertionMethodKeysMap)
+                                    .authenticationKeys(authenticationKeysMap)
+                                    .updateKeys(verifyingKeyPemFiles)
+                                    .build()
+                                    .update(didLogFile));
+            default ->
+                    throw new RuntimeException("The supplied file contains unsupported DID log format: " + didLogFile.getName());
+        }
     }
 
     private static void runTdwDeactivateCommand(JCommander jc, String parsedCommandName, DeactivateTdwCommand command) throws Exception {

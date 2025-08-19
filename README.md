@@ -82,7 +82,7 @@ Usage: didtoolbox [options] [command] [command options]
           --help, -h
             Display help for the DID toolbox command
         * --identifier-registry-url, -u
-            A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for
+            A HTTP(S) DID URL (to did.jsonl) to create a DID log for
           --jks-alias
             Java KeyStore alias name of the entry to process. This CLI parameter should always be used exclusively alongside all the other --jks-* 
             CLI parameters
@@ -93,8 +93,9 @@ Usage: didtoolbox [options] [command] [command options]
             Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore. This CLI parameter should 
             always be used exclusively alongside all the other --jks-* CLI parameters
           --method-version, -m
-            Defines the did:tdw specification version to use when generating a DID log. Currently supported is only 'did:tdw:0.3'
-            Default: did:tdw:0.3
+            Defines the DID method specification version to use when generating a DID log. Case-insensitive. Valid values: 'did:tdw:0.3', 
+            'did:webvh:1.0' 
+            Default: did:webvh:1.0
           --primus-credentials, -p
             A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. It should 
             feature a quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and 

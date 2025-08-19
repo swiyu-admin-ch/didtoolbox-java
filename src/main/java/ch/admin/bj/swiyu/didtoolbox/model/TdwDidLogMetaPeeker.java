@@ -99,11 +99,15 @@ public class TdwDidLogMetaPeeker {
             throw new DidLogMetaPeekerException("The versionTime MUST be a valid ISO8601 date/time string");
         }
 
-        /*
-        if (params.get().method == null || params.get().method.isEmpty() || !params.get().method.startsWith("did:tdw:")) {
-            throw new DidLogMetaPeekerException("The 'method' DID parameter MUST be set to 'did:tdw:<VERSION>'");
+        if (params.get() == null) {
+            throw new DidLogMetaPeekerException("Missing parameters");
         }
 
+        if (params.get().method == null || params.get().method.isEmpty() || !params.get().method.startsWith(DidMethodEnum.TDW_0_3.getPrefix())) {
+            throw new DidLogMetaPeekerException("The 'method' DID parameter MUST be one of the supported '" + DidMethodEnum.TDW_0_3.getPrefix() + "' versions");
+        }
+
+        /*
         if (params.get().scid == null || params.get().scid.isEmpty()) {
             throw new DidLogMetaPeekerException("The SCID DID parameter MUST be set");
         }

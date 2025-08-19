@@ -120,8 +120,8 @@ public class WebVhDidLogMetaPeeker {
             throw new DidLogMetaPeekerException("Missing parameters");
         }
 
-        if (params.get().method == null || params.get().method.isEmpty() || !params.get().method.startsWith("did:webvh:")) {
-            throw new DidLogMetaPeekerException("The 'method' DID parameter MUST be set to 'did:webvh:<VERSION>'");
+        if (params.get().method == null || params.get().method.isEmpty() || !params.get().method.startsWith(DidMethodEnum.WEBVH_1_0.getPrefix())) {
+            throw new DidLogMetaPeekerException("The 'method' DID parameter MUST be one of supported '" + DidMethodEnum.WEBVH_1_0.getPrefix() + "' versions");
         }
 
         if (params.get().scid == null || params.get().scid.isEmpty()) {

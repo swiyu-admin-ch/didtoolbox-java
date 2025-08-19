@@ -5,6 +5,7 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
  */
 
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -349,7 +350,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
         try {
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
-            //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
+            //          .from(DidLogEntryJsonSchema.V1_0_EID_CONFORM)
             //          .validate(didLogEntryWithProof.toString());
             //      would not be necessary here, as it is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)

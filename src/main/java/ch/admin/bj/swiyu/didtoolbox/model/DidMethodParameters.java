@@ -42,4 +42,11 @@ public class DidMethodParameters {
             this.deactivated = other.deactivated;
         }
     }
+
+    /**
+     * @see DidMethodEnum#parse(String)
+     */
+    public DidMethodEnum getDidMethodEnum() {
+        return DidMethodEnum.parse(this.method);
+    }
 }
