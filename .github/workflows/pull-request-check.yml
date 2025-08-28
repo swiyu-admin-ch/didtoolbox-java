@@ -33,7 +33,7 @@ jobs:
             java-version: '21'
             cache: 'maven'
         - name: Build with Maven
-          run: mvn --batch-mode clean generate-resources install
+          run: mvn --batch-mode clean compile
           # Note: codeQL MUST be after the compile step
         - name: Perform CodeQL Analysis
           uses: github/codeql-action/analyze@v3
