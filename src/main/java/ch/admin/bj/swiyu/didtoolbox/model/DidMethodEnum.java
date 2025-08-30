@@ -2,10 +2,8 @@ package ch.admin.bj.swiyu.didtoolbox.model;
 
 import lombok.Getter;
 
-import java.text.ParseException;
-
 /**
- * The enumeration describing/modelling all the supported specifications
+ * The enumeration describing/modelling all the supported DID specifications
  */
 public enum DidMethodEnum {
     /**
@@ -27,8 +25,14 @@ public enum DidMethodEnum {
         }
     };
 
+    /**
+     * String representation of {@link DidMethodEnum#TDW_0_3}
+     */
     public final static String TDW_0_3_STRING = "did:tdw:0.3";
 
+    /**
+     * String representation of {@link DidMethodEnum#WEBVH_1_0}
+     */
     public final static String WEBVH_1_0_STRING = "did:webvh:1.0";
 
     private final String didMethod;
@@ -48,7 +52,7 @@ public enum DidMethodEnum {
      * Yet another type conversion helper.
      *
      * @param str to convert to {@link DidMethodEnum} from. Case-insensitive.
-     * @return {@code null} if unknown
+     * @return a valid {@link DidMethodEnum} constant matching the supplied string. Otherwise, {@code null}.
      * @throws IllegalArgumentException if the supplied string does not match any of the valid {@link DidMethodEnum} constants.
      */
     public static DidMethodEnum parse(String str) {

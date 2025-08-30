@@ -1,11 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-/* TODO As soon EIDOMNI-126 is done
-import ch.admin.eid.didresolver.Did;
-import ch.admin.eid.didresolver.DidResolveException;
- */
-
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.WebVhDidLogMetaPeeker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -241,26 +238,12 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder {
         }
         didLogEntryWithProof.add("proof", proofs);
 
-        /* TODO As soon EIDOMNI-126 is done
-        Did did = null;
         try {
-            did = new Did(DidLogMetaPeeker.peek(didLogEntryWithProof.toString()).didDocId);
-            // NOTE Enforcing DID log conformity by calling:
-            //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
-            //          .from(DidLogEntryJsonSchema.V1_0_EID_CONFORM)
-            //          .validate(didLogEntryWithProof.toString());
-            //      would not be necessary here, as it is already part of the `resolve` method.
-            did.resolve(didLogEntryWithProof.toString()); // sanity check
-        } catch (DidResolveException | DidLogMetaPeekerException e) {
-            throw new WebVerifiableCreatorException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
-        } finally {
-            if (did != null) {
-                did.close();
-            }
+            WebVhDidLogMetaPeeker.peek(didLogEntryWithProof.toString()).getDidDoc().getId(); // sanity check
+        } catch (DidLogMetaPeekerException e) {
+            throw new WebVerifiableHistoryCreatorException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
         }
-         */
 
         return didLogEntryWithProof.toString();
     }
-
 }

@@ -5,7 +5,6 @@ import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
-import ch.admin.eid.didtoolbox.DidDoc;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.Builder;
@@ -18,6 +17,7 @@ import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * {@link TdwDeactivator} is the class in charge of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log deactivation (revoke).
@@ -124,25 +124,12 @@ public class TdwDeactivator {
     String deactivate(String didLog, ZonedDateTime zdt) throws TdwDeactivatorException {
 
         DidLogMeta didLogMeta;
-        String didTDW;
-        DidDoc oldDidDoc;
-        Did did = null;
+        List<String> didDocContext;
         try {
             didLogMeta = TdwDidLogMetaPeeker.peek(didLog); // try extracting DID doc ID
-            didTDW = didLogMeta.getDidDocId();
-
-            // According to https://identity.foundation/didwebvh/v0.3/#update-rotate:
-            // To update a DID, a new, verifiable DID Log Entry must be generated, witnessed (if necessary),
-            // appended to the existing DID Log (did.jsonl), and published to the web location defined by the DID.
-            did = new Did(didTDW);
-            oldDidDoc = did.resolve(didLog);
-
-        } catch (DidResolveException | DidLogMetaPeekerException e) {
+            didDocContext = didLogMeta.getDidDoc().getContext();
+        } catch (DidLogMetaPeekerException e) {
             throw new TdwDeactivatorException("Unresolvable/unverifiable DID log detected", e);
-        } finally {
-            if (did != null) {
-                did.close();
-            }
         }
 
         // CAUTION Only activated DIDs can be updated
@@ -169,12 +156,12 @@ public class TdwDeactivator {
 
         // take over context
         var context = new JsonArray();
-        for (var ctx : oldDidDoc.getContext()) {
+        for (var ctx : didDocContext) {
             context.add(ctx);
         }
         didDoc.add("@context", context);
 
-        didDoc.addProperty("id", didTDW);
+        didDoc.addProperty("id", didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
@@ -253,7 +240,7 @@ public class TdwDeactivator {
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
-        did = new Did(didLogMeta.getDidDocId());
+        Did did = new Did(didLogMeta.getDidDoc().getId());
         try {
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
@@ -261,7 +248,7 @@ public class TdwDeactivator {
             //          .validate(didLogEntryWithProof.toString());
             //      would not be necessary here, as it is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolve(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
+            did.resolveAll(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
             throw new RuntimeException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {

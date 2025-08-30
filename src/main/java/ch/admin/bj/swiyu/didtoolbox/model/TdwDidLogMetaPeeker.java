@@ -1,12 +1,17 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
 import ch.admin.bj.swiyu.didtoolbox.TdwUpdater;
+import ch.admin.eid.did_sidekicks.DidDoc;
+import ch.admin.eid.did_sidekicks.DidMethodParameter;
+import ch.admin.eid.didresolver.Did;
+import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -20,7 +25,7 @@ public class TdwDidLogMetaPeeker {
     /**
      * The essential method oh the helper class.
      *
-     * @param didLog to peek into. It does not need to be necessarily "resolvable", however desirable.
+     * @param didLog to peek into. It is assumed that it is already "resolvable".
      * @return metadata describing a DID log (to a certain extent).
      * @throws DidLogMetaPeekerException if peeking fails for whatever reason.
      */
@@ -29,7 +34,6 @@ public class TdwDidLogMetaPeeker {
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();
         AtomicReference<String> dateTime = new AtomicReference<>();
-        AtomicReference<DidMethodParameters> params = new AtomicReference<>();
         AtomicReference<String> didDocId = new AtomicReference<>();
 
         // CAUTION Trimming the existing DID log prevents ending up parsing empty lines
@@ -48,15 +52,7 @@ public class TdwDidLogMetaPeeker {
                 lastVersionId.set(didLogEntryElements[0].toString());
                 dateTime.set(didLogEntryElements[1].toString());
 
-                var entryParams = gson.fromJson(gson.toJson(didLogEntryElements[2]), DidMethodParameters.class);
-                if (entryParams != null) {
-                    if (params.get() == null) {
-                        params.set(entryParams);
-                    }
-                    var x = params.get();
-                    x.mergeFrom(entryParams);
-                    params.set(x);
-                }
+                // Skip parsing the parameters (didLogEntryElements[2]), as they will be supplied by the resolver afterwards
 
                 var didDocValue = gson.fromJson(gson.toJson(didLogEntryElements[3]), DidDocValue.class);
                 if (didDocValue != null && didDocValue.value != null) {
@@ -99,29 +95,21 @@ public class TdwDidLogMetaPeeker {
             throw new DidLogMetaPeekerException("The versionTime MUST be a valid ISO8601 date/time string");
         }
 
-        if (params.get() == null) {
-            throw new DidLogMetaPeekerException("Missing parameters");
-        }
-
-        if (params.get().method == null || params.get().method.isEmpty() || !params.get().method.startsWith(DidMethodEnum.TDW_0_3.getPrefix())) {
-            throw new DidLogMetaPeekerException("The 'method' DID parameter MUST be one of the supported '" + DidMethodEnum.TDW_0_3.getPrefix() + "' versions");
-        }
-
-        /*
-        if (params.get().scid == null || params.get().scid.isEmpty()) {
-            throw new DidLogMetaPeekerException("The SCID DID parameter MUST be set");
-        }
-
-        if (params.get().updateKeys == null || params.get().updateKeys.isEmpty()) {
-            throw new DidLogMetaPeekerException("The updateKeys DID parameter MUST not be empty");
-        }
-         */
-
         if (didDocId.get() == null) {
             throw new DidLogMetaPeekerException("DID doc ID missing");
         }
 
-        return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), params.get(), null, didDocId.get());
+        DidDoc didDoc;
+        Map<String, DidMethodParameter> didMethodParameters;
+        try {
+            var resolveAll = new Did(didDocId.get()).resolveAll(didLog);
+            didDoc = resolveAll.getDidDoc();
+            didMethodParameters = resolveAll.getDidMethodParameters();
+        } catch (DidResolveException e) {
+            throw new DidLogMetaPeekerException(e);
+        }
+
+        return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), didMethodParameters, didDoc);
     }
 
     static class DidDocValue {

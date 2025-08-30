@@ -1,11 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-/* TODO As soon EIDOMNI-126 is done
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
- */
-
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -157,7 +154,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
     String update(String resolvableDidLog, ZonedDateTime zdt) throws WebVerifiableHistoryUpdaterException {
 
         try {
-            super.resolve(resolvableDidLog);
+            super.peek(resolvableDidLog);
         } catch (Exception e) { //} catch (DidResolveException | DidLogMetaPeekerException e) {
             throw new WebVerifiableHistoryUpdaterException(e);
         }
@@ -186,13 +183,12 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
 
         // take over context
         var context = new JsonArray();
-        //for (var ctx : oldDidDoc.getContext()) {
-        for (var ctx : didDocContext) {
+        for (var ctx : didLogMeta.getDidDoc().getContext()) {
             context.add(ctx);
         }
         didDoc.add("@context", context);
 
-        didDoc.addProperty("id", didLogId);
+        didDoc.addProperty("id", this.didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
@@ -210,8 +206,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
             JsonArray authentication = new JsonArray();
             for (var key : this.authenticationKeys.entrySet()) {
 
-                authentication.add(didLogId + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didLogId, key.getKey(), key.getValue()));
+                authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(this.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("authentication", authentication);
@@ -222,8 +218,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
             JsonArray assertionMethod = new JsonArray();
             for (var key : this.assertionMethodKeys.entrySet()) {
 
-                assertionMethod.add(didLogId + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didLogId, key.getKey(), key.getValue()));
+                assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(this.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
@@ -332,11 +328,15 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
         https://identity.foundation/didwebvh/v1.0/#update-rotate:
         6. Generate a Data Integrity proof on the DID log entry using an authorized key, as defined in the Authorized Keys
            section of this specification, and the proofPurpose set to assertionMethod.
+        Since did.tdw:0.4 ->
+           "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
+           Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
         var proofs = new JsonArray();
         JsonObject proof;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
+            proof = JCSHasher.buildDataIntegrityProof(
+                    didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
         } catch (IOException e) {
             throw new WebVerifiableHistoryUpdaterException("Fail to build DID doc data integrity proof", e);
         }
@@ -345,22 +345,16 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
         proofs.add(proof);
         didLogEntryWithProof.add("proof", proofs);
 
-        /* TODO As soon EIDOMNI-126 is done
-        var did = new Did(didLogMeta.getDidDocId());
+        var did = new Did(this.didLogMeta.getDidDoc().getId());
         try {
-            // NOTE Enforcing DID log conformity by calling:
-            //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
-            //          .from(DidLogEntryJsonSchema.V1_0_EID_CONFORM)
-            //          .validate(didLogEntryWithProof.toString());
-            //      would not be necessary here, as it is already part of the `resolve` method.
+            // NOTE Enforcing DID log conformity is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolve(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
+            did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
             throw new RuntimeException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {
             did.close();
         }
-         */
 
         return didLogEntryWithProof.toString();
     }

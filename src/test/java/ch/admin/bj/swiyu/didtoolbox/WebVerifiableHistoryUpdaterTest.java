@@ -1,11 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.WebVhDidLogMetaPeeker;
-/* TODO as soon as EIDOMNI-126 is done
 import ch.admin.eid.didresolver.Did;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
- */
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -180,8 +176,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(2, WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            // TODO as soon as EIDOMNI-126 is done
-            //new Did(WebVhDidLogMetaPeeker.peek(initialDidLogEntry).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
+            new Did(WebVhDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -239,8 +234,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(2, WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            // TODO as soon as EIDOMNI-126 is done
-            //new Did(WebVhDidLogMetaPeeker.peek(initialDidLogEntry).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
+            new Did(WebVhDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -262,7 +256,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
         var initialDidLogEntry = buildInitialWebVhDidLogEntry(verificationMethodKeyProvider);
 
-        String nextLogEntry = null;
+        String nextLogEntry;
         StringBuilder updatedDidLog = null;
         int totalEntriesCount = 5;
         try {
@@ -291,11 +285,10 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         }
 
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
-        // System.out.println(finalUpdatedDidLog); // checkpoint
+        //System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(totalEntriesCount, WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
-            // TODO as soon as EIDOMNI-126 is done
-            //new Did(WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
+            new Did(WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 }

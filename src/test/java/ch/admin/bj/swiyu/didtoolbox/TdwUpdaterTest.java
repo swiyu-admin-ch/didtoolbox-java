@@ -160,7 +160,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(2, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
+            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -218,7 +218,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(2, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
+            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -272,7 +272,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(totalEntriesCount, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
-            new Did(TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDocId()).resolve(finalUpdatedDidLog); // the ultimate test
+            new Did(TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 }

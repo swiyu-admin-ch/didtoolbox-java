@@ -1,6 +1,12 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
+import ch.admin.eid.did_sidekicks.DidDoc;
+import ch.admin.eid.did_sidekicks.DidMethodParameter;
 import lombok.Getter;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * This DTO is nothing but a storage for some useful information about a DID log,
@@ -27,18 +33,32 @@ public class DidLogMeta {
     @Getter
     final private String dateTime;
     @Getter
-    final private DidMethodParameters params;
+    private NamedDidMethodParameters params;
     @Getter
-    final private DidDocument didDoc;
-    @Getter
-    final private String didDocId;
+    final private DidDoc didDoc;
 
-    DidLogMeta(String lastVersionId, int lastVersionNumber, String dateTime, DidMethodParameters params, DidDocument didDoc, String didDocId) {
+    DidLogMeta(String lastVersionId, int lastVersionNumber, String dateTime, Map<String, DidMethodParameter> paramsMap, DidDoc didDoc) {
         this.lastVersionId = lastVersionId;
         this.lastVersionNumber = lastVersionNumber;
         this.dateTime = dateTime;
-        this.params = params;
+        this.setParams(paramsMap);
         this.didDoc = didDoc;
-        this.didDocId = didDocId;
+    }
+
+    private void setParams(Map<String, DidMethodParameter> paramsMap) {
+        var metaParams = new NamedDidMethodParameters();
+        Objects.requireNonNull(paramsMap).forEach((name, param) -> {
+            if (name.equals("method") && param.isString()) {
+                metaParams.setMethod(param.getStringValue());
+            } else if (name.equals("scid") && param.isString()) {
+                metaParams.setScid(param.getStringValue());
+            } else if (name.equals("update_keys") && param.isArray() && !param.isEmptyArray()) {
+                metaParams.setUpdateKeys(new HashSet<>(Objects.requireNonNull(param.getStringArrayValue())));
+            } else if (name.equals("deactivated") && param.isBool()) {
+                metaParams.setDeactivated(param.getBoolValue());
+            }
+        });
+
+        this.params = metaParams;
     }
 }

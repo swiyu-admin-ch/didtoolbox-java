@@ -13,7 +13,7 @@ import java.util.Set;
  *     <li>id</li>
  * </ul>
  */
-public class DidDocument {
+class DidDocument {
     @Getter
     @SerializedName("@context")
     Set<String> context;

@@ -1,10 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.*;
-import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
-import ch.admin.eid.didtoolbox.DidDoc;
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,9 +21,6 @@ abstract class AbstractDidLogEntryBuilder {
 
     protected final static String SCID_PLACEHOLDER = "{SCID}";
     protected DidLogMeta didLogMeta;
-    protected String didLogId;
-    protected DidDoc oldDidDoc;
-    protected Set<String> didDocContext;
 
     protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile,
                                                                         boolean forceOverwrite) throws IOException {
@@ -77,41 +75,15 @@ abstract class AbstractDidLogEntryBuilder {
      * @throws DidResolveException
      * @throws DidLogMetaPeekerException
      */
-    protected void resolve(String didLogToResolve)
-            throws DidResolveException, DidLogMetaPeekerException {
+    protected void peek(String didLogToResolve)
+            throws DidLogMetaPeekerException {
 
-        Did did = null;
-        try {
-            // try extracting DID doc ID
-            if (getDidMethod().isTdw03()) {
-                didLogMeta = TdwDidLogMetaPeeker.peek(didLogToResolve);
-            } else if (getDidMethod().isWebVh10()) {
-                didLogMeta = WebVhDidLogMetaPeeker.peek(didLogToResolve);
-            } else {
-                throw new RuntimeException("Unsupported DID method");
-            }
-
-            didLogId = didLogMeta.getDidDocId();
-
-            // According to https://identity.foundation/didwebvh/v1.0/#update-rotate:
-            // To update a DID, a new, verifiable DID Log Entry must be generated, witnessed (if necessary),
-            // appended to the existing DID Log (did.jsonl), and published to the web location defined by the DID.
-            if (getDidMethod().isTdw03()) {
-                did = new Did(didLogId);
-                oldDidDoc = did.resolve(didLogToResolve);
-            } else if (getDidMethod().isWebVh10()) {
-                // TODO As soon as EIDOMNI-126 is done
-                //did = new Did(didLogId);
-                //oldDidDoc = did.resolve(didLogToResolve);
-                didDocContext = didLogMeta.getDidDoc().getContext();
-            } else {
-                throw new RuntimeException("Unsupported DID method");
-            }
-
-        } finally {
-            if (did != null) {
-                did.close();
-            }
+        if (getDidMethod().isTdw03()) {
+            this.didLogMeta = TdwDidLogMetaPeeker.peek(didLogToResolve);
+        } else if (getDidMethod().isWebVh10()) {
+            this.didLogMeta = WebVhDidLogMetaPeeker.peek(didLogToResolve);
+        } else {
+            throw new RuntimeException("Unsupported DID method");
         }
     }
 

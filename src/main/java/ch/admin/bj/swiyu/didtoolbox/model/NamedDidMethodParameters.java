@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Set;
 
@@ -19,29 +20,18 @@ import java.util.Set;
  *     <li>{@code deactivated}</li>
  * </ul>
  */
-public class DidMethodParameters {
+public class NamedDidMethodParameters {
 
+    @Setter
     String method;
+    @Setter
     String scid;
     @Getter
+    @Setter
     Set<String> updateKeys;
     @Getter
+    @Setter
     Boolean deactivated;
-
-    void mergeFrom(DidMethodParameters other) {
-        if (other.method != null && !other.method.isEmpty()) {
-            this.method = other.method;
-        }
-        if (other.scid != null && !other.scid.isEmpty()) {
-            this.scid = other.scid;
-        }
-        if (other.updateKeys != null && !other.updateKeys.isEmpty()) {
-            this.updateKeys = other.updateKeys;
-        }
-        if (other.deactivated != null) {
-            this.deactivated = other.deactivated;
-        }
-    }
 
     /**
      * @see DidMethodEnum#parse(String)

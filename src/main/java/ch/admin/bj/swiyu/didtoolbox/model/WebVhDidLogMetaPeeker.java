@@ -1,6 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
 import ch.admin.bj.swiyu.didtoolbox.TdwUpdater;
+import ch.admin.eid.did_sidekicks.DidDoc;
+import ch.admin.eid.did_sidekicks.DidMethodParameter;
+import ch.admin.eid.didresolver.Did;
+import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
@@ -8,6 +12,7 @@ import com.google.gson.annotations.SerializedName;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -21,7 +26,9 @@ public class WebVhDidLogMetaPeeker {
     static class WebVhDidLogEntry {
         String versionId;
         String versionTime;
-        DidMethodParameters parameters;
+
+        // Skip parsing the "parameters", as they will be supplied by the resolver afterwards
+
         @SerializedName("state")
         DidDocument didDocument;
         DataIntegrityProof[] proof;
@@ -30,7 +37,7 @@ public class WebVhDidLogMetaPeeker {
     /**
      * The essential method oh the helper class.
      *
-     * @param didLog to peek into. It does not need to be necessarily "resolvable", however desirable.
+     * @param didLog to peek into. It is assumed that it is already "resolvable".
      * @return metadata describing a DID log (to a certain extent).
      * @throws DidLogMetaPeekerException if peeking fails for whatever reason.
      */
@@ -39,8 +46,6 @@ public class WebVhDidLogMetaPeeker {
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();
         AtomicReference<String> dateTime = new AtomicReference<>();
-        AtomicReference<DidMethodParameters> params = new AtomicReference<>();
-        AtomicReference<DidDocument> didDoc = new AtomicReference<>();
         AtomicReference<String> didDocId = new AtomicReference<>();
         AtomicReference<DataIntegrityProof[]> proof = new AtomicReference<>();
 
@@ -57,19 +62,11 @@ public class WebVhDidLogMetaPeeker {
                 lastVersionId.set(didLogEntry.versionId);
                 dateTime.set(didLogEntry.versionTime);
 
-                var entryParams = didLogEntry.parameters;
-                if (entryParams != null) {
-                    if (params.get() == null) {
-                        params.set(entryParams);
-                    }
-                    var x = params.get();
-                    x.mergeFrom(entryParams);
-                    params.set(x);
-                }
+                // Skip parsing the parameters (didLogEntryElements[2]), as they will be supplied by the resolver afterwards
 
                 var didDocument = didLogEntry.didDocument;
                 if (didDocument != null && didDocument.getId() != null) {
-                    didDoc.set(didDocument);
+                    //didDoc.set(didDocument);
                     didDocId.set(didDocument.getId());
                 }
 
@@ -116,22 +113,6 @@ public class WebVhDidLogMetaPeeker {
             throw new DidLogMetaPeekerException("The versionTime MUST be a valid ISO8601 date/time string");
         }
 
-        if (params.get() == null) {
-            throw new DidLogMetaPeekerException("Missing parameters");
-        }
-
-        if (params.get().method == null || params.get().method.isEmpty() || !params.get().method.startsWith(DidMethodEnum.WEBVH_1_0.getPrefix())) {
-            throw new DidLogMetaPeekerException("The 'method' DID parameter MUST be one of supported '" + DidMethodEnum.WEBVH_1_0.getPrefix() + "' versions");
-        }
-
-        if (params.get().scid == null || params.get().scid.isEmpty()) {
-            throw new DidLogMetaPeekerException("The SCID DID parameter MUST be set");
-        }
-
-        if (params.get().updateKeys == null || params.get().updateKeys.isEmpty()) {
-            throw new DidLogMetaPeekerException("The updateKeys DID parameter MUST not be empty");
-        }
-
         if (didDocId.get() == null) {
             throw new DidLogMetaPeekerException("Missing DID document");
         }
@@ -140,6 +121,16 @@ public class WebVhDidLogMetaPeeker {
             throw new DidLogMetaPeekerException("Missing DID integrity proof");
         }
 
-        return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), params.get(), didDoc.get(), didDocId.get());
+        DidDoc didDoc;
+        Map<String, DidMethodParameter> didMethodParameters;
+        try {
+            var resolveAll = new Did(didDocId.get()).resolveAll(didLog);
+            didDoc = resolveAll.getDidDoc();
+            didMethodParameters = resolveAll.getDidMethodParameters();
+        } catch (DidResolveException e) {
+            throw new DidLogMetaPeekerException(e);
+        }
+
+        return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), didMethodParameters, didDoc);
     }
 }

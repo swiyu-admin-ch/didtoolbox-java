@@ -147,14 +147,14 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
      * <b>However, it is introduced for the sake of testability only.</b>
      *
      * @param resolvableDidLog to update. Expected to be resolvable/verifiable already.
-     * @param zdt    a date-time with a time-zone in the ISO-8601 calendar system
+     * @param zdt              a date-time with a time-zone in the ISO-8601 calendar system
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws TdwUpdaterException if update fails for whatever reason.
      */
     String update(String resolvableDidLog, ZonedDateTime zdt) throws TdwUpdaterException {
 
         try {
-            super.resolve(resolvableDidLog);
+            super.peek(resolvableDidLog);
         } catch (Exception e) { //} catch (DidResolveException | DidLogMetaPeekerException e) {
             throw new TdwUpdaterException(e);
         }
@@ -183,12 +183,12 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
 
         // take over context
         var context = new JsonArray();
-        for (var ctx : oldDidDoc.getContext()) {
+        for (var ctx : didLogMeta.getDidDoc().getContext()) {
             context.add(ctx);
         }
         didDoc.add("@context", context);
 
-        didDoc.addProperty("id", didLogId);
+        didDoc.addProperty("id", this.didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
@@ -206,8 +206,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
             JsonArray authentication = new JsonArray();
             for (var key : this.authenticationKeys.entrySet()) {
 
-                authentication.add(didLogId + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didLogId, key.getKey(), key.getValue()));
+                authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(this.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("authentication", authentication);
@@ -218,8 +218,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
             JsonArray assertionMethod = new JsonArray();
             for (var key : this.assertionMethodKeys.entrySet()) {
 
-                assertionMethod.add(didLogId + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didLogId, key.getKey(), key.getValue()));
+                assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(this.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
@@ -328,7 +328,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
         var proofs = new JsonArray();
         JsonObject proof = null;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
+            proof = JCSHasher.buildDataIntegrityProof(
+                    didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
         } catch (IOException e) {
             throw new TdwUpdaterException("Fail to build DID doc data integrity proof", e);
         }
@@ -337,7 +338,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
-        var did = new Did(didLogMeta.getDidDocId());
+        var did = new Did(this.didLogMeta.getDidDoc().getId());
         try {
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
@@ -345,7 +346,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
             //          .validate(didLogEntryWithProof.toString());
             //      would not be necessary here, as it is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolve(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
+            did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
             throw new RuntimeException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {

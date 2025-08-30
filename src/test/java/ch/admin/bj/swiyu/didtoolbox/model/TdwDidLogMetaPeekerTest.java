@@ -49,8 +49,8 @@ class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
         try {
             meta = TdwDidLogMetaPeeker.peek(buildTdwDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
             assertNotNull(meta);
-            assertNotNull(meta.getDidDocId());
-            new Did(meta.getDidDocId()); // ultimate test
+            assertNotNull(meta.getDidDoc().getId());
+            new Did(meta.getDidDoc().getId()); // ultimate test
 
         } catch (Exception e) {
             fail(e);

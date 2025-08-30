@@ -3,8 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
-import ch.admin.eid.didresolver.Did;
-import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -215,21 +213,10 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
         ));
         didLogEntryWithProof.add(proofs);
 
-        Did did = null;
         try {
-            did = new Did(TdwDidLogMetaPeeker.peek(didLogEntryWithProof.toString()).getDidDocId());
-            // NOTE Enforcing DID log conformity by calling:
-            //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
-            //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
-            //          .validate(didLogEntryWithProof.toString());
-            //      would not be necessary here, as it is already part of the `resolve` method.
-            did.resolve(didLogEntryWithProof.toString()); // sanity check
-        } catch (DidResolveException | DidLogMetaPeekerException e) {
+            TdwDidLogMetaPeeker.peek(didLogEntryWithProof.toString()); // sanity check
+        } catch (DidLogMetaPeekerException e) {
             throw new RuntimeException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
-        } finally {
-            if (did != null) {
-                did.close();
-            }
         }
 
         return didLogEntryWithProof.toString();
