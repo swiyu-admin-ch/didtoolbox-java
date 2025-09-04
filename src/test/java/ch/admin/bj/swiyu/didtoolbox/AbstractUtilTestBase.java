@@ -1,10 +1,17 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import java.io.*;
+import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -111,12 +118,19 @@ public abstract class AbstractUtilTestBase {
         }
     }
 
+    protected static Collection<URL> identifierRegistryUrl() throws URISyntaxException, MalformedURLException {
+        return Arrays.asList(
+                URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null),
+                URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085/did.jsonl"), null)
+        );
+    }
+
     /**
      * The helper delivers an initial {@code did:tdw} DID log entry featuring the {@code updateKey} provided by {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS}.
      *
      * @param signer to be used for signing the new {@code did:tdw} DID log
      * @return
-     * @see #buildInitialWebVhDidLogEntry(VerificationMethodKeyProvider)
+     * @see #buildInitialWebVerifiableHistoryDidLogEntry(VerificationMethodKeyProvider)
      */
     protected static String buildInitialTdwDidLogEntry(VerificationMethodKeyProvider signer) {
         try {
@@ -139,7 +153,7 @@ public abstract class AbstractUtilTestBase {
      * @return
      * @see #buildInitialTdwDidLogEntry(VerificationMethodKeyProvider)
      */
-    protected static String buildInitialWebVhDidLogEntry(VerificationMethodKeyProvider signer) {
+    protected static String buildInitialWebVerifiableHistoryDidLogEntry(VerificationMethodKeyProvider signer) {
         try {
             return WebVerifiableHistoryCreator.builder()
                     .verificationMethodKeyProvider(signer)
@@ -182,7 +196,7 @@ public abstract class AbstractUtilTestBase {
 
     protected static String buildWebVhDidLog(VerificationMethodKeyProvider signer) {
         // TODO Implement buildWebVhDidLog() helper properly (as soon as the WebVhUpdater class is ready)
-        return buildInitialWebVhDidLogEntry(signer);
+        return buildInitialWebVerifiableHistoryDidLogEntry(signer);
     }
 
     protected static byte[] decodeEncodedKey(byte[] encodedKey) {

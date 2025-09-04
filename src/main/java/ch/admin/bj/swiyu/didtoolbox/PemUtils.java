@@ -12,7 +12,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-class PemUtils {
+public class PemUtils {
 
     private PemUtils() {
     }
@@ -53,7 +53,7 @@ class PemUtils {
         return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
     }
 
-    static String parsePEMFilePublicKeyEd25519Multibase(File pemFile) throws InvalidKeySpecException, IOException {
+    public static String parsePEMFilePublicKeyEd25519Multibase(File pemFile) throws InvalidKeySpecException, IOException {
 
         PublicKey pubKey = PemUtils.getPublicKeyEd25519(parsePEMFile(pemFile));
 

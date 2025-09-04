@@ -1,18 +1,17 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.webvh;
 
+import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
+import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import com.google.gson.JsonParser;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
 
-    private static void assertDidLogEntry(String didLogEntry) {
+    public static void assertDidLogEntry(String didLogEntry) {
 
         assertNotNull(didLogEntry);
         assertTrue(JsonParser.parseString(didLogEntry).isJsonObject());
@@ -55,7 +54,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertTrue(proof.isJsonObject());
         var proofJsonObj = proof.getAsJsonObject();
         assertTrue(proofJsonObj.has("type"));
-        assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
+        Assertions.assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
         assertTrue(proofJsonObj.has("cryptosuite"));
         assertEquals(JCSHasher.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
         assertTrue(proofJsonObj.has("verificationMethod"));
@@ -70,13 +69,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertTrue(proofJsonObj.has("proofPurpose"));
         assertEquals(JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, proofJsonObj.get("proofPurpose").getAsString());
         assertTrue(proofJsonObj.has("proofValue"));
-    }
-
-    private static Collection<URL> identifierRegistryUrl() throws URISyntaxException, MalformedURLException {
-        return Arrays.asList(
-                URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null),
-                URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085/did.jsonl"), null)
-        );
     }
 
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants")

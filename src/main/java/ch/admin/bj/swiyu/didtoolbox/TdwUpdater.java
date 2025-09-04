@@ -47,49 +47,13 @@ import java.util.Set;
  * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
  * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
  * </ul>
- * For instance:
- * <pre>
- * {@code
- *     package mypackage;
- *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import java.net.*;
- *
- *     public static void main(String... args) {
- *
- *         String initialDidLogEntryWithGeneratedKeys = null;
- *         String updatedDidLogEntryWithReplacedVerificationMaterial = null;
- *         try {
- *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *             var verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
- *
- *             // NOTE that all verification material will be generated here as well
- *             initialDidLogEntryWithGeneratedKeys = TdwCreator.builder()
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider)
- *                 .build()
- *                 .create(identifierRegistryUrl);
- *
- *             // Now update the previously generated initial single-entry DID log
- *             updatedDidLogEntryWithReplacedVerificationMaterial = TdwUpdater.builder()
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider) // the same used during creation
- *                 .assertionMethodKeys(Map.of(
- *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
- *                 ))
- *                 .authenticationKeys(Map.of(
- *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")
- *                 ))
- *                 .build()
- *                 .update(initialDidLogEntryWithGeneratedKeys);
- *
- *         } catch (Exception e) {
- *             // some exc. handling goes here
- *             System.exit(1);
- *         }
- *
- *         // do something with the initialDidLogEntryWithGeneratedKeys/updatedDidLogEntryWithReplacedVerificationMaterial vars here
- *     }
- * }
- * </pre>
+ * <p>
+ * <p>
+ * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
+ * Instead, rather rely on the designated {@link DidLogUpdaterStrategy} for the purpose. Needless to say,
+ * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
+ * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
+ * <p>
  */
 @Builder
 @Getter

@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 /**
  * The class {@link WebVerifiableHistoryCreatorException} is a <em>checked exception</em> class indicating conditions related to

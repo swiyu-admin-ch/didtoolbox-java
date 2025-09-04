@@ -15,9 +15,9 @@ import java.io.File;
                 "(primusX-java8.jar or primusX-java11.jar) is by-convention expected to be stored on the system alongside the DID-Toolbox " +
                 "in the lib subdirectory (e.g. as lib/primusX-java11.jar). " +
                 "Alternatively, you may also use -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose",
-        parametersValidators = {TdwCommandParametersValidator.class}
+        parametersValidators = {CommandParametersValidator.class}
 )
-public class CreateProofOfPossessionCommand extends AbstractTdwCommandBase {
+public class CreateProofOfPossessionCommand extends AbstractCommandBase {
     final public static String COMMAND_NAME = "create-pop";
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},

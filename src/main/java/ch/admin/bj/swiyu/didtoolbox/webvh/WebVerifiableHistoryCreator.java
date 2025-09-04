@@ -1,8 +1,9 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.webvh;
 
+import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.WebVhDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -47,47 +48,12 @@ import java.util.Set;
  * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
  * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
  * </ul>
- * For instance:
- * <pre>
- * {@code
- *     package mypackage;
- *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import java.net.*;
- *
- *     public static void main(String... args) {
- *
- *         String didLogEntryWithGeneratedKeys = null;
- *         String didLogEntryWithExternalKeys = null;
- *         try {
- *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *
- *             // NOTE that all required keys will be generated here as well, as no explicit verificationMethodKeyProvider is set
- *             didLogEntryWithGeneratedKeys = WebVerifiableHistoryCreator.builder()
- *                 .build()
- *                 .create(identifierRegistryUrl);
- *
- *             // Using already existing key material
- *             didLogEntryWithExternalKeys = WebVerifiableHistoryCreator.builder()
- *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("private-key.pem"), new File("public-key.pem")))
- *                 .assertionMethodKeys(Map.of(
- *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("assert-key-01.pub"), "my-assert-key-01")
- *                 ))
- *                 .authenticationKeys(Map.of(
- *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("auth-key-01.pub"), "my-auth-key-01")
- *                 ))
- *                 .build()
- *                 .create(identifierRegistryUrl);
- *
- *         } catch (Exception e) {
- *             // some exc. handling goes here
- *             System.exit(1);
- *         }
- *
- *         // do something with the didLogEntry* vars here
- *     }
- * }
- * </pre>
+ * <p>
+ * <p>
+ * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
+ * Instead, rather rely on the designated {@link DidLogCreatorStrategy} for the purpose. Needless to say,
+ * the proper DID method must be supplied to the strategy - in this case it should be {@link DidMethodEnum#WEBVH_1_0}.
+ * <p>
  */
 @Builder
 @Getter
@@ -140,7 +106,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder {
      * @return
      * @throws IOException
      */
-    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws WebVerifiableHistoryCreatorException {
+    public String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws WebVerifiableHistoryCreatorException {
 
         // Create initial did doc with placeholder
         JsonObject didDoc;
@@ -239,7 +205,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder {
         didLogEntryWithProof.add("proof", proofs);
 
         try {
-            WebVhDidLogMetaPeeker.peek(didLogEntryWithProof.toString()).getDidDoc().getId(); // sanity check
+            WebVerifiableHistoryDidLogMetaPeeker.peek(didLogEntryWithProof.toString()).getDidDoc().getId(); // sanity check
         } catch (DidLogMetaPeekerException e) {
             throw new WebVerifiableHistoryCreatorException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
         }

@@ -1,8 +1,10 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.model.WebVhDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonParser;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -83,7 +85,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertTrue(proof.isJsonObject());
         var proofJsonObj = proof.getAsJsonObject();
         assertTrue(proofJsonObj.has("type"));
-        assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
+        Assertions.assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
         assertTrue(proofJsonObj.has("cryptosuite"));
         assertEquals(JCSHasher.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
         assertTrue(proofJsonObj.has("verificationMethod"));
@@ -108,7 +110,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             WebVerifiableHistoryUpdater.builder()
                     // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
-                    .update(buildInitialWebVhDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .update(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
 
@@ -117,7 +119,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
                     .updateKeys(Set.of(new File("src/test/data/public.pem"))) // ...with NO matching key supplied!
                     .build()
-                    .update(buildInitialWebVhDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .update(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
     }
@@ -130,7 +132,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .build()
                     .update( // MUT
-                            buildInitialWebVhDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS),
+                            buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS),
                             ZonedDateTime.parse(ISO_DATE_TIME).minusMinutes(1)); // In the past!
         });
         assertEquals("The versionTime of the last entry MUST be earlier than the current time", exc.getMessage());
@@ -140,7 +142,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testUpdateWithKeyChangeUsingExistingUpdateKey() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialWebVhDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
 
         String nextLogEntry = null;
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
@@ -175,8 +177,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
-            assertEquals(2, WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            new Did(WebVhDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
+            new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -196,7 +198,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialWebVhDidLogEntry(verificationMethodKeyProvider);
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(verificationMethodKeyProvider);
 
         String nextLogEntry = null;
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
@@ -233,8 +235,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
-            assertEquals(2, WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            new Did(WebVhDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
+            new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -254,7 +256,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialWebVhDidLogEntry(verificationMethodKeyProvider);
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(verificationMethodKeyProvider);
 
         String nextLogEntry;
         StringBuilder updatedDidLog = null;
@@ -287,8 +289,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         //System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
-            assertEquals(totalEntriesCount, WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
-            new Did(WebVhDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            assertEquals(totalEntriesCount, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
+            new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 }

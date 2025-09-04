@@ -89,7 +89,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * @see KeyPairGenerator
      */
-    protected Ed25519VerificationMethodKeyProviderImpl() {
+    public Ed25519VerificationMethodKeyProviderImpl() {
 
         try {
             KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("Ed25519");
@@ -327,7 +327,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @param file to store the key
      * @throws IOException
      */
-    void writePublicKeyAsPem(File file) throws IOException {
+    public void writePublicKeyAsPem(File file) throws IOException {
 
         if (this.keyPair == null) {
             throw new RuntimeException("This instance features no self-generated key pair.");

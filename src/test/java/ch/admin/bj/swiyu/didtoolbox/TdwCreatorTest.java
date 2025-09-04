@@ -8,21 +8,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TdwCreatorTest extends AbstractUtilTestBase {
+class TdwCreatorTest extends AbstractUtilTestBase {
 
-    private static void assertDidLogEntry(String didLogEntry) {
+    static void assertDidLogEntry(String didLogEntry) {
 
         assertNotNull(didLogEntry);
         assertTrue(JsonParser.parseString(didLogEntry).isJsonArray());
@@ -67,13 +62,6 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         assertTrue(proofJsonObj.has("proofPurpose"));
         assertEquals(JCSHasher.PROOF_PURPOSE_AUTHENTICATION, proofJsonObj.get("proofPurpose").getAsString());
         assertTrue(proofJsonObj.has("proofValue"));
-    }
-
-    private static Collection<URL> identifierRegistryUrl() throws URISyntaxException, MalformedURLException {
-        return Arrays.asList(
-                URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null),
-                URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085/did.jsonl"), null)
-        );
     }
 
     @DisplayName("Building TDW log entry for various identifierRegistryUrl variants")

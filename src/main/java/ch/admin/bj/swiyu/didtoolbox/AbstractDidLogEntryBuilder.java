@@ -17,7 +17,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractDidLogEntryBuilder {
+public abstract class AbstractDidLogEntryBuilder {
 
     protected final static String SCID_PLACEHOLDER = "{SCID}";
     protected DidLogMeta didLogMeta;
@@ -81,7 +81,7 @@ abstract class AbstractDidLogEntryBuilder {
         if (getDidMethod().isTdw03()) {
             this.didLogMeta = TdwDidLogMetaPeeker.peek(didLogToResolve);
         } else if (getDidMethod().isWebVh10()) {
-            this.didLogMeta = WebVhDidLogMetaPeeker.peek(didLogToResolve);
+            this.didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLogToResolve);
         } else {
             throw new RuntimeException("Unsupported DID method");
         }

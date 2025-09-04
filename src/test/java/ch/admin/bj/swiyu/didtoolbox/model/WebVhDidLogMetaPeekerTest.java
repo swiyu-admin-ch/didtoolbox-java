@@ -48,7 +48,7 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
     void testThrowsDidLogMetaPeekerException(String invalidDidLogEntry, String containedInExcMessage) {
 
         var exc = assertThrowsExactly(DidLogMetaPeekerException.class, () -> {
-            WebVhDidLogMetaPeeker.peek(invalidDidLogEntry);
+            WebVerifiableHistoryDidLogMetaPeeker.peek(invalidDidLogEntry);
         });
         assertTrue(exc.getMessage().contains(containedInExcMessage));
     }
@@ -58,7 +58,7 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
         DidLogMeta meta = null;
         try {
-            meta = WebVhDidLogMetaPeeker.peek("""
+            meta = WebVerifiableHistoryDidLogMetaPeeker.peek("""
                     { "versionId": "1-QmQNjSbRroDtnctDN57Fjvd4e5jYHWVTgMZpzJiTbPfQ5K", "versionTime": "2025-08-06T08:55:01Z", "parameters": { "method": "did:webvh:1.0", "scid": "QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX", "updateKeys": [ "z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ" ], "portable": false }, "state": { "@context": [ "https://www.w3.org/ns/did/v1", "https://w3id.org/security/jwk/v1" ], "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com", "authentication": [ "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#auth-key-01" ], "assertionMethod": [ "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#assert-key-01" ], "verificationMethod": [ { "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#auth-key-01", "type": "JsonWebKey2020", "publicKeyJwk": { "kty": "EC", "crv": "P-256", "x": "5d-hJaS_UKIU1c05hEBhZa8Xkj_AqBDmqico_PSrRfU", "y": "TK5YKD_osEaVrDBnah-jUDXI27yqFVIo6ZYTfWp-NbY", "kid": "auth-key-01" } }, { "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#assert-key-01", "type": "JsonWebKey2020", "publicKeyJwk": { "kty": "EC", "crv": "P-256", "x": "7jWgolr5tQIUIGp9sDaB0clAiXcFwVYXUhEiXXLkmKg", "y": "NYGIxi2VGEv2OL_WqzVOd_VKjOQbl1kaERYbpAjWo58", "kid": "assert-key-01" } } ] }, "proof": [ { "type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "created": "2025-08-13T05:43:17Z", "verificationMethod": "did:key:z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ#z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ", "proofPurpose": "assertionMethod", "proofValue": "z3L7j2siRiZ4zziQQmRqLY5qH2RfVz6VTC5gbDE6vntw1De5Ej5DNR3wDU6m9KRiUYPm9o8P89yMzNk5EhWVTo4Tn" } ] }
                     { "versionId": "2-QmYkDQ83oPnBqyUEjdUdZZCc8VjQY7aE5BikRaa8cZAxVS", "versionTime": "2025-08-13T08:46:50Z", "parameters": {}, "state": { "@context": [ "https://www.w3.org/ns/did/v1", "https://w3id.org/security/jwk/v1" ], "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com", "authentication": [ "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#auth-key-01" ], "assertionMethod": [ "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#assert-key-01" ], "verificationMethod": [ { "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#auth-key-01", "type": "JsonWebKey2020", "publicKeyJwk": { "kty": "EC", "crv": "P-256", "kid": "auth-key-01", "x": "Ow_aAo2hbAYgEhKAOeu3TYO8bbKOxgJ2gndk46AaXF0", "y": "hdVPThXbmadBl3L5HaYjiz8ewIAve4VHqOgs98MdV5M" } }, { "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#assert-key-01", "type": "JsonWebKey2020", "publicKeyJwk": { "kty": "EC", "crv": "P-256", "kid": "assert-key-02", "x": "oZq9zqDbbYfRV9gdXbLJaaKWF9G27P4CQfTEyC1aT0I", "y": "QS-uHvmj1mVLB5zJtnwTyWYRZIML4RzvCf4qOrsqfWQ" } } ] }, "proof": [ { "type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "created": "2025-08-13T09:02:55Z", "verificationMethod": "did:key:z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ#z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ", "proofPurpose": "assertionMethod", "proofValue": "z2tZe9tFzyTKWRX7NEpf3ARRs7yZqu5Kq8jzr5qzzffeN9FeJPzmKs6Jb1TMNfpn8Nar6WEfifvMT5SVWozJruTwD" } ] }
                     """); // MUT
@@ -86,7 +86,7 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
         DidLogMeta meta = null;
         try {
-            meta = WebVhDidLogMetaPeeker.peek(buildWebVhDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+            meta = WebVerifiableHistoryDidLogMetaPeeker.peek(buildWebVhDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
             assertNotNull(meta);
             assertNotNull(meta.getDidDoc().getId());
             // TODO new Did(meta.didDocId); // ultimate test

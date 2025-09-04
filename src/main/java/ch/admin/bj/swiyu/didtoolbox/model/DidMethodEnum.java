@@ -2,6 +2,10 @@ package ch.admin.bj.swiyu.didtoolbox.model;
 
 import lombok.Getter;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
 /**
  * The enumeration describing/modelling all the supported DID specifications
  */
@@ -79,5 +83,28 @@ public enum DidMethodEnum {
 
     public String asString() {
         return didMethod;
+    }
+
+    public static DidMethodEnum detectDidMethod(File didLogFile) throws DidLogMetaPeekerException, IOException {
+        return detectDidMethod(Files.readString(didLogFile.toPath()));
+    }
+
+    public static DidMethodEnum detectDidMethod(String didLog) throws DidLogMetaPeekerException {
+        DidLogMeta didLogMeta = null;
+        try {
+            didLogMeta = TdwDidLogMetaPeeker.peek(didLog); // assume a did:tdw log
+        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+            try {
+                didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
+            } catch (DidLogMetaPeekerException ex) { // not a did:webvh log
+                throw new DidLogMetaPeekerException("The supplied DID log features an unsupported DID method", ex);
+            }
+        }
+
+        if (didLogMeta == null || didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
+            throw new DidLogMetaPeekerException("Incomplete metadata");
+        }
+
+        return didLogMeta.getParams().getDidMethodEnum();
     }
 }

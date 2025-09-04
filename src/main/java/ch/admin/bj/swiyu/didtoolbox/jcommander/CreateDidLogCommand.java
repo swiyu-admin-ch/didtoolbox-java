@@ -8,7 +8,7 @@ import java.net.URL;
 
 @Parameters(
         commandNames = {CreateDidLogCommand.COMMAND_NAME},
-        commandDescription = "Create a did:tdw DID and sign the initial DID log entry with the provided private key. " +
+        commandDescription = "Create a DID and sign the initial DID log entry with the provided private key. " +
                 "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
                 "each of then denoting a whole another source of such key material: " +
                 "PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. " +
@@ -17,7 +17,7 @@ import java.net.URL;
                 "in the lib subdirectory (e.g. as lib/primusX-java11.jar). " +
                 "Alternatively, you may also use -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose",
         // Validate the value for all parameters (currently not really required):
-        parametersValidators = {TdwCommandParametersValidator.class}
+        parametersValidators = {CommandParametersValidator.class}
 )
 public class CreateDidLogCommand extends AbstractKeyMaterialTdwCommand {
 

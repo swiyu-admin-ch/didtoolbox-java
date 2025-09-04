@@ -18,9 +18,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A quite rudimentary did:webvh DID log entry parser intended as a sidekick (helper) of {@link TdwUpdater}.
  */
-public class WebVhDidLogMetaPeeker {
+public class WebVerifiableHistoryDidLogMetaPeeker {
 
-    private WebVhDidLogMetaPeeker() {
+    private WebVerifiableHistoryDidLogMetaPeeker() {
     }
 
     static class WebVhDidLogEntry {

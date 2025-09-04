@@ -6,8 +6,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 @Parameters(
-        commandNames = {DeactivateTdwCommand.COMMAND_NAME},
-        commandDescription = "Deactivate (revoke) a did:tdw DID log. " +
+        commandNames = {DeactivateDidLogCommand.COMMAND_NAME},
+        commandDescription = "Deactivate (revoke) a DID log. " +
                 "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
                 "each of then denoting a whole another source of such key material: " +
                 "PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. " +
@@ -16,14 +16,14 @@ import com.beust.jcommander.Parameters;
                 "in the lib subdirectory (e.g. as lib/primusX-java11.jar). " +
                 "Alternatively, you may also use -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose",
         // Validate the value for all parameters (currently not really required):
-        parametersValidators = {TdwCommandParametersValidator.class}
+        parametersValidators = {CommandParametersValidator.class}
 )
-public class DeactivateTdwCommand extends AbstractTdwCommandBase {
+public class DeactivateDidLogCommand extends AbstractCommandBase {
 
     final public static String COMMAND_NAME = "deactivate";
 
     @Parameter(names = {"--did-log-file", "-d"},
-            description = "The file containing a valid did:tdw DID log to deactivate",
+            description = "The file containing a valid DID log to deactivate",
             converter = DidLogFileParameterConverter.class,
             validateWith = DidLogFileParameterValidator.class,
             required = true)

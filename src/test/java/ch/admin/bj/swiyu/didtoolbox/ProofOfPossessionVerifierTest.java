@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
+class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
     private static final Duration ONE_DAY_LONG = Duration.ofDays(1);
 
     @Test

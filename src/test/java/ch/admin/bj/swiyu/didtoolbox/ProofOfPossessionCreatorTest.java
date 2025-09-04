@@ -7,7 +7,7 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
+class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
     private static final Duration ONE_DAY_LONG = Duration.ofDays(1);
 
     @Test
