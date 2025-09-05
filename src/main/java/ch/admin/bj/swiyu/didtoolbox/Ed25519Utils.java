@@ -118,8 +118,8 @@ public final class Ed25519Utils {
         if (multibase.isEmpty() || multibase.charAt(0) != 'z') {
             throw new IllegalArgumentException();
         }
-        multibase = multibase.substring(1);
-        var buf = Base58.decode(multibase);
+
+        var buf = decodeBase58FromMultibase(multibase);
 
         // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
         if (buf[0] == (byte)0xed && buf[1] == (byte)0x01) {// Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
@@ -127,5 +127,16 @@ public final class Ed25519Utils {
         }
         throw new IllegalArgumentException("Only Ed25519 public key is supported");
     }
-
+    /**
+     * Extracts and decodes the Base58-encoded payload from a multibase string.
+     * This method removes the multibase prefix character (first character) and then
+     * performs Base58 decoding on the remaining string.
+     *
+     * @param multibase the multibase-encoded string starting with a prefix character (e.g., 'z' for base58-btc)
+     * @return the decoded byte array from the Base58-encoded payload
+     * @throws IllegalArgumentException if the Base58 decoding fails
+     */
+    private static byte[] decodeBase58FromMultibase(String multibase) {
+        return Base58.decode(multibase.substring(1));
+    }
 }
