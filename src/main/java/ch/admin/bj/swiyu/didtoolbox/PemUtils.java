@@ -29,10 +29,11 @@ public class PemUtils {
     }
 
     static byte[] readPemObject(Reader pemKeyReader) throws IOException {
-        try (PemReader reader = new PemReader(pemKeyReader)) {
-            PemObject pemObject = reader.readPemObject();
-            return pemObject.getContent();
-        }
+        PemReader reader = new PemReader(pemKeyReader);
+        PemObject pemObject = reader.readPemObject();
+        byte[] content = pemObject.getContent();
+        reader.close();
+        return content;
     }
 
     static PublicKey getPublicKey(byte[] keyBytes, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -50,7 +51,7 @@ public class PemUtils {
         try {
             factory = KeyFactory.getInstance("Ed25519");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Ed25519 algorithm not available", e);
         }
         return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
     }
@@ -80,7 +81,7 @@ public class PemUtils {
         try {
             factory = KeyFactory.getInstance("Ed25519");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Ed25519 algorithm not available", e);
         }
         return factory.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
     }

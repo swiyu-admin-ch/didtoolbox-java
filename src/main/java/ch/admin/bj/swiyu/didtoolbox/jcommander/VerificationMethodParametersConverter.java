@@ -2,6 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.ParameterException;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,9 +23,8 @@ public class VerificationMethodParametersConverter implements IStringConverter<L
             try {
 
                 jwk = JwkUtils.loadECPublicJWKasJSON(new File(splitted[1]), kid);
-
             } catch (IOException | InvalidKeySpecException e) {
-                throw new RuntimeException(e);
+                throw new ParameterException("Failed to load JWK from file: " + splitted[1], e);
             }
 
             fileList.add(new VerificationMethodParameters(kid, jwk));

@@ -65,7 +65,7 @@ public class VerifyProofOfPossessionCommandParametersValidatorTest {
 
             Files.writeString(dummyDidLogFile.toPath(), updatedDidLog);
 
-        } catch (IOException | URISyntaxException | TdwUpdaterException e) {
+        } catch (IOException | URISyntaxException | TdwUpdaterException | TdwCreatorException e) {
             fail(e);
         }
         dummyDidLogFile.deleteOnExit();

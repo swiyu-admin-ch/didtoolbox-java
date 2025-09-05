@@ -219,7 +219,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder {
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
             did.resolveAll(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
-            throw new RuntimeException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
+            throw new TdwDeactivatorException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {
             did.close();
         }

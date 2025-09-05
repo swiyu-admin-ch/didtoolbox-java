@@ -174,7 +174,7 @@ public class DidLogUpdaterStrategy {
                     throw new DidLogUpdaterStrategyException(e);
                 }
             }
-            default -> throw new RuntimeException("The supplied DID log features an unsupported DID method");
+            default -> throw new DidLogUpdaterStrategyException("The supplied DID log features an unsupported DID method");
         }
     }
 }

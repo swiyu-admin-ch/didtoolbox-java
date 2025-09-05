@@ -79,7 +79,7 @@ class TdwCreatorTest extends AbstractUtilTestBase {
                     .build()
                     .create(identifierRegistryUrl); // MUT
 
-        } catch (IOException e) {
+        } catch (IOException | TdwCreatorException e) {
             fail(e);
         }
 
@@ -102,7 +102,7 @@ class TdwCreatorTest extends AbstractUtilTestBase {
                     .build()
                     .create(identifierRegistryUrl); // MUT
 
-        } catch (IOException e) {
+        } catch (IOException | TdwCreatorException e) {
             fail(e);
         }
 

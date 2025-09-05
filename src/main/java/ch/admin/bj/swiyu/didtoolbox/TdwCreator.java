@@ -88,7 +88,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
      * @throws IOException if creation fails for whatever reason
      * @see #create(URL, ZonedDateTime)
      */
-    public String create(URL identifierRegistryUrl) throws IOException {
+    public String create(URL identifierRegistryUrl) throws IOException, TdwCreatorException {
         return create(identifierRegistryUrl, ZonedDateTime.now());
     }
 
@@ -105,7 +105,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
      * @return
      * @throws IOException
      */
-    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws IOException {
+    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws IOException, TdwCreatorException {
 
         // Create initial did doc with placeholder
         var didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
@@ -181,7 +181,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
         try {
             TdwDidLogMetaPeeker.peek(didLogEntryWithProof.toString()); // sanity check
         } catch (DidLogMetaPeekerException e) {
-            throw new RuntimeException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
+            throw new TdwCreatorException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
         }
 
         return didLogEntryWithProof.toString();

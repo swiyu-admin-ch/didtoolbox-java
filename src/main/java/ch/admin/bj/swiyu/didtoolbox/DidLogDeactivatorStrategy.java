@@ -139,7 +139,7 @@ public class DidLogDeactivatorStrategy {
                     throw new DidLogDeactivatorStrategyException(e);
                 }
             }
-            default -> throw new RuntimeException("The supplied DID log features an unsupported DID method");
+            default -> throw new DidLogDeactivatorStrategyException("The supplied DID log features an unsupported DID method");
         }
     }
 }

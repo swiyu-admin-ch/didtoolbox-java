@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
 import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.ParameterException;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -13,7 +14,7 @@ public class IdentifierRegistryUrlParameterConverter implements IStringConverter
         try {
             return URL.of(new URI(value), null);
         } catch (URISyntaxException | MalformedURLException e) {
-            throw new RuntimeException(e);
+            throw new ParameterException(e);
         }
     }
 }

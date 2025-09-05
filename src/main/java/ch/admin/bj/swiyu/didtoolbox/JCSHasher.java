@@ -51,7 +51,7 @@ public class JCSHasher {
         try {
             hasher = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
         }
         hasher.update(str.getBytes(StandardCharsets.UTF_8));
         byte[] digest = hasher.digest();
@@ -74,7 +74,7 @@ public class JCSHasher {
         try {
             hasher = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
         }
         hasher.update(((new JsonCanonicalizer(json)).getEncodedString()).getBytes(StandardCharsets.UTF_8));
         return HexFormat.of().formatHex(hasher.digest());

@@ -53,7 +53,7 @@ public class JwkUtils {
         try {
             publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(ecPublicPemFile), "EC");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("EC algorithm not available", e);
         }
 
         if (!kid.matches("[a-zA-Z0-9~._-]+")) {
@@ -93,7 +93,7 @@ public class JwkUtils {
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProviderSingleton.getInstance());
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("EC algorithm not available", e);
         }
 
         keyPairGenerator.initialize(256);
@@ -117,7 +117,7 @@ public class JwkUtils {
             //         to create a com.nimbusds.jose.jwk.JWK object you may end up having incomplete EC PRIVATE KEY export later on.
             publicJwk = JWK.parseFromPEMEncodedObjects(publicKeyPem).toECKey();
         } catch (JOSEException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed to parse PEM encoded objects", e);
         }
 
         var publicJwkJsonObject = JsonParser.parseString(publicJwk.toJSONString()).getAsJsonObject();
@@ -131,10 +131,10 @@ public class JwkUtils {
                     // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
                     FilesPrivacy.createPrivateFile(keyPairPemFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
                 } catch (DirectoryNotEmptyException ex) {
-                    throw new RuntimeException(ex); // it should be a file, not a directory
+                    throw new IOException("Expected a file but found a directory: " + ex.getMessage(), ex);
                 } catch (FileAlreadyExistsException ex) {
                     if (!keyPairPemFile.exists()) {
-                        throw new RuntimeException(ex);
+                        throw new IOException("File creation failed: " + ex.getMessage(), ex);
                     }
                     throw ex;
                 } catch (AccessDeniedException ex) {
@@ -172,7 +172,7 @@ public class JwkUtils {
             ecPemSanityCheck(new File(keyPairPemFile.getPath()), new File(keyPairPemFile.getPath() + ".pub"));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException |
                  InvalidKeyException | SignatureException | NoSuchProviderException | JOSEException e) {
-            throw new RuntimeException(e);
+            throw new IOException("Failed to export EC public key to PEM", e);
         }
     }
 
@@ -201,7 +201,7 @@ public class JwkUtils {
         //String s = jwsObject.serialize(); // compact form
 
         if (!jwsObject.verify(new ECDSAVerifier(publicKey)) || (!"hello world".equals(jwsObject.getPayload().toString()))) {
-            throw new RuntimeException("exported key do not match");
+            throw new IllegalStateException("Exported keys do not match");
         }
     }
 }

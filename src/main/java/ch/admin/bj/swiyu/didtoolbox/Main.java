@@ -190,7 +190,7 @@ public class Main {
                     FilesPrivacy.createPrivateDirectory(outputDir.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
                 } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
                     if (!outputDir.exists()) {
-                        throw new RuntimeException(ex); // the delete-create logic is not implemented properly
+                        throw new IOException("Failed to create directory: " + ex.getMessage(), ex);
                     }
                     // ignore otherwise
                 } catch (AccessDeniedException ex) {
@@ -207,10 +207,10 @@ public class Main {
                     // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
                     FilesPrivacy.createPrivateFile(privateKeyFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
                 } catch (DirectoryNotEmptyException ex) {
-                    throw new RuntimeException(ex); // it should be a file, not a directory
+                    throw new IOException("Expected a file but found a directory: " + ex.getMessage(), ex);
                 } catch (FileAlreadyExistsException ex) {
                     if (!privateKeyFile.exists()) {
-                        throw new RuntimeException(ex);
+                        throw new IOException("File creation failed: " + ex.getMessage(), ex);
                     }
                     throw ex;
                 } catch (AccessDeniedException ex) {
@@ -493,7 +493,7 @@ public class Main {
         }
 
         if (didLogMeta == null || didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
-            throw new RuntimeException("Incomplete metadata");
+            throw new IllegalStateException("Incomplete metadata");
         }
 
         return null;

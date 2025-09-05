@@ -198,7 +198,7 @@ public class PrimusKeyStoreLoader {
                 return "com.securosys.primus.jce.credentials.password=" + value + System.lineSeparator();
             }
 
-            throw new RuntimeException("The envvar " + this.name() + " is not required as credential for a Securosys Primus Key Store.");
+            throw new IllegalArgumentException("The envvar " + this.name() + " is not required as credential for a Securosys Primus Key Store.");
         }
     }
 

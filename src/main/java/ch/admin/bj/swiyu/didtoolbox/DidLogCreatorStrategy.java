@@ -118,7 +118,7 @@ public class DidLogCreatorStrategy {
      * @throws IOException if creation fails for whatever reason
      * @see #create(URL, ZonedDateTime)
      */
-    public String create(URL identifierRegistryUrl) throws DidLogCreatorStrategyException, IOException {
+    public String create(URL identifierRegistryUrl) throws DidLogCreatorStrategyException, TdwCreatorException, IOException {
         return create(identifierRegistryUrl, ZonedDateTime.now());
     }
 
@@ -135,7 +135,7 @@ public class DidLogCreatorStrategy {
      * @return
      * @throws DidLogCreatorStrategyException
      */
-    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
+    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException, TdwCreatorException {
 
         switch (didMethod) {
             case TDW_0_3 -> {
@@ -166,7 +166,7 @@ public class DidLogCreatorStrategy {
                     throw new DidLogCreatorStrategyException(e);
                 }
             }
-            default -> throw new RuntimeException("The supplied DID log features an unsupported DID method");
+            default -> throw new DidLogCreatorStrategyException("The supplied DID log features an unsupported DID method");
         }
     }
 }
