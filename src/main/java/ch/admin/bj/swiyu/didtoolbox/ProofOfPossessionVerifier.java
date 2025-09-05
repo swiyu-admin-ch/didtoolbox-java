@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
@@ -50,7 +52,7 @@ public class ProofOfPossessionVerifier {
 
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
         try {
-            this.updateKeys = DidLogMetaPeeker.peek(didLog).params.updateKeys;
+            this.updateKeys = TdwDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys();
         } catch (DidLogMetaPeekerException e) {
             throw new ProofOfPossessionVerifierException(e);
         }

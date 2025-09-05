@@ -1,11 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.eid.didresolver.Did;
-import ch.admin.eid.didresolver.DidResolveException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,10 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileAlreadyExistsException;
-import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -51,53 +47,16 @@ import java.util.Set;
  * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
  * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
  * </ul>
- * For instance:
- * <pre>
- * {@code
- *     package mypackage;
- *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import java.net.*;
- *
- *     public static void main(String... args) {
- *
- *         String didLogEntryWithGeneratedKeys = null;
- *         String didLogEntryWithExternalKeys = null;
- *         try {
- *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *
- *             // NOTE that all required keys will be generated here as well, as no explicit verificationMethodKeyProvider is set
- *             didLogEntryWithGeneratedKeys = TdwCreator.builder()
- *                 .build()
- *                 .create(identifierRegistryUrl);
- *
- *             // Using already existing key material
- *             didLogEntryWithExternalKeys = TdwCreator.builder()
- *                 .verificationMethodKeyProvider(new Ed25519VerificationMethodKeyProviderImpl(new File("private-key.pem"), new File("public-key.pem")))
- *                 .assertionMethodKeys(Map.of(
- *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("assert-key-01.pub"), "my-assert-key-01")
- *                 ))
- *                 .authenticationKeys(Map.of(
- *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("auth-key-01.pub"), "my-auth-key-01")
- *                 ))
- *                 .build()
- *                 .create(identifierRegistryUrl);
- *
- *         } catch (Exception e) {
- *             // some exc. handling goes here
- *             System.exit(1);
- *         }
- *
- *         // do something with the didLogEntry* vars here
- *     }
- * }
- * </pre>
+ * <p>
+ * <p>
+ * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
+ * Instead, rather rely on the designated {@link DidLogCreatorStrategy} for the purpose. Needless to say,
+ * the proper DID method must be supplied to the strategy - in this case it should be {@link DidMethodEnum#TDW_0_3}.
+ * <p>
  */
 @Builder
 @Getter
-public class TdwCreator {
-
-    private static String SCID_PLACEHOLDER = "{SCID}";
+public class TdwCreator extends AbstractDidLogEntryBuilder {
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
@@ -111,6 +70,11 @@ public class TdwCreator {
     // TODO private File dirToStoreKeyPair;
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
+
+    @Override
+    protected DidMethodEnum getDidMethod() {
+        return DidMethodEnum.TDW_0_3;
+    }
 
     /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
@@ -128,29 +92,6 @@ public class TdwCreator {
         return create(identifierRegistryUrl, ZonedDateTime.now());
     }
 
-    private JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile) throws IOException {
-
-        String publicKeyJwk = jwk;
-        if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile, this.forceOverwrite);
-        }
-
-        JsonObject verificationMethodObj = new JsonObject();
-        verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
-        // CAUTION The "controller" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("controller", didTDW);
-        verificationMethodObj.addProperty("type", "JsonWebKey2020");
-        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDOMNI-35
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
-        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
-
-        return verificationMethodObj;
-    }
-
     /**
      * Creates a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log for a supplied datetime.
      * <p>
@@ -166,86 +107,8 @@ public class TdwCreator {
      */
     String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws IOException {
 
-        // Method-Specific Identifier: https://identity.foundation/didwebvh/v0.3/#method-specific-identifier
-        // W.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
-        // See also https://identity.foundation/didwebvh/v0.3/#example-7
-        String didTDW = "did:tdw:{SCID}:" + identifierRegistryUrl.getHost();
-        int port = identifierRegistryUrl.getPort(); // the port number, or -1 if the port is not set
-        if (port != -1) {
-            didTDW += "%3A" + port;
-        }
-        String path = identifierRegistryUrl.getPath(); // the path part of this URL, or an empty string if one does not exist
-        if (!path.isEmpty()) {
-            didTDW += path.replace("/did.jsonl", "") // cleanup
-                    .replaceAll("/", ":"); // w.r.t. https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation
-        }
-
-        var context = new JsonArray();
-        // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:
-        //     https://github.com/e-id-admin/open-source-community/blob/main/tech-roadmap/swiss-profile.md#did-document-format
-        context.add("https://www.w3.org/ns/did/v1");
-        context.add("https://w3id.org/security/jwk/v1");
-
         // Create initial did doc with placeholder
-        var didDoc = new JsonObject();
-        didDoc.add("@context", context);
-        didDoc.addProperty("id", didTDW);
-        // CAUTION The "controller" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //didDoc.addProperty("controller", didTDW);
-
-        JsonArray verificationMethod = new JsonArray();
-
-        if (this.authenticationKeys != null && !this.authenticationKeys.isEmpty()) {
-
-            JsonArray authentication = new JsonArray();
-            for (var key : this.authenticationKeys.entrySet()) {
-                authentication.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue(), null));
-            }
-
-            didDoc.add("authentication", authentication);
-
-        } else {
-
-            var outputDir = createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null, new File(outputDir, "auth-key-01"))); // default
-
-            JsonArray authentication = new JsonArray();
-            authentication.add(didTDW + "#" + "auth-key-01");
-            didDoc.add("authentication", authentication);
-        }
-
-        if (this.assertionMethodKeys != null && !this.assertionMethodKeys.isEmpty()) {
-
-            JsonArray assertionMethod = new JsonArray();
-            for (var key : this.assertionMethodKeys.entrySet()) {
-                assertionMethod.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue(), null));
-            }
-
-            didDoc.add("assertionMethod", assertionMethod);
-
-        } else {
-
-            var outputDir = createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null, new File(outputDir, "assert-key-01"))); // default
-
-            JsonArray assertionMethod = new JsonArray();
-            assertionMethod.add(didTDW + "#" + "assert-key-01");
-            didDoc.add("assertionMethod", assertionMethod);
-        }
-
-        didDoc.add("verificationMethod", verificationMethod);
-
-        /*
-        Generate a preliminary DID Log Entry (input JSON array)
-        The DID log entry is an input JSON array that when completed contains the following items:
-        [ versionId, versionTime, parameters, DIDDoc State, Data Integrity Proof ].
-        When creating (registering) the DID the first entry starts with the follows items for processing:
-        [ "{SCID}", "<current time>", "parameters": [ <parameters>], { "value": "<DIDDoc with Placeholders>" } ]
-         */
+        var didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
 
         var didLogEntryWithoutProofAndSignature = new JsonArray();
 
@@ -261,50 +124,8 @@ public class TdwCreator {
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        JsonObject didMethodParameters = new JsonObject();
-        didMethodParameters.addProperty("method", "did:tdw:0.3");
-        didMethodParameters.addProperty("scid", SCID_PLACEHOLDER);
 
-        /*
-        Generate the authorization key pair(s) Authorized keys are authorized to control (create, update, deactivate) the DID.
-        This includes generating any other key pairs that will be placed into the initial DIDDoc for the DID.
-
-        For each authorization key pair, generate a multikey based on the key pair’s public key.
-        The multikey representations of the public keys are placed in the updateKeys item in parameters.
-
-        updateKeys: A list of one or more multikey formatted public keys associated with the private keys that are
-        authorized to sign the log entries that update the DID from one version to the next. An instance of the list in
-        an entry replaces the previously active list. If an entry does not have the updateKeys item,
-        the currently active list continues to apply.
-         */
-        var updateKeysJsonArray = new JsonArray();
-        updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
-        if (this.updateKeys != null) {
-            for (var pemFile : this.updateKeys) { // ...and then add the rest, if any
-                String updateKey;
-                try {
-                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
-                } catch (InvalidKeySpecException e) {
-                    throw new IOException(e);
-                }
-
-                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) { // it is a distinct list of keys, after all
-                    updateKeysJsonArray.add(updateKey);
-                }
-            }
-        }
-        didMethodParameters.add("updateKeys", updateKeysJsonArray);
-
-        // MUST set portable to false in the first DID log entry.
-        // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:
-        //     https://github.com/e-id-admin/open-source-community/blob/main/tech-roadmap/swiss-profile.md#didtdwdidwebvh
-        didMethodParameters.addProperty("portable", false);
-
-        // Since v0.3 (https://identity.foundation/didwebvh/v0.3/#didtdw-version-changelog):
-        //            Removes the cryptosuite parameter, moving it to implied based on the method parameter.
-        //cryptosuite: Option::None,
-
-        didLogEntryWithoutProofAndSignature.add(didMethodParameters);
+        didLogEntryWithoutProofAndSignature.add(createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
@@ -352,43 +173,17 @@ public class TdwCreator {
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         JsonArray proofs = new JsonArray();
-        proofs.add(JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt));
+        proofs.add(JCSHasher.buildDataIntegrityProof(
+                didDoc, false, this.verificationMethodKeyProvider, challenge, JCSHasher.PROOF_PURPOSE_AUTHENTICATION, zdt
+        ));
         didLogEntryWithProof.add(proofs);
 
-        Did did = null;
         try {
-            did = new Did(DidLogMetaPeeker.peek(didLogEntryWithProof.toString()).didDocId);
-            // NOTE Enforcing DID log conformity by calling:
-            //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
-            //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
-            //          .validate(didLogEntryWithProof.toString());
-            //      would not be necessary here, as it is already part of the `resolve` method.
-            did.resolve(didLogEntryWithProof.toString()); // sanity check
-        } catch (DidResolveException | DidLogMetaPeekerException e) {
+            TdwDidLogMetaPeeker.peek(didLogEntryWithProof.toString()); // sanity check
+        } catch (DidLogMetaPeekerException e) {
             throw new RuntimeException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
-        } finally {
-            if (did != null) {
-                did.close();
-            }
         }
 
         return didLogEntryWithProof.toString();
-    }
-
-    private static File createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws IOException {
-        var outputDir = new File(pathname);
-        if (!outputDir.exists()) {
-            try {
-                return FilesPrivacy.createPrivateDirectory(outputDir.toPath(), false).toFile(); // may throw DirectoryNotEmptyException, SecurityException etc.
-            } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
-                throw new RuntimeException(ex);
-            } catch (AccessDeniedException ex) {
-                throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
-            } catch (Throwable thr) {
-                throw new IOException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
-            }
-        }
-
-        return outputDir;
     }
 }

@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
 import com.beust.jcommander.JCommander;
@@ -35,16 +36,16 @@ public class Main {
     public static void main(String... args) {
         var main = new Main();
 
-        var createCommand = new CreateTdwCommand();
-        var updateCommand = new UpdateTdwCommand();
-        var deactivateCommand = new DeactivateTdwCommand();
+        var createDidLogCommand = new CreateDidLogCommand();
+        var updateDidLogCommand = new UpdateDidLogCommand();
+        var deactivateCommand = new DeactivateDidLogCommand();
         var createProofOfPossessionCommand = new CreateProofOfPossessionCommand();
         var verifyProofOfPossessionCommand = new VerifyProofOfPossessionCommand();
         var jc = JCommander.newBuilder()
                 .addObject(main)
-                .addCommand(CreateTdwCommand.COMMAND_NAME, createCommand)
-                .addCommand(UpdateTdwCommand.COMMAND_NAME, updateCommand)
-                .addCommand(DeactivateTdwCommand.COMMAND_NAME, deactivateCommand)
+                .addCommand(CreateDidLogCommand.COMMAND_NAME, createDidLogCommand)
+                .addCommand(UpdateDidLogCommand.COMMAND_NAME, updateDidLogCommand)
+                .addCommand(DeactivateDidLogCommand.COMMAND_NAME, deactivateCommand)
                 .addCommand(CreateProofOfPossessionCommand.COMMAND_NAME, createProofOfPossessionCommand)
                 .addCommand(VerifyProofOfPossessionCommand.COMMAND_NAME, verifyProofOfPossessionCommand)
                 .programName(ManifestUtils.getImplementationTitle())
@@ -78,14 +79,16 @@ public class Main {
 
         try {
             switch (parsedCommandName) {
-                case CreateTdwCommand.COMMAND_NAME -> runCreateTdwCommand(jc, parsedCommandName, createCommand);
-                case UpdateTdwCommand.COMMAND_NAME -> runUpdateTdwCommand(jc, parsedCommandName, updateCommand);
-                case DeactivateTdwCommand.COMMAND_NAME ->
-                        runDeactivateTdwCommand(jc, parsedCommandName, deactivateCommand);
+                case CreateDidLogCommand.COMMAND_NAME ->
+                        runCreateDidLogCommand(jc, parsedCommandName, createDidLogCommand);
+                case UpdateDidLogCommand.COMMAND_NAME ->
+                        runUpdateDidLogCommand(jc, parsedCommandName, updateDidLogCommand);
+                case DeactivateDidLogCommand.COMMAND_NAME ->
+                        runDeactivateDidLogCommand(jc, parsedCommandName, deactivateCommand);
                 case CreateProofOfPossessionCommand.COMMAND_NAME ->
-                        runCreatePoPCommand(jc, parsedCommandName, createProofOfPossessionCommand);
+                        runPoPCreateCommand(jc, parsedCommandName, createProofOfPossessionCommand);
                 case VerifyProofOfPossessionCommand.COMMAND_NAME ->
-                        runVerifyPoPCommand(jc, parsedCommandName, verifyProofOfPossessionCommand);
+                        runPoPVerifyCommand(jc, parsedCommandName, verifyProofOfPossessionCommand);
                 default -> overAndOut(jc, null, "Invalid command: " + parsedCommandName);
             }
         } catch (Exception e) {
@@ -95,7 +98,7 @@ public class Main {
         System.exit(0);
     }
 
-    private static void runCreateTdwCommand(JCommander jc, String parsedCommandName, CreateTdwCommand command) throws Exception {
+    private static void runCreateDidLogCommand(JCommander jc, String parsedCommandName, CreateDidLogCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -103,11 +106,9 @@ public class Main {
 
         URL identifierRegistryUrl = command.identifierRegistryUrl;
 
-        var methodVersion = command.methodVersion;
-        if (methodVersion == null) {
-            methodVersion = CreateTdwCommand.DEFAULT_METHOD_VERSION;
-        } else if (!methodVersion.equals(CreateTdwCommand.DEFAULT_METHOD_VERSION)) {
-            overAndOut(jc, parsedCommandName, "Supplied method version is not supported: '" + methodVersion + "'. Currently supported is: " + CreateTdwCommand.DEFAULT_METHOD_VERSION);
+        var didMethod = DidMethodEnum.parse(command.methodVersion); // may return null
+        if (didMethod == null) {
+            didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
         }
 
         Map<String, String> assertionMethodKeysMap = new HashMap<>();
@@ -225,26 +226,29 @@ public class Main {
             }
         }
 
-        var tdwBuilder = TdwCreator.builder().verificationMethodKeyProvider(signer);
-
-        String didLogEntry = tdwBuilder
+        // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
+        System.out.println(DidLogCreatorStrategy.builder()
+                .didMethod(didMethod)
+                .verificationMethodKeyProvider(signer)
                 .assertionMethodKeys(assertionMethodKeysMap)
                 .authenticationKeys(authenticationKeysMap)
                 .updateKeys(verifyingKeyPemFiles)
                 .forceOverwrite(forceOverwrite)
                 .build()
-                .create(identifierRegistryUrl);
-
-        System.out.println(didLogEntry);
+                .create(identifierRegistryUrl));
     }
 
-    private static void runUpdateTdwCommand(JCommander jc, String parsedCommandName, UpdateTdwCommand command) throws Exception {
+    private static void runUpdateDidLogCommand(JCommander jc, String parsedCommandName, UpdateDidLogCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
         }
 
         var didLogFile = command.didLogFile;
+
+        var didLogMeta = fetchDidLogMeta(jc, parsedCommandName, didLogFile);
+
+        // CAUTION At this point, it should be all in place to update to be able to update the supplied DID log
 
         Map<String, String> assertionMethodKeysMap = new HashMap<>();
         var updateCommandAssertionMethodKeys = command.assertionMethodKeys;
@@ -281,9 +285,8 @@ public class Main {
 
         if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
 
-            var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
             String matchingUpdateKey = null;
-            for (var key : didLogMeta.params.updateKeys) {
+            for (var key : didLogMeta.getParams().getUpdateKeys()) {
                 try {
                     // the signing key is supplied externally, but verifying key should be already among updateKeys
                     signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
@@ -310,26 +313,29 @@ public class Main {
             overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
         }
 
-        var tdwBuilder = TdwUpdater.builder().verificationMethodKeyProvider(signer);
-
-        var newLogEntry = tdwBuilder
-                .assertionMethodKeys(assertionMethodKeysMap)
-                .authenticationKeys(authenticationKeysMap)
-                .updateKeys(verifyingKeyPemFiles)
-                .build()
-                .update(didLogFile);
-
-        // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-        System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() + newLogEntry);
+        // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
+        assert didLogMeta != null;
+        System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
+                DidLogUpdaterStrategy.builder()
+                        .didMethod(didLogMeta.getParams().getDidMethodEnum())
+                        //.didMethod(DidMethodEnum.detectDidMethod(didLogFile)) // No need to parse the DID log twice
+                        .verificationMethodKeyProvider(signer)
+                        .assertionMethodKeys(assertionMethodKeysMap)
+                        .authenticationKeys(authenticationKeysMap)
+                        .updateKeys(verifyingKeyPemFiles)
+                        .build()
+                        .update(didLogFile));
     }
 
-    private static void runDeactivateTdwCommand(JCommander jc, String parsedCommandName, DeactivateTdwCommand command) throws Exception {
+    private static void runDeactivateDidLogCommand(JCommander jc, String parsedCommandName, DeactivateDidLogCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
         }
 
         var didLogFile = command.didLogFile;
+
+        var didLogMeta = fetchDidLogMeta(jc, parsedCommandName, didLogFile);
 
         var signingKeyPemFile = command.signingKeyPemFile;
 
@@ -345,21 +351,25 @@ public class Main {
 
         if (signingKeyPemFile != null) {
 
-            var didLogMeta = DidLogMetaPeeker.peek(Files.readString(didLogFile.toPath()));
             String matchingUpdateKey = null;
-            for (var key : didLogMeta.params.updateKeys) {
-                try {
-                    // the signing key is supplied externally, but verifying key should be already among updateKeys
-                    signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
-                    // At this point, the matching verifying key is detected, so we are free to break from the loop
-                    matchingUpdateKey = key;
-                    break;
-                } catch (Exception ignoreNonMatchingKey) {
+            assert didLogMeta != null;
+            // CAUTION In case the supplied DID log have already been deactivated (i.e. "parameters":{"deactivated":true,"updateKeys":[]}),
+            //         the updateKeys collection would be null
+            if (didLogMeta.getParams().getUpdateKeys() != null) {
+                for (var key : didLogMeta.getParams().getUpdateKeys()) {
+                    try {
+                        // the signing key is supplied externally, but verifying key should be already among updateKeys
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
+                        // At this point, the matching verifying key is detected, so we are free to break from the loop
+                        matchingUpdateKey = key;
+                        break;
+                    } catch (Exception ignoreNonMatchingKey) {
+                    }
                 }
-            }
 
-            if (matchingUpdateKey == null) {
-                overAndOut(jc, parsedCommandName, "No matching signing key supplied");
+                if (matchingUpdateKey == null) {
+                    overAndOut(jc, parsedCommandName, "No matching signing key supplied");
+                }
             }
 
         } else if (jksFile != null && jksPassword != null && jksAlias != null) {
@@ -374,17 +384,17 @@ public class Main {
             overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) keys supplied. Use one of the relevant options to supply keys");
         }
 
-        var newLogEntry = TdwDeactivator.builder()
-                .verificationMethodKeyProvider(signer)
-                .build()
-                .deactivate(didLogFile);
-
         // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-        System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() + newLogEntry);
-
+        System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
+                DidLogDeactivatorStrategy.builder()
+                        .didMethod(didLogMeta.getParams().getDidMethodEnum())
+                        //.didMethod(DidMethodEnum.detectDidMethod(didLogFile)) // No need to parse the DID log twice
+                        .verificationMethodKeyProvider(signer)
+                        .build()
+                        .deactivate(didLogFile));
     }
 
-    private static void runCreatePoPCommand(JCommander jc, String parsedCommandName, CreateProofOfPossessionCommand command) throws Exception {
+    private static void runPoPCreateCommand(JCommander jc, String parsedCommandName, CreateProofOfPossessionCommand command) throws Exception {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -434,7 +444,7 @@ public class Main {
         System.out.println(proof.serialize());
     }
 
-    private static void runVerifyPoPCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws IOException {
+    private static void runPoPVerifyCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws IOException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -464,5 +474,28 @@ public class Main {
             jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
         }
         System.exit(1);
+    }
+
+    private static DidLogMeta fetchDidLogMeta(JCommander jc,
+                                              String parsedCommandName,
+                                              File didLogFile) {
+        DidLogMeta didLogMeta = null;
+        try {
+            return TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:tdw log
+        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+            try {
+                return WebVerifiableHistoryDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:webvh log
+            } catch (DidLogMetaPeekerException | IOException exc1) { // not a did:webvh log
+                overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
+            }
+        } catch (IOException exc) { // not a did:tdw log
+            overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
+        }
+
+        if (didLogMeta == null || didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
+            throw new RuntimeException("Incomplete metadata");
+        }
+
+        return null;
     }
 }

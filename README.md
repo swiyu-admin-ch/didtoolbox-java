@@ -62,7 +62,7 @@ Usage: didtoolbox [options] [command] [command options]
     --help, -h    Display help for the DID toolbox
     --version, -V Display version (default: false)
   Commands:
-    create      Create a did:tdw DID and sign the initial DID log entry with the provided private key. To supply a signing/verifying key pair, always 
+    create      Create a DID and sign the initial DID log entry with the provided private key. To supply a signing/verifying key pair, always 
             rely on one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key material: 
             PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) connection, the required 
             JCE provider (JAR) library (primusX-java8.jar or primusX-java11.jar) is by-convention expected to be stored on the system alongside the 
@@ -82,7 +82,7 @@ Usage: didtoolbox [options] [command] [command options]
           --help, -h
             Display help for the DID toolbox command
         * --identifier-registry-url, -u
-            A HTTP(S) DID URL (to did.jsonl) to create TDW DID log for
+            A HTTP(S) DID URL (to did.jsonl) to create a DID log for
           --jks-alias
             Java KeyStore alias name of the entry to process. This CLI parameter should always be used exclusively alongside all the other --jks-* 
             CLI parameters
@@ -93,8 +93,9 @@ Usage: didtoolbox [options] [command] [command options]
             Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore. This CLI parameter should 
             always be used exclusively alongside all the other --jks-* CLI parameters
           --method-version, -m
-            Defines the did:tdw specification version to use when generating a DID log. Currently supported is only 'did:tdw:0.3'
-            Default: did:tdw:0.3
+            Defines the DID method specification version to use when generating a DID log. Case-insensitive. Valid values: 'did:tdw:0.3', 
+            'did:webvh:1.0' 
+            Default: did:webvh:1.0
           --primus-credentials, -p
             A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. It should 
             feature a quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and 
@@ -113,11 +114,11 @@ Usage: didtoolbox [options] [command] [command options]
           --verifying-key-files, -v
             One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
 
-    update      Update a did:tdw DID log by replacing the existing verification material in DID document. To supply a signing/verifying key pair, 
-            always rely on one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key 
-            material: PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) connection, the 
-            required JCE provider (JAR) library (primusX-java8.jar or primusX-java11.jar) is by-convention expected to be stored on the system 
-            alongside the DID-Toolbox in the lib subdirectory (e.g. as lib/primusX-java11.jar). Alternatively, you may also use 
+    update      Update a DID log by replacing the existing verification material in DID document. To supply a signing/verifying key pair, always rely 
+            on one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key material: PEM 
+            files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) connection, the required JCE 
+            provider (JAR) library (primusX-java8.jar or primusX-java11.jar) is by-convention expected to be stored on the system alongside the 
+            DID-Toolbox in the lib subdirectory (e.g. as lib/primusX-java11.jar). Alternatively, you may also use 
             -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose
       Usage: update [options]
         Options:
@@ -128,7 +129,7 @@ Usage: didtoolbox [options] [command] [command options]
             One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC 
             P-256 public/verifying key
         * --did-log-file, -d
-            The file containing a valid did:tdw DID log to update
+            The file containing a valid DID log to update
           --help, -h
             Display help for the DID toolbox command
           --jks-alias
@@ -158,7 +159,7 @@ Usage: didtoolbox [options] [command] [command options]
           --verifying-key-files, -v
             One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
 
-    deactivate      Deactivate (revoke) a did:tdw DID log. To supply a signing/verifying key pair, always rely on one of the three available command 
+    deactivate      Deactivate (revoke) a DID log. To supply a signing/verifying key pair, always rely on one of the three available command 
             parameter sets exclusively, each of then denoting a whole another source of such key material: PEM files, a Java KeyStore (PKCS12) or a 
             Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) connection, the required JCE provider (JAR) library 
             (primusX-java8.jar or primusX-java11.jar) is by-convention expected to be stored on the system alongside the DID-Toolbox in the lib 
@@ -167,7 +168,7 @@ Usage: didtoolbox [options] [command] [command options]
       Usage: deactivate [options]
         Options:
         * --did-log-file, -d
-            The file containing a valid did:tdw DID log to deactivate
+            The file containing a valid DID log to deactivate
           --help, -h
             Display help for the DID toolbox command
           --jks-alias
@@ -644,8 +645,8 @@ java -jar didtoolbox.jar create \
 # bear in mind, the command above will store the generated (auth/assert) keys in the .didtoolbox directory
 
 java -jar didtoolbox.jar deactivate \
-    -d /tmp/did.jsonl \
-    -s .didtoolbox/id_ed25519 > /tmp/did-deactivated.jsonl
+    -d /tmp/my-did.jsonl \
+    -s .didtoolbox/id_ed25519 > /tmp/my-did-deactivated.jsonl
 ```
 
 The _deactivated_ DID log file should now contain another DID log entry denoting deactivation (via DID parameter `{"deactivated":true}`) and featuring no key material whatsoever: 
@@ -659,7 +660,7 @@ The _deactivated_ DID log file should now contain another DID log entry denoting
 - **Multiple DIDs**: If you create multiple DIDs, please make sure to rename the `.didtoolbox` directory (or move/rename the files) after each creation run. The DID-Toolbox will prevent you from overwriting existing key pairs by accident and abort with an error.
 - **Security**: Keep your private keys secure. Do not share them or expose them in unsecured environments.
 - **Credentials file (e.g. in case of using Securosys Primus HSM):** Keep such files safely stored on the file system.
-Alternatively, you may also fallback to a system user environment, instead.
+Alternatively, you may also fall back to a system user environment, instead.
 
 ## Missing Features and Known Issues
 

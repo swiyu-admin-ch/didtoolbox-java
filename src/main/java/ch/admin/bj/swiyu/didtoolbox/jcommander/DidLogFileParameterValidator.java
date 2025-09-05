@@ -1,8 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
-import ch.admin.eid.didtoolbox.DidLogEntryJsonSchema;
-import ch.admin.eid.didtoolbox.DidLogEntryValidator;
-import ch.admin.eid.didtoolbox.DidLogEntryValidatorException;
+/* TODO As soon as EIDOMNI-126 is done
+import ch.admin.eid.did_sidekicks.DidLogEntryJsonSchema;
+import ch.admin.eid.did_sidekicks.DidLogEntryValidator;
+ */
+
+import ch.admin.eid.did_sidekicks.DidLogEntryValidatorException;
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
 
@@ -24,6 +27,7 @@ public class DidLogFileParameterValidator implements IParameterValidator {
         try {
             AtomicReference<DidLogEntryValidatorException> validatorException = new AtomicReference<>();
             var isValid = Files.lines(Paths.get(value)).anyMatch(instance -> {
+                /* TODO As soon as EIDOMNI-126 is done
                 try {
                     DidLogEntryValidator.Companion
                             .from(DidLogEntryJsonSchema.V03_EID_CONFORM).validate(instance);
@@ -31,6 +35,7 @@ public class DidLogFileParameterValidator implements IParameterValidator {
                     validatorException.set(ex);
                     return false;
                 }
+                 */
                 return true;
             });
 
@@ -47,7 +52,7 @@ public class DidLogFileParameterValidator implements IParameterValidator {
     }
 
     private static ParameterException buildParameterException(String name, String value, Throwable cause) {
-        var msg = "Parameter " + name + " should be a regular file containing a valid did:tdw DID log (found " + value + ")";
+        var msg = "Parameter " + name + " should be a regular file containing a valid DID log (found " + value + ")";
         if (cause != null) {
             return new ParameterException(msg + ": " + cause.getMessage());
         }
