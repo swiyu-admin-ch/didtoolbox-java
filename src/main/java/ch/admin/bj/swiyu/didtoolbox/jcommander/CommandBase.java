@@ -8,7 +8,10 @@ import java.io.File;
 /**
  * The base class for all Command classes in the package.
  */
-abstract class AbstractCommandBase {
+class CommandBase {
+    protected CommandBase() {
+        // Prevent direct instantiation
+    }
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},
             description = "Display help for the DID toolbox command",

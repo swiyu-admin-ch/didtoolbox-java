@@ -151,7 +151,7 @@ public class Main {
             File verifyingKeyPemFile = null;
             for (var pemFile : verifyingKeyPemFiles) {
                 try {
-                    signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), new FileReader(pemFile)); // supplied external key pair
+                    signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), Files.newBufferedReader(pemFile.toPath())); // supplied external key pair
                     // At this point, the matching verifying key is detected, so we are free to break from the loop
                     verifyingKeyPemFile = pemFile;
                     break;
@@ -166,7 +166,7 @@ public class Main {
         } else if (jksFile != null && jksAlias != null) {
 
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
             // TODO Populate verifyingKeyPemFiles (for each jksAlias) from the JKS by calling signer.writePublicKeyAsPem(tempPublicKeyPemFile);
 
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
@@ -289,7 +289,7 @@ public class Main {
             for (var key : didLogMeta.getParams().getUpdateKeys()) {
                 try {
                     // the signing key is supplied externally, but verifying key should be already among updateKeys
-                    signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
+                    signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), key); // supplied external key pair
                     // At this point, the matching verifying key is detected, so we are free to break from the loop
                     matchingUpdateKey = key;
                     break;
@@ -303,7 +303,7 @@ public class Main {
 
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
 
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
 
@@ -359,7 +359,7 @@ public class Main {
                 for (var key : didLogMeta.getParams().getUpdateKeys()) {
                     try {
                         // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), key);
                         // At this point, the matching verifying key is detected, so we are free to break from the loop
                         matchingUpdateKey = key;
                         break;
@@ -374,7 +374,7 @@ public class Main {
 
         } else if (jksFile != null && jksPassword != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
 
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
 
@@ -424,14 +424,14 @@ public class Main {
         } else if (signingKeyPemFile != null) { // at this point, verifyingKeyPemFiles must be non-null already
 
             try {
-                signer = new Ed25519ProofOfPossessionJWSSignerImpl(new FileReader(signingKeyPemFile), new FileReader(verifyingKeyPemFile)); // supplied external key pair
+                signer = new Ed25519ProofOfPossessionJWSSignerImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), Files.newBufferedReader(verifyingKeyPemFile.toPath())); // supplied external key pair
             } catch (Exception ex) {
                 overAndOut(jc, parsedCommandName, "The supplied ed25519 key pair mismatch: " + ex.getLocalizedMessage());
             }
 
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519ProofOfPossessionJWSSignerImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519ProofOfPossessionJWSSignerImpl(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
             signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
         } else {

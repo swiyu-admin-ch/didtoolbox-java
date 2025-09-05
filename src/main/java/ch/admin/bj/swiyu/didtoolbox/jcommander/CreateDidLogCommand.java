@@ -19,7 +19,7 @@ import java.net.URL;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
-public class CreateDidLogCommand extends AbstractKeyMaterialTdwCommand {
+public class CreateDidLogCommand extends KeyMaterialTdwCommandBase {
 
     final public static String COMMAND_NAME = "create";
 

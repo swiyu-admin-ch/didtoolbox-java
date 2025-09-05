@@ -18,7 +18,7 @@ import com.beust.jcommander.Parameters;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
-public class DeactivateDidLogCommand extends AbstractCommandBase {
+public class DeactivateDidLogCommand extends CommandBase {
 
     final public static String COMMAND_NAME = "deactivate";
 

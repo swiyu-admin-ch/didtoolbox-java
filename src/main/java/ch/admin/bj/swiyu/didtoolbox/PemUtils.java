@@ -4,6 +4,7 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -22,15 +23,16 @@ public class PemUtils {
         if (!pemFile.isFile() || !pemFile.exists()) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", pemFile.getAbsolutePath()));
         }
-        return readPemObject(new FileReader(pemFile));
+        try (BufferedReader reader = Files.newBufferedReader(pemFile.toPath())) {
+            return readPemObject(reader);
+        }
     }
 
     static byte[] readPemObject(Reader pemKeyReader) throws IOException {
-        PemReader reader = new PemReader(pemKeyReader);
-        PemObject pemObject = reader.readPemObject();
-        byte[] content = pemObject.getContent();
-        reader.close();
-        return content;
+        try (PemReader reader = new PemReader(pemKeyReader)) {
+            PemObject pemObject = reader.readPemObject();
+            return pemObject.getContent();
+        }
     }
 
     static PublicKey getPublicKey(byte[] keyBytes, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -65,13 +67,9 @@ public class PemUtils {
 
         File tempFile = File.createTempFile("mypublickey", ".pem");
         tempFile.deleteOnExit();
-
-        Writer w = new BufferedWriter(new FileWriter(tempFile));
-        try {
+        try (BufferedWriter w = Files.newBufferedWriter(tempFile.toPath())) {
             w.write(pemPublicKey);
             w.flush();
-        } finally {
-            w.close();
         }
 
         return parsePEMFilePublicKeyEd25519Multibase(tempFile);

@@ -18,7 +18,7 @@ import java.io.File;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
-public class UpdateDidLogCommand extends AbstractKeyMaterialTdwCommand {
+public class UpdateDidLogCommand extends KeyMaterialTdwCommandBase {
 
     final public static String COMMAND_NAME = "update";
 

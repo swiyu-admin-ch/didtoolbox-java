@@ -143,12 +143,9 @@ public class JwkUtils {
                     throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage());
                 }
 
-                Writer w = new BufferedWriter(new FileWriter(keyPairPemFile));
-                try {
+                try (BufferedWriter w = Files.newBufferedWriter(keyPairPemFile.toPath())) {
                     w.write(keyPairPem);
                     w.flush();
-                } finally {
-                    w.close();
                 }
 
                 exportEcPublicKeyToPem(publicJwk, keyPairPemFile);
@@ -169,19 +166,13 @@ public class JwkUtils {
      * @throws IOException
      */
     private static void exportEcPublicKeyToPem(ECKey jwk, File keyPairPemFile) throws IOException {
-        JcaPEMWriter pemWriterPub = new JcaPEMWriter(new FileWriter(keyPairPemFile.getPath() + ".pub"));
-        try {
-            // as specified by https://www.rfc-editor.org/rfc/rfc5208
+        try (JcaPEMWriter pemWriterPub = new JcaPEMWriter(Files.newBufferedWriter((new File(keyPairPemFile.getPath() + ".pub")).toPath()))) {
             pemWriterPub.writeObject(new PemObject("PUBLIC KEY", jwk.toPublicKey().getEncoded()));
             pemWriterPub.flush();
-
             ecPemSanityCheck(new File(keyPairPemFile.getPath()), new File(keyPairPemFile.getPath() + ".pub"));
-
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException |
                  InvalidKeyException | SignatureException | NoSuchProviderException | JOSEException e) {
             throw new RuntimeException(e);
-        } finally {
-            pemWriterPub.close();
         }
     }
 

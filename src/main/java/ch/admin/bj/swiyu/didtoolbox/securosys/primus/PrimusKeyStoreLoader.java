@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Properties;
@@ -81,7 +82,7 @@ public class PrimusKeyStoreLoader {
         Properties props = null;
         if (credentials != null) {
             props = new Properties();
-            props.load(new FileInputStream(credentials));
+            props.load(Files.newInputStream(credentials.toPath()));
         }
 
         var host = System.getenv(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.name());

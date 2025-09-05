@@ -16,6 +16,7 @@ import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
+import java.nio.file.Files;
 
 /**
  * The {@link Ed25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation used to generate pairs of
@@ -168,7 +169,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     @Deprecated
     public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException {
-        this(new FileReader(privatePemFile), new FileReader(publicPemFile));
+        this(Files.newBufferedReader(privatePemFile.toPath()), Files.newBufferedReader(publicPemFile.toPath()));
     }
 
     /**
@@ -208,8 +209,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     @Deprecated
     public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, String publicKeyMultibase)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
-
-        this(new FileReader(privatePemFile), publicKeyMultibase);
+        this(Files.newBufferedReader(privatePemFile.toPath()), publicKeyMultibase);
     }
 
     /**
@@ -315,7 +315,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (privateKeyEncoded == null) {
             throw new RuntimeException("The key pair features a private key that does not support encoding");
         }
-        PemWriter pemWriter = new PemWriter(new FileWriter(file));
+        PemWriter pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()));
         try {
             pemWriter.writeObject(new PemObject("PRIVATE KEY", privateKeyEncoded));
         } finally {
@@ -337,7 +337,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (publicKeyEncoded == null) {
             throw new RuntimeException("The key pair features a public key that does not support encoding");
         }
-        PemWriter pemWriter = new PemWriter(new FileWriter(file));
+        PemWriter pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()));
         try {
             pemWriter.writeObject(new PemObject("PUBLIC KEY", publicKeyEncoded));
         } finally {
