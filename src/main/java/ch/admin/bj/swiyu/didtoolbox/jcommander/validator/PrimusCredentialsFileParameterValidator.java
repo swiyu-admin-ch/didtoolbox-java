@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.jcommander;
+package ch.admin.bj.swiyu.didtoolbox.jcommander.validator;
 
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreInitializationException;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader;

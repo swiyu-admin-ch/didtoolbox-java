@@ -25,9 +25,11 @@ public class TdwDidLogMetaPeeker {
     /**
      * The essential method oh the helper class.
      *
-     * @param didLog to peek into. It is assumed that it is already "resolvable".
+     * @param didLog to peek into. It is assumed a "resolvable" {@link DidMethodEnum#TDW_0_3}-conform DID log is supplied.
      * @return metadata describing a DID log (to a certain extent).
-     * @throws DidLogMetaPeekerException if peeking fails for whatever reason.
+     * @throws DidLogMetaPeekerException if "peeking" failed for whatever reason.
+     *                                   The {@link MalformedTdwDidLogMetaPeekerException} variant
+     *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
 
@@ -49,19 +51,42 @@ public class TdwDidLogMetaPeeker {
                     throw new JsonSyntaxException("Expected at 5 DID log entry elements but got " + didLogEntryElements.length);
                 }
 
-                lastVersionId.set(didLogEntryElements[0].toString());
-                dateTime.set(didLogEntryElements[1].toString());
+                var lastVersionIdObj = didLogEntryElements[0];
+                if (lastVersionIdObj == null) {
+                    throw new JsonSyntaxException("The first DID log entry element (`versionId`) is missing");
+                }
+                lastVersionId.set(lastVersionIdObj.toString());
 
-                // Skip parsing the parameters (didLogEntryElements[2]), as they will be supplied by the resolver afterwards
+                var dateTimeObj = didLogEntryElements[1];
+                if (dateTimeObj == null) {
+                    throw new JsonSyntaxException("The second DID log entry element (`dateTime`) is missing");
+                }
+                dateTime.set(dateTimeObj.toString());
 
-                var didDocValue = gson.fromJson(gson.toJson(didLogEntryElements[3]), DidDocValue.class);
+                var parametersObj = didLogEntryElements[2];
+                if (parametersObj == null) {
+                    throw new JsonSyntaxException("The third DID log entry element (`parameters`) is missing");
+                }
+                // CAUTION Skip parsing the parameters (didLogEntryElements[2]), as they will be supplied by the resolver afterwards
+
+                var didDocObj = didLogEntryElements[3];
+                if (didDocObj == null) {
+                    throw new JsonSyntaxException("The forth DID log entry element (`DIDDoc State`) is missing");
+                }
+
+                var didDocValue = gson.fromJson(gson.toJson(didDocObj), DidDocValue.class);
                 if (didDocValue != null && didDocValue.value != null) {
                     didDocId.set(didDocValue.value.getId());
                 }
 
-                var proof = gson.fromJson(gson.toJson(didLogEntryElements[4]), DataIntegrityProof[].class);
-                if (proof == null) {
-                    throw new JsonSyntaxException("Proof is missing");
+                var dataIntegrityProofObj = didLogEntryElements[4];
+                if (dataIntegrityProofObj == null) {
+                    throw new JsonSyntaxException("The fifth DID log entry element (`Data Integrity Proof`) is missing");
+                }
+
+                var proof = gson.fromJson(gson.toJson(dataIntegrityProofObj), DataIntegrityProof[].class);
+                if (proof == null || proof.length == 0) {
+                    throw new JsonSyntaxException("The `Data Integrity Proof` DID log entry element is empty");
                 }
 
             } catch (JsonSyntaxException e) {
@@ -77,7 +102,7 @@ public class TdwDidLogMetaPeeker {
         }
 
         if (jsonSyntaxEx.get() != null) {
-            throw new DidLogMetaPeekerException("Malformed DID log entry", jsonSyntaxEx.get());
+            throw new MalformedTdwDidLogMetaPeekerException("Malformed " + DidMethodEnum.TDW_0_3.asString() + " log entry (a JSON array expected)", jsonSyntaxEx.get());
         }
 
         var split = lastVersionId.get().split("-");

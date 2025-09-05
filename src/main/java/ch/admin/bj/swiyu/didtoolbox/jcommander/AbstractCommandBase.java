@@ -1,5 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.JksFileParameterValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.PemFileParameterValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.PrimusCredentialsFileParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader;
 import com.beust.jcommander.Parameter;
 

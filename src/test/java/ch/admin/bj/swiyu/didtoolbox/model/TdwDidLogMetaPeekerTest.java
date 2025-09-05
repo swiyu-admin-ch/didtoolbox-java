@@ -16,20 +16,40 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
-    private static Collection<String> invalidDidLogEntries() throws URISyntaxException, MalformedURLException {
+    private static Collection<String> malformedDidLogEntries() throws URISyntaxException, MalformedURLException {
         return Arrays.asList(
                 "[]", // Should cause "Malformed DID log entry" ("Expected at 5 DID log entry elements but got 0")
+                "[,,,,]",
+                "[,\"\",{},{},[{}]]",
+                "[\"\",,{},{},[{}]]",
+                "[\"\",\"\",,{},[{}]]",
+                "[\"\",\"\",{},,[{}]]",
+                "[\"\",\"\",{},{},]",
+                "[\"\",\"\",{},{},{}]",
+                "[\"\",\"\",{},{},[]]"
+        );
+    }
+
+    private static Collection<String> invalidDidLogEntries() throws URISyntaxException, MalformedURLException {
+        return Arrays.asList(
                 "[\"\",\"\",{},{},[{}]]", // Should cause "Every versionId MUST be a dash-separated combination of version number and entry hash, found: ..."
-                "[\"\",\"\",{},,[{}]]",   // Should cause "Malformed DID log entry"
-                "[\"\",\"\",,{},[{}]]",   // Should cause "Malformed DID log entry"
                 "[\"1-xyz\",\"\",{},{\"\":{}},[{}]]", // Should cause "The versionTime MUST be a valid ISO8601 date/time string"
                 "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{},{\"\":{}},[{}]]", // Should cause "DID doc ID is missing"
                 "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{\"updateKeys\":{}},{},[{}]]", // Should cause "Malformed DID log entry"
                 "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{\"updateKeys\":[{}]},{},[{}]]", // Should cause "Malformed DID log entry"
-                "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{},{\"value\":{}},[{}]]", // Should cause "DID doc ID is missing"
-                "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{},{\"value\":{\"id\":\"tdw:did:...\"}},]" // Should cause "Malformed DID log entry" ("Proof is missing")
+                "[\"1-xyz\",\"2012-12-12T12:12:12Z\",{},{\"value\":{}},[{}]]" // Should cause "DID doc ID is missing"
                 //"[\"1-xyz\",\"2012-12-12T12:12:12Z\",{\"updateKeys\":[\"xyz\"]},{\"value\":{\"id\":\"tdw:did:...\"}},[{}]]" // Should cause "Malformed DID log entry"
         );
+    }
+
+    @DisplayName("Peeking (into malformed TDW log entry) for various malformedDidLogEntry variants")
+    @ParameterizedTest(name = "For malformedDidLogEntry: {0}")
+    @MethodSource("malformedDidLogEntries")
+    void testThrowsMalformedTdwDidLogMetaPeekerException(String malformedDidLogEntry) {
+
+        assertThrowsExactly(MalformedTdwDidLogMetaPeekerException.class, () -> {
+            TdwDidLogMetaPeeker.peek(malformedDidLogEntry);
+        });
     }
 
     @DisplayName("Peeking (into invalid TDW log entry) for various invalidDidLogEntry variants")

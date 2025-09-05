@@ -1,5 +1,6 @@
-package ch.admin.bj.swiyu.didtoolbox.jcommander;
+package ch.admin.bj.swiyu.didtoolbox.jcommander.validator;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames;
 import com.beust.jcommander.IParametersValidator;
 import com.beust.jcommander.ParameterException;
 

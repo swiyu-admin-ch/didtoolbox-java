@@ -1,9 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
-import java.io.File;
-
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.CommandParametersValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.DidLogFileParameterValidator;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import java.io.File;
 
 @Parameters(
         commandNames = {DeactivateDidLogCommand.COMMAND_NAME},

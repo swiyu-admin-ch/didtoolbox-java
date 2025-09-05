@@ -29,6 +29,7 @@ public class WebVerifiableHistoryDidLogMetaPeeker {
 
         // Skip parsing the "parameters", as they will be supplied by the resolver afterwards
 
+
         @SerializedName("state")
         DidDocument didDocument;
         DataIntegrityProof[] proof;
@@ -37,9 +38,11 @@ public class WebVerifiableHistoryDidLogMetaPeeker {
     /**
      * The essential method oh the helper class.
      *
-     * @param didLog to peek into. It is assumed that it is already "resolvable".
+     * @param didLog to peek into. It is assumed a "resolvable" {@link DidMethodEnum#WEBVH_1_0}-conform DID log is supplied.
      * @return metadata describing a DID log (to a certain extent).
-     * @throws DidLogMetaPeekerException if peeking fails for whatever reason.
+     * @throws DidLogMetaPeekerException if "peeking" failed for whatever reason.
+     *                                   The {@link MalformedWebVerifiableHistoryDidLogMetaPeekerException} variant
+     *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
 
@@ -87,7 +90,7 @@ public class WebVerifiableHistoryDidLogMetaPeeker {
         }
 
         if (jsonSyntaxEx.get() != null) {
-            throw new DidLogMetaPeekerException("Malformed DID log entry", jsonSyntaxEx.get());
+            throw new MalformedWebVerifiableHistoryDidLogMetaPeekerException("Malformed " + DidMethodEnum.WEBVH_1_0.asString() + " log entry (a JSON object expected)", jsonSyntaxEx.get());
         }
 
         if (lastVersionId.get() == null) {

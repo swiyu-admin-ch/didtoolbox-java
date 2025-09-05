@@ -1,5 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.CommandParametersValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.DidLogFileParameterValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.JWTParameterValidator;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nimbusds.jwt.SignedJWT;

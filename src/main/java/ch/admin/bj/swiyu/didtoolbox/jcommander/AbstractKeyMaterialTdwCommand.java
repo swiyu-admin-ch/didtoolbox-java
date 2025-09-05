@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.PemFileParameterValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.VerificationMethodKeyParametersValidator;
 import com.beust.jcommander.Parameter;
 
 import java.io.File;

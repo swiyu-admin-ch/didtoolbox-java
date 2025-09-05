@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.CommandParametersValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.IdentifierRegistryUrlParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
