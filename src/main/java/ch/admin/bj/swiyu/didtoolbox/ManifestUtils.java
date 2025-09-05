@@ -12,7 +12,7 @@ import java.util.jar.Manifest;
  * <a href="https://maven.apache.org/shared/maven-archiver/index.html#class_manifest">manifest</a> and
  * <a href="https://maven.apache.org/shared/maven-archiver/index.html#class_manifestSection">manifestEntries</a> section.
  */
-class ManifestUtils {
+final class ManifestUtils {
     private ManifestUtils() {
     }
 

@@ -26,7 +26,7 @@ import java.security.spec.InvalidParameterSpecException;
  * The {@link JwkUtils} is a simple helper for the purpose of <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a>
  * key pair generation
  */
-public class JwkUtils {
+public final class JwkUtils {
 
     private JwkUtils() {
     }

@@ -15,7 +15,7 @@ import java.util.Arrays;
  * A helper class featuring various convenient conversion methods with
  * <a href="https://datatracker.ietf.org/doc/html/rfc8032#section-5.1.5">RFC 8032</a> standard in mind
  */
-public class Ed25519Utils {
+public final class Ed25519Utils {
 
     /**
      * The length of byte array representing an Ed25519 public key as specified by the
