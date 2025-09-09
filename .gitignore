@@ -44,3 +44,4 @@ build/
 # e.g. Securosys Primus JCE security provider libraries
 lib/
 /codeql/
+/swiyu-issuer-codeql-db/

@@ -104,7 +104,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder {
      *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
      * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
      * @return
-     * @throws IOException
+     * @throws WebVerifiableHistoryCreatorException
      */
     public String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws WebVerifiableHistoryCreatorException {
 

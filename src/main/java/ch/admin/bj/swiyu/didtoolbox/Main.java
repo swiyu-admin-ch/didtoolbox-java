@@ -247,6 +247,9 @@ public class Main {
         var didLogFile = command.didLogFile;
 
         var didLogMeta = fetchDidLogMeta(jc, parsedCommandName, didLogFile);
+        if (didLogMeta == null || didLogMeta.getParams() == null || didLogMeta.getParams().getUpdateKeys() == null) {
+            overAndOut(jc, parsedCommandName, "DID log metadata or update keys are missing or incomplete in file: " + didLogFile.getName());
+        }
 
         // CAUTION At this point, it should be all in place to update to be able to update the supplied DID log
 
@@ -314,7 +317,6 @@ public class Main {
         }
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
-        assert didLogMeta != null;
         System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
                 DidLogUpdaterStrategy.builder()
                         .didMethod(didLogMeta.getParams().getDidMethodEnum())
@@ -336,6 +338,9 @@ public class Main {
         var didLogFile = command.didLogFile;
 
         var didLogMeta = fetchDidLogMeta(jc, parsedCommandName, didLogFile);
+        if (didLogMeta == null || didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
+            overAndOut(jc, parsedCommandName, "DID log metadata or method enum is missing or incomplete in file: " + didLogFile.getName());
+        }
 
         var signingKeyPemFile = command.signingKeyPemFile;
 

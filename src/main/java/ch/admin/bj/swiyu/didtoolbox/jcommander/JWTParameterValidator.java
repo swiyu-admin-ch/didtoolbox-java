@@ -10,7 +10,7 @@ public class JWTParameterValidator implements IParameterValidator {
     @Override
     public void validate(String name, String value) throws ParameterException {
         try {
-            var jwt = SignedJWT.parse(value);
+            SignedJWT.parse(value);
         } catch (ParseException e) {
             throw new ParameterException("Parameter " + name + " should be a valid JWT. Failed to parse parameter: " + e.getLocalizedMessage());
         }

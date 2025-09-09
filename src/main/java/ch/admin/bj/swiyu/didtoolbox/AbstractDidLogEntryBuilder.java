@@ -72,7 +72,7 @@ public abstract class AbstractDidLogEntryBuilder {
      * Setup the class members w.r.t. outcome of the supplied DID log resolution process.
      *
      * @param didLogToResolve
-     * @throws DidResolveException
+     * @throws IllegalArgumentException
      * @throws DidLogMetaPeekerException
      */
     protected void peek(String didLogToResolve)
