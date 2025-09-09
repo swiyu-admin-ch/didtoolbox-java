@@ -138,7 +138,7 @@ final class FilesPrivacy {
                     try {
                         currentUserPrincipal = getCurrentUserPrincipal(null);
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        throw new IllegalStateException("Failed to get current user principal", e);
                     }
 
                     var aclEntryList = new ArrayList<AclEntry>();
@@ -167,7 +167,7 @@ final class FilesPrivacy {
 
         }
 
-        throw new RuntimeException("Unsupported operating system" + os);
+        throw new UnsupportedOperationException("Unsupported operating system: " + os);
     }
 
     /**
@@ -218,7 +218,7 @@ final class FilesPrivacy {
                     try {
                         currentUserPrincipal = getCurrentUserPrincipal(null);
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        throw new IllegalStateException("Failed to get current user principal", e);
                     }
 
                     var aclEntryList = new ArrayList<AclEntry>();
@@ -247,7 +247,7 @@ final class FilesPrivacy {
 
         }
 
-        throw new RuntimeException("Unsupported operating system: " + os);
+        throw new UnsupportedOperationException("Unsupported operating system: " + os);
     }
 
     /**
@@ -263,7 +263,7 @@ final class FilesPrivacy {
     static void restrictAccessToCurrentUserOnly(Path path) throws IOException {
 
         if (!path.toFile().exists()) {
-            throw new RuntimeException("The file denoted by path does not exist: " + path);
+            throw new IllegalArgumentException("The file denoted by path does not exist: " + path);
         }
 
         var aclFileAttributeView = Files.getFileAttributeView(path, AclFileAttributeView.class);

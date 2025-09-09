@@ -9,7 +9,7 @@ import java.io.File;
 @Parameters(
         commandNames = {VerifyProofOfPossessionCommand.COMMAND_NAME},
         commandDescription = "Verifies the validity of the provided proof of possession JWT.",
-        parametersValidators = {TdwCommandParametersValidator.class}
+        parametersValidators = {CommandParametersValidator.class}
 )
 public class VerifyProofOfPossessionCommand {
 

@@ -5,7 +5,7 @@ import com.beust.jcommander.ParameterException;
 
 import java.util.Map;
 
-public class TdwCommandParametersValidator implements IParametersValidator {
+public class CommandParametersValidator implements IParametersValidator {
 
     @Override
     public void validate(Map<String, Object> parameters) throws ParameterException {

@@ -17,7 +17,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-abstract class AbstractTdwCommandParametersValidatorTest {
+abstract class AbstractCommandParametersValidatorTest {
 
     protected static final String CREDENTIALS_FILE_PATH = "src/test/data/com.securosys.primus.jce.credentials.properties";
 
@@ -65,7 +65,7 @@ abstract class AbstractTdwCommandParametersValidatorTest {
 
             Files.writeString(dummyDidLogFile.toPath(), updatedDidLog);
 
-        } catch (IOException | URISyntaxException | TdwUpdaterException e) {
+        } catch (IOException | URISyntaxException | TdwUpdaterException | TdwCreatorException e) {
             fail(e);
         }
         dummyDidLogFile.deleteOnExit();

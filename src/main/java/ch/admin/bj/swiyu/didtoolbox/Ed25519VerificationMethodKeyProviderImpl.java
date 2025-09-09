@@ -16,6 +16,7 @@ import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
+import java.nio.file.Files;
 
 /**
  * The {@link Ed25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation used to generate pairs of
@@ -62,7 +63,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     public Ed25519VerificationMethodKeyProviderImpl(KeyPair ed25519KeyPair) {
         this.keyPair = ed25519KeyPair;
 
-        sanityCheck();
+        performSanityCheck(this.keyPair, this.provider);
     }
 
     protected Ed25519VerificationMethodKeyProviderImpl(KeyPair ed25519KeyPair, Provider provider) {
@@ -73,10 +74,10 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         }
 
         if (this.provider == null) {
-            throw new RuntimeException("No default JCE provider installed: " + DEFAULT_JCE_PROVIDER_NAME);
+            throw new IllegalStateException("No default JCE provider installed: " + DEFAULT_JCE_PROVIDER_NAME);
         }
 
-        sanityCheck();
+        performSanityCheck(this.keyPair, this.provider);
     }
 
     /**
@@ -89,7 +90,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * @see KeyPairGenerator
      */
-    protected Ed25519VerificationMethodKeyProviderImpl() {
+    public Ed25519VerificationMethodKeyProviderImpl() {
 
         try {
             KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("Ed25519");
@@ -99,7 +100,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             this.keyPair = keyPairGen.generateKeyPair();
 
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed to generate Ed25519 key pair", e);
         }
     }
 
@@ -168,7 +169,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     @Deprecated
     public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException {
-        this(new FileReader(privatePemFile), new FileReader(publicPemFile));
+        this(Files.newBufferedReader(privatePemFile.toPath()), Files.newBufferedReader(publicPemFile.toPath()));
     }
 
     /**
@@ -191,7 +192,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         this.keyPair = new KeyPair(pubKey, privKey);
 
-        sanityCheck();
+        performSanityCheck(this.keyPair, this.provider);
     }
 
     /**
@@ -208,8 +209,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     @Deprecated
     public Ed25519VerificationMethodKeyProviderImpl(File privatePemFile, String publicKeyMultibase)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
-
-        this(new FileReader(privatePemFile), publicKeyMultibase);
+        this(Files.newBufferedReader(privatePemFile.toPath()), publicKeyMultibase);
     }
 
     /**
@@ -234,7 +234,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         this.keyPair = new KeyPair(pubKey, privKey);
 
-        sanityCheck();
+        performSanityCheck(this.keyPair, this.provider);
     }
 
     /**
@@ -285,7 +285,22 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * The private/public keys (supplied within {@link #keyPair}) should match. Otherwise, {@link IllegalArgumentException} is thrown.
      */
-    protected void sanityCheck() {
+    protected final void sanityCheck() {
+        performSanityCheck(this.keyPair, this.provider);
+    }
+
+    /**
+     * Static method to perform sanity check on a key pair without relying on instance methods.
+     * This prevents PMD violations when called from constructors.
+     */
+    private static void performSanityCheck(KeyPair keyPair, Provider provider) {
+        if (keyPair == null) {
+            throw new IllegalArgumentException("Key pair cannot be null");
+        }
+
+        if (provider == null) {
+            throw new IllegalStateException("The JCE provider must be set");
+        }
 
         // alphanumerical chars falls within  ['0':'z'] range with...
         var generatedString = new Random().ints(48, 122 + 1)
@@ -294,8 +309,46 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
 
-        if (!this.verify(generatedString.getBytes(StandardCharsets.UTF_8), this.generateSignature(generatedString.getBytes(StandardCharsets.UTF_8)))) {
+        byte[] message = generatedString.getBytes(StandardCharsets.UTF_8);
+
+        // Generate signature using static method to avoid duplication
+        byte[] signature = generateSignature(keyPair, provider, message);
+
+        // Verify signature using static verify method to avoid duplication
+        boolean isValid = verifySignature(keyPair, provider, message, signature);
+
+        if (!isValid) {
             throw new IllegalArgumentException("supplied keys do not match");
+        }
+    }
+
+    /**
+     * Static method to generate a signature without relying on instance state.
+     * This is used by performSanityCheck to avoid code duplication.
+     */
+    private static byte[] generateSignature(KeyPair keyPair, Provider provider, byte[] message) {
+        try {
+            var signer = Signature.getInstance("EdDSA", provider);
+            signer.initSign(keyPair.getPrivate());
+            signer.update(message);
+            return signer.sign();
+        } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Failed to generate signature", e);
+        }
+    }
+
+    /**
+     * Static method to verify a signature without relying on instance state.
+     * This is used by performSanityCheck and the instance verify method to avoid code duplication.
+     */
+    private static boolean verifySignature(KeyPair keyPair, Provider provider, byte[] message, byte[] signature) {
+        try {
+            var verifier = Signature.getInstance("EdDSA", provider);
+            verifier.initVerify(keyPair.getPublic());
+            verifier.update(message);
+            return verifier.verify(signature);
+        } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Failed to verify signature", e);
         }
     }
 
@@ -308,14 +361,14 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     void writePrivateKeyAsPem(File file) throws IOException {
 
         if (this.keyPair == null) {
-            throw new RuntimeException("This instance features no self-generated key pair.");
+            throw new IllegalStateException("This instance features no self-generated key pair.");
         }
 
         var privateKeyEncoded = this.keyPair.getPrivate().getEncoded();
         if (privateKeyEncoded == null) {
-            throw new RuntimeException("The key pair features a private key that does not support encoding");
+            throw new IllegalStateException("The key pair features a private key that does not support encoding");
         }
-        PemWriter pemWriter = new PemWriter(new FileWriter(file));
+        PemWriter pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()));
         try {
             pemWriter.writeObject(new PemObject("PRIVATE KEY", privateKeyEncoded));
         } finally {
@@ -327,17 +380,17 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @param file to store the key
      * @throws IOException
      */
-    void writePublicKeyAsPem(File file) throws IOException {
+    public void writePublicKeyAsPem(File file) throws IOException {
 
         if (this.keyPair == null) {
-            throw new RuntimeException("This instance features no self-generated key pair.");
+            throw new IllegalStateException("This instance features no self-generated key pair.");
         }
 
         var publicKeyEncoded = this.keyPair.getPublic().getEncoded();
         if (publicKeyEncoded == null) {
-            throw new RuntimeException("The key pair features a public key that does not support encoding");
+            throw new IllegalStateException("The key pair features a public key that does not support encoding");
         }
-        PemWriter pemWriter = new PemWriter(new FileWriter(file));
+        PemWriter pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()));
         try {
             pemWriter.writeObject(new PemObject("PUBLIC KEY", publicKeyEncoded));
         } finally {
@@ -359,7 +412,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     public String getVerificationKeyMultibase() {
 
         if (this.keyPair == null) {
-            throw new RuntimeException("This instance features no self-generated key pair.");
+            throw new IllegalStateException("This instance features no self-generated key pair.");
         }
 
         // may throw IllegalArgumentException if the supplied public key does not support encoding
@@ -376,22 +429,14 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     public byte[] generateSignature(byte[] message) {
 
         if (this.provider == null) {
-            throw new RuntimeException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
+            throw new IllegalStateException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
         }
 
         if (this.keyPair == null) {
-            throw new RuntimeException("This instance features no self-generated key pair.");
+            throw new IllegalStateException("This instance features no self-generated key pair.");
         }
 
-        try {
-            var signer = Signature.getInstance("EdDSA", this.provider);
-            signer.initSign(this.keyPair.getPrivate());
-            signer.update(message);
-            return signer.sign();
-        } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
-            // the JCE provider should be already properly initialized in the constructor
-            throw new RuntimeException(e);
-        }
+        return generateSignature(this.keyPair, this.provider, message);
     }
 
     @Override
@@ -402,21 +447,13 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     boolean verify(byte[] message, byte[] signature) {
 
         if (this.provider == null) {
-            throw new RuntimeException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
+            throw new IllegalStateException("The JCE provider must be already set for an instance of class: " + this.getClass().getName());
         }
 
         if (this.keyPair == null) {
-            throw new RuntimeException("This instance features no self-generated key pair.");
+            throw new IllegalStateException("This instance features no self-generated key pair.");
         }
 
-        try {
-            var verifier = Signature.getInstance("EdDSA", this.provider);
-            verifier.initVerify(this.keyPair.getPublic());
-            verifier.update(message);
-            return verifier.verify(signature);
-        } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
-            // the JCE provider should be already properly initialized in the constructor
-            throw new RuntimeException(e);
-        }
+        return verifySignature(this.keyPair, this.provider, message, signature);
     }
 }

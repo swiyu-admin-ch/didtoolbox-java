@@ -11,7 +11,7 @@ import java.util.Arrays;
 /**
  * Intended for unit testing purposes only.
  */
-class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519VerificationMethodKeyProviderImpl {
+public class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519VerificationMethodKeyProviderImpl {
 
     byte[] signingKey;
     byte[] verifyingKey;
@@ -36,7 +36,7 @@ class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519Verification
      * @param privateKeyMultibase the base58-encoded string to decode as private Ed25519 key
      * @param publicKeyMultibase  the base58-encoded string to decode as public Ed25519 key
      */
-    UnsafeEd25519VerificationMethodKeyProviderImpl(String privateKeyMultibase, String publicKeyMultibase) {
+    public UnsafeEd25519VerificationMethodKeyProviderImpl(String privateKeyMultibase, String publicKeyMultibase) {
 
         var signingKey = Base58.decode(privateKeyMultibase.substring(1));
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));

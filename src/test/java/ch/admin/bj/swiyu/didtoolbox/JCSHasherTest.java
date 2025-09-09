@@ -16,7 +16,7 @@ import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JCSHasherTest {
+class JCSHasherTest {
 
     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
     private static final String CREDENTIAL_WITHOUT_PROOF = """

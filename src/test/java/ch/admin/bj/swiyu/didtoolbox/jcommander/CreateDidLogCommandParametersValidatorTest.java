@@ -6,12 +6,12 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-class UpdateTdwCommandParametersValidatorTest extends AbstractTdwCommandParametersValidatorTest {
+class CreateDidLogCommandParametersValidatorTest extends AbstractCommandParametersValidatorTest {
 
     @Override
     protected JCommander buildCommandParser() {
         return JCommander.newBuilder()
-                .addCommand(UpdateTdwCommand.COMMAND_NAME, new UpdateTdwCommand())
+                .addCommand(CreateDidLogCommand.COMMAND_NAME, new CreateDidLogCommand())
                 .build();
     }
 
@@ -19,8 +19,8 @@ class UpdateTdwCommandParametersValidatorTest extends AbstractTdwCommandParamete
     protected String[] appendToRequiredCommandArgs(String... args) {
         return Stream.concat(
                         Arrays.stream(new String[]{
-                                UpdateTdwCommand.COMMAND_NAME,
-                                CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE, dummyDidLogFile.getPath() // required
+                                CreateDidLogCommand.COMMAND_NAME,
+                                "-u", "https://domain.com:443/path1/path2/did.jsonl" // required
                         }),
                         Arrays.stream(args))
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));
