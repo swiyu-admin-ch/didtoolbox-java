@@ -13,6 +13,7 @@
     <!-- Example rules, you can add or remove as needed -->
     <rule ref="category/java/bestpractices.xml">
         <exclude name="GuardLogStatement"/>
+        <exclude name="SystemPrintln"/>
     </rule>
     <!--    <rule ref="category/java/codestyle.xml"> !Turn off!-->
     <rule ref="category/java/design.xml">
