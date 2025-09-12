@@ -3,10 +3,11 @@ package ch.admin.bj.swiyu.didtoolbox;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PemUtilsTest {
 
@@ -16,7 +17,7 @@ class PemUtilsTest {
         File tempFile = File.createTempFile("mypublickey", ".pem");
         tempFile.deleteOnExit();
 
-        var w = new FileWriter(tempFile);
+        var w = Files.newBufferedWriter(tempFile.toPath());
         w.write("""
                 -----BEGIN PUBLIC KEY-----
                 MCowBQYDK2VwAyEAURt091SPZZDzKv0Txz9Nhf52jyUxyjqS8CSXbqc0ajk=

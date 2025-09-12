@@ -6,7 +6,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-public class CreateProofOfPossessionParametersValidatorTest extends AbstractTdwCommandParametersValidatorTest {
+public class CreateProofOfPossessionParametersValidatorTest extends AbstractCommandParametersValidatorTest {
 
     @Override
     protected JCommander buildCommandParser() {

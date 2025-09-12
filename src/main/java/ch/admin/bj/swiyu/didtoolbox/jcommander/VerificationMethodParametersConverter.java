@@ -24,7 +24,7 @@ public class VerificationMethodParametersConverter implements IStringConverter<L
                 jwk = JwkUtils.loadECPublicJWKasJSON(new File(splitted[1]), kid);
 
             } catch (IOException | InvalidKeySpecException e) {
-                throw new RuntimeException(e);
+                throw new IllegalArgumentException(e);
             }
 
             fileList.add(new VerificationMethodParameters(kid, jwk));

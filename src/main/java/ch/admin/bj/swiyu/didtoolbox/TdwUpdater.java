@@ -1,11 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
-import ch.admin.eid.didtoolbox.DidDoc;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -48,55 +47,19 @@ import java.util.Set;
  * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
  * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
  * </ul>
- * For instance:
- * <pre>
- * {@code
- *     package mypackage;
- *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import java.net.*;
- *
- *     public static void main(String... args) {
- *
- *         String initialDidLogEntryWithGeneratedKeys = null;
- *         String updatedDidLogEntryWithReplacedVerificationMaterial = null;
- *         try {
- *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *             var verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
- *
- *             // NOTE that all verification material will be generated here as well
- *             initialDidLogEntryWithGeneratedKeys = TdwCreator.builder()
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider)
- *                 .build()
- *                 .create(identifierRegistryUrl);
- *
- *             // Now update the previously generated initial single-entry DID log
- *             updatedDidLogEntryWithReplacedVerificationMaterial = TdwUpdater.builder()
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider) // the same used during creation
- *                 .assertionMethodKeys(Map.of(
- *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
- *                 ))
- *                 .authenticationKeys(Map.of(
- *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")
- *                 ))
- *                 .build()
- *                 .update(initialDidLogEntryWithGeneratedKeys);
- *
- *         } catch (Exception e) {
- *             // some exc. handling goes here
- *             System.exit(1);
- *         }
- *
- *         // do something with the initialDidLogEntryWithGeneratedKeys/updatedDidLogEntryWithReplacedVerificationMaterial vars here
- *     }
- * }
- * </pre>
+ * <p>
+ * <p>
+ * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
+ * Instead, rather rely on the designated {@link DidLogUpdaterStrategy} for the purpose. Needless to say,
+ * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
+ * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
+ * <p>
  */
 @Builder
 @Getter
-public class TdwUpdater {
+public class TdwUpdater extends AbstractDidLogEntryBuilder {
 
-    private static String SCID_PLACEHOLDER = "{SCID}";
+    private static final String SCID_PLACEHOLDER = "{SCID}";
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
@@ -109,22 +72,9 @@ public class TdwUpdater {
     private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
 
-    private static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String publicKeyJwk) throws TdwUpdaterException {
-
-        JsonObject verificationMethodObj = new JsonObject();
-        verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
-        // CAUTION The "controller" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDSYS-35
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("controller", didTDW);
-        verificationMethodObj.addProperty("type", "JsonWebKey2020");
-        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDOMNI-35
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
-        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
-
-        return verificationMethodObj;
+    @Override
+    protected DidMethodEnum getDidMethod() {
+        return DidMethodEnum.TDW_0_3;
     }
 
     /**
@@ -160,41 +110,25 @@ public class TdwUpdater {
      * <p>
      * <b>However, it is introduced for the sake of testability only.</b>
      *
-     * @param didLog to update. Expected to be resolvable/verifiable already.
-     * @param zdt    a date-time with a time-zone in the ISO-8601 calendar system
+     * @param resolvableDidLog to update. Expected to be resolvable/verifiable already.
+     * @param zdt              a date-time with a time-zone in the ISO-8601 calendar system
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws TdwUpdaterException if update fails for whatever reason.
      */
-    String update(String didLog, ZonedDateTime zdt) throws TdwUpdaterException {
+    String update(String resolvableDidLog, ZonedDateTime zdt) throws TdwUpdaterException {
 
-        DidLogMetaPeeker.DidLogMeta didLogMeta;
-        String didTDW;
-        DidDoc oldDidDoc;
-        Did did = null;
         try {
-            didLogMeta = DidLogMetaPeeker.peek(didLog); // try extracting DID doc ID
-            didTDW = didLogMeta.didDocId;
-
-            // According to https://identity.foundation/didwebvh/v0.3/#update-rotate:
-            // To update a DID, a new, verifiable DID Log Entry must be generated, witnessed (if necessary),
-            // appended to the existing DID Log (did.jsonl), and published to the web location defined by the DID.
-            did = new Did(didTDW);
-            oldDidDoc = did.resolve(didLog);
-
-        } catch (DidResolveException | DidLogMetaPeekerException e) {
-            throw new TdwUpdaterException("Unresolvable/unverifiable DID log detected", e);
-        } finally {
-            if (did != null) {
-                did.close();
-            }
+            super.peek(resolvableDidLog);
+        } catch (Exception e) { //} catch (DidResolveException | DidLogMetaPeekerException e) {
+            throw new TdwUpdaterException(e);
         }
 
         // CAUTION Only activated DIDs can be updated
-        if (didLogMeta.params.deactivated != null && didLogMeta.params.deactivated) {
+        if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
             throw new TdwUpdaterException("DID already deactivated");
         }
 
-        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.params.updateKeys)) {
+        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new TdwUpdaterException("Update key mismatch");
         }
 
@@ -203,7 +137,7 @@ public class TdwUpdater {
         //
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
         // The versionTime of the last entry MUST be earlier than the current time.
-        var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.dateTime);
+        var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.getDateTime());
         if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
             throw new TdwUpdaterException("The versionTime of the last entry MUST be earlier than the current time");
         }
@@ -213,12 +147,12 @@ public class TdwUpdater {
 
         // take over context
         var context = new JsonArray();
-        for (var ctx : oldDidDoc.getContext()) {
+        for (var ctx : didLogMeta.getDidDoc().getContext()) {
             context.add(ctx);
         }
         didDoc.add("@context", context);
 
-        didDoc.addProperty("id", didTDW);
+        didDoc.addProperty("id", this.didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
@@ -236,8 +170,8 @@ public class TdwUpdater {
             JsonArray authentication = new JsonArray();
             for (var key : this.authenticationKeys.entrySet()) {
 
-                authentication.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue()));
+                authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(this.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("authentication", authentication);
@@ -248,8 +182,8 @@ public class TdwUpdater {
             JsonArray assertionMethod = new JsonArray();
             for (var key : this.assertionMethodKeys.entrySet()) {
 
-                assertionMethod.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue()));
+                assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(this.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
@@ -268,7 +202,7 @@ public class TdwUpdater {
         // https://identity.foundation/didwebvh/v0.3/#entry-hash-generation-and-verification:
         // For the first log entry, the predecessor versionId is the SCID (itself a hash),
         // while for all other entries it is the versionId item from the previous log entry.
-        didLogEntryWithoutProofAndSignature.add(didLogMeta.lastVersionId);
+        didLogEntryWithoutProofAndSignature.add(didLogMeta.getLastVersionId());
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
@@ -293,7 +227,7 @@ public class TdwUpdater {
                 return null;
             }).toArray(String[]::new));
 
-            if (!didLogMeta.params.updateKeys.containsAll(newUpdateKeys)) { // need for change?
+            if (!didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)) { // need for change?
 
                 String updateKey;
                 for (var pemFile : this.updateKeys) {
@@ -342,7 +276,7 @@ public class TdwUpdater {
         }
 
         JsonArray didLogEntryWithProof = new JsonArray();
-        var challenge = didLogMeta.lastVersionNumber + 1 + "-" + entryHash; // versionId as the proof challenge
+        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + entryHash; // versionId as the proof challenge
         didLogEntryWithProof.add(challenge);
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(2));
@@ -358,7 +292,8 @@ public class TdwUpdater {
         var proofs = new JsonArray();
         JsonObject proof = null;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
+            proof = JCSHasher.buildDataIntegrityProof(
+                    didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
         } catch (IOException e) {
             throw new TdwUpdaterException("Fail to build DID doc data integrity proof", e);
         }
@@ -367,7 +302,7 @@ public class TdwUpdater {
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
-        did = new Did(didLogMeta.didDocId);
+        var did = new Did(this.didLogMeta.getDidDoc().getId());
         try {
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
@@ -375,9 +310,9 @@ public class TdwUpdater {
             //          .validate(didLogEntryWithProof.toString());
             //      would not be necessary here, as it is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolve(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
+            did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
-            throw new RuntimeException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
+            throw new InvalidDidLogException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {
             did.close();
         }

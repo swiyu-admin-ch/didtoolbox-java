@@ -15,11 +15,13 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 
-class JCSHasher {
+public class JCSHasher {
 
-    static final String DATA_INTEGRITY_PROOF = "DataIntegrityProof";
-    static final String EDDSA_JCS_2022 = "eddsa-jcs-2022";
-    static final String DID_KEY = "did:key:";
+    public static final String DATA_INTEGRITY_PROOF = "DataIntegrityProof";
+    public static final String EDDSA_JCS_2022 = "eddsa-jcs-2022";
+    public static final String DID_KEY = "did:key:";
+    public static final String PROOF_PURPOSE_AUTHENTICATION = "authentication";
+    public static final String PROOF_PURPOSE_ASSERTION_METHOD = "assertionMethod";
 
     /**
      * To generate the required SCID for a did:tdw DID, the DID Controller MUST execute the following function:
@@ -32,7 +34,7 @@ class JCSHasher {
      *
      * @return
      */
-    static String buildSCID(String jsonData) throws IOException {
+    public static String buildSCID(String jsonData) throws IOException {
         return Base58.encode(multihash((new JsonCanonicalizer(jsonData)).getEncodedString()));
     }
 
@@ -49,7 +51,7 @@ class JCSHasher {
         try {
             hasher = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
         hasher.update(str.getBytes(StandardCharsets.UTF_8));
         byte[] digest = hasher.digest();
@@ -72,7 +74,7 @@ class JCSHasher {
         try {
             hasher = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
         hasher.update(((new JsonCanonicalizer(json)).getEncodedString()).getBytes(StandardCharsets.UTF_8));
         return HexFormat.of().formatHex(hasher.digest());
@@ -112,12 +114,12 @@ class JCSHasher {
      * @return JsonObject representing the data integrity proof
      * @throws IOException may come from a hasher
      */
-    static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument,
-                                              boolean useContext,
-                                              VerificationMethodKeyProvider verificationMethodKeyProvider,
-                                              String challenge,
-                                              String proofPurpose,
-                                              ZonedDateTime dateTime)
+    public static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument,
+                                                     boolean useContext,
+                                                     VerificationMethodKeyProvider verificationMethodKeyProvider,
+                                                     String challenge,
+                                                     String proofPurpose,
+                                                     ZonedDateTime dateTime)
             throws IOException {
 
         /*
@@ -146,7 +148,9 @@ class JCSHasher {
          */
         proof.addProperty("verificationMethod", DID_KEY + verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + verificationMethodKeyProvider.getVerificationKeyMultibase());
         proof.addProperty("proofPurpose", proofPurpose);
-        proof.addProperty("challenge", challenge);
+        if (challenge != null) {
+            proof.addProperty("challenge", challenge);
+        }
 
         String docHashHex = hashJsonObjectAsHex(unsecuredDocument);
         String proofHashHex = hashJsonObjectAsHex(proof);

@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.PemFileParameterValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.VerificationMethodKeyParametersValidator;
 import com.beust.jcommander.Parameter;
 
 import java.io.File;
@@ -10,7 +12,7 @@ import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.*;
 /**
  * The base class for all Command classes in the package that require supply of a key material.
  */
-abstract class AbstractKeyMaterialTdwCommand extends AbstractTdwCommandBase {
+class AbstractKeyMaterialTdwCommand extends AbstractCommandBase {
 
     @Parameter(names = {PARAM_NAME_LONG_VERIFYING_KEY_FILES, PARAM_NAME_SHORT_VERIFYING_KEY_FILES},
             description = "One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.",

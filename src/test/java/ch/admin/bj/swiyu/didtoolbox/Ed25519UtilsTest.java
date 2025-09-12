@@ -139,7 +139,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         var buff = ByteBuffer.allocate(34);
         buff.put((byte) 0xed);
         buff.put((byte) 0x01);
-        buff.put(Arrays.copyOfRange(PUBLIC_KEY_ANOTHER, 0, PUBLIC_KEY_ANOTHER.length));
+        buff.put(Arrays.copyOfRange(TEST_PUBLIC_KEY_ANOTHER, 0, TEST_PUBLIC_KEY_ANOTHER.length));
         // base64, see https://github.com/multiformats/multibase/blob/master/multibase.csv#L23
         var base64MultibaseValue = "m" + Base64.encode(buff.array());
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(base64MultibaseValue));
@@ -148,7 +148,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         // private key Ed25519, see https://github.com/multiformats/multicodec/blob/master/table.csv#L182
         buff.put((byte) 0x13);
         buff.put((byte) 0x00);
-        buff.put(Arrays.copyOfRange(PRIVATE_KEY_ANOTHER, 0, PRIVATE_KEY_ANOTHER.length));
+        buff.put(Arrays.copyOfRange(TEST_PRIVATE_KEY_ANOTHER, 0, TEST_PRIVATE_KEY_ANOTHER.length));
         var unsupportedTypeMultibaseValue = "z" + Base58.encode(buff.array());
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(unsupportedTypeMultibaseValue));
     }

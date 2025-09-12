@@ -4,6 +4,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Properties;
@@ -81,7 +83,7 @@ public class PrimusKeyStoreLoader {
         Properties props = null;
         if (credentials != null) {
             props = new Properties();
-            props.load(new FileInputStream(credentials));
+            props.load(Files.newInputStream(credentials.toPath()));
         }
 
         var host = System.getenv(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.name());
@@ -197,7 +199,7 @@ public class PrimusKeyStoreLoader {
                 return "com.securosys.primus.jce.credentials.password=" + value + System.lineSeparator();
             }
 
-            throw new RuntimeException("The envvar " + this.name() + " is not required as credential for a Securosys Primus Key Store.");
+            throw new IllegalArgumentException("The envvar " + this.name() + " is not required as credential for a Securosys Primus Key Store.");
         }
     }
 

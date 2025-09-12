@@ -3,7 +3,10 @@ package ch.admin.bj.swiyu.didtoolbox;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A convenient helper introduced for the sake of comfortably restricting access to any file or a directory,
@@ -79,16 +82,22 @@ final class FilesPrivacy {
             // AclEntryFlag.INHERIT_ONLY,
     );
 
-    private static UserPrincipal getCurrentUserPrincipal(Path path) throws IOException {
-        if (path != null) {
-            return path.getFileSystem()
+    private static UserPrincipal getCurrentUserPrincipal(Path path) {
+
+        try {
+            if (path != null) {
+                return path.getFileSystem()
+                        .getUserPrincipalLookupService()
+                        .lookupPrincipalByName(System.getProperty("user.name"));
+            }
+
+            return FileSystems.getDefault()
                     .getUserPrincipalLookupService()
                     .lookupPrincipalByName(System.getProperty("user.name"));
-        }
 
-        return FileSystems.getDefault()
-                .getUserPrincipalLookupService()
-                .lookupPrincipalByName(System.getProperty("user.name"));
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -133,21 +142,14 @@ final class FilesPrivacy {
                 @Override
                 public List<AclEntry> value() {
 
-                    // lookup current user principal
-                    UserPrincipal currentUserPrincipal = null;
-                    try {
-                        currentUserPrincipal = getCurrentUserPrincipal(null);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
                     var aclEntryList = new ArrayList<AclEntry>();
                     aclEntryList.add(AclEntry.newBuilder()
                             .setType(
                                     // Explicitly grants access to a file or directory.
                                     AclEntryType.ALLOW)
                             .setFlags(ALL_ACL_FLAGS)
-                            .setPrincipal(currentUserPrincipal)
+                            // lookup current user principal
+                            .setPrincipal(getCurrentUserPrincipal(null))
                             .setPermissions(ACL_PERMISSIONS_FULL_CONTROL)
                             .build());
 
@@ -167,7 +169,7 @@ final class FilesPrivacy {
 
         }
 
-        throw new RuntimeException("Unsupported operating system" + os);
+        throw new IllegalArgumentException("Unsupported operating system" + os);
     }
 
     /**
@@ -213,21 +215,14 @@ final class FilesPrivacy {
                 @Override
                 public List<AclEntry> value() {
 
-                    // lookup current user principal
-                    UserPrincipal currentUserPrincipal = null;
-                    try {
-                        currentUserPrincipal = getCurrentUserPrincipal(null);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
                     var aclEntryList = new ArrayList<AclEntry>();
                     aclEntryList.add(AclEntry.newBuilder()
                             .setType(
                                     // Explicitly grants access to a file or directory.
                                     AclEntryType.ALLOW)
                             .setFlags(ALL_ACL_FLAGS)
-                            .setPrincipal(currentUserPrincipal)
+                            // lookup current user principal
+                            .setPrincipal(getCurrentUserPrincipal(null))
                             .setPermissions(ACL_PERMISSIONS_FULL_CONTROL)
                             .build());
 
@@ -247,7 +242,7 @@ final class FilesPrivacy {
 
         }
 
-        throw new RuntimeException("Unsupported operating system: " + os);
+        throw new IllegalArgumentException("Unsupported operating system: " + os);
     }
 
     /**
@@ -263,7 +258,7 @@ final class FilesPrivacy {
     static void restrictAccessToCurrentUserOnly(Path path) throws IOException {
 
         if (!path.toFile().exists()) {
-            throw new RuntimeException("The file denoted by path does not exist: " + path);
+            throw new IllegalArgumentException("The file denoted by path does not exist: " + path);
         }
 
         var aclFileAttributeView = Files.getFileAttributeView(path, AclFileAttributeView.class);

@@ -54,7 +54,7 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
         } catch (Exception e) {
             //} catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
             //throw new PrimusKeyStoreInitializationException(
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                     "Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);
         }
     }
