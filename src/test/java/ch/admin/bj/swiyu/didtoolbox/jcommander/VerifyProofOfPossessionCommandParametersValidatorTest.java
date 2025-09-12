@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -33,11 +33,11 @@ public class VerifyProofOfPossessionCommandParametersValidatorTest {
         try {
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
             VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
-                    new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit");
+                    Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "myalias", "changeit");
             ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"));
             AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"));
         } catch (Exception intolerable) {
-            throw new RuntimeException(intolerable);
+            throw new IllegalArgumentException(intolerable);
         }
     }
 
@@ -179,8 +179,8 @@ public class VerifyProofOfPossessionCommandParametersValidatorTest {
         };
 
         for (var params : incompleteParams) {
-                assertThrowsParameterException(() -> buildCommandParser().parse(appendToCommandArgs(params)),
-                        "The following option is required:");
+            assertThrowsParameterException(() -> buildCommandParser().parse(appendToCommandArgs(params)),
+                    "The following option is required:");
         }
     }
 

@@ -57,7 +57,7 @@ public abstract class AbstractDidLogEntryBuilder {
             try {
                 return FilesPrivacy.createPrivateDirectory(outputDir.toPath(), false).toFile(); // may throw DirectoryNotEmptyException, SecurityException etc.
             } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
-                throw new RuntimeException(ex);
+                throw new IllegalArgumentException(ex);
             } catch (AccessDeniedException ex) {
                 throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
             } catch (Throwable thr) {
@@ -83,7 +83,7 @@ public abstract class AbstractDidLogEntryBuilder {
         } else if (getDidMethod().isWebVh10()) {
             this.didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLogToResolve);
         } else {
-            throw new RuntimeException("Unsupported DID method");
+            throw new IllegalArgumentException("Unsupported DID method");
         }
     }
 

@@ -4,6 +4,7 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -12,7 +13,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-public class PemUtils {
+public final class PemUtils {
 
     private PemUtils() {
     }
@@ -22,7 +23,7 @@ public class PemUtils {
         if (!pemFile.isFile() || !pemFile.exists()) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", pemFile.getAbsolutePath()));
         }
-        return readPemObject(new FileReader(pemFile));
+        return readPemObject(Files.newBufferedReader(pemFile.toPath()));
     }
 
     static byte[] readPemObject(Reader pemKeyReader) throws IOException {
@@ -48,7 +49,7 @@ public class PemUtils {
         try {
             factory = KeyFactory.getInstance("Ed25519");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
         return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
     }
@@ -66,7 +67,7 @@ public class PemUtils {
         File tempFile = File.createTempFile("mypublickey", ".pem");
         tempFile.deleteOnExit();
 
-        Writer w = new BufferedWriter(new FileWriter(tempFile));
+        Writer w = Files.newBufferedWriter(tempFile.toPath());
         try {
             w.write(pemPublicKey);
             w.flush();
@@ -82,7 +83,7 @@ public class PemUtils {
         try {
             factory = KeyFactory.getInstance("Ed25519");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
         return factory.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
     }

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A quite rudimentary did:tdw DID log entry parser intended as a sidekick (helper) of {@link TdwUpdater}.
  */
-public class TdwDidLogMetaPeeker {
+public final class TdwDidLogMetaPeeker {
 
     private TdwDidLogMetaPeeker() {
     }

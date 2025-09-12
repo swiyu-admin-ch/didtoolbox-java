@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
-import ch.admin.bj.swiyu.didtoolbox.model.*;
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -224,7 +224,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
             did.resolveAll(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
-            throw new RuntimeException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
+            throw new InvalidDidLogException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {
             did.close();
         }

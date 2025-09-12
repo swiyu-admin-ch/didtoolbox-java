@@ -87,7 +87,7 @@ public class ProofOfPossessionVerifier {
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
         var algorithm = signedJWT.getHeader().getAlgorithm();
         if (!JWSAlgorithm.Ed25519.equals(algorithm)) {
-            throw ProofOfPossessionVerifierException.UnsupportedAlgorithm(JWSAlgorithm.Ed25519.toString(), algorithm.toString());
+            throw ProofOfPossessionVerifierException.unsupportedAlgorithm(JWSAlgorithm.Ed25519.toString(), algorithm.toString());
         }
 
         // check nonce
@@ -95,10 +95,10 @@ public class ProofOfPossessionVerifier {
         try {
             nonceClaim = signedJWT.getJWTClaimsSet().getStringClaim("nonce");
         } catch (ParseException e) {
-            throw ProofOfPossessionVerifierException.Unparsable(e);
+            throw ProofOfPossessionVerifierException.unparsable(e);
         }
         if (!nonce.equals(nonceClaim)) {
-            throw ProofOfPossessionVerifierException.InvalidNonce(nonceClaim, nonce);
+            throw ProofOfPossessionVerifierException.invalidNonce(nonceClaim, nonce);
         }
 
         // check timestamp
@@ -107,14 +107,14 @@ public class ProofOfPossessionVerifier {
         try {
             expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         } catch (ParseException e) {
-            throw ProofOfPossessionVerifierException.Unparsable(e);
+            throw ProofOfPossessionVerifierException.unparsable(e);
         }
         if (expirationTime == null) {
-            throw ProofOfPossessionVerifierException.Expired();
+            throw ProofOfPossessionVerifierException.expired();
         }
         var now = Instant.now();
         if (now.isAfter(expirationTime.toInstant())) {
-            throw ProofOfPossessionVerifierException.Expired();
+            throw ProofOfPossessionVerifierException.expired();
         }
 
         // check if the value of JWT claim 'kid' matches the DataIntegrityProof did:key:* value (in DID log)
@@ -123,7 +123,7 @@ public class ProofOfPossessionVerifier {
         var publicKey = Ed25519Utils.decodeMultibase(publicKeyMultibase);
 
         if (!this.updateKeys.contains(publicKeyMultibase)) {
-            throw ProofOfPossessionVerifierException.KeyMismatch(publicKeyMultibase);
+            throw ProofOfPossessionVerifierException.keyMismatch(publicKeyMultibase);
         }
 
         var jwk = new com.nimbusds.jose.jwk.OctetKeyPair.Builder(
@@ -133,10 +133,10 @@ public class ProofOfPossessionVerifier {
 
         try {
             if (!signedJWT.verify(new Ed25519Verifier(jwk.toPublicJWK()))) {
-                throw ProofOfPossessionVerifierException.InvalidSignature();
+                throw ProofOfPossessionVerifierException.invalidSignature();
             }
         } catch (JOSEException e) {
-            throw ProofOfPossessionVerifierException.FailedToVerify(e);
+            throw ProofOfPossessionVerifierException.failedToVerify(e);
         }
     }
 }

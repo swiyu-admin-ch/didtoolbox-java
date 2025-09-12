@@ -10,8 +10,6 @@ import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.UnixStyleUsageFormatter;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
@@ -151,7 +149,7 @@ public class Main {
             File verifyingKeyPemFile = null;
             for (var pemFile : verifyingKeyPemFiles) {
                 try {
-                    signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), new FileReader(pemFile)); // supplied external key pair
+                    signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), Files.newBufferedReader(pemFile.toPath())); // supplied external key pair
                     // At this point, the matching verifying key is detected, so we are free to break from the loop
                     verifyingKeyPemFile = pemFile;
                     break;
@@ -166,7 +164,7 @@ public class Main {
         } else if (jksFile != null && jksAlias != null) {
 
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
             // TODO Populate verifyingKeyPemFiles (for each jksAlias) from the JKS by calling signer.writePublicKeyAsPem(tempPublicKeyPemFile);
 
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
@@ -190,7 +188,7 @@ public class Main {
                     FilesPrivacy.createPrivateDirectory(outputDir.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
                 } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
                     if (!outputDir.exists()) {
-                        throw new RuntimeException(ex); // the delete-create logic is not implemented properly
+                        throw new IllegalArgumentException(ex); // the delete-create logic is not implemented properly
                     }
                     // ignore otherwise
                 } catch (AccessDeniedException ex) {
@@ -207,10 +205,10 @@ public class Main {
                     // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
                     FilesPrivacy.createPrivateFile(privateKeyFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
                 } catch (DirectoryNotEmptyException ex) {
-                    throw new RuntimeException(ex); // it should be a file, not a directory
+                    throw new IllegalArgumentException(ex); // it should be a file, not a directory
                 } catch (FileAlreadyExistsException ex) {
                     if (!privateKeyFile.exists()) {
-                        throw new RuntimeException(ex);
+                        throw new IllegalArgumentException(ex);
                     }
                     throw ex;
                 } catch (AccessDeniedException ex) {
@@ -289,7 +287,7 @@ public class Main {
             for (var key : didLogMeta.getParams().getUpdateKeys()) {
                 try {
                     // the signing key is supplied externally, but verifying key should be already among updateKeys
-                    signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
+                    signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), key);
                     // At this point, the matching verifying key is detected, so we are free to break from the loop
                     matchingUpdateKey = key;
                     break;
@@ -303,7 +301,7 @@ public class Main {
 
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
 
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
 
@@ -359,7 +357,7 @@ public class Main {
                 for (var key : didLogMeta.getParams().getUpdateKeys()) {
                     try {
                         // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(new FileReader(signingKeyPemFile), key);
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), key);
                         // At this point, the matching verifying key is detected, so we are free to break from the loop
                         matchingUpdateKey = key;
                         break;
@@ -374,7 +372,7 @@ public class Main {
 
         } else if (jksFile != null && jksPassword != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
 
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
 
@@ -424,14 +422,16 @@ public class Main {
         } else if (signingKeyPemFile != null) { // at this point, verifyingKeyPemFiles must be non-null already
 
             try {
-                signer = new Ed25519ProofOfPossessionJWSSignerImpl(new FileReader(signingKeyPemFile), new FileReader(verifyingKeyPemFile)); // supplied external key pair
+                signer = new Ed25519ProofOfPossessionJWSSignerImpl(
+                        Files.newBufferedReader(signingKeyPemFile.toPath()),
+                        Files.newBufferedReader(verifyingKeyPemFile.toPath())); // supplied external key pair
             } catch (Exception ex) {
                 overAndOut(jc, parsedCommandName, "The supplied ed25519 key pair mismatch: " + ex.getLocalizedMessage());
             }
 
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new Ed25519ProofOfPossessionJWSSignerImpl(new FileInputStream(jksFile), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new Ed25519ProofOfPossessionJWSSignerImpl(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
             signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
         } else {
@@ -492,8 +492,10 @@ public class Main {
             overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
         }
 
-        if (didLogMeta == null || didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
-            throw new RuntimeException("Incomplete metadata");
+        if (didLogMeta == null ||
+                didLogMeta.getParams() == null ||
+                didLogMeta.getParams().getDidMethodEnum() == null) {
+            throw new IllegalArgumentException("Incomplete metadata");
         }
 
         return null;

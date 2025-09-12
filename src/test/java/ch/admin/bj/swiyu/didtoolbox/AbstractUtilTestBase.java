@@ -3,12 +3,12 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
@@ -95,7 +95,7 @@ public abstract class AbstractUtilTestBase {
         try {
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
             TEST_POP_JWS_SIGNER_JKS = new Ed25519ProofOfPossessionJWSSignerImpl(
-                    new FileInputStream(TEST_DATA_PATH_PREFIX + "mykeystore.jks"), "changeit", "myalias", "changeit");
+                    Files.newInputStream(Path.of(TEST_DATA_PATH_PREFIX + "mykeystore.jks")), "changeit", "myalias", "changeit");
             TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS = TEST_POP_JWS_SIGNER_JKS;
 
             TEST_ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01",
@@ -103,18 +103,19 @@ public abstract class AbstractUtilTestBase {
             TEST_AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01",
                     JwkUtils.loadECPublicJWKasJSON(new File(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"), "my-auth-key-01"));
         } catch (Exception intolerable) {
-            throw new RuntimeException(intolerable);
+            throw new IllegalArgumentException(intolerable);
         }
 
         try {
             var signer = new Ed25519ProofOfPossessionJWSSignerImpl(
-                    new FileReader(TEST_DATA_PATH_PREFIX + "private01.pem"), new FileReader(TEST_DATA_PATH_PREFIX + "public01.pem")); // supplied external key pair
+                    Files.newBufferedReader(Path.of(TEST_DATA_PATH_PREFIX + "private01.pem")),
+                    Files.newBufferedReader(Path.of(TEST_DATA_PATH_PREFIX + "public01.pem"))); // supplied external key pair
             TEST_POP_JWS_SIGNER_ANOTHER = signer;
             TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER = TEST_POP_JWS_SIGNER_ANOTHER;
             TEST_PRIVATE_KEY_ANOTHER = decodeEncodedKey(signer.keyPair.getPrivate().getEncoded());
             TEST_PUBLIC_KEY_ANOTHER = decodeEncodedKey(signer.keyPair.getPublic().getEncoded());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
     }
 
@@ -142,7 +143,7 @@ public abstract class AbstractUtilTestBase {
                     .build()
                     .create(URL.of(new URI(TEST_DID_URL), null), ZonedDateTime.parse(ISO_DATE_TIME));
         } catch (Exception simplyIntolerable) {
-            throw new RuntimeException(simplyIntolerable);
+            throw new IllegalArgumentException(simplyIntolerable);
         }
     }
 
@@ -163,7 +164,7 @@ public abstract class AbstractUtilTestBase {
                     .build()
                     .create(URL.of(new URI(TEST_DID_URL), null), ZonedDateTime.parse(ISO_DATE_TIME));
         } catch (Exception simplyIntolerable) {
-            throw new RuntimeException(simplyIntolerable);
+            throw new IllegalArgumentException(simplyIntolerable);
         }
     }
 
@@ -200,7 +201,6 @@ public abstract class AbstractUtilTestBase {
     }
 
     protected static byte[] decodeEncodedKey(byte[] encodedKey) {
-        final int KEY_LENGTH = 32;
-        return Arrays.copyOfRange(encodedKey, encodedKey.length - KEY_LENGTH, encodedKey.length);
+        return Arrays.copyOfRange(encodedKey, encodedKey.length - 32, encodedKey.length);
     }
 }

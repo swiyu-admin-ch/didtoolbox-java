@@ -166,7 +166,7 @@ public class DidLogCreatorStrategy {
                     throw new DidLogCreatorStrategyException(e);
                 }
             }
-            default -> throw new RuntimeException("The supplied DID log features an unsupported DID method");
+            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
     }
 }

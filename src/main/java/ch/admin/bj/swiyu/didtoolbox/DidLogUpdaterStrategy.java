@@ -92,7 +92,7 @@ import java.util.Set;
 @Getter
 public class DidLogUpdaterStrategy {
 
-    private static String SCID_PLACEHOLDER = "{SCID}";
+    private static final String SCID_PLACEHOLDER = "{SCID}";
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
@@ -174,7 +174,7 @@ public class DidLogUpdaterStrategy {
                     throw new DidLogUpdaterStrategyException(e);
                 }
             }
-            default -> throw new RuntimeException("The supplied DID log features an unsupported DID method");
+            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
     }
 }

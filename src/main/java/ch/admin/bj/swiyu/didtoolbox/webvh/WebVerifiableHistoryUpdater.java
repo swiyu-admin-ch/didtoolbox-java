@@ -60,7 +60,7 @@ import java.util.Set;
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
 
-    private static String SCID_PLACEHOLDER = "{SCID}";
+    private static final String SCID_PLACEHOLDER = "{SCID}";
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
@@ -316,7 +316,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
             did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
-            throw new RuntimeException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
+            throw new InvalidDidLogException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {
             did.close();
         }

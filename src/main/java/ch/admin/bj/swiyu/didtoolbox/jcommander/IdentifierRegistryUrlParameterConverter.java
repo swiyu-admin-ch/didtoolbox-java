@@ -13,7 +13,7 @@ public class IdentifierRegistryUrlParameterConverter implements IStringConverter
         try {
             return URL.of(new URI(value), null);
         } catch (URISyntaxException | MalformedURLException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
     }
 }

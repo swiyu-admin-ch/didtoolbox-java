@@ -53,7 +53,7 @@ public class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
         // CAUTION There is no known way to set this.keyPair here
         //this.keyPair = new KeyPair(pubKey, privKey);
 
-        sanityCheck();
+        sanityCheck(this);
     }
 
     /**
@@ -66,6 +66,7 @@ public class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
      *
      * @return public verification key in multibase format.
      */
+    @Override
     public String getVerificationKeyMultibase() {
 
         return Ed25519Utils.encodeMultibase(this.verifyingKey);
@@ -77,6 +78,7 @@ public class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
      * @param message to sign
      * @return signed message
      */
+    @Override
     public byte[] generateSignature(byte[] message) {
 
         // may throw java.lang.IllegalArgumentException: invalid public key
@@ -88,6 +90,7 @@ public class UnsafeEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
         return signer.generateSignature();
     }
 
+    @Override
     boolean verify(byte[] message, byte[] signature) {
 
         // may throw java.lang.IllegalArgumentException: invalid public key

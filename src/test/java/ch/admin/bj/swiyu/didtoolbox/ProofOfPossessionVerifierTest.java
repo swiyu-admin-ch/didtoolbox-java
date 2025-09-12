@@ -60,7 +60,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () ->
                 finalVerifier.verify(proof.get(), nonce)
         );
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.KeyMismatch, exc.getErrorCause());
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.KEY_MISMATCH, exc.getErrorCause());
     }
 
     @Test
@@ -91,7 +91,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         );
 
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.get().verify(signedJWT, nonce));
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.KeyMismatch, exc.getErrorCause());
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.KEY_MISMATCH, exc.getErrorCause());
     }
 
     @Test
@@ -108,7 +108,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
             verifier.verify(expiredJWT.get(), "foo");
             fail();
         } catch (ProofOfPossessionVerifierException e) {
-            assertEquals(ProofOfPossessionVerifierException.ErrorCause.Expired, e.getErrorCause());
+            assertEquals(ProofOfPossessionVerifierException.ErrorCause.EXPIRED, e.getErrorCause());
         }
     }
 
@@ -133,7 +133,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         ProofOfPossessionVerifier finalVerifier = verifier.get();
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () ->
                 finalVerifier.verify(proof.get(), "foo"));
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.InvalidNonce, exc.getErrorCause());
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.INVALID_NONCE, exc.getErrorCause());
     }
 
     @Test
@@ -155,6 +155,6 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         ProofOfPossessionVerifier finalVerifier = verifier.get();
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () ->
                 finalVerifier.verify(signedJWT.get(), "foo"));
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.UnsupportedAlgorithm, exc.getErrorCause());
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.UNSUPPORTED_ALGORITHM, exc.getErrorCause());
     }
 }

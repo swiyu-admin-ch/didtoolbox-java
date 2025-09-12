@@ -30,7 +30,7 @@ public class DidLogFileParameterValidator implements IParameterValidator {
             try {
                 WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
             } catch (MalformedWebVerifiableHistoryDidLogMetaPeekerException ex) { // not a did:webvh log at all
-                throw buildParameterException(name, value, new Exception("Malformed DID log or unsupported DID method")); // none of the (known) kind
+                throw buildParameterException(name, value, new IllegalArgumentException("Malformed DID log or unsupported DID method")); // none of the (known) kind
             } catch (DidLogMetaPeekerException ex) { // not a valid did:webvh log
                 throw buildParameterException(name, value, ex);
             }

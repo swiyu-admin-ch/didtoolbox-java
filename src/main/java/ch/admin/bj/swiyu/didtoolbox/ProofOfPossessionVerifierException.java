@@ -19,41 +19,41 @@ public class ProofOfPossessionVerifierException extends Exception {
         errorCause = null;
     }
 
-    static ProofOfPossessionVerifierException InvalidNonce(String expected, String got) {
-        return new ProofOfPossessionVerifierException(String.format("JWT is for nonce '%s', but got nonce '%s'", got, expected), ErrorCause.InvalidNonce);
+    static ProofOfPossessionVerifierException invalidNonce(String expected, String got) {
+        return new ProofOfPossessionVerifierException(String.format("JWT is for nonce '%s', but got nonce '%s'", got, expected), ErrorCause.INVALID_NONCE);
     }
 
-    static ProofOfPossessionVerifierException Unparsable(Exception cause) {
-        return new ProofOfPossessionVerifierException(String.format("The JWT cannot be parsed due to: %s", cause.getLocalizedMessage()), ErrorCause.Unparsable);
+    static ProofOfPossessionVerifierException unparsable(Exception cause) {
+        return new ProofOfPossessionVerifierException(String.format("The JWT cannot be parsed due to: %s", cause.getLocalizedMessage()), ErrorCause.UNPARSABLE);
     }
 
-    static ProofOfPossessionVerifierException Expired() {
-        return new ProofOfPossessionVerifierException("The JWT has expired", ErrorCause.Expired);
+    static ProofOfPossessionVerifierException expired() {
+        return new ProofOfPossessionVerifierException("The JWT has expired", ErrorCause.EXPIRED);
     }
 
-    static ProofOfPossessionVerifierException UnsupportedAlgorithm(String expected, String got) {
-        return new ProofOfPossessionVerifierException(String.format("The JWT uses an unsupported signing algorithm, expected '%s' but got '%s' instead.", expected, got), ErrorCause.UnsupportedAlgorithm);
+    static ProofOfPossessionVerifierException unsupportedAlgorithm(String expected, String got) {
+        return new ProofOfPossessionVerifierException(String.format("The JWT uses an unsupported signing algorithm, expected '%s' but got '%s' instead.", expected, got), ErrorCause.UNSUPPORTED_ALGORITHM);
     }
 
-    static ProofOfPossessionVerifierException KeyMismatch(String key) {
-        return new ProofOfPossessionVerifierException(String.format("Key '%s' not found in DID log.", key), ErrorCause.KeyMismatch);
+    static ProofOfPossessionVerifierException keyMismatch(String key) {
+        return new ProofOfPossessionVerifierException(String.format("Key '%s' not found in DID log.", key), ErrorCause.KEY_MISMATCH);
     }
 
-    static ProofOfPossessionVerifierException InvalidSignature() {
-        return new ProofOfPossessionVerifierException("Signature of JWT is invalid", ErrorCause.InvalidSignature);
+    static ProofOfPossessionVerifierException invalidSignature() {
+        return new ProofOfPossessionVerifierException("Signature of JWT is invalid", ErrorCause.INVALID_SIGNATURE);
     }
 
-    static ProofOfPossessionVerifierException FailedToVerify(Exception cause) {
-        return new ProofOfPossessionVerifierException(String.format("Failed to verify JWT due to: %s", cause.getLocalizedMessage()), ErrorCause.FailedToVerify);
+    static ProofOfPossessionVerifierException failedToVerify(Exception cause) {
+        return new ProofOfPossessionVerifierException(String.format("Failed to verify JWT due to: %s", cause.getLocalizedMessage()), ErrorCause.FAILED_TO_VERIFY);
     }
 
     public enum ErrorCause {
-        UnsupportedAlgorithm,
-        InvalidNonce,
-        Unparsable,
-        Expired,
-        KeyMismatch,
-        InvalidSignature,
-        FailedToVerify
+        UNSUPPORTED_ALGORITHM,
+        INVALID_NONCE,
+        UNPARSABLE,
+        EXPIRED,
+        KEY_MISMATCH,
+        INVALID_SIGNATURE,
+        FAILED_TO_VERIFY
     }
 }

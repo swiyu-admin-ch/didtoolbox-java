@@ -181,7 +181,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
         try {
             TdwDidLogMetaPeeker.peek(didLogEntryWithProof.toString()); // sanity check
         } catch (DidLogMetaPeekerException e) {
-            throw new RuntimeException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
+            throw new InvalidDidLogException("Creating a DID log resulted in unresolvable/unverifiable DID log", e);
         }
 
         return didLogEntryWithProof.toString();
