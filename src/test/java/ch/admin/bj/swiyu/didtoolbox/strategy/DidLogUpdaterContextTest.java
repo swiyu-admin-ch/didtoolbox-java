@@ -1,8 +1,7 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.strategy;
 
+import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterContext;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -11,7 +10,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class DidLogUpdaterStrategyTest extends AbstractUtilTestBase {
+class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
     @Test
     void testUpdateThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {

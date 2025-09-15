@@ -1,7 +1,8 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.strategy;
 
+import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
+import ch.admin.bj.swiyu.didtoolbox.TdwCreatorTest;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreatorTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;

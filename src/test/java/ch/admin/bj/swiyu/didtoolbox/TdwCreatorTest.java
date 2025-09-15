@@ -15,9 +15,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TdwCreatorTest extends AbstractUtilTestBase {
+public class TdwCreatorTest extends AbstractUtilTestBase {
 
-    static void assertDidLogEntry(String didLogEntry) {
+    public static void assertDidLogEntry(String didLogEntry) {
 
         assertNotNull(didLogEntry);
         assertTrue(JsonParser.parseString(didLogEntry).isJsonArray());

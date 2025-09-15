@@ -102,7 +102,6 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * The file-system-as-input variation of {@link #updateDidLog(String)}
      *
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason
-     * @throws IOException                    if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
      * @see #updateDidLog(String)
      */
     @Override

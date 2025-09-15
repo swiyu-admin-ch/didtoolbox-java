@@ -1,14 +1,13 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.strategy;
 
+import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorContext;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategyException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
+class DidLogDeactivatorContextTest extends AbstractUtilTestBase {
 
     @Test
     void testDeactivateThrowsDeactivationKeyMismatchDidLogDeactivatorStrategyException() {

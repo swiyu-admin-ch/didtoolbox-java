@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.*;
-import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -71,17 +70,16 @@ public abstract class AbstractDidLogEntryBuilder {
     /**
      * Setup the class members w.r.t. outcome of the supplied DID log resolution process.
      *
-     * @param didLogToResolve
-     * @throws DidResolveException
-     * @throws DidLogMetaPeekerException
+     * @param didLog to "peek" into
+     * @throws DidLogMetaPeekerException if "peeking" failed for whatever reason
      */
-    protected void peek(String didLogToResolve)
+    protected void peek(String didLog)
             throws DidLogMetaPeekerException {
 
         if (getDidMethod().isTdw03()) {
-            this.didLogMeta = TdwDidLogMetaPeeker.peek(didLogToResolve);
+            this.didLogMeta = TdwDidLogMetaPeeker.peek(didLog);
         } else if (getDidMethod().isWebVh10()) {
-            this.didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLogToResolve);
+            this.didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog);
         } else {
             throw new IllegalArgumentException("Unsupported DID method");
         }
