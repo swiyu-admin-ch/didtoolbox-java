@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: MIT
+# Inspired by https://thomasthornton.cloud/2025/03/18/setting-up-trivy-in-your-github-actions/
+name: Pull Request Check
+run-name: ${{ github.repository }} is evaluating pull request
+on: [pull_request]
+permissions:
+  actions: read
+  security-events: write
+  contents: read
+  packages: write
+  attestations: write
+  id-token: write
+jobs:
+  code-quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+          config-file: ./.github/codeql/codeql-config.yml
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+      - name: Build with Maven
+        run: mvn --batch-mode clean compile
+        # Note: codeQL MUST be after the compile step
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:java"
+      - name: Run PMD static analysis
+        uses: pmd/pmd-github-action@v2
+        id: pmd
+        with:
+          rulesets: '.github/rulesets/java/pmd_omni_ruleset.xml'
+
+      - name: Upload PMD SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: pmd-report.sarif
