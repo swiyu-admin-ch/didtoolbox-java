@@ -4,7 +4,9 @@ import io.ipfs.multibase.Base58;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.spec.EdECPoint;
 import java.security.spec.EdECPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
@@ -15,7 +17,7 @@ import java.util.Arrays;
  * A helper class featuring various convenient conversion methods with
  * <a href="https://datatracker.ietf.org/doc/html/rfc8032#section-5.1.5">RFC 8032</a> standard in mind
  */
-public class Ed25519Utils {
+public final class Ed25519Utils {
 
     /**
      * The length of byte array representing an Ed25519 public key as specified by the
@@ -118,11 +120,10 @@ public class Ed25519Utils {
         if (multibase.isEmpty() || multibase.charAt(0) != 'z') {
             throw new IllegalArgumentException();
         }
-        multibase = multibase.substring(1);
-        var buf = Base58.decode(multibase);
+        var buf = Base58.decode(multibase.substring(1));
 
         // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
-        if (buf[0] == (byte)0xed && buf[1] == (byte)0x01) {// Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
+        if (buf[0] == (byte) 0xed && buf[1] == (byte) 0x01) {// Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
             return Arrays.copyOfRange(buf, 2, buf.length);
         }
         throw new IllegalArgumentException("Only Ed25519 public key is supported");

@@ -11,7 +11,7 @@ public class JWTParameterConverter implements IStringConverter<SignedJWT> {
         try {
             return SignedJWT.parse(value);
         } catch (ParseException e) {
-            System.out.println("Mal formatted JWT provided: " + e.getLocalizedMessage());
+            // The validator class (if any) should already ensure the value is "convertible"
             return null;
         }
     }

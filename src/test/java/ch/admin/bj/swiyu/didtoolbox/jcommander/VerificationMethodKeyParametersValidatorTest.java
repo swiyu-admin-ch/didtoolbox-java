@@ -1,10 +1,12 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.VerificationMethodKeyParametersValidator;
 import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VerificationMethodKeyParametersValidatorTest {
     @Test

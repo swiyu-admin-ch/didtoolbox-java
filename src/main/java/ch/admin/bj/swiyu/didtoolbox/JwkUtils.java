@@ -12,10 +12,7 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.util.io.pem.PemObject;
 
 import java.io.*;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
+import java.nio.file.*;
 import java.security.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
@@ -26,7 +23,7 @@ import java.security.spec.InvalidParameterSpecException;
  * The {@link JwkUtils} is a simple helper for the purpose of <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a>
  * key pair generation
  */
-public class JwkUtils {
+public final class JwkUtils {
 
     private JwkUtils() {
     }
@@ -53,7 +50,7 @@ public class JwkUtils {
         try {
             publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(ecPublicPemFile), "EC");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
 
         if (!kid.matches("[a-zA-Z0-9~._-]+")) {
@@ -93,7 +90,7 @@ public class JwkUtils {
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProviderSingleton.getInstance());
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
 
         keyPairGenerator.initialize(256);
@@ -117,7 +114,7 @@ public class JwkUtils {
             //         to create a com.nimbusds.jose.jwk.JWK object you may end up having incomplete EC PRIVATE KEY export later on.
             publicJwk = JWK.parseFromPEMEncodedObjects(publicKeyPem).toECKey();
         } catch (JOSEException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
 
         var publicJwkJsonObject = JsonParser.parseString(publicJwk.toJSONString()).getAsJsonObject();
@@ -131,10 +128,10 @@ public class JwkUtils {
                     // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
                     FilesPrivacy.createPrivateFile(keyPairPemFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
                 } catch (DirectoryNotEmptyException ex) {
-                    throw new RuntimeException(ex); // it should be a file, not a directory
+                    throw new IllegalArgumentException(ex); // it should be a file, not a directory
                 } catch (FileAlreadyExistsException ex) {
                     if (!keyPairPemFile.exists()) {
-                        throw new RuntimeException(ex);
+                        throw new IllegalArgumentException(ex);
                     }
                     throw ex;
                 } catch (AccessDeniedException ex) {
@@ -143,7 +140,7 @@ public class JwkUtils {
                     throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage());
                 }
 
-                Writer w = new BufferedWriter(new FileWriter(keyPairPemFile));
+                Writer w = Files.newBufferedWriter(keyPairPemFile.toPath());
                 try {
                     w.write(keyPairPem);
                     w.flush();
@@ -169,7 +166,7 @@ public class JwkUtils {
      * @throws IOException
      */
     private static void exportEcPublicKeyToPem(ECKey jwk, File keyPairPemFile) throws IOException {
-        JcaPEMWriter pemWriterPub = new JcaPEMWriter(new FileWriter(keyPairPemFile.getPath() + ".pub"));
+        JcaPEMWriter pemWriterPub = new JcaPEMWriter(Files.newBufferedWriter(Path.of(keyPairPemFile.getPath() + ".pub")));
         try {
             // as specified by https://www.rfc-editor.org/rfc/rfc5208
             pemWriterPub.writeObject(new PemObject("PUBLIC KEY", jwk.toPublicKey().getEncoded()));
@@ -179,7 +176,7 @@ public class JwkUtils {
 
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException |
                  InvalidKeyException | SignatureException | NoSuchProviderException | JOSEException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         } finally {
             pemWriterPub.close();
         }
@@ -210,7 +207,7 @@ public class JwkUtils {
         //String s = jwsObject.serialize(); // compact form
 
         if (!jwsObject.verify(new ECDSAVerifier(publicKey)) || (!"hello world".equals(jwsObject.getPayload().toString()))) {
-            throw new RuntimeException("exported key do not match");
+            throw new IllegalArgumentException("exported key do not match");
         }
     }
 }

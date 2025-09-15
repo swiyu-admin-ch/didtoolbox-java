@@ -1,5 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.CommandParametersValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.DidLogFileParameterValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.JWTParameterValidator;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nimbusds.jwt.SignedJWT;
@@ -9,7 +12,7 @@ import java.io.File;
 @Parameters(
         commandNames = {VerifyProofOfPossessionCommand.COMMAND_NAME},
         commandDescription = "Verifies the validity of the provided proof of possession JWT.",
-        parametersValidators = {TdwCommandParametersValidator.class}
+        parametersValidators = {CommandParametersValidator.class}
 )
 public class VerifyProofOfPossessionCommand {
 

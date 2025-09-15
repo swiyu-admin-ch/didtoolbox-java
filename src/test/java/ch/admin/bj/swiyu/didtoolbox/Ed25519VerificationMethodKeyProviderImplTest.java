@@ -6,10 +6,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.security.*;
+import java.nio.file.Path;
+import java.security.KeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
@@ -17,7 +22,7 @@ import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class Ed25519VerificationMethodKeyProviderImplTest {
+class Ed25519VerificationMethodKeyProviderImplTest {
 
     /*
     @BeforeAll
@@ -58,7 +63,7 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @DisplayName("Signing using a newly generated key")
     @ParameterizedTest(name = "Signing: {2}")
     @MethodSource("keyMessageSignature")
-    public void testSign(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message) {
+    public void testSign(String unusedPrivateKeyMultibase, String unusedPublicKeyMultibase, String message) {
 
         String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl().generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
@@ -133,11 +138,11 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     public void testLoadFromJKSThrowsException() {
         // the key does not exists
         assertThrowsExactly(KeyException.class,
-                () -> new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "non-existing-alias", "whatever"));
+                () -> new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "non-existing-alias", "whatever"));
 
         // wrong keystore password
         assertThrowsExactly(IOException.class,
-                () -> new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "wrong", "whatever", "whatever"));
+                () -> new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "wrong", "whatever", "whatever"));
 
         // wrong key (recovery) password
         //assertThrowsExactly(UnrecoverableKeyException.class,
@@ -145,16 +150,16 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
 
         // wrong file format
         assertThrowsExactly(IOException.class,
-                () -> new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/com.securosys.primus.jce.credentials.properties"), "whatever", "whatever", "whatever"));
+                () -> new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/com.securosys.primus.jce.credentials.properties")), "whatever", "whatever", "whatever"));
     }
 
     @DisplayName("Signing using key from a JKS")
     @ParameterizedTest(name = "Signing: {2}")
     @MethodSource("keyMessageSignature")
-    public void testSignUsingJKS(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
+    public void testSignUsingJKS(String unusedPrivateKeyMultibase, String unusedPublicKeyMultibase, String message, String expected)
             throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, KeyException {
 
-        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit").generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
+        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "myalias", "changeit").generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -164,10 +169,10 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @DisplayName("Verifying using key from a JKS")
     @ParameterizedTest(name = "Verifying signed message: {2}")
     @MethodSource("keyMessageSignature")
-    public void testVerifyUsingJKS(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
+    public void testVerifyUsingJKS(String unusedPrivateKeyMultibase, String unusedPublicKeyMultibase, String message, String expected)
             throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, KeyException {
 
-        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(new FileInputStream("src/test/data/mykeystore.jks"), "changeit", "myalias", "changeit").verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
+        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "myalias", "changeit").verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -175,12 +180,12 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @DisplayName("Signing using key from PEM files")
     @ParameterizedTest(name = "Signing: {2}")
     @MethodSource("keyMessageSignature")
-    public void testSignUsingPemKeys(String _unusedPrivateKey, String _unusedPublicKey, String message, String expected)
+    public void testSignUsingPemKeys(String unusedPrivateKey, String unusedPublicKey, String message, String expected)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
         String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(
-                new FileReader("src/test/data/private.pem"),
-                new FileReader("src/test/data/public.pem")).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
+                Files.newBufferedReader(Path.of("src/test/data/private.pem")),
+                Files.newBufferedReader(Path.of("src/test/data/public.pem"))).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -189,7 +194,7 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
         // Using another ("hybrid") signature
 
         signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(
-                new FileReader("src/test/data/private.pem"),
+                Files.newBufferedReader(Path.of("src/test/data/private.pem")),
                 PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem"))).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
@@ -200,19 +205,19 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     @DisplayName("Verifying using PEM keys")
     @ParameterizedTest(name = "Verifying signed message: {2}")
     @MethodSource("keyMessageSignature")
-    public void testVerifyUsingPemKeys(String _unusedPrivateKeyMultibase, String _unusedPublicKeyMultibase, String message, String expected)
+    public void testVerifyUsingPemKeys(String unusedPrivateKeyMultibase, String unusedPublicKeyMultibase, String message, String expected)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
         boolean verified = new Ed25519VerificationMethodKeyProviderImpl(
-                new FileReader("src/test/data/private.pem"),
-                new FileReader("src/test/data/public.pem")).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
+                Files.newBufferedReader(Path.of("src/test/data/private.pem")),
+                Files.newBufferedReader(Path.of("src/test/data/public.pem"))).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
 
         assertTrue(verified);
 
         // Using another ("hybrid") signature
 
         verified = new Ed25519VerificationMethodKeyProviderImpl(
-                new FileReader("src/test/data/private.pem"),
+                Files.newBufferedReader(Path.of("src/test/data/private.pem")),
                 PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem"))).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
 
         assertTrue(verified);
@@ -222,15 +227,15 @@ public class Ed25519VerificationMethodKeyProviderImplTest {
     public void testThrowsInvalidKeySpecException() throws IOException {
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519VerificationMethodKeyProviderImpl(new FileReader("src/test/data/public.pem"), new FileReader("src/test/data/private.pem")); // keys swapped, both wrong
+            new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(Path.of("src/test/data/public.pem")), Files.newBufferedReader(Path.of("src/test/data/private.pem"))); // keys swapped, both wrong
         });
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519VerificationMethodKeyProviderImpl(new FileReader("src/test/data/private.pem"), new FileReader("src/test/data/private.pem")); // wrong public key PEM file
+            new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(Path.of("src/test/data/private.pem")), Files.newBufferedReader(Path.of("src/test/data/private.pem"))); // wrong public key PEM file
         });
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
-            new Ed25519VerificationMethodKeyProviderImpl(new FileReader("src/test/data/public.pem"), new FileReader("src/test/data/public.pem")); // wrong private key PEM file
+            new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(Path.of("src/test/data/public.pem")), Files.newBufferedReader(Path.of("src/test/data/public.pem"))); // wrong private key PEM file
         });
     }
 

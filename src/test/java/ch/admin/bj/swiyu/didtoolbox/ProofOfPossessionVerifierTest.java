@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
+class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
     private static final Duration ONE_DAY_LONG = Duration.ofDays(1);
 
     @Test
@@ -20,7 +20,7 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         // create proof
         AtomicReference<SignedJWT> proof = new AtomicReference<>();
         assertDoesNotThrow(() ->
-                proof.set(new ProofOfPossessionCreator(EXAMPLE_POP_JWS_SIGNER)
+                proof.set(new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER)
                         .create(nonce, ONE_DAY_LONG))
         );
 
@@ -28,7 +28,7 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
         );
 
         assertTrue(verifier.get().isValid(proof.get(), nonce));
@@ -45,7 +45,7 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         // create proof
         AtomicReference<SignedJWT> proof = new AtomicReference<>();
         assertDoesNotThrow(() ->
-                proof.set(new ProofOfPossessionCreator(EXAMPLE_POP_JWS_SIGNER)
+                proof.set(new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER)
                         .create(nonce, ONE_DAY_LONG))
         );
 
@@ -53,21 +53,21 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER_ANOTHER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER))) // CAUTION: Using a whole other key
+                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER))) // CAUTION: Using a whole other key
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () ->
                 finalVerifier.verify(proof.get(), nonce)
         );
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.KeyMismatch, exc.getErrorCause());
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.KEY_MISMATCH, exc.getErrorCause());
     }
 
     @Test
     void testVerifyKeyIdMismatch() {
         var nonce = "my_nonce";
 
-        var publicKeyMultibase = Ed25519Utils.encodeMultibase(PUBLIC_KEY_ANOTHER); // CAUTION: Using a whole other key
+        var publicKeyMultibase = Ed25519Utils.encodeMultibase(TEST_PUBLIC_KEY_ANOTHER); // CAUTION: Using a whole other key
         var signedJWT = new com.nimbusds.jwt.SignedJWT(
                 new com.nimbusds.jose.JWSHeader.Builder(com.nimbusds.jose.JWSAlgorithm.Ed25519)
                         .keyID("did:key:" + publicKeyMultibase + "#" + publicKeyMultibase)
@@ -78,7 +78,7 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
                         .build());
         // gets signed with another key (having different keyID than those on the base of PUBLIC_KEY_ANOTHER)
         try {
-            signedJWT.sign(EXAMPLE_POP_JWS_SIGNER);
+            signedJWT.sign(TEST_POP_JWS_SIGNER);
         } catch (JOSEException e) {
             fail(e);
         }
@@ -87,11 +87,11 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
         );
 
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.get().verify(signedJWT, nonce));
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.KeyMismatch, exc.getErrorCause());
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.KEY_MISMATCH, exc.getErrorCause());
     }
 
     @Test
@@ -104,11 +104,11 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
 
         try {
             // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
-            var verifier = new ProofOfPossessionVerifier(buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER));
+            var verifier = new ProofOfPossessionVerifier(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER));
             verifier.verify(expiredJWT.get(), "foo");
             fail();
         } catch (ProofOfPossessionVerifierException e) {
-            assertEquals(ProofOfPossessionVerifierException.ErrorCause.Expired, e.getErrorCause());
+            assertEquals(ProofOfPossessionVerifierException.ErrorCause.EXPIRED, e.getErrorCause());
         }
     }
 
@@ -119,7 +119,7 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         // create proof
         AtomicReference<SignedJWT> proof = new AtomicReference<>();
         assertDoesNotThrow(() ->
-                proof.set(new ProofOfPossessionCreator(EXAMPLE_POP_JWS_SIGNER)
+                proof.set(new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER)
                         .create(nonce, Duration.ofDays(1)))
         );
 
@@ -127,13 +127,13 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () ->
                 finalVerifier.verify(proof.get(), "foo"));
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.InvalidNonce, exc.getErrorCause());
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.INVALID_NONCE, exc.getErrorCause());
     }
 
     @Test
@@ -149,12 +149,12 @@ public class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialDidLogEntry(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () ->
                 finalVerifier.verify(signedJWT.get(), "foo"));
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.UnsupportedAlgorithm, exc.getErrorCause());
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.UNSUPPORTED_ALGORITHM, exc.getErrorCause());
     }
 }
