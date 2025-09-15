@@ -2,6 +2,9 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterContext;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategy;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -23,14 +26,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * {@link WebVerifiableHistoryUpdater} is the class in charge of <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log update (rotate).
+ * {@link WebVerifiableHistoryUpdater} is a {@link DidLogUpdaterStrategy} implementation in charge of
+ * <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log update (rotate).
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
  * it is intended to be instantiated exclusively via its static {@link #builder()} method.
  * <p>
  * Once a {@link WebVerifiableHistoryUpdater} object is "built", creating a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
- * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
+ * log goes simply by calling {@link #updateDidLog(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
  * <li>{@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
@@ -51,14 +55,14 @@ import java.util.Set;
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
- * Instead, rather rely on the designated {@link DidLogUpdaterStrategy} for the purpose. Needless to say,
+ * Instead, rather rely on the designated {@link DidLogUpdaterContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
 @Builder
 @Getter
-public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
+public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
 
     private static final String SCID_PLACEHOLDER = "{SCID}";
 
@@ -86,22 +90,28 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
      *
      * @param didLog to update. Expected to be resolvable/verifiable already.
      * @return a whole new <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
-     * @throws WebVerifiableHistoryUpdaterException if update fails for whatever reason.
-     * @see #update(String, ZonedDateTime)
+     * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
+     * @see #updateDidLog(String, ZonedDateTime)
      */
-    public String update(String didLog) throws WebVerifiableHistoryUpdaterException {
-        return update(didLog, ZonedDateTime.now());
+    @Override
+    public String updateDidLog(String didLog) throws DidLogUpdaterStrategyException {
+        return updateDidLog(didLog, ZonedDateTime.now());
     }
 
     /**
-     * The file-system-as-input variation of {@link #update(String)}
+     * The file-system-as-input variation of {@link #updateDidLog(String)}
      *
-     * @throws WebVerifiableHistoryUpdaterException if update fails for whatever reason
-     * @throws IOException                          if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
-     * @see #update(String)
+     * @throws DidLogUpdaterStrategyException if update fails for whatever reason
+     * @throws IOException                    if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
+     * @see #updateDidLog(String)
      */
-    public String update(File didLogFile) throws WebVerifiableHistoryUpdaterException, IOException {
-        return update(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+    @Override
+    public String updateDidLog(File didLogFile) throws DidLogUpdaterStrategyException {
+        try {
+            return updateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+        } catch (IOException e) {
+            throw new DidLogUpdaterStrategyException(e);
+        }
     }
 
     /**
@@ -114,23 +124,24 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
      * @param resolvableDidLog to update. Expected to be resolvable/verifiable already.
      * @param zdt              a date-time with a time-zone in the ISO-8601 calendar system
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
-     * @throws WebVerifiableHistoryUpdaterException if update fails for whatever reason.
+     * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
-    public String update(String resolvableDidLog, ZonedDateTime zdt) throws WebVerifiableHistoryUpdaterException {
+    @Override
+    public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
         try {
             super.peek(resolvableDidLog);
         } catch (Exception e) { //} catch (DidResolveException | DidLogMetaPeekerException e) {
-            throw new WebVerifiableHistoryUpdaterException(e);
+            throw new DidLogUpdaterStrategyException(e);
         }
 
         // CAUTION Only activated DIDs can be updated
         if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
-            throw new WebVerifiableHistoryUpdaterException("DID already deactivated");
+            throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
         if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
-            throw new WebVerifiableHistoryUpdaterException("Update key mismatch");
+            throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
@@ -140,7 +151,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
         // The versionTime of the last entry MUST be earlier than the current time.
         var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.getDateTime());
         if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
-            throw new WebVerifiableHistoryUpdaterException("The versionTime of the last entry MUST be earlier than the current time");
+            throw new DidLogUpdaterStrategyException("The versionTime of the last entry MUST be earlier than the current time");
         }
 
         // Create initial did doc with placeholder
@@ -161,7 +172,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
 
         if ((this.authenticationKeys == null || this.authenticationKeys.isEmpty())
                 && (this.assertionMethodKeys == null || this.assertionMethodKeys.isEmpty())) {
-            throw new WebVerifiableHistoryUpdaterException("No update will take place as no verification material is supplied whatsoever");
+            throw new DidLogUpdaterStrategyException("No update will take place as no verification material is supplied whatsoever");
         }
 
         var verificationMethod = new JsonArray();
@@ -241,7 +252,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
                     try {
                         updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
                     } catch (Exception e) {
-                        throw new WebVerifiableHistoryUpdaterException(e);
+                        throw new DidLogUpdaterStrategyException(e);
                     }
 
                     // it is a distinct list of keys, after all
@@ -277,7 +288,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
         try {
             entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
         } catch (IOException e) {
-            throw new WebVerifiableHistoryUpdaterException(e);
+            throw new DidLogUpdaterStrategyException(e);
         }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
@@ -303,7 +314,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder {
             proof = JCSHasher.buildDataIntegrityProof(
                     didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
         } catch (IOException e) {
-            throw new WebVerifiableHistoryUpdaterException("Fail to build DID doc data integrity proof", e);
+            throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"
         proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());

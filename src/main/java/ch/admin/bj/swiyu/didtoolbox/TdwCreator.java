@@ -3,6 +3,9 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorStrategy;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorStrategyException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -22,14 +25,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * {@link TdwCreator} is the class in charge of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log generation.
+ * {@link TdwCreator} is a {@link DidLogCreatorStrategy} implementation in charge of
+ * <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log generation.
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
  * it is intended to be instantiated exclusively via its static {@link #builder()} method.
  * <p>
  * Once a {@link TdwCreator} object is "built", creating a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a>
- * log goes simply by calling {@link #create(URL)} method. Optionally, but most likely, an already existing key material will
+ * log goes simply by calling {@link #createDidLog(URL)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
  * <li>{@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
@@ -50,13 +54,13 @@ import java.util.Set;
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
- * Instead, rather rely on the designated {@link DidLogCreatorStrategy} for the purpose. Needless to say,
+ * Instead, rather rely on the designated {@link DidLogCreatorContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - in this case it should be {@link DidMethodEnum#TDW_0_3}.
  * <p>
  */
 @Builder
 @Getter
-public class TdwCreator extends AbstractDidLogEntryBuilder {
+public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
@@ -77,6 +81,20 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
     }
 
     /**
+     * Left for the sake of backward compatibility. See deprecation notice.
+     *
+     * @deprecated Use {@link #createDidLog(URL)} instead
+     */
+    @Deprecated
+    public String create(URL identifierRegistryUrl) throws IOException {
+        try {
+            return createDidLog(identifierRegistryUrl, ZonedDateTime.now());
+        } catch (DidLogCreatorStrategyException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
      * features of this {@link TdwCreator} object, optionally customized by previously calling fluent methods like
      * {@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider}, {@link TdwCreator.TdwCreatorBuilder#authenticationKeys(Map)} or
@@ -85,11 +103,25 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
      * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
      *                              <a href="https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation">he-did-to-https-transformation</a>
      * @return a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log
-     * @throws IOException if creation fails for whatever reason
-     * @see #create(URL, ZonedDateTime)
+     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
      */
-    public String create(URL identifierRegistryUrl) throws IOException {
-        return create(identifierRegistryUrl, ZonedDateTime.now());
+    @Override
+    public String createDidLog(URL identifierRegistryUrl) throws DidLogCreatorStrategyException {
+        return createDidLog(identifierRegistryUrl, ZonedDateTime.now());
+    }
+
+    /**
+     * Left for the sake of backward compatibility. See deprecation notice.
+     *
+     * @deprecated Use {@link #createDidLog(URL, ZonedDateTime)} instead
+     */
+    @Deprecated
+    public String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws IOException {
+        try {
+            return createDidLog(identifierRegistryUrl, zdt);
+        } catch (DidLogCreatorStrategyException e) {
+            throw new IOException(e);
+        }
     }
 
     /**
@@ -102,13 +134,19 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
      * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t.
      *                              <a href="https://identity.foundation/didwebvh/v0.3/#the-did-to-https-transformation">the-did-to-https-transformation</a>
      * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
-     * @return
-     * @throws IOException
+     * @return valid DID log
+     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
      */
-    String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws IOException {
+    @Override
+    public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         // Create initial did doc with placeholder
-        var didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
+        JsonObject didDoc = null;
+        try {
+            didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
+        } catch (IOException e) {
+            throw new DidLogCreatorStrategyException(e);
+        }
 
         var didLogEntryWithoutProofAndSignature = new JsonArray();
 
@@ -125,7 +163,11 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
-        didLogEntryWithoutProofAndSignature.add(createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
+        try {
+            didLogEntryWithoutProofAndSignature.add(createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
+        } catch (IOException e) {
+            throw new DidLogCreatorStrategyException(e);
+        }
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
@@ -134,7 +176,12 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
         didLogEntryWithoutProofAndSignature.add(initialDidDoc);
 
         // Generate SCID and replace placeholder in did doc
-        var scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+        String scid = null;
+        try {
+            scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+        } catch (IOException e) {
+            throw new DidLogCreatorStrategyException(e);
+        }
 
         /* https://identity.foundation/didwebvh/v0.3/#output-of-the-scid-generation-process:
         After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
@@ -156,7 +203,12 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature.toString());
+        String entryHash = null;
+        try {
+            entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature.toString());
+        } catch (IOException e) {
+            throw new DidLogCreatorStrategyException(e);
+        }
 
         JsonArray didLogEntryWithProof = new JsonArray();
         var challenge = "1-" + entryHash; // versionId as the proof challenge
@@ -173,9 +225,13 @@ public class TdwCreator extends AbstractDidLogEntryBuilder {
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         JsonArray proofs = new JsonArray();
-        proofs.add(JCSHasher.buildDataIntegrityProof(
-                didDoc, false, this.verificationMethodKeyProvider, challenge, JCSHasher.PROOF_PURPOSE_AUTHENTICATION, zdt
-        ));
+        try {
+            proofs.add(JCSHasher.buildDataIntegrityProof(
+                    didDoc, false, this.verificationMethodKeyProvider, challenge, JCSHasher.PROOF_PURPOSE_AUTHENTICATION, zdt
+            ));
+        } catch (IOException e) {
+            throw new DidLogCreatorStrategyException(e);
+        }
         didLogEntryWithProof.add(proofs);
 
         try {

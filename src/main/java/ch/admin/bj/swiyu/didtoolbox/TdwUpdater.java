@@ -1,6 +1,9 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterContext;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategy;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -22,14 +25,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * {@link TdwUpdater} is the class in charge of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log update (rotate).
+ * {@link TdwUpdater} is a {@link DidLogUpdaterStrategy} implementation in charge of
+ * <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log update (rotate).
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
  * it is intended to be instantiated exclusively via its static {@link #builder()} method.
  * <p>
  * Once a {@link TdwUpdater} object is "built", creating a <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a>
- * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
+ * log goes simply by calling {@link #updateDidLog(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
  * <li>{@link TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
@@ -50,14 +54,14 @@ import java.util.Set;
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
- * Instead, rather rely on the designated {@link DidLogUpdaterStrategy} for the purpose. Needless to say,
+ * Instead, rather rely on the designated {@link DidLogUpdaterContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
 @Builder
 @Getter
-public class TdwUpdater extends AbstractDidLogEntryBuilder {
+public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
 
     private static final String SCID_PLACEHOLDER = "{SCID}";
 
@@ -78,6 +82,20 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
     }
 
     /**
+     * Left for the sake of backward compatibility. See deprecation notice.
+     *
+     * @deprecated Use {@link #updateDidLog(String)} instead
+     */
+    @Deprecated
+    public String update(String didLog) throws TdwUpdaterException {
+        try {
+            return updateDidLog(didLog, ZonedDateTime.now());
+        } catch (DidLogUpdaterStrategyException e) {
+            throw new TdwUpdaterException(e);
+        }
+    }
+
+    /**
      * Updates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
      * features of this {@link TdwUpdater} object, optionally customized by previously calling fluent methods like
      * {@link TdwUpdaterBuilder#verificationMethodKeyProvider}, {@link TdwUpdaterBuilder#authenticationKeys(Map)} or
@@ -85,22 +103,55 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
      *
      * @param didLog to update. Expected to be resolvable/verifiable already.
      * @return a whole new <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
-     * @throws TdwUpdaterException if update fails for whatever reason.
+     * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      * @see #update(String, ZonedDateTime)
      */
-    public String update(String didLog) throws TdwUpdaterException {
-        return update(didLog, ZonedDateTime.now());
+    @Override
+    public String updateDidLog(String didLog) throws DidLogUpdaterStrategyException {
+        return updateDidLog(didLog, ZonedDateTime.now());
     }
 
     /**
-     * The file-system-as-input variation of {@link #update(String)}
+     * Left for the sake of backward compatibility. See deprecation notice.
      *
-     * @throws TdwUpdaterException if update fails for whatever reason
-     * @throws IOException         if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
-     * @see #update(String)
+     * @deprecated Use {@link #updateDidLog(File)} instead
      */
+    @Deprecated
     String update(File didLogFile) throws TdwUpdaterException, IOException {
-        return update(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+        try {
+            return updateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+        } catch (DidLogUpdaterStrategyException e) {
+            throw new TdwUpdaterException(e);
+        }
+    }
+
+    /**
+     * The file-system-as-input variation of {@link #updateDidLog(String)}
+     *
+     * @throws DidLogUpdaterStrategyException if update fails for whatever reason
+     * @see #updateDidLog(String, ZonedDateTime)
+     */
+    @Override
+    public String updateDidLog(File didLogFile) throws DidLogUpdaterStrategyException {
+        try {
+            return updateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+        } catch (IOException e) {
+            throw new DidLogUpdaterStrategyException(e);
+        }
+    }
+
+    /**
+     * Left for the sake of backward compatibility. See deprecation notice.
+     *
+     * @deprecated Use {@link #updateDidLog(File)} instead
+     */
+    @Deprecated
+    String update(String resolvableDidLog, ZonedDateTime zdt) throws TdwUpdaterException {
+        try {
+            return updateDidLog(resolvableDidLog, zdt);
+        } catch (DidLogUpdaterStrategyException e) {
+            throw new TdwUpdaterException(e);
+        }
     }
 
     /**
@@ -113,23 +164,24 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
      * @param resolvableDidLog to update. Expected to be resolvable/verifiable already.
      * @param zdt              a date-time with a time-zone in the ISO-8601 calendar system
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
-     * @throws TdwUpdaterException if update fails for whatever reason.
+     * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
-    String update(String resolvableDidLog, ZonedDateTime zdt) throws TdwUpdaterException {
+    @Override
+    public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
         try {
             super.peek(resolvableDidLog);
         } catch (Exception e) { //} catch (DidResolveException | DidLogMetaPeekerException e) {
-            throw new TdwUpdaterException(e);
+            throw new DidLogUpdaterStrategyException(e);
         }
 
         // CAUTION Only activated DIDs can be updated
         if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
-            throw new TdwUpdaterException("DID already deactivated");
+            throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
         if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
-            throw new TdwUpdaterException("Update key mismatch");
+            throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
@@ -139,7 +191,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
         // The versionTime of the last entry MUST be earlier than the current time.
         var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.getDateTime());
         if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
-            throw new TdwUpdaterException("The versionTime of the last entry MUST be earlier than the current time");
+            throw new DidLogUpdaterStrategyException("The versionTime of the last entry MUST be earlier than the current time");
         }
 
         // Create initial did doc with placeholder
@@ -160,7 +212,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
 
         if ((this.authenticationKeys == null || this.authenticationKeys.isEmpty())
                 && (this.assertionMethodKeys == null || this.assertionMethodKeys.isEmpty())) {
-            throw new TdwUpdaterException("No update will take place as no verification material is supplied whatsoever");
+            throw new DidLogUpdaterStrategyException("No update will take place as no verification material is supplied whatsoever");
         }
 
         var verificationMethod = new JsonArray();
@@ -234,7 +286,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
                     try {
                         updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
                     } catch (Exception e) {
-                        throw new TdwUpdaterException(e);
+                        throw new DidLogUpdaterStrategyException(e);
                     }
 
                     // it is a distinct list of keys, after all
@@ -272,7 +324,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
         try {
             entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
         } catch (IOException e) {
-            throw new TdwUpdaterException(e);
+            throw new DidLogUpdaterStrategyException(e);
         }
 
         JsonArray didLogEntryWithProof = new JsonArray();
@@ -295,7 +347,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder {
             proof = JCSHasher.buildDataIntegrityProof(
                     didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
         } catch (IOException e) {
-            throw new TdwUpdaterException("Fail to build DID doc data integrity proof", e);
+            throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"
         proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());

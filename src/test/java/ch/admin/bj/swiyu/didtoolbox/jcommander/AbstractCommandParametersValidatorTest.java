@@ -1,6 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;
@@ -51,7 +53,7 @@ abstract class AbstractCommandParametersValidatorTest {
                     //.updateKeys(Set.of(new File("src/test/data/public.pem")))
                     .forceOverwrite(true)
                     .build()
-                    .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null));
+                    .createDidLog(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null));
 
             var updatedDidLog = new StringBuilder(initialDidLogEntry)
                     .append(System.lineSeparator())
@@ -61,11 +63,11 @@ abstract class AbstractCommandParametersValidatorTest {
                             .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
                             //.updateKeys(Set.of(new File("src/test/data/public.pem")))
                             .build()
-                            .update(initialDidLogEntry));
+                            .updateDidLog(initialDidLogEntry));
 
             Files.writeString(dummyDidLogFile.toPath(), updatedDidLog);
 
-        } catch (IOException | URISyntaxException | TdwUpdaterException e) {
+        } catch (IOException | URISyntaxException | DidLogCreatorStrategyException | DidLogUpdaterStrategyException e) {
             fail(e);
         }
         dummyDidLogFile.deleteOnExit();

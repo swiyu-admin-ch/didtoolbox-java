@@ -1,8 +1,12 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.strategy;
 
+import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator;
+import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,17 +16,17 @@ import java.nio.file.Files;
 import java.time.ZonedDateTime;
 
 /**
- * The {@link DidLogDeactivatorStrategy} class is specification-agnostic DID log deactivator.
+ * The {@link DidLogDeactivatorContext} class is specification-agnostic DID log deactivator.
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
  * it is intended to be instantiated exclusively via its static {@link #builder()} method.
  * <p>
- * Once a {@link DidLogDeactivatorStrategy} object is "built", creating a DID
+ * Once a {@link DidLogDeactivatorContext} object is "built", creating a DID
  * log goes simply by calling {@link #deactivate(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link DidLogDeactivatorStrategy.DidLogDeactivatorStrategyBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting a signing (Ed25519) key</li>
+ * <li>{@link DidLogDeactivatorContext.DidLogDeactivatorContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting a signing (Ed25519) key</li>
  * </ul>
  * To load keys from the file system, the following helpers are available:
  * <ul>
@@ -39,6 +43,7 @@ import java.time.ZonedDateTime;
  *     package mypackage;
  *
  *     import ch.admin.bj.swiyu.didtoolbox.*;
+ *     import ch.admin.bj.swiyu.didtoolbox.strategy.*;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
  *     import java.net.*;
  *
@@ -51,13 +56,13 @@ import java.time.ZonedDateTime;
  *             var verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
  *
  *             // NOTE that all verification material will be generated here as well
- *             initialDidLogEntryWithGeneratedKeys = WebVerifiableHistoryCreator.builder()
+ *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
  *                 .verificationMethodKeyProvider(verificationMethodKeyProvider)
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
  *             // Now deactivate the previously generated initial single-entry DID log
- *             deactivatedDidLogEntry = DidLogDeactivatorStrategy.builder()
+ *             deactivatedDidLogEntry = DidLogDeactivatorContext.builder()
  *                      .didMethod(DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys))
  *                      .verificationMethodKeyProvider(verificationMethodKeyProvider) // the same used during creation
  *                      .build()
@@ -74,9 +79,11 @@ import java.time.ZonedDateTime;
  * </pre>
  */
 @Builder
-public class DidLogDeactivatorStrategy {
+@Getter
+public class DidLogDeactivatorContext {
 
     @Builder.Default
+    @Getter(AccessLevel.PACKAGE)
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
 
     @Builder.Default
@@ -117,29 +124,8 @@ public class DidLogDeactivatorStrategy {
      * @return a whole new  DID log entry to be appended to the existing {@code didLog}
      * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
      */
-    public String deactivate(String didLog, ZonedDateTime zdt) throws DidLogDeactivatorStrategyException {
-        switch (this.didMethod) {
-            case TDW_0_3 -> {
-                try {
-                    return TdwDeactivator.builder()
-                            .verificationMethodKeyProvider(this.verificationMethodKeyProvider)
-                            .build()
-                            .deactivate(didLog, zdt);
-                } catch (Exception e) {
-                    throw new DidLogDeactivatorStrategyException(e);
-                }
-            }
-            case WEBVH_1_0 -> {
-                try {
-                    return WebVerifiableHistoryDeactivator.builder()
-                            .verificationMethodKeyProvider(this.verificationMethodKeyProvider)
-                            .build()
-                            .deactivate(didLog, zdt);
-                } catch (Exception e) {
-                    throw new DidLogDeactivatorStrategyException(e);
-                }
-            }
-            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
-        }
+    String deactivate(String didLog, ZonedDateTime zdt) throws DidLogDeactivatorStrategyException {
+        // just use the strategy factory to get an adequate strategy
+        return DidLogStrategyFactory.getDeactivatorStrategy(this).deactivateDidLog(didLog, zdt);
     }
 }

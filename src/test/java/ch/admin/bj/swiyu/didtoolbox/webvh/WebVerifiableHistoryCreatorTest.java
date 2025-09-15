@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorStrategyException;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -84,9 +86,9 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     // the default signer (verificationMethodKeyProvider) is used
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
-        } catch (WebVerifiableHistoryCreatorException e) {
+        } catch (DidLogCreatorStrategyException e) {
             fail(e);
         }
 
@@ -98,24 +100,20 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @MethodSource("identifierRegistryUrl")
     public void testCreateWithMultipleUpdateKeys(URL identifierRegistryUrl) {
 
-        String didLogEntry = null;
-        try {
-
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
-            didLogEntry = WebVerifiableHistoryCreator.builder()
+            didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     // the default signer (verificationMethodKeyProvider) is used
                     .updateKeys(Set.of(new File("src/test/data/public.pem")))
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
 
-        } catch (WebVerifiableHistoryCreatorException e) {
-            fail(e);
-        }
+        assertDidLogEntry(didLogEntry.get());
 
-        assertDidLogEntry(didLogEntry);
-
-        var params = JsonParser.parseString(didLogEntry).getAsJsonObject().get("parameters").getAsJsonObject();
+        var params = JsonParser.parseString(didLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
         assertFalse(params.get("updateKeys").getAsJsonArray().isEmpty());
         assertEquals(2, params.get("updateKeys").getAsJsonArray().size());// Effectively, it is only 2 distinct keys
     }
@@ -132,7 +130,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -176,7 +174,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     ))
                     .build()
                     // CAUTION datetime is set explicitly here just to be able to run assertTrue("...".contains(didLogEntry));
-                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .createDidLog(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -216,7 +214,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -256,7 +254,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     // CAUTION An "authentication" key will be added by default, so need to call method: .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -297,7 +295,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);

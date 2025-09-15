@@ -7,11 +7,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -69,21 +69,17 @@ class TdwCreatorTest extends AbstractUtilTestBase {
     @MethodSource("identifierRegistryUrl")
     public void testCreate(URL identifierRegistryUrl) {
 
-        String didLogEntry = null;
-        try {
-
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
-            didLogEntry = TdwCreator.builder()
+            didLogEntry.set(TdwCreator.builder()
                     // the default signer (verificationMethodKeyProvider) is used
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
 
-        } catch (IOException e) {
-            fail(e);
-        }
-
-        assertDidLogEntry(didLogEntry);
+        assertDidLogEntry(didLogEntry.get());
     }
 
     @DisplayName("Building TDW log entry for various identifierRegistryUrl variants (multiple updateKeys)")
@@ -91,24 +87,20 @@ class TdwCreatorTest extends AbstractUtilTestBase {
     @MethodSource("identifierRegistryUrl")
     public void testCreateWithMultipleUpdateKeys(URL identifierRegistryUrl) {
 
-        String didLogEntry = null;
-        try {
-
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
-            didLogEntry = TdwCreator.builder()
+            didLogEntry.set(TdwCreator.builder()
                     // the default signer (verificationMethodKeyProvider) is used
                     .updateKeys(Set.of(new File("src/test/data/public.pem")))
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
 
-        } catch (IOException e) {
-            fail(e);
-        }
+        assertDidLogEntry(didLogEntry.get());
 
-        assertDidLogEntry(didLogEntry);
-
-        var params = JsonParser.parseString(didLogEntry).getAsJsonArray().get(2).getAsJsonObject();
+        var params = JsonParser.parseString(didLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
         assertFalse(params.get("updateKeys").getAsJsonArray().isEmpty());
         assertEquals(2, params.get("updateKeys").getAsJsonArray().size());// Effectively, it is only 2 distinct keys
     }
@@ -125,7 +117,7 @@ class TdwCreatorTest extends AbstractUtilTestBase {
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -169,7 +161,7 @@ class TdwCreatorTest extends AbstractUtilTestBase {
                     ))
                     .build()
                     // CAUTION datetime is set explicitly here just to be able to run assertTrue("...".contains(didLogEntry));
-                    .create(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
+                    .createDidLog(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z")); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -209,7 +201,7 @@ class TdwCreatorTest extends AbstractUtilTestBase {
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -249,7 +241,7 @@ class TdwCreatorTest extends AbstractUtilTestBase {
                     // CAUTION An "authentication" key will be added by default, so need to call method: .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -290,7 +282,7 @@ class TdwCreatorTest extends AbstractUtilTestBase {
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
                     .build()
-                    .create(identifierRegistryUrl); // MUT
+                    .createDidLog(identifierRegistryUrl); // MUT
 
         } catch (Exception e) {
             fail(e);

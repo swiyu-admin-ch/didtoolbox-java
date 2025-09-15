@@ -14,7 +14,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -130,21 +132,23 @@ public abstract class AbstractUtilTestBase {
      * The helper delivers an initial {@code did:tdw} DID log entry featuring the {@code updateKey} provided by {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS}.
      *
      * @param signer to be used for signing the new {@code did:tdw} DID log
-     * @return
+     * @return a valid DID log
      * @see #buildInitialWebVerifiableHistoryDidLogEntry(VerificationMethodKeyProvider)
      */
     protected static String buildInitialTdwDidLogEntry(VerificationMethodKeyProvider signer) {
-        try {
-            return TdwCreator.builder()
+
+        AtomicReference<String> didLog = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            didLog.set(TdwCreator.builder()
                     .verificationMethodKeyProvider(signer)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .updateKeys(Set.of(new File(TEST_DATA_PATH_PREFIX + "public.pem"))) // to be able to use VERIFICATION_METHOD_KEY_PROVIDER while updating
                     .build()
-                    .create(URL.of(new URI(TEST_DID_URL), null), ZonedDateTime.parse(ISO_DATE_TIME));
-        } catch (Exception simplyIntolerable) {
-            throw new IllegalArgumentException(simplyIntolerable);
-        }
+                    .createDidLog(URL.of(new URI(TEST_DID_URL), null), ZonedDateTime.parse(ISO_DATE_TIME)));
+        });
+
+        return didLog.get();
     }
 
     /**
@@ -162,7 +166,7 @@ public abstract class AbstractUtilTestBase {
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .updateKeys(Set.of(new File(TEST_DATA_PATH_PREFIX + "public.pem"))) // to be able to use VERIFICATION_METHOD_KEY_PROVIDER while updating
                     .build()
-                    .create(URL.of(new URI(TEST_DID_URL), null), ZonedDateTime.parse(ISO_DATE_TIME));
+                    .createDidLog(URL.of(new URI(TEST_DID_URL), null), ZonedDateTime.parse(ISO_DATE_TIME));
         } catch (Exception simplyIntolerable) {
             throw new IllegalArgumentException(simplyIntolerable);
         }

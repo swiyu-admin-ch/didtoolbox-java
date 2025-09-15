@@ -1,6 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorContext;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategyException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
@@ -17,7 +19,7 @@ class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
         String finalDidLog1 = didLog;
 
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            DidLogDeactivatorStrategy.builder()
+            DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.TDW_0_3) // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
                     .deactivate(finalDidLog1); // MUT
@@ -25,7 +27,7 @@ class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains("Deactivation key mismatch"));
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            DidLogDeactivatorStrategy.builder()
+            DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.TDW_0_3)
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
                     .build()
@@ -36,7 +38,7 @@ class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
         // detecting DID method
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            DidLogDeactivatorStrategy.builder()
+            DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.detectDidMethod(finalDidLog1)) // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
                     .deactivate(finalDidLog1); // MUT
@@ -44,7 +46,7 @@ class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains("Deactivation key mismatch"));
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            DidLogDeactivatorStrategy.builder()
+            DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.detectDidMethod(finalDidLog1))
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
                     .build()
@@ -58,7 +60,7 @@ class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
         String finalDidLog2 = didLog;
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            DidLogDeactivatorStrategy.builder()
+            DidLogDeactivatorContext.builder()
                     // default: .didMethod(DidMethodEnum.WEBVH_1_0) // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
                     .deactivate(finalDidLog2); // MUT
@@ -66,7 +68,7 @@ class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains("Deactivation key mismatch"));
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            DidLogDeactivatorStrategy.builder()
+            DidLogDeactivatorContext.builder()
                     // default: .didMethod(DidMethodEnum.WEBVH_1_0)
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
                     .build()
@@ -77,7 +79,7 @@ class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
         // detecting DID method
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            DidLogDeactivatorStrategy.builder()
+            DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.detectDidMethod(finalDidLog2)) // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
                     .deactivate(finalDidLog2); // MUT
@@ -85,7 +87,7 @@ class DidLogDeactivatorStrategyTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains("Deactivation key mismatch"));
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            DidLogDeactivatorStrategy.builder()
+            DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.detectDidMethod(finalDidLog2)) // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
                     .build()

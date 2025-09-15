@@ -1,7 +1,9 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.strategy;
 
+import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,21 +18,21 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * {@link DidLogUpdaterStrategy} is the class in charge of DID log update (rotate) in specification-agnostic fashion
+ * {@link DidLogUpdaterContext} is the class in charge of DID log update (rotate) in specification-agnostic fashion
  * i.e. regardless of DID method specification.
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
  * it is intended to be instantiated exclusively via its static {@link #builder()} method.
  * <p>
- * Once a {@link DidLogUpdaterStrategy} object is "built", creating a DID
+ * Once a {@link DidLogUpdaterContext} object is "built", creating a DID
  * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link DidLogUpdaterStrategy.DidLogUpdaterStrategyBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
- * <li>{@link DidLogUpdaterStrategy.DidLogUpdaterStrategyBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link DidLogUpdaterStrategy.DidLogUpdaterStrategyBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load keys from the file system, the following helpers are available:
@@ -48,6 +50,7 @@ import java.util.Set;
  *     package mypackage;
  *
  *     import ch.admin.bj.swiyu.didtoolbox.*;
+ *     import ch.admin.bj.swiyu.didtoolbox.strategy.*;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
  *     import java.net.*;
  *
@@ -60,13 +63,13 @@ import java.util.Set;
  *             var verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
  *
  *             // NOTE that all verification material will be generated here as well
- *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorStrategy.builder()
+ *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
  *                 .verificationMethodKeyProvider(verificationMethodKeyProvider)
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
  *             // Now update the previously generated initial single-entry DID log
- *             updatedDidLogEntryWithReplacedVerificationMaterial = DidLogUpdaterStrategy.builder()
+ *             updatedDidLogEntryWithReplacedVerificationMaterial = DidLogUpdaterContext.builder()
  *                 .didMethod(DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys))
  *                 .verificationMethodKeyProvider(verificationMethodKeyProvider) // the same used during creation
  *                 .assertionMethodKeys(Map.of(
@@ -90,29 +93,28 @@ import java.util.Set;
  */
 @Builder
 @Getter
-public class DidLogUpdaterStrategy {
+public class DidLogUpdaterContext {
 
     private static final String SCID_PLACEHOLDER = "{SCID}";
 
-    @Getter(AccessLevel.PRIVATE)
+    @Getter(AccessLevel.PACKAGE)
     private Map<String, String> assertionMethodKeys;
-    @Getter(AccessLevel.PRIVATE)
+    @Getter(AccessLevel.PACKAGE)
     private Map<String, String> authenticationKeys;
     @Builder.Default
-    @Getter(AccessLevel.PRIVATE)
+    @Getter(AccessLevel.PACKAGE)
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
-    @Getter(AccessLevel.PRIVATE)
+    @Getter(AccessLevel.PACKAGE)
     private Set<File> updateKeys;
-    // TODO private File dirToStoreKeyPair;
 
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
 
     /**
      * Updates a valid DID log by taking into account other
-     * features of this {@link DidLogUpdaterStrategy} object, optionally customized by previously calling fluent methods like
-     * {@link DidLogUpdaterStrategy.DidLogUpdaterStrategyBuilder#verificationMethodKeyProvider}, {@link DidLogUpdaterStrategy.DidLogUpdaterStrategyBuilder#authenticationKeys(Map)} or
-     * {@link DidLogUpdaterStrategy.DidLogUpdaterStrategyBuilder#assertionMethodKeys(Map)}.
+     * features of this {@link DidLogUpdaterContext} object, optionally customized by previously calling fluent methods like
+     * {@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider}, {@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#authenticationKeys(Map)} or
+     * {@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#assertionMethodKeys(Map)}.
      *
      * @param didLog to update. Expected to be resolvable/verifiable already.
      * @return a whole new DID log entry to be appended to the existing {@code didLog}
@@ -127,11 +129,14 @@ public class DidLogUpdaterStrategy {
      * The file-system-as-input variation of {@link #update(String)}
      *
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason
-     * @throws IOException                    if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
      * @see #update(String, ZonedDateTime)
      */
-    String update(File didLogFile) throws DidLogUpdaterStrategyException, IOException {
-        return update(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+    public String update(File didLogFile) throws DidLogUpdaterStrategyException {
+        try {
+            return update(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+        } catch (IOException e) {
+            throw new DidLogUpdaterStrategyException(e);
+        }
     }
 
     /**
@@ -147,34 +152,7 @@ public class DidLogUpdaterStrategy {
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
     String update(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
-        switch (didMethod) {
-            case TDW_0_3 -> {
-                try {
-                    return TdwUpdater.builder()
-                            .verificationMethodKeyProvider(verificationMethodKeyProvider)
-                            .assertionMethodKeys(assertionMethodKeys)
-                            .authenticationKeys(authenticationKeys)
-                            .updateKeys(updateKeys)
-                            .build()
-                            .update(resolvableDidLog, zdt);
-                } catch (Exception e) {
-                    throw new DidLogUpdaterStrategyException(e);
-                }
-            }
-            case WEBVH_1_0 -> {
-                try {
-                    return WebVerifiableHistoryUpdater.builder()
-                            .verificationMethodKeyProvider(verificationMethodKeyProvider)
-                            .assertionMethodKeys(assertionMethodKeys)
-                            .authenticationKeys(authenticationKeys)
-                            .updateKeys(updateKeys)
-                            .build()
-                            .update(resolvableDidLog, zdt);
-                } catch (Exception e) {
-                    throw new DidLogUpdaterStrategyException(e);
-                }
-            }
-            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
-        }
+        // just use the strategy factory to get an adequate strategy
+        return DidLogStrategyFactory.getUpdaterStrategy(this).updateDidLog(resolvableDidLog, zdt);
     }
 }

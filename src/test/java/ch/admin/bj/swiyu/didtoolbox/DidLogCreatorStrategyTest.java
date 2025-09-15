@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreatorTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,7 +25,7 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
 
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
-            didLogEntry.set(DidLogCreatorStrategy.builder()
+            didLogEntry.set(DidLogCreatorContext.builder()
                     .didMethod(DidMethodEnum.TDW_0_3)
                     // the default signer (verificationMethodKeyProvider) is used
                     .forceOverwrite(true)
@@ -38,7 +39,7 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
 
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
-            didLogEntry.set(DidLogCreatorStrategy.builder()
+            didLogEntry.set(DidLogCreatorContext.builder()
                     .didMethod(DidMethodEnum.WEBVH_1_0) // default
                     // the default signer (verificationMethodKeyProvider) is used
                     .forceOverwrite(true)

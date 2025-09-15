@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -85,35 +86,35 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     }
 
     @Test
-    void testUpdateThrowsUpdateKeyMismatchTdwUpdaterException() {
+    void testUpdateThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
 
-        var exc = assertThrowsExactly(TdwUpdaterException.class, () -> {
+        var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
             TdwUpdater.builder()
                     // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
-                    .update(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .updateDidLog(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
 
-        exc = assertThrowsExactly(TdwUpdaterException.class, () -> {
+        exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             TdwUpdater.builder()
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
                     .updateKeys(Set.of(new File("src/test/data/public.pem"))) // ...with NO matching key supplied!
                     .build()
-                    .update(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .updateDidLog(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
     }
 
     @Test
-    void testUpdateThrowsDateTimeInThePastTdwUpdaterException() {
+    void testUpdateThrowsDateTimeInThePastDidLogUpdaterStrategyException() {
 
-        var exc = assertThrowsExactly(TdwUpdaterException.class, () -> {
+        var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             TdwUpdater.builder()
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .build()
-                    .update( // MUT
+                    .updateDidLog( // MUT
                             buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS),
                             ZonedDateTime.parse(ISO_DATE_TIME).minusMinutes(1)); // In the past!
         });

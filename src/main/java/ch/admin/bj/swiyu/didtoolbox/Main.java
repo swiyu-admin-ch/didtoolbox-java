@@ -4,6 +4,9 @@ import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorContext;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterContext;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -60,7 +63,7 @@ public class Main {
         }
 
         if (main.version) {
-            System.out.println(ManifestUtils.getImplementationTitle() + " " + ManifestUtils.getImplementationVersion());
+            jc.getConsole().println(ManifestUtils.getImplementationTitle() + " " + ManifestUtils.getImplementationVersion());
             System.exit(0);
         }
 
@@ -225,7 +228,7 @@ public class Main {
         }
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
-        System.out.println(DidLogCreatorStrategy.builder()
+        jc.getConsole().println(DidLogCreatorContext.builder()
                 .didMethod(didMethod)
                 .verificationMethodKeyProvider(signer)
                 .assertionMethodKeys(assertionMethodKeysMap)
@@ -313,8 +316,8 @@ public class Main {
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
         assert didLogMeta != null;
-        System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
-                DidLogUpdaterStrategy.builder()
+        jc.getConsole().println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
+                DidLogUpdaterContext.builder()
                         .didMethod(didLogMeta.getParams().getDidMethodEnum())
                         //.didMethod(DidMethodEnum.detectDidMethod(didLogFile)) // No need to parse the DID log twice
                         .verificationMethodKeyProvider(signer)
@@ -383,8 +386,8 @@ public class Main {
         }
 
         // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-        System.out.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
-                DidLogDeactivatorStrategy.builder()
+        jc.getConsole().println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
+                DidLogDeactivatorContext.builder()
                         .didMethod(didLogMeta.getParams().getDidMethodEnum())
                         //.didMethod(DidMethodEnum.detectDidMethod(didLogFile)) // No need to parse the DID log twice
                         .verificationMethodKeyProvider(signer)
@@ -441,7 +444,7 @@ public class Main {
         var proof = new ProofOfPossessionCreator(signer)
                 .create(nonce, validDuration);
 
-        System.out.println(proof.serialize());
+        jc.getConsole().println(proof.serialize());
     }
 
     private static void runPoPVerifyCommand(JCommander jc, String parsedCommandName, VerifyProofOfPossessionCommand command) throws IOException {
@@ -459,7 +462,7 @@ public class Main {
         try {
             new ProofOfPossessionVerifier(didLog)
                     .verify(jwt, nonce);
-            System.out.println("Provided JWT is valid.");
+            jc.getConsole().println("Provided JWT is valid.");
         } catch (ProofOfPossessionVerifierException e) {
             overAndOut(jc, parsedCommandName, "Provided JWT is invalid: " + e.getLocalizedMessage());
         }

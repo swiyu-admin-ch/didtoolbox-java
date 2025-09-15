@@ -2,6 +2,8 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
@@ -73,19 +75,19 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     @Test
     void testDeactivateThrowsDeactivationKeyMismatchWebVerifiableHistoryDeactivatorException() {
 
-        var exc = assertThrowsExactly(WebVerifiableHistoryDeactivatorException.class, () -> {
+        var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             WebVerifiableHistoryDeactivator.builder()
                     // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
-                    .deactivate(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .deactivateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
         assertEquals("Deactivation key mismatch", exc.getMessage());
 
-        exc = assertThrowsExactly(WebVerifiableHistoryDeactivatorException.class, () -> {
+        exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             WebVerifiableHistoryDeactivator.builder()
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
                     .build()
-                    .deactivate(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .deactivateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
         assertEquals("Deactivation key mismatch", exc.getMessage());
     }
@@ -93,11 +95,11 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     @Test
     void testDeactivateThrowsDateTimeInThePastWebVerifiableHistoryDeactivatorException() {
 
-        var exc = assertThrowsExactly(WebVerifiableHistoryDeactivatorException.class, () -> {
+        var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             WebVerifiableHistoryDeactivator.builder()
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .build()
-                    .deactivate( // MUT
+                    .deactivateDidLog( // MUT
                             buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS),
                             ZonedDateTime.parse(ISO_DATE_TIME).minusMinutes(1)); // In the past!
         });
@@ -121,7 +123,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .deactivate(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+                    .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
         assertDeactivatedDidLogEntry(nextLogEntry.get());
@@ -160,17 +162,17 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .deactivate(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+                    .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
         assertDeactivatedDidLogEntry(nextLogEntry.get());
 
         // Try updating the DID log
-        var updaterExc = assertThrowsExactly(WebVerifiableHistoryUpdaterException.class, () -> {
+        var updaterExc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
                     .build()
-                    .update(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString(),
+                    .updateDidLog(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString(),
                             // The versionTime for each log entry MUST be greater than the previous entry’s time.
                             // The versionTime of the last entry MUST be earlier than the current time.
                             ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2));
@@ -195,7 +197,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .deactivate(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+                    .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
         assertDeactivatedDidLogEntry(nextLogEntry.get());
@@ -203,14 +205,14 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         deactivatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
 
         // trying to deactivate it again should fail
-        var exc = assertThrowsExactly(WebVerifiableHistoryDeactivatorException.class, () -> {
+        var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             nextLogEntry.set(WebVerifiableHistoryDeactivator.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // is actually irrelevant for the test case
                     //.verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .deactivate(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2))); // MUT
+                    .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2))); // MUT
         });
         assertEquals("DID already deactivated", exc.getMessage());
     }

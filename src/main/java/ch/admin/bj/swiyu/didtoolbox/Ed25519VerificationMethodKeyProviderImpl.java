@@ -31,9 +31,9 @@ import java.util.Set;
  * It is predominantly intended to be used within a:
  * <ul>
  * <li> {@link ch.admin.bj.swiyu.didtoolbox.TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
- * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.TdwCreator#create(URL)} call)</li>
+ * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.TdwCreator#createDidLog(URL)} call)</li>
  * <li>{@link ch.admin.bj.swiyu.didtoolbox.TdwUpdater.TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
- * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.TdwUpdater#update(String)} call).</li>
+ * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.TdwUpdater#updateDidLog(String)} call).</li>
  * </ul>
  * <p>
  * Thanks to the following constructor(s), it is also capable of loading an already existing key material from the file system:

@@ -2,6 +2,9 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategy;
+import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategyException;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -18,14 +21,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 /**
- * {@link WebVerifiableHistoryDeactivator} is the class in charge of <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log deactivation (revoke).
+ * {@link WebVerifiableHistoryDeactivator} is a {@link DidLogDeactivatorStrategy} implementation in charge of
+ * <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log deactivation (revoke).
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
  * it is intended to be instantiated exclusively via its static {@link #builder()} method.
  * <p>
  * Once a {@link WebVerifiableHistoryDeactivator} object is "built", creating a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
- * log goes simply by calling {@link #deactivate(String)} method. Optionally, but most likely, an already existing key material will
+ * log goes simply by calling {@link #deactivateDidLog(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
  * <li>{@link WebVerifiableHistoryDeactivator.WebVerifiableHistoryDeactivatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting a signing (Ed25519) key</li>
@@ -42,13 +46,13 @@ import java.time.temporal.ChronoUnit;
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
- * Instead, rather rely on the designated {@link DidLogDeactivatorStrategy} for the purpose. Needless to say,
+ * Instead, rather rely on the designated {@link DidLogCreatorContext.DidLogDeactivatorContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
 @Builder
-public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder {
+public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
     @Builder.Default
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
@@ -64,22 +68,27 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
      *
      * @param didLog to deactivate. Expected to be resolvable/verifiable already.
      * @return a whole new <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
-     * @throws WebVerifiableHistoryDeactivatorException if deactivation fails for whatever reason.
-     * @see #deactivate(String, ZonedDateTime)
+     * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
+     * @see #deactivateDidLog(String, ZonedDateTime)
      */
-    public String deactivate(String didLog) throws WebVerifiableHistoryDeactivatorException {
-        return deactivate(didLog, ZonedDateTime.now());
+    @Override
+    public String deactivateDidLog(String didLog) throws DidLogDeactivatorStrategyException {
+        return deactivateDidLog(didLog, ZonedDateTime.now());
     }
 
     /**
-     * The file-system-as-input variation of {@link #deactivate(String)}
+     * The file-system-as-input variation of {@link #deactivateDidLog(String)}
      *
-     * @throws WebVerifiableHistoryDeactivatorException if deactivation fails for whatever reason
-     * @throws IOException                              if an I/ O error occurs reading from the file or a malformed or unmappable byte sequence is read
-     * @see #deactivate(String)
+     * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason
+     * @see #deactivateDidLog(String)
      */
-    String deactivate(File didLogFile) throws WebVerifiableHistoryDeactivatorException, IOException {
-        return deactivate(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+    @Override
+    public String deactivateDidLog(File didLogFile) throws DidLogDeactivatorStrategyException {
+        try {
+            return deactivateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+        } catch (IOException e) {
+            throw new DidLogDeactivatorStrategyException(e);
+        }
     }
 
     /**
@@ -92,23 +101,24 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
      * @param didLog to deactivate. Expected to be resolvable/verifiable already.
      * @param zdt    a date-time with a time-zone in the ISO-8601 calendar system
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
-     * @throws WebVerifiableHistoryDeactivatorException if deactivation fails for whatever reason.
+     * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
      */
-    public String deactivate(String didLog, ZonedDateTime zdt) throws WebVerifiableHistoryDeactivatorException {
+    @Override
+    public String deactivateDidLog(String didLog, ZonedDateTime zdt) throws DidLogDeactivatorStrategyException {
 
         try {
             super.peek(didLog);
         } catch (Exception e) { //} catch (DidResolveException | DidLogMetaPeekerException e) {
-            throw new WebVerifiableHistoryDeactivatorException(e);
+            throw new DidLogDeactivatorStrategyException(e);
         }
 
         // CAUTION Only activated DIDs can be updated
         if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
-            throw new WebVerifiableHistoryDeactivatorException("DID already deactivated");
+            throw new DidLogDeactivatorStrategyException("DID already deactivated");
         }
 
         if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
-            throw new WebVerifiableHistoryDeactivatorException("Deactivation key mismatch");
+            throw new DidLogDeactivatorStrategyException("Deactivation key mismatch");
         }
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
@@ -118,7 +128,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         // The versionTime of the last entry MUST be earlier than the current time.
         var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.getDateTime());
         if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
-            throw new WebVerifiableHistoryDeactivatorException("The versionTime of the last entry MUST be earlier than the current time");
+            throw new DidLogDeactivatorStrategyException("The versionTime of the last entry MUST be earlier than the current time");
         }
 
         // Create initial did doc with placeholder
@@ -185,7 +195,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         try {
             entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
         } catch (IOException e) {
-            throw new WebVerifiableHistoryDeactivatorException(e);
+            throw new DidLogDeactivatorStrategyException(e);
         }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
@@ -211,7 +221,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
             proof = JCSHasher.buildDataIntegrityProof(
                     didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
         } catch (IOException e) {
-            throw new WebVerifiableHistoryDeactivatorException("Fail to build DID doc data integrity proof", e);
+            throw new DidLogDeactivatorStrategyException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"
         proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());

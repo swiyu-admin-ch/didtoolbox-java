@@ -1,8 +1,8 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.strategy;
 
 /**
  * The class {@code DidLogCreatorStrategyException} is a <em>checked exception</em> class indicating conditions related to
- * {@code DidLogCreatorStrategy} class that any reasonable application might want to catch.
+ * a {@code DidLogCreatorStrategy} implementation class, that any reasonable application might want to catch.
  *
  * @see DidLogCreatorStrategy
  */
