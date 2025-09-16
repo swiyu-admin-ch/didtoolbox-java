@@ -43,7 +43,8 @@ import java.time.ZonedDateTime;
  *     package mypackage;
  *
  *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import ch.admin.bj.swiyu.didtoolbox.strategy.*;
+ *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+ *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
  *     import java.net.*;
  *

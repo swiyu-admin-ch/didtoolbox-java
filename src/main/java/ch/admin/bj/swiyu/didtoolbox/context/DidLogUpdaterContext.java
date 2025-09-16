@@ -50,7 +50,8 @@ import java.util.Set;
  *     package mypackage;
  *
  *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import ch.admin.bj.swiyu.didtoolbox.strategy.*;
+ *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+ *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
  *     import java.net.*;
  *
