@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.text.ParseException;
 
 /**
  * The enumeration describing/modelling all the supported DID specifications
@@ -57,9 +58,9 @@ public enum DidMethodEnum {
      *
      * @param str to convert to {@link DidMethodEnum} from. Case-insensitive.
      * @return a valid {@link DidMethodEnum} constant matching the supplied string. Otherwise, {@code null}.
-     * @throws IllegalArgumentException if the supplied string does not match any of the valid {@link DidMethodEnum} constants.
+     * @throws ParseException if the supplied string does not match any of the valid {@link DidMethodEnum} constants.
      */
-    public static DidMethodEnum parse(String str) {
+    public static DidMethodEnum parse(String str) throws ParseException {
         if (str == null) {
             return null;
         }
@@ -70,7 +71,7 @@ public enum DidMethodEnum {
             return DidMethodEnum.WEBVH_1_0;
         }
 
-        throw new IllegalArgumentException("Unknown DID method: " + str);
+        throw new ParseException("Unknown or unsupported DID method: " + str, 0);
     }
 
     public boolean isTdw03() {

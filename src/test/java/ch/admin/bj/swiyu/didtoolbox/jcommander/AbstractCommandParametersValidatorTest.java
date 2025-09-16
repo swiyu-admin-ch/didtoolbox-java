@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;

@@ -2,8 +2,8 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;

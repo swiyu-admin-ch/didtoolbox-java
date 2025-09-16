@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.CommandParametersValidator;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.DidMethodParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.IdentifierRegistryUrlParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import com.beust.jcommander.Parameter;
@@ -40,7 +41,9 @@ public class CreateDidLogCommand extends AbstractKeyMaterialTdwCommand {
 
     @Parameter(names = {"--method-version", "-m"},
             description = "Defines the DID method specification version to use when generating a DID log. Case-insensitive. Valid values: '" + DidMethodEnum.TDW_0_3_STRING + "', '" + DidMethodEnum.WEBVH_1_0_STRING + "'",
+            converter = DidMethodParameterConverter.class,
+            validateWith = DidMethodParameterValidator.class,
             defaultValueDescription = DidMethodEnum.WEBVH_1_0_STRING)
     //,required = true)
-    public String methodVersion;
+    public DidMethodEnum methodVersion;
 }

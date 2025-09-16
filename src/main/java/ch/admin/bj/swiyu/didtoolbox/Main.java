@@ -1,12 +1,15 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
-import ch.admin.bj.swiyu.didtoolbox.model.*;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorContext;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorContext;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterContext;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -107,7 +110,7 @@ public class Main {
 
         URL identifierRegistryUrl = command.identifierRegistryUrl;
 
-        var didMethod = DidMethodEnum.parse(command.methodVersion); // may return null
+        var didMethod = command.methodVersion; // may return null
         if (didMethod == null) {
             didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
         }

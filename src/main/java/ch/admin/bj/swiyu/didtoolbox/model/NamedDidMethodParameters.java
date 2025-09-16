@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.text.ParseException;
 import java.util.Set;
 
 /**
@@ -37,6 +38,10 @@ public class NamedDidMethodParameters {
      * @see DidMethodEnum#parse(String)
      */
     public DidMethodEnum getDidMethodEnum() {
-        return DidMethodEnum.parse(this.method);
+        try {
+            return DidMethodEnum.parse(this.method);
+        } catch (ParseException ignore) {
+        }
+        return null;
     }
 }

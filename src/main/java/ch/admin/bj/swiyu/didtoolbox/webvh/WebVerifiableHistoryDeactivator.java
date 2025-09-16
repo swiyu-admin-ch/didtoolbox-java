@@ -2,9 +2,9 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorContext;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategy;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;

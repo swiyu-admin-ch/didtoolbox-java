@@ -3,9 +3,9 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorContext;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorStrategy;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -71,7 +71,6 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
-    // TODO private File dirToStoreKeyPair;
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
 

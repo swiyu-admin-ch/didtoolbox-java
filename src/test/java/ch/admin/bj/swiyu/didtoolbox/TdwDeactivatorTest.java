@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogDeactivatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;

@@ -1,15 +1,15 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import com.beust.jcommander.IStringConverter;
-import com.nimbusds.jwt.SignedJWT;
 
 import java.text.ParseException;
 
-public class JWTParameterConverter implements IStringConverter<SignedJWT> {
+public class DidMethodParameterConverter implements IStringConverter<DidMethodEnum> {
     @Override
-    public SignedJWT convert(String value) {
+    public DidMethodEnum convert(String value) {
         try {
-            return SignedJWT.parse(value);
+            return DidMethodEnum.parse(value);
         } catch (ParseException e) {
             // The designated validator class (if any) should already ensure the value is "convertible"
             return null;

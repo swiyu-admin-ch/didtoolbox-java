@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.strategy;
+package ch.admin.bj.swiyu.didtoolbox.context;
 
 import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
@@ -128,6 +128,7 @@ public class DidLogUpdaterContext {
     /**
      * The file-system-as-input variation of {@link #update(String)}
      *
+     * @return a whole new DID log entry to be appended to the supplied {@code didLogFile}
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason
      * @see #update(String, ZonedDateTime)
      */

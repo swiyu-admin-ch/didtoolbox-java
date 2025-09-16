@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.strategy;
+package ch.admin.bj.swiyu.didtoolbox.context;
 
 import java.io.File;
 import java.time.ZonedDateTime;

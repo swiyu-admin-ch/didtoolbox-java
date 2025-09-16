@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.strategy;
+package ch.admin.bj.swiyu.didtoolbox.context;
 
 import java.net.URL;
 import java.time.ZonedDateTime;

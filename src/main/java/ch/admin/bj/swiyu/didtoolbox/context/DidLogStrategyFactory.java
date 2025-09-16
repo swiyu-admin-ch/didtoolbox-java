@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.strategy;
+package ch.admin.bj.swiyu.didtoolbox.context;
 
 import ch.admin.bj.swiyu.didtoolbox.TdwCreator;
 import ch.admin.bj.swiyu.didtoolbox.TdwDeactivator;
@@ -11,6 +11,9 @@ import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater;
  * The factory delivering all possible strategies in regard to DID log manipulation, regardless of DID method.
  */
 class DidLogStrategyFactory {
+
+    private DidLogStrategyFactory(){
+    }
 
     static DidLogCreatorStrategy getCreatorStrategy(DidLogCreatorContext ctx) {
 

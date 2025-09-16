@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.strategy;
+package ch.admin.bj.swiyu.didtoolbox.context;
 
 /**
  * The class {@code DidLogDeactivatorStrategyException} is a <em>checked exception</em> class indicating conditions related to

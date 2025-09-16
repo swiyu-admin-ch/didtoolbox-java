@@ -2,9 +2,9 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterContext;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategy;
-import ch.admin.bj.swiyu.didtoolbox.strategy.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
