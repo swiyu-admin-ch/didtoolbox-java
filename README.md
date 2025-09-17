@@ -2,6 +2,8 @@
 
 # DID-Toolbox
 
+[![Pull Request Check](https://github.com/swiyu-admin-ch/didtoolbox-java/actions/workflows/pull-request-check.yml/badge.svg)](https://github.com/swiyu-admin-ch/didtoolbox-java/actions/workflows/pull-request-check.yml)
+
 An official Swiss Government project made by
 the [Federal Office of Information Technology, Systems and Telecommunication FOITT](https://www.bit.admin.ch/)
 as part of the electronic identity (e-ID) project.
