@@ -7,6 +7,7 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,6 +32,7 @@ public final class TdwDidLogMetaPeeker {
      *                                   The {@link MalformedTdwDidLogMetaPeekerException} variant
      *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
 
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
@@ -41,57 +43,80 @@ public final class TdwDidLogMetaPeeker {
         // CAUTION Trimming the existing DID log prevents ending up parsing empty lines
         BufferedReader reader = new BufferedReader(new StringReader(didLog.trim()));
 
-        reader.lines().forEach(line -> {
+        AtomicReference<Object[]> didLogEntryElements = new AtomicReference<>();
+        reader.lines().takeWhile(line -> {
+            try {
+                didLogEntryElements.set(new Gson().fromJson(line, Object[].class)); // may throw JsonSyntaxException
+            } catch (JsonSyntaxException e) {
+                jsonSyntaxEx.set(e);
+                return false; // short-circuit the stream
+            }
+
+            if (didLogEntryElements.get().length != 5) {
+                jsonSyntaxEx.set(new JsonSyntaxException("Expected at 5 DID log entry elements but got " + didLogEntryElements.get().length));
+                return false; // short-circuit the stream
+            }
+
+            return true;
+
+        }).forEach(ignored -> { // CAUTION The string var is ignored here, as the DID log entry deserialisation has already been done earlier by takeWhile
+
+            var lastVersionIdObj = didLogEntryElements.get()[0];
+            if (lastVersionIdObj == null) {
+                jsonSyntaxEx.set(new JsonSyntaxException("The first DID log entry element (`versionId`) is missing"));
+                return;
+            }
+            lastVersionId.set(lastVersionIdObj.toString());
+
+            var dateTimeObj = didLogEntryElements.get()[1];
+            if (dateTimeObj == null) {
+                jsonSyntaxEx.set(new JsonSyntaxException("The second DID log entry element (`dateTime`) is missing"));
+                return;
+            }
+            dateTime.set(dateTimeObj.toString());
+
+            var parametersObj = didLogEntryElements.get()[2];
+            if (parametersObj == null) {
+                jsonSyntaxEx.set(new JsonSyntaxException("The third DID log entry element (`parameters`) is missing"));
+                return;
+            }
+            // CAUTION Skip parsing the parameters (didLogEntryElements.get()[2]), as they will be supplied by the resolver afterwards
+
+            var didDocObj = didLogEntryElements.get()[3];
+            if (didDocObj == null) {
+                jsonSyntaxEx.set(new JsonSyntaxException("The forth DID log entry element (`DIDDoc State`) is missing"));
+                return;
+            }
 
             var gson = new Gson();
 
+            DidDocValue didDocValue;
             try {
-                Object[] didLogEntryElements = gson.fromJson(line, Object[].class);
-                if (didLogEntryElements.length != 5) {
-                    throw new JsonSyntaxException("Expected at 5 DID log entry elements but got " + didLogEntryElements.length);
-                }
+                didDocValue = gson.fromJson(gson.toJson(didDocObj), DidDocValue.class);
+            } catch (JsonSyntaxException ex) {
+                jsonSyntaxEx.set(ex);
+                return;
+            }
+            if (didDocValue != null && didDocValue.getValue() != null) {
+                didDocId.set(didDocValue.getValue().getId());
+            }
 
-                var lastVersionIdObj = didLogEntryElements[0];
-                if (lastVersionIdObj == null) {
-                    throw new JsonSyntaxException("The first DID log entry element (`versionId`) is missing");
-                }
-                lastVersionId.set(lastVersionIdObj.toString());
+            var dataIntegrityProofObj = didLogEntryElements.get()[4];
+            if (dataIntegrityProofObj == null) {
+                jsonSyntaxEx.set(new JsonSyntaxException("The fifth DID log entry element (`Data Integrity Proof`) is missing"));
+                return;
+            }
 
-                var dateTimeObj = didLogEntryElements[1];
-                if (dateTimeObj == null) {
-                    throw new JsonSyntaxException("The second DID log entry element (`dateTime`) is missing");
-                }
-                dateTime.set(dateTimeObj.toString());
-
-                var parametersObj = didLogEntryElements[2];
-                if (parametersObj == null) {
-                    throw new JsonSyntaxException("The third DID log entry element (`parameters`) is missing");
-                }
-                // CAUTION Skip parsing the parameters (didLogEntryElements[2]), as they will be supplied by the resolver afterwards
-
-                var didDocObj = didLogEntryElements[3];
-                if (didDocObj == null) {
-                    throw new JsonSyntaxException("The forth DID log entry element (`DIDDoc State`) is missing");
-                }
-
-                var didDocValue = gson.fromJson(gson.toJson(didDocObj), DidDocValue.class);
-                if (didDocValue != null && didDocValue.value != null) {
-                    didDocId.set(didDocValue.value.getId());
-                }
-
-                var dataIntegrityProofObj = didLogEntryElements[4];
-                if (dataIntegrityProofObj == null) {
-                    throw new JsonSyntaxException("The fifth DID log entry element (`Data Integrity Proof`) is missing");
-                }
-
-                var proof = gson.fromJson(gson.toJson(dataIntegrityProofObj), DataIntegrityProof[].class);
-                if (proof == null || proof.length == 0) {
-                    throw new JsonSyntaxException("The `Data Integrity Proof` DID log entry element is empty");
-                }
-
-            } catch (JsonSyntaxException e) {
-                jsonSyntaxEx.set(e);
-            } finally {
+            DataIntegrityProof[] proof;
+            try {
+                proof = gson.fromJson(gson.toJson(dataIntegrityProofObj), DataIntegrityProof[].class);
+            } catch (JsonSyntaxException ex) {
+                jsonSyntaxEx.set(new JsonSyntaxException("The `Data Integrity Proof` DID log entry element must ba JSON array", ex));
+                return;
+            }
+            if (proof == null || proof.length == 0) {
+                jsonSyntaxEx.set(new JsonSyntaxException("The `Data Integrity Proof` DID log entry element is empty"));
+                //return;
             }
         });
 
@@ -137,6 +162,7 @@ public final class TdwDidLogMetaPeeker {
         return new DidLogMeta(lastVersionId.get(), lastVersionNumber, dateTime.get(), didMethodParameters, didDoc);
     }
 
+    @Getter
     static class DidDocValue {
         DidDocument value;
     }

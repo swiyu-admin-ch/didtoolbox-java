@@ -245,7 +245,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
         ByteBuffer buff = ByteBuffer.allocate(32);
-        buff.put(Arrays.copyOfRange(verifyingKey, verifyingKey.length - 32, verifyingKey.length));
+        var length = verifyingKey.length;
+        buff.put(Arrays.copyOfRange(verifyingKey, length - 32, length));
         var pubKey = Ed25519Utils.toPublicKey(buff.array());
 
         this.keyPair = new KeyPair(pubKey, privKey);

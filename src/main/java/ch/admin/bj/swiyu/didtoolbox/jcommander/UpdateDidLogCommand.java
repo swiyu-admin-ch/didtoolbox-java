@@ -20,7 +20,14 @@ import java.io.File;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
+// This will suppress LawOfDemeter warnings in this class
+@SuppressWarnings({"PMD.LawOfDemeter"})
 public class UpdateDidLogCommand extends AbstractKeyMaterialTdwCommand {
+
+    @Override
+    String getCommandName(){
+        return COMMAND_NAME;
+    }
 
     final public static String COMMAND_NAME = "update";
 

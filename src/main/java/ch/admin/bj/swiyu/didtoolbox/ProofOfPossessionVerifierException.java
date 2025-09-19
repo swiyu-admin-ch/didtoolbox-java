@@ -43,6 +43,10 @@ public class ProofOfPossessionVerifierException extends Exception {
         return new ProofOfPossessionVerifierException("Signature of JWT is invalid", ErrorCause.INVALID_SIGNATURE);
     }
 
+    static ProofOfPossessionVerifierException unsupportedKeySubtype() {
+        return new ProofOfPossessionVerifierException("The key subtype is not supported", ErrorCause.UNSUPPORTED_KEY_SUBTYPE);
+    }
+
     static ProofOfPossessionVerifierException failedToVerify(Exception cause) {
         return new ProofOfPossessionVerifierException(String.format("Failed to verify JWT due to: %s", cause.getLocalizedMessage()), ErrorCause.FAILED_TO_VERIFY);
     }
@@ -54,6 +58,7 @@ public class ProofOfPossessionVerifierException extends Exception {
         EXPIRED,
         KEY_MISMATCH,
         INVALID_SIGNATURE,
+        UNSUPPORTED_KEY_SUBTYPE,
         FAILED_TO_VERIFY
     }
 }

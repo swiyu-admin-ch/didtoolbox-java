@@ -24,6 +24,11 @@ import java.net.URL;
 )
 public class CreateDidLogCommand extends AbstractKeyMaterialTdwCommand {
 
+    @Override
+    String getCommandName(){
+        return COMMAND_NAME;
+    }
+
     final public static String COMMAND_NAME = "create";
 
     final public static DidMethodEnum DEFAULT_METHOD_VERSION = DidMethodEnum.WEBVH_1_0;

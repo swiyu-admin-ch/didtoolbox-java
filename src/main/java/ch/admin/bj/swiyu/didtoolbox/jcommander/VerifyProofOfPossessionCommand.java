@@ -9,19 +9,21 @@ import com.nimbusds.jwt.SignedJWT;
 
 import java.io.File;
 
+// This will suppress LawOfDemeter warnings in this class
+@SuppressWarnings({"PMD.LawOfDemeter"})
 @Parameters(
         commandNames = {VerifyProofOfPossessionCommand.COMMAND_NAME},
         commandDescription = "Verifies the validity of the provided proof of possession JWT.",
         parametersValidators = {CommandParametersValidator.class}
 )
-public class VerifyProofOfPossessionCommand {
+public class VerifyProofOfPossessionCommand extends AbstractCommandBase {
+
+    @Override
+    String getCommandName() {
+        return COMMAND_NAME;
+    }
 
     final public static String COMMAND_NAME = "verify-pop";
-
-    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},
-            description = "Display help for the DID toolbox command",
-            help = true)
-    public boolean help;
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},
             description = "Text representation of the possession to be included in the proof",

@@ -11,6 +11,8 @@ import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all PMD warnings in this class
+@SuppressWarnings({"PMD"})
 class JwkUtilsTest {
 
     private static void assertGeneratePublicEC256(String json, String kid) {

@@ -1,9 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -50,6 +51,8 @@ import java.time.temporal.ChronoUnit;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
+// This will suppress LawOfDemeter warnings in this class
+@SuppressWarnings({"PMD.LawOfDemeter"})
 @Builder
 public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
@@ -144,12 +147,13 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
      * @return a whole new <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
      */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
     public String deactivateDidLog(String didLog, ZonedDateTime zdt) throws DidLogDeactivatorStrategyException {
 
         try {
             super.peek(didLog);
-        } catch (Exception e) { //} catch (DidResolveException | DidLogMetaPeekerException e) {
+        } catch (DidLogMetaPeekerException e) {
             throw new DidLogDeactivatorStrategyException(e);
         }
 

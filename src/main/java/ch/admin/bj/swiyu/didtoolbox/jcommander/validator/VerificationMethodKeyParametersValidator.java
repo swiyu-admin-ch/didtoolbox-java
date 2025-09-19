@@ -5,10 +5,13 @@ import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.spec.InvalidKeySpecException;
 
 public class VerificationMethodKeyParametersValidator implements IParameterValidator {
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
-    public void validate(String name, String value) throws ParameterException {
+    public void validate(String name, String value) { // throws ParameterException {
         String[] splitted = value.split(",");
         if (splitted.length != 2) {
             throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (EC P-256 public/verifying key in PEM format)) (found " + value + ")");
@@ -34,8 +37,7 @@ public class VerificationMethodKeyParametersValidator implements IParameterValid
 
         try {
             JwkUtils.loadECPublicJWKasJSON(f, kid);
-            //} catch (IOException | InvalidKeySpecException e) {
-        } catch (Exception e) {
+        } catch (IOException | InvalidKeySpecException e) {
             throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 public/verifying key in PEM format: " + e.getLocalizedMessage());
         }
     }
