@@ -17,7 +17,6 @@ import java.security.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
 
 /**
  * The {@link JwkUtils} is a simple helper for the purpose of <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a>
@@ -124,21 +123,7 @@ public final class JwkUtils {
 
             if (!keyPairPemFile.exists() || forceOverwrite) {
 
-                try {
-                    // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
-                    FilesPrivacy.createPrivateFile(keyPairPemFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
-                } catch (DirectoryNotEmptyException ex) {
-                    throw new IllegalArgumentException(ex); // it should be a file, not a directory
-                } catch (FileAlreadyExistsException ex) {
-                    if (!keyPairPemFile.exists()) {
-                        throw new IllegalArgumentException(ex);
-                    }
-                    throw ex;
-                } catch (AccessDeniedException ex) {
-                    throw new AccessDeniedException("Access denied to private key PEM file " + keyPairPemFile.getPath() + " due to: " + ex.getMessage());
-                } catch (Throwable thr) {
-                    throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage());
-                }
+                createPrivateFile(keyPairPemFile, forceOverwrite);
 
                 Writer w = Files.newBufferedWriter(keyPairPemFile.toPath());
                 try {
@@ -159,11 +144,29 @@ public final class JwkUtils {
     }
 
     /**
+     * Wrapper for {@link FilesPrivacy#createPrivateFile(Path, boolean)}
+     */
+    private static void createPrivateFile(File keyPairPemFile, boolean forceOverwrite) throws IOException {
+        try {
+            // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
+            FilesPrivacy.createPrivateFile(keyPairPemFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
+        } catch (DirectoryNotEmptyException | AccessDeniedException ex) {
+            // the file must not exist and write access must be already granted
+            throw new IllegalArgumentException(ex); // it should be a file, not a directory
+        } catch (FileAlreadyExistsException ex) {
+            if (!keyPairPemFile.exists()) {
+                throw new IllegalArgumentException(ex);
+            }
+            throw ex;
+            //} catch (AccessDeniedException ex) {
+            //    throw new AccessDeniedException("Access denied to private key PEM file " + keyPairPemFile.getPath() + " due to: " + ex.getMessage());
+        } catch (Throwable thr) {
+            throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage());
+        }
+    }
+
+    /**
      * PEM export helper.
-     *
-     * @param jwk
-     * @param keyPairPemFile
-     * @throws IOException
      */
     private static void exportEcPublicKeyToPem(ECKey jwk, File keyPairPemFile) throws IOException {
         JcaPEMWriter pemWriterPub = new JcaPEMWriter(Files.newBufferedWriter(Path.of(keyPairPemFile.getPath() + ".pub")));
@@ -174,8 +177,7 @@ public final class JwkUtils {
 
             ecPemSanityCheck(new File(keyPairPemFile.getPath()), new File(keyPairPemFile.getPath() + ".pub"));
 
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException |
-                 InvalidKeyException | SignatureException | NoSuchProviderException | JOSEException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | JOSEException e) {
             throw new IllegalArgumentException(e);
         } finally {
             pemWriterPub.close();
@@ -185,16 +187,15 @@ public final class JwkUtils {
     /**
      * Helper for the PEM export.
      *
-     * @param privatePemFile
-     * @param publicPemFile
-     * @throws IOException
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws SignatureException
+     * @param privatePemFile to read the private key from
+     * @param publicPemFile  to read the public key from
+     * @throws IOException              if an I/O error occurs reading from the file or a malformed or unmappable byte sequence is read
+     * @throws JOSEException            If EC JWK key parsing failed or if the JWS object couldn't be signed/verified
+     * @throws NoSuchAlgorithmException if no {@code Provider} supports a {@code KeyFactorySpi} implementation for the specified algorithm
+     * @throws InvalidKeySpecException  if the given key specification is inappropriate for this key factory to produce a public key
      */
-    static void ecPemSanityCheck(File privatePemFile, File publicPemFile) throws IOException, InvalidKeySpecException,
-            NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidParameterSpecException, NoSuchProviderException, JOSEException {
+    static void ecPemSanityCheck(File privatePemFile, File publicPemFile)
+            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, JOSEException {
 
         ECPrivateKey privKey = (ECPrivateKey) JWK.parseFromPEMEncodedObjects(Files.readString(privatePemFile.toPath())).toECKey().toPrivateKey();
         ECPublicKey publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(publicPemFile), "EC");

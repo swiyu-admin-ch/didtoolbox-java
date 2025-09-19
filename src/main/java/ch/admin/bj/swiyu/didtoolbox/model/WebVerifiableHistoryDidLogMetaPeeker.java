@@ -8,6 +8,7 @@ import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,7 +30,7 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
 
         // Skip parsing the "parameters", as they will be supplied by the resolver afterwards
 
-
+        @Getter
         @SerializedName("state")
         DidDocument didDocument;
         DataIntegrityProof[] proof;
@@ -44,6 +45,7 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
      *                                   The {@link MalformedWebVerifiableHistoryDidLogMetaPeekerException} variant
      *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
 
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
@@ -67,7 +69,7 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
 
                 // Skip parsing the parameters (didLogEntryElements[2]), as they will be supplied by the resolver afterwards
 
-                var didDocument = didLogEntry.didDocument;
+                var didDocument = didLogEntry.getDidDocument();
                 if (didDocument != null && didDocument.getId() != null) {
                     //didDoc.set(didDocument);
                     didDocId.set(didDocument.getId());

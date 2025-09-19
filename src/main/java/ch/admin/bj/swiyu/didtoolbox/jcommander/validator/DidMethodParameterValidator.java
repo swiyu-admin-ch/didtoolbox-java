@@ -8,7 +8,7 @@ import java.text.ParseException;
 
 public class DidMethodParameterValidator implements IParameterValidator {
     @Override
-    public void validate(String name, String value) throws ParameterException {
+    public void validate(String name, String value) { // throws ParameterException {
         try {
             DidMethodEnum.parse(value);
         } catch (ParseException e) {

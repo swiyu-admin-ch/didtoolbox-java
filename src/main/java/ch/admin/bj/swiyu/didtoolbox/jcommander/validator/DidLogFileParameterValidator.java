@@ -9,8 +9,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class DidLogFileParameterValidator implements IParameterValidator {
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
-    public void validate(String name, String value) throws ParameterException {
+    public void validate(String name, String value) { // throws ParameterException {
 
         final var didLogFile = new File(value);
         if (!didLogFile.isFile() || !didLogFile.exists() || didLogFile.length() == 0) {

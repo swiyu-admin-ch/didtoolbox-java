@@ -8,7 +8,7 @@ import java.text.ParseException;
 
 public class JWTParameterValidator implements IParameterValidator {
     @Override
-    public void validate(String name, String value) throws ParameterException {
+    public void validate(String name, String value) { // throws ParameterException {
         try {
             SignedJWT.parse(value);
         } catch (ParseException e) {

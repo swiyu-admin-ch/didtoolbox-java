@@ -10,7 +10,7 @@ import java.net.URL;
 
 public class IdentifierRegistryUrlParameterValidator implements IParameterValidator {
     @Override
-    public void validate(String name, String value) throws ParameterException {
+    public void validate(String name, String value) { // throws ParameterException {
         URL url;
         var exc = new ParameterException("Parameter " + name + " should be a regular HTTP(S) DID URL (found '" + value + "')");
         try {

@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all PMD warnings in this (test) class
+@SuppressWarnings({"PMD"})
 public class TdwCreatorTest extends AbstractUtilTestBase {
 
     public static void assertDidLogEntry(String didLogEntry) {

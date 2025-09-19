@@ -13,16 +13,16 @@ public class PrimusCredentialsFileParameterConverter implements IStringConverter
 
         try {
             return new PrimusKeyStoreLoader(new File(value));
-        } catch (PrimusKeyStoreInitializationException exc) {
+        } catch (PrimusKeyStoreInitializationException ex) {
             throw new ParameterException("Parameter value '" + value + "' do may feature all valid Securosys Primus credentials. "
                     + "However, Securosys Primus Key Store could not be initialized regardless of it. "
                     + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system");
-        } catch (Exception ignore) {
+        } catch (Throwable ignore) {
         }
 
         try {
             return new PrimusKeyStoreLoader();
-        } catch (Exception exc) {
+        } catch (PrimusKeyStoreInitializationException ex) {
             throw new ParameterException("Securosys Primus Key Store could not be initialized regardless of it. "
                     + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system");
         }

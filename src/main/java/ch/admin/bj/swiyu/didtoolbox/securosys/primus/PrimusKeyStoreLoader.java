@@ -4,8 +4,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Properties;
@@ -57,7 +57,8 @@ public class PrimusKeyStoreLoader {
             // CAUTION Needless to say, calling this.keyStore.load(null) at this point would cause:
             //         com.securosys.primus.jce.transport.TransportUnconfiguredException: transport configuration not yet set
 
-        } catch (Exception e) {
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
+                 InvocationTargetException | KeyStoreException | NoSuchProviderException e) {
             throw new PrimusKeyStoreInitializationException(
                     "Failed to initialize Securosys Primus Key Store. Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);
         }
@@ -69,12 +70,14 @@ public class PrimusKeyStoreLoader {
      * <p>
      * If supplied, credentials may also be loaded from a file, as fallback to system environment variables.
      *
-     * @param credentials
+     * @param credentials a property file featuring all Primus {@code com.securosys.primus.jce.credentials.*}
+     *                    required to load the keystore
      * @throws CertificateException
      * @throws IOException
      * @throws NoSuchAlgorithmException
      * @throws PrimusKeyStoreInitializationException
      */
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     public PrimusKeyStoreLoader(File credentials)
             throws CertificateException, IOException, NoSuchAlgorithmException, PrimusKeyStoreInitializationException {
 

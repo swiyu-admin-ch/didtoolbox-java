@@ -6,16 +6,17 @@ import com.beust.jcommander.ParameterException;
 
 import java.util.Map;
 
+@SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
 public class CommandParametersValidator implements IParametersValidator {
 
     @Override
-    public void validate(Map<String, Object> parameters) throws ParameterException {
+    public void validate(Map<String, Object> parameters) { // throws ParameterException {
         validateAmbiguousParameters(parameters);
         validateBoundParameters(parameters);
         validatePrimusParameters(parameters);
     }
 
-    private static void validateAmbiguousParameters(Map<String, Object> parameters) throws ParameterException {
+    private static void validateAmbiguousParameters(Map<String, Object> parameters) { // throws ParameterException {
         var isSigningKeyFileParamSupplied = parameters.get(CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE) != null;
         var isAnyOfJksParamsSupplied = (parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_FILE) != null
                 || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_JKS_FILE) != null)
@@ -34,7 +35,7 @@ public class CommandParametersValidator implements IParametersValidator {
         }
     }
 
-    private static void validateBoundParameters(Map<String, Object> parameters) throws ParameterException {
+    private static void validateBoundParameters(Map<String, Object> parameters) { // throws ParameterException {
         var isJksFileParamSupplied = (parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_FILE) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_JKS_FILE) != null);
         var isJksAliasParamSupplied = parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_ALIAS) != null;
         var isJksPasswordParamSupplied = parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_PASSWORD) != null;
@@ -56,7 +57,7 @@ public class CommandParametersValidator implements IParametersValidator {
         }
     }
 
-    private static void validatePrimusParameters(Map<String, Object> parameters) throws ParameterException {
+    private static void validatePrimusParameters(Map<String, Object> parameters) { // throws ParameterException {
 
         if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) != null) {
 

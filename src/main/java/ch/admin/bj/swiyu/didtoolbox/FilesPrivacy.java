@@ -82,6 +82,8 @@ final class FilesPrivacy {
             // AclEntryFlag.INHERIT_ONLY,
     );
 
+    // This will suppress LawOfDemeter warnings in this helper
+    @SuppressWarnings({"PMD.LawOfDemeter"})
     private static UserPrincipal getCurrentUserPrincipal(Path path) {
 
         try {
@@ -122,6 +124,7 @@ final class FilesPrivacy {
      * @see Files#deleteIfExists(Path)
      * @see Files#createDirectory(Path, FileAttribute[])
      */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     static Path createPrivateDirectory(Path path, boolean force) throws IOException {
 
         // Regardless of force flag, always take into account whether the parent directory is "writable" or not
@@ -195,6 +198,7 @@ final class FilesPrivacy {
      * @see Files#deleteIfExists(Path)
      * @see Files#createFile(Path, FileAttribute[])
      */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     static Path createPrivateFile(Path path, boolean force) throws IOException {
 
         // Regardless of force flag, always take into account whether the parent directory is "writable" or not

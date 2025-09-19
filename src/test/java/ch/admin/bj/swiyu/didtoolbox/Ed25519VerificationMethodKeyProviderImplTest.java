@@ -22,6 +22,8 @@ import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all the PMD warnings in this (test) class
+@SuppressWarnings("PMD")
 class Ed25519VerificationMethodKeyProviderImplTest {
 
     /*
@@ -224,7 +226,7 @@ class Ed25519VerificationMethodKeyProviderImplTest {
     }
 
     @Test
-    public void testThrowsInvalidKeySpecException() throws IOException {
+    public void testThrowsInvalidKeySpecException() {
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
             new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(Path.of("src/test/data/public.pem")), Files.newBufferedReader(Path.of("src/test/data/private.pem"))); // keys swapped, both wrong

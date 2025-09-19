@@ -15,13 +15,16 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 
-public class JCSHasher {
+public final class JCSHasher {
 
     public static final String DATA_INTEGRITY_PROOF = "DataIntegrityProof";
     public static final String EDDSA_JCS_2022 = "eddsa-jcs-2022";
     public static final String DID_KEY = "did:key:";
     public static final String PROOF_PURPOSE_AUTHENTICATION = "authentication";
     public static final String PROOF_PURPOSE_ASSERTION_METHOD = "assertionMethod";
+
+    private JCSHasher() {
+    }
 
     /**
      * To generate the required SCID for a did:tdw DID, the DID Controller MUST execute the following function:
@@ -39,7 +42,7 @@ public class JCSHasher {
     }
 
     /**
-     * multihash is an implementation of the multihash specification (https://www.w3.org/TR/controller-document/#multihash).
+     * multihash is an implementation of the <a href="https://www.w3.org/TR/controller-document/#multihash">multihash</a> specification.
      * Its output is a hash of the input using the associated <hash algorithm>, prefixed with a hash algorithm identifier and the hash size.
      *
      * @param str

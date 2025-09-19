@@ -16,6 +16,8 @@ import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all PMD warnings in this class
+@SuppressWarnings({"PMD"})
 class JCSHasherTest {
 
     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0

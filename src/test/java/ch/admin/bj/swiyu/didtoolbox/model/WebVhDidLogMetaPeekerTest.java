@@ -13,6 +13,8 @@ import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all the PMD warnings in this (test) class
+@SuppressWarnings("PMD")
 class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> malformedDidLogEntries() {
@@ -99,6 +101,7 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
         assertEquals(2, meta.lastVersionNumber);
         assertNotNull(meta.getParams());
         assertNotNull(meta.getParams().method);
+        assertEquals(DidMethodEnum.WEBVH_1_0, meta.getParams().getDidMethodEnum());
         assertNotNull(meta.getParams().scid);
         assertNotNull(meta.getParams().updateKeys);
         assertFalse(meta.getParams().updateKeys.isEmpty());

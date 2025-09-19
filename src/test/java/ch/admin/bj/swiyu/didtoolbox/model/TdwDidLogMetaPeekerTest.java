@@ -7,22 +7,25 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all the PMD warnings in this (test) class
+@SuppressWarnings("PMD")
 class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
-    private static Collection<String> malformedDidLogEntries() throws URISyntaxException, MalformedURLException {
+    private static Collection<String> malformedDidLogEntries() {
         return Arrays.asList(
                 "[]", // Should cause "Malformed DID log entry" ("Expected at 5 DID log entry elements but got 0")
                 "[,,,,]",
                 "[,\"\",{},{},[{}]]",
                 "[\"\",,{},{},[{}]]",
-                "[\"\",\"\",,{},[{}]]",
+                """
+                        [\"\",\"\",,{},[{}]]
+                        [\"\",\"\",,{},[{}]]
+                        """,
                 "[\"\",\"\",{},,[{}]]",
                 "[\"\",\"\",{},{},]",
                 "[\"\",\"\",{},{},{}]",
@@ -30,7 +33,7 @@ class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
         );
     }
 
-    private static Collection<String> invalidDidLogEntries() throws URISyntaxException, MalformedURLException {
+    private static Collection<String> invalidDidLogEntries() {
         return Arrays.asList(
                 "[\"\",\"\",{},{},[{}]]", // Should cause "Every versionId MUST be a dash-separated combination of version number and entry hash, found: ..."
                 "[\"1-xyz\",\"\",{},{\"\":{}},[{}]]", // Should cause "The versionTime MUST be a valid ISO8601 date/time string"
@@ -81,6 +84,7 @@ class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
         assertEquals(4, meta.lastVersionNumber);
         assertNotNull(meta.getParams());
         assertNotNull(meta.getParams().method);
+        assertEquals(DidMethodEnum.TDW_0_3, meta.getParams().getDidMethodEnum());
         assertNotNull(meta.getParams().scid);
         assertNotNull(meta.getParams().updateKeys);
         assertFalse(meta.getParams().updateKeys.isEmpty());
