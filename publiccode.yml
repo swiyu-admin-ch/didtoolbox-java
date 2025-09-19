@@ -1,0 +1,36 @@
+publiccodeYmlVersion: 0.4.0
+name: swiyu DID Toolbox
+applicationSuite: swiyu Trust Infrastructure
+url: https://github.com/swiyu-admin-ch/didtoolbox-java
+softwareVersion: 1.3.1
+releaseDate: 2025-05-08
+platforms:
+  - linux
+categories:
+  - digital-citizenship
+  - identity-management
+usedBy:
+  - Federal Office of Justice
+  - Federal Office of Information Technology, Systems and Telecommunication
+  - Fedpol
+developmentStatus: beta
+softwareType: standalone/backend
+description:
+  en:
+    localisedName: swiyu DID Toolbox
+    shortDescription: Toolbox for the creation, update or deactivation of Decentralized Identifiers (DIDs)
+    longDescription: Creating DIDs involves a set of steps that are error prone or need some time to get familiar with and one might end up with invalid DIDs. The DID Toolbox supports you with various options for a quick start or advanced usage.
+    documentation: https://swiyu-admin-ch.github.io/open-source-components/
+    apiDocumentation: https://swiyu-admin-ch.github.io/cookbooks/onboarding-base-and-trust-registry/#3-onboard-on-the-swiyu-base-registry
+    features:
+      - Creating DID's
+      - Updating DID's
+      - Deactivate DID's
+legal:
+  license: MIT
+maintenance:
+  type: internal
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en
