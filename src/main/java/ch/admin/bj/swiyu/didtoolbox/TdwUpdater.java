@@ -59,7 +59,6 @@ import java.util.Set;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-// This will suppress LawOfDemeter warnings in this class
 @SuppressWarnings({"PMD.LawOfDemeter"})
 @Builder
 @Getter

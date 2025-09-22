@@ -100,24 +100,6 @@ public final class TdwDidLogMetaPeeker {
             if (didDocValue != null && didDocValue.getValue() != null) {
                 didDocId.set(didDocValue.getValue().getId());
             }
-
-            var dataIntegrityProofObj = didLogEntryElements.get()[4];
-            if (dataIntegrityProofObj == null) {
-                jsonSyntaxEx.set(new JsonSyntaxException("The fifth DID log entry element (`Data Integrity Proof`) is missing"));
-                return;
-            }
-
-            DataIntegrityProof[] proof;
-            try {
-                proof = gson.fromJson(gson.toJson(dataIntegrityProofObj), DataIntegrityProof[].class);
-            } catch (JsonSyntaxException ex) {
-                jsonSyntaxEx.set(new JsonSyntaxException("The `Data Integrity Proof` DID log entry element must ba JSON array", ex));
-                return;
-            }
-            if (proof == null || proof.length == 0) {
-                jsonSyntaxEx.set(new JsonSyntaxException("The `Data Integrity Proof` DID log entry element is empty"));
-                //return;
-            }
         });
 
         try {

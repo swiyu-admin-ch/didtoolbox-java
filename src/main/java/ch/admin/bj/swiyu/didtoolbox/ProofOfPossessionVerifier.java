@@ -53,7 +53,6 @@ public class ProofOfPossessionVerifier {
 
     private final Set<String> updateKeys;
 
-    // This will suppress LawOfDemeter warnings in this helper
     @SuppressWarnings({"PMD.LawOfDemeter"})
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
         try {

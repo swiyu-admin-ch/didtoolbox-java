@@ -15,6 +15,7 @@ import java.io.File;
 @SuppressWarnings({"PMD.LawOfDemeter"})
 abstract class AbstractDidLogCommandBase extends AbstractCommandBase {
 
+    @Override
     abstract String getCommandName();
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE},

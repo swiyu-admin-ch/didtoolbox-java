@@ -41,7 +41,6 @@ public class Main {
             description = "Display version")
     boolean version;
 
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public static void main(String... args) {
         var main = new Main();
 
@@ -107,8 +106,7 @@ public class Main {
         System.exit(0);
     }
 
-    // This will suppress all the NPathComplexity/NcssCount/CognitiveComplexity warnings in this helper
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity"})
     private static void runCreateDidLogCommand(JCommander jc, String parsedCommandName, CreateDidLogCommand command)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException, CertificateException, DidLogCreatorStrategyException {
         if (command.help) {
@@ -250,8 +248,7 @@ public class Main {
                 .create(identifierRegistryUrl));
     }
 
-    // This will suppress all the NPathComplexity/CognitiveComplexity warnings in this helper
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity"})
     private static void runUpdateDidLogCommand(JCommander jc, String parsedCommandName, UpdateDidLogCommand command)
             throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException {
         if (command.help) {
@@ -342,7 +339,7 @@ public class Main {
                         .update(didLogFile));
     }
 
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.CognitiveComplexity"})
     private static void runDeactivateDidLogCommand(JCommander jc, String parsedCommandName, DeactivateDidLogCommand command) throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogDeactivatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);

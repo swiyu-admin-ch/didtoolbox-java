@@ -1,7 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
-// TODO import ch.admin.eid.didresolver.Did;
-
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +23,8 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
                         {"{\"versionId\": {}}", "Malformed did:webvh:1.0 log entry"}, // string expected, not object
                         {"{\"versionTime\": {}}", "Malformed did:webvh:1.0 log entry"}, // string expected, not object
                         {"{\"state\": []}", "Malformed did:webvh:1.0 log entry"}, // object expected, not array
-                        {"{\"proof\": {}}", "Malformed did:webvh:1.0 log entry"}, // array expected, not object
+                        // malformed "DataIntegrityProof" is irrelevant in this context, as it will be verified by resolver afterwards
+                        //{"{\"proof\": {}}", "Malformed did:webvh:1.0 log entry"}, // array expected, not object
                 }
         );
     }
@@ -50,10 +49,7 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
                         "the supplied JSON instance is not a valid DID log: \"parameters\" is a required property"},
                 {"""
                         {"versionId": "1-QmV8pidQB1moYe2AKjNvi2bQghv8Gah18794HrGki1yXQw", "versionTime": "2025-04-29T17:15:59Z", "parameters": {"witness": {"threshold": 2, "witnesses": [{"id": "did:key:z6MknJjDn4BuvPrr3nG9GhmdbeiCGT27KJumPXz9i7Q3LobW", "weight": 1}, {"id": "did:key:z6MkvXRkuaGJgDzmRY7XFwUWGt8PccUdHrknR3oUwB42LjS9", "weight": 1}, {"id": "did:key:z6MkhkfmcK42GN8DVNxjyYtAgyn21EsXAowNhUPzmGppcVfS", "weight": 1}]}, "updateKeys": ["z6MkhgLHMevgX5xE69NLJrm1vPFCWRSZfuBgfJPkUAfj8bGZ"], "method": "did:webvh:0.5", "scid": "QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkhgLHMevgX5xE69NLJrm1vPFCWRSZfuBgfJPkUAfj8bGZ#z6MkhgLHMevgX5xE69NLJrm1vPFCWRSZfuBgfJPkUAfj8bGZ", "created": "2025-04-29T17:15:59Z", "proofPurpose": "assertionMethod", "proofValue": "z4ggCRSgjGoEwaTTGAz7JHz4h1k3Afp8hzDC2DyHe7riEULVriRwHLdf8gA3VR1xXEHxKkz9ikrX25YPYsVtWZMCG"}]}""",
-                        "Missing DID document"},
-                {"""
-                        {"versionId": "1-QmV8pidQB1moYe2AKjNvi2bQghv8Gah18794HrGki1yXQw", "versionTime": "2025-04-29T17:15:59Z", "parameters": {"witness": {"threshold": 2, "witnesses": [{"id": "did:key:z6MknJjDn4BuvPrr3nG9GhmdbeiCGT27KJumPXz9i7Q3LobW", "weight": 1}, {"id": "did:key:z6MkvXRkuaGJgDzmRY7XFwUWGt8PccUdHrknR3oUwB42LjS9", "weight": 1}, {"id": "did:key:z6MkhkfmcK42GN8DVNxjyYtAgyn21EsXAowNhUPzmGppcVfS", "weight": 1}]}, "updateKeys": ["z6MkhgLHMevgX5xE69NLJrm1vPFCWRSZfuBgfJPkUAfj8bGZ"], "method": "did:webvh:0.5", "scid": "QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:domain.example"}}""",
-                        "Missing DID integrity proof"}}
+                        "Missing DID document"}}
         );
     }
 
