@@ -9,7 +9,6 @@ import com.nimbusds.jwt.SignedJWT;
 
 import java.io.File;
 
-// This will suppress LawOfDemeter warnings in this class
 @SuppressWarnings({"PMD.LawOfDemeter"})
 @Parameters(
         commandNames = {VerifyProofOfPossessionCommand.COMMAND_NAME},

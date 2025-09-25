@@ -46,7 +46,7 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
      *                                   The {@link MalformedWebVerifiableHistoryDidLogMetaPeekerException} variant
      *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
 
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();

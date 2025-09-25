@@ -38,7 +38,6 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
     /**
      * The only public constructor of the class, capable of loading an already existing key material directly from a Securosys Primus HSM (cluster).
      */
-    // This will suppress LawOfDemeter warnings in this constructor
     @SuppressWarnings({"PMD.LawOfDemeter"})
     public PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, String password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {

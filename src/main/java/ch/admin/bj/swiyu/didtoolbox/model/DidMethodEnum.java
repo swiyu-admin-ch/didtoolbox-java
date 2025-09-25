@@ -90,7 +90,6 @@ public enum DidMethodEnum {
         return detectDidMethod(Files.readString(didLogFile.toPath()));
     }
 
-    // This will suppress LawOfDemeter warnings in this helper
     @SuppressWarnings({"PMD.LawOfDemeter"})
     public static DidMethodEnum detectDidMethod(String didLog) throws DidLogMetaPeekerException {
         DidLogMeta didLogMeta = null;

@@ -19,7 +19,6 @@ import java.io.File;
                 "Alternatively, you may also use -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose",
         parametersValidators = {CommandParametersValidator.class}
 )
-// This will suppress LawOfDemeter warnings in this class
 @SuppressWarnings({"PMD.LawOfDemeter"})
 public class CreateProofOfPossessionCommand extends AbstractDidLogCommandBase {
 

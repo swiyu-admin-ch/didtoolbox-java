@@ -11,7 +11,6 @@ import java.io.File;
 /**
  * The base class for all Command classes in the package.
  */
-// This will suppress LawOfDemeter warnings in this class
 @SuppressWarnings({"PMD.LawOfDemeter"})
 abstract class AbstractCommandBase {
 
