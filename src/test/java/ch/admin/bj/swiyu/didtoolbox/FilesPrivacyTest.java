@@ -13,6 +13,8 @@ import static java.nio.file.attribute.AclEntryPermission.READ_DATA;
 import static java.nio.file.attribute.AclEntryPermission.WRITE_DATA;
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all PMD warnings in this class
+@SuppressWarnings({"PMD"})
 class FilesPrivacyTest {
 
     @Test

@@ -19,7 +19,14 @@ import java.io.File;
                 "Alternatively, you may also use -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose",
         parametersValidators = {CommandParametersValidator.class}
 )
-public class CreateProofOfPossessionCommand extends AbstractCommandBase {
+@SuppressWarnings({"PMD.LawOfDemeter"})
+public class CreateProofOfPossessionCommand extends AbstractDidLogCommandBase {
+
+    @Override
+    String getCommandName(){
+        return COMMAND_NAME;
+    }
+
     final public static String COMMAND_NAME = "create-pop";
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},

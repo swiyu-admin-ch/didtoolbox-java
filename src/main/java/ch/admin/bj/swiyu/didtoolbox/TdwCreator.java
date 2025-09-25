@@ -1,11 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -136,6 +136,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
      * @return valid DID log
      * @throws DidLogCreatorStrategyException if creation fails for whatever reason
      */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 

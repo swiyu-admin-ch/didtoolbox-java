@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox.securosys.primus;
 import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.security.KeyException;
 import java.security.KeyStoreException;
@@ -37,6 +38,7 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
     /**
      * The only public constructor of the class, capable of loading an already existing key material directly from a Securosys Primus HSM (cluster).
      */
+    @SuppressWarnings({"PMD.LawOfDemeter"})
     public PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, String password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 
@@ -51,8 +53,8 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
             return (byte[]) Class.forName(ENCODER_CLASS)
                     .getMethod(UNDERIFY_METHOD, byte[].class)
                     .invoke(null, signed);
-        } catch (Exception e) {
-            //} catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+                 InvocationTargetException e) {
             //throw new PrimusKeyStoreInitializationException(
             throw new IllegalArgumentException(
                     "Ensure the required lib/primusX-java[8|11].jar libraries exist on the system", e);

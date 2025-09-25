@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
@@ -7,9 +8,6 @@ import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -22,10 +20,16 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.security.KeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.GodClass", "PMD.CyclomaticComplexity"})
 public class Main {
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},
@@ -95,14 +99,16 @@ public class Main {
                         runPoPVerifyCommand(jc, parsedCommandName, verifyProofOfPossessionCommand);
                 default -> overAndOut(jc, null, "Invalid command: " + parsedCommandName);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
         }
 
         System.exit(0);
     }
 
-    private static void runCreateDidLogCommand(JCommander jc, String parsedCommandName, CreateDidLogCommand command) throws Exception {
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity"})
+    private static void runCreateDidLogCommand(JCommander jc, String parsedCommandName, CreateDidLogCommand command)
+            throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException, CertificateException, DidLogCreatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -159,7 +165,7 @@ public class Main {
                     // At this point, the matching verifying key is detected, so we are free to break from the loop
                     verifyingKeyPemFile = pemFile;
                     break;
-                } catch (Exception ignoreNonMatchingKey) {
+                } catch (Throwable ignoreNonMatchingKey) {
                 }
             }
 
@@ -242,7 +248,9 @@ public class Main {
                 .create(identifierRegistryUrl));
     }
 
-    private static void runUpdateDidLogCommand(JCommander jc, String parsedCommandName, UpdateDidLogCommand command) throws Exception {
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity"})
+    private static void runUpdateDidLogCommand(JCommander jc, String parsedCommandName, UpdateDidLogCommand command)
+            throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -297,7 +305,7 @@ public class Main {
                     // At this point, the matching verifying key is detected, so we are free to break from the loop
                     matchingUpdateKey = key;
                     break;
-                } catch (Exception ignoreNonMatchingKey) {
+                } catch (Throwable ignoreNonMatchingKey) {
                 }
             }
 
@@ -331,7 +339,8 @@ public class Main {
                         .update(didLogFile));
     }
 
-    private static void runDeactivateDidLogCommand(JCommander jc, String parsedCommandName, DeactivateDidLogCommand command) throws Exception {
+    @SuppressWarnings({"PMD.CognitiveComplexity"})
+    private static void runDeactivateDidLogCommand(JCommander jc, String parsedCommandName, DeactivateDidLogCommand command) throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogDeactivatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -367,7 +376,7 @@ public class Main {
                         // At this point, the matching verifying key is detected, so we are free to break from the loop
                         matchingUpdateKey = key;
                         break;
-                    } catch (Exception ignoreNonMatchingKey) {
+                    } catch (Throwable ignoreNonMatchingKey) {
                     }
                 }
 
@@ -398,7 +407,9 @@ public class Main {
                         .deactivate(didLogFile));
     }
 
-    private static void runPoPCreateCommand(JCommander jc, String parsedCommandName, CreateProofOfPossessionCommand command) throws Exception {
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
+    private static void runPoPCreateCommand(JCommander jc, String parsedCommandName, CreateProofOfPossessionCommand command)
+            throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, ProofOfPossessionCreatorException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -431,7 +442,7 @@ public class Main {
                 signer = new Ed25519ProofOfPossessionJWSSignerImpl(
                         Files.newBufferedReader(signingKeyPemFile.toPath()),
                         Files.newBufferedReader(verifyingKeyPemFile.toPath())); // supplied external key pair
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 overAndOut(jc, parsedCommandName, "The supplied ed25519 key pair mismatch: " + ex.getLocalizedMessage());
             }
 

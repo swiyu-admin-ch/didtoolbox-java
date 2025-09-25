@@ -1,15 +1,15 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -60,6 +60,7 @@ import java.util.Set;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
+@SuppressWarnings({"PMD.LawOfDemeter"})
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -125,12 +126,13 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
+    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
         try {
             super.peek(resolvableDidLog);
-        } catch (Exception e) { //} catch (DidResolveException | DidLogMetaPeekerException e) {
+        } catch (DidLogMetaPeekerException e) {
             throw new DidLogUpdaterStrategyException(e);
         }
 
@@ -233,45 +235,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
         if (this.updateKeys != null) {
-
-            var updateKeysJsonArray = new JsonArray();
-
-            var newUpdateKeys = Set.of(this.updateKeys.stream().map(file -> {
-                try {
-                    return PemUtils.parsePEMFilePublicKeyEd25519Multibase(file);
-                } catch (Exception ignore) {
-                }
-                return null;
-            }).toArray(String[]::new));
-
-            if (!didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)) { // need for change?
-
-                String updateKey;
-                for (var pemFile : this.updateKeys) {
-                    try {
-                        updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
-                    } catch (Exception e) {
-                        throw new DidLogUpdaterStrategyException(e);
-                    }
-
-                    // it is a distinct list of keys, after all
-                    if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
-                        updateKeysJsonArray.add(updateKey);
-                    }
-                }
-            }
-
-            // Define the parameters (https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters)
-            // The third item in the input JSON array MUST be the parameters JSON object.
-            // The parameters are used to configure the DID generation and verification processes.
-            // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-            var didMethodParameters = new JsonObject();
-            if (!updateKeysJsonArray.isEmpty()) {
-                didMethodParameters.add("updateKeys", updateKeysJsonArray);
-            }
-
-            didLogEntryWithoutProofAndSignature.add("parameters", didMethodParameters);
-
+            didLogEntryWithoutProofAndSignature.add("parameters",
+                    initDidMethodParametersByLoadingUpdateKeys(this.updateKeys, didLogMeta.getParams().getUpdateKeys()));
         } else {
             didLogEntryWithoutProofAndSignature.add("parameters", new JsonObject()); // CAUTION params remain the same
         }

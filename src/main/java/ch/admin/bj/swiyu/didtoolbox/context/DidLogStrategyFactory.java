@@ -10,9 +10,10 @@ import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater;
 /**
  * The factory delivering all possible strategies in regard to DID log manipulation, regardless of DID method.
  */
-class DidLogStrategyFactory {
+@SuppressWarnings({"PMD.LawOfDemeter"})
+final class DidLogStrategyFactory {
 
-    private DidLogStrategyFactory(){
+    private DidLogStrategyFactory() {
     }
 
     static DidLogCreatorStrategy getCreatorStrategy(DidLogCreatorContext ctx) {

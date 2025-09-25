@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * The base class for all test class in this package relying on test data of any kind.
  * Some handy helpers included, too.
  */
+@SuppressWarnings("PMD")
 public abstract class AbstractUtilTestBase {
     final protected static String TEST_DATA_PATH_PREFIX = "src/test/data/";
 

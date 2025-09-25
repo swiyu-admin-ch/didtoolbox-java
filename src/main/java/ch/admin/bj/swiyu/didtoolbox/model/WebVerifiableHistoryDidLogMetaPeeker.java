@@ -8,6 +8,7 @@ import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,10 +30,11 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
 
         // Skip parsing the "parameters", as they will be supplied by the resolver afterwards
 
-
+        @Getter
         @SerializedName("state")
         DidDocument didDocument;
-        DataIntegrityProof[] proof;
+
+        // Skip "DataIntegrityProof" as irrelevant in this context
     }
 
     /**
@@ -44,42 +46,38 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
      *                                   The {@link MalformedWebVerifiableHistoryDidLogMetaPeekerException} variant
      *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
 
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();
         AtomicReference<String> dateTime = new AtomicReference<>();
         AtomicReference<String> didDocId = new AtomicReference<>();
-        AtomicReference<DataIntegrityProof[]> proof = new AtomicReference<>();
 
         // CAUTION Trimming the existing DID log prevents ending up parsing empty lines
         BufferedReader reader = new BufferedReader(new StringReader(didLog.trim()));
 
-        reader.lines().forEach(line -> {
-
-            var gson = new Gson();
-
+        AtomicReference<WebVhDidLogEntry> didLogEntry = new AtomicReference<>();
+        reader.lines().takeWhile(line -> {
             try {
-                var didLogEntry = gson.fromJson(line, WebVhDidLogEntry.class);
-
-                lastVersionId.set(didLogEntry.versionId);
-                dateTime.set(didLogEntry.versionTime);
-
-                // Skip parsing the parameters (didLogEntryElements[2]), as they will be supplied by the resolver afterwards
-
-                var didDocument = didLogEntry.didDocument;
-                if (didDocument != null && didDocument.getId() != null) {
-                    //didDoc.set(didDocument);
-                    didDocId.set(didDocument.getId());
-                }
-
-                if (didLogEntry.proof != null) {
-                    proof.set(didLogEntry.proof);
-                }
-
+                didLogEntry.set(new Gson().fromJson(line, WebVhDidLogEntry.class)); // may throw JsonSyntaxException
             } catch (JsonSyntaxException e) {
                 jsonSyntaxEx.set(e);
-            } finally {
+                return false; // short-circuit the stream
+            }
+
+            return true;
+
+        }).forEach(ignored -> { // CAUTION The string var is ignored here, as the DID log entry deserialisation has already been done earlier by takeWhile
+
+            lastVersionId.set(didLogEntry.get().versionId);
+            dateTime.set(didLogEntry.get().versionTime);
+
+            // Skip parsing the parameters (didLogEntryElements[2]), as they will be supplied by the resolver afterwards
+
+            var didDocument = didLogEntry.get().getDidDocument();
+            if (didDocument != null && didDocument.getId() != null) {
+                didDocId.set(didDocument.getId());
             }
         });
 
@@ -118,10 +116,6 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
 
         if (didDocId.get() == null) {
             throw new DidLogMetaPeekerException("Missing DID document");
-        }
-
-        if (proof.get() == null) {
-            throw new DidLogMetaPeekerException("Missing DID integrity proof");
         }
 
         DidDoc didDoc;

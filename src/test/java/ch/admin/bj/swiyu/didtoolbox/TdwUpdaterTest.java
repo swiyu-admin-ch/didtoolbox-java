@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -17,9 +17,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all the PMD warnings in this (test) class
+@SuppressWarnings("PMD")
 class TdwUpdaterTest extends AbstractUtilTestBase {
 
     public static Collection<Object[]> keys() {
@@ -127,13 +130,12 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
         var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
 
-        String nextLogEntry = null;
+        AtomicReference<String> nextLogEntry = new AtomicReference<>();
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
-        try {
-
-            nextLogEntry = TdwUpdater.builder()
+        assertDoesNotThrow(() -> {
+            nextLogEntry.set(TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
@@ -143,19 +145,16 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1)); // MUT
+                    .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+        });
 
-        } catch (Exception e) {
-            fail(e);
-        }
-
-        assertDidLogEntry(nextLogEntry);
+        assertDidLogEntry(nextLogEntry.get());
 
         // At this point should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
-        var params = JsonParser.parseString(nextLogEntry).getAsJsonArray().get(2).getAsJsonObject();
+        var params = JsonParser.parseString(nextLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
         assertFalse(params.has("updateKeys")); // no new updateKeys, really
 
-        updatedDidLog.append(nextLogEntry).append(System.lineSeparator());
+        updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
 
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
@@ -183,37 +182,34 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
         var initialDidLogEntry = buildInitialTdwDidLogEntry(verificationMethodKeyProvider);
 
-        String nextLogEntry = null;
+        AtomicReference<String> nextLogEntry = new AtomicReference<>();
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
-        try {
-
-            nextLogEntry = TdwUpdater.builder()
+        File finalPublicKeyPemFile = publicKeyPemFile;
+        assertDoesNotThrow(() -> {
+            nextLogEntry.set(TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using a whole another verification key provider
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .updateKeys(Set.of(new File("src/test/data/public.pem"), publicKeyPemFile))
+                    .updateKeys(Set.of(new File("src/test/data/public.pem"), finalPublicKeyPemFile))
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1)); // MUT
+                    .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+        });
 
-        } catch (Exception e) {
-            fail(e);
-        }
-
-        assertDidLogEntry(nextLogEntry);
+        assertDidLogEntry(nextLogEntry.get());
 
         // At this point should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
-        var params = JsonParser.parseString(nextLogEntry).getAsJsonArray().get(2).getAsJsonObject();
+        var params = JsonParser.parseString(nextLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
         assertTrue(params.has("updateKeys"));
         assertTrue(params.get("updateKeys").isJsonArray());
         assertFalse(params.get("updateKeys").getAsJsonArray().isEmpty());
         assertEquals(2, params.get("updateKeys").getAsJsonArray().size()); // a new one
 
-        updatedDidLog.append(nextLogEntry).append(System.lineSeparator());
+        updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
 
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
@@ -241,35 +237,34 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
         var initialDidLogEntry = buildInitialTdwDidLogEntry(verificationMethodKeyProvider);
 
-        String nextLogEntry = null;
-        StringBuilder updatedDidLog = null;
+        AtomicReference<String> nextLogEntry = new AtomicReference<>();
+        AtomicReference<StringBuilder> updatedDidLog = new AtomicReference<>();
         int totalEntriesCount = 5;
-        try {
+
+        File finalPublicKeyPemFile = publicKeyPemFile;
+        assertDoesNotThrow(() -> {
 
             // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
-            updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+            updatedDidLog.set(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()));
             for (int i = 2; i < totalEntriesCount + 1; i++) { // update DID log by adding several new entries
 
-                nextLogEntry = TdwUpdater.builder()
+                nextLogEntry.set(TdwUpdater.builder()
                         .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using another verification key provider
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
-                        .updateKeys(Set.of(new File("src/test/data/public.pem"), publicKeyPemFile))
+                        .updateKeys(Set.of(new File("src/test/data/public.pem"), finalPublicKeyPemFile))
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.
-                        .update(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(i - 1)); // MUT
+                        .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(i - 1))); // MUT
 
-                assertDidLogEntry(nextLogEntry);
+                assertDidLogEntry(nextLogEntry.get());
 
-                updatedDidLog.append(nextLogEntry).append(System.lineSeparator());
+                updatedDidLog.get().append(nextLogEntry.get()).append(System.lineSeparator());
             }
+        });
 
-        } catch (Exception e) {
-            fail(e);
-        }
-
-        var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
+        var finalUpdatedDidLog = updatedDidLog.get().toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(totalEntriesCount, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many

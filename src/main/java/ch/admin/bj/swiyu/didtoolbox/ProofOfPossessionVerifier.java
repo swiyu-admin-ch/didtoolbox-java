@@ -5,6 +5,9 @@ import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 
 import java.text.ParseException;
@@ -50,6 +53,7 @@ public class ProofOfPossessionVerifier {
 
     private final Set<String> updateKeys;
 
+    @SuppressWarnings({"PMD.LawOfDemeter"})
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
         try {
             this.updateKeys = TdwDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys();
@@ -84,6 +88,7 @@ public class ProofOfPossessionVerifier {
      * @throws ProofOfPossessionVerifierException is thrown in case the JWT is invalid, containing more details as to why
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7800">Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)</a>
      */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
         var algorithm = signedJWT.getHeader().getAlgorithm();
         if (!JWSAlgorithm.Ed25519.equals(algorithm)) {
@@ -126,17 +131,27 @@ public class ProofOfPossessionVerifier {
             throw ProofOfPossessionVerifierException.keyMismatch(publicKeyMultibase);
         }
 
-        var jwk = new com.nimbusds.jose.jwk.OctetKeyPair.Builder(
-                com.nimbusds.jose.jwk.Curve.Ed25519,
-                com.nimbusds.jose.util.Base64URL.encode(publicKey))
+        var jwk = new OctetKeyPair.Builder(
+                Curve.Ed25519,
+                Base64URL.encode(publicKey))
                 .build();
 
+        Ed25519Verifier verifier;
         try {
-            if (!signedJWT.verify(new Ed25519Verifier(jwk.toPublicJWK()))) {
-                throw ProofOfPossessionVerifierException.invalidSignature();
-            }
+            verifier = new Ed25519Verifier(jwk.toPublicJWK());
+        } catch (JOSEException ex) { // If the key subtype is not supported
+            throw ProofOfPossessionVerifierException.unsupportedKeySubtype();
+        }
+
+        boolean verified;
+        try {
+            verified = signedJWT.verify(verifier);
         } catch (JOSEException e) {
             throw ProofOfPossessionVerifierException.failedToVerify(e);
+        }
+
+        if (!verified) {
+            throw ProofOfPossessionVerifierException.invalidSignature();
         }
     }
 }

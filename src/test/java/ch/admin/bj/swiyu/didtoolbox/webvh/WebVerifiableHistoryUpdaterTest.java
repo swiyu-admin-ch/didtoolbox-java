@@ -21,6 +21,8 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all the PMD warnings in this (test) class
+@SuppressWarnings("PMD")
 class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
     public static Collection<Object[]> keys() {

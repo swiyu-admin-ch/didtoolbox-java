@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This will suppress all the PMD warnings in this (test) class
+@SuppressWarnings("PMD")
 class TdwDeactivatorTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> keys() {

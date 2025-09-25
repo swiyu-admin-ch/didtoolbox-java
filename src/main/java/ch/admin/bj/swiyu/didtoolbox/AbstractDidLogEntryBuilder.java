@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -55,10 +56,11 @@ public abstract class AbstractDidLogEntryBuilder {
         if (!outputDir.exists()) {
             try {
                 return FilesPrivacy.createPrivateDirectory(outputDir.toPath(), false).toFile(); // may throw DirectoryNotEmptyException, SecurityException etc.
-            } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
+            } catch (DirectoryNotEmptyException | FileAlreadyExistsException | AccessDeniedException ex) {
+                // the directory (if exists) must be empty with write access granted
                 throw new IllegalArgumentException(ex);
-            } catch (AccessDeniedException ex) {
-                throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
+                //} catch (AccessDeniedException ex) {
+                //    throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
             } catch (Throwable thr) {
                 throw new IOException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
             }
@@ -231,5 +233,43 @@ public abstract class AbstractDidLogEntryBuilder {
         didDoc.add("verificationMethod", verificationMethod);
 
         return didDoc;
+    }
+
+    protected static JsonObject initDidMethodParametersByLoadingUpdateKeys(Set<File> updateKeysFiles, Set<String> currentUpdateKeys)
+            throws DidLogUpdaterStrategyException {
+
+        var updateKeysJsonArray = new JsonArray();
+
+        var newUpdateKeys = Set.of(updateKeysFiles.stream().map(file -> {
+            try {
+                return PemUtils.parsePEMFilePublicKeyEd25519Multibase(file);
+            } catch (Throwable ignore) {
+            }
+            return null;
+        }).toArray(String[]::new));
+
+        if (!currentUpdateKeys.containsAll(newUpdateKeys)) { // need for change?
+
+            String updateKey;
+            for (var pemFile : updateKeysFiles) {
+                try {
+                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                } catch (IOException | InvalidKeySpecException e) {
+                    throw new DidLogUpdaterStrategyException(e);
+                }
+
+                // it is a distinct list of keys, after all
+                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
+                    updateKeysJsonArray.add(updateKey);
+                }
+            }
+        }
+
+        var didMethodParameters = new JsonObject();
+        if (!updateKeysJsonArray.isEmpty()) {
+            didMethodParameters.add("updateKeys", updateKeysJsonArray);
+        }
+
+        return didMethodParameters;
     }
 }
