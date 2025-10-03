@@ -101,6 +101,7 @@ public abstract class AbstractDidLogEntryBuilder {
      */
     protected abstract DidMethodEnum getDidMethod();
 
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
                                          Set<File> updateKeys) throws IOException {
 
@@ -165,12 +166,13 @@ public abstract class AbstractDidLogEntryBuilder {
         var didTDW = "%s:{SCID}:%s".formatted(getDidMethod().getPrefix(), identifierRegistryUrl.getHost());
         int port = identifierRegistryUrl.getPort(); // the port number, or -1 if the port is not set
         if (port != -1) {
-            didTDW += "%3A" + port;
+            didTDW = "%s%%3A%d".formatted(didTDW, port);
         }
         String path = identifierRegistryUrl.getPath(); // the path part of this URL, or an empty string if one does not exist
         if (!path.isEmpty()) {
-            didTDW += path.replace("/did.jsonl", "") // cleanup
-                    .replaceAll("/", ":"); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation
+            didTDW = "%s%s".formatted(didTDW,
+                    path.replace("/did.jsonl", "") // cleanup
+                            .replaceAll("/", ":")); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation);
         }
 
         var context = new JsonArray();
@@ -235,6 +237,7 @@ public abstract class AbstractDidLogEntryBuilder {
         return didDoc;
     }
 
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
     protected static JsonObject initDidMethodParametersByLoadingUpdateKeys(Set<File> updateKeysFiles, Set<String> currentUpdateKeys)
             throws DidLogUpdaterStrategyException {
 

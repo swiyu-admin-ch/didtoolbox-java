@@ -16,6 +16,7 @@ final class ManifestUtils {
     private ManifestUtils() {
     }
 
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
     private static String getManifestMainAttributeValue(String name) {
         try {
             var iter = Main.class.getClassLoader().getResources("META-INF/MANIFEST.MF").asIterator();

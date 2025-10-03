@@ -106,7 +106,7 @@ public class Main {
         System.exit(0);
     }
 
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops"})
     private static void runCreateDidLogCommand(JCommander jc, String parsedCommandName, CreateDidLogCommand command)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException, CertificateException, DidLogCreatorStrategyException {
         if (command.help) {
@@ -248,7 +248,7 @@ public class Main {
                 .create(identifierRegistryUrl));
     }
 
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops"})
     private static void runUpdateDidLogCommand(JCommander jc, String parsedCommandName, UpdateDidLogCommand command)
             throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException {
         if (command.help) {
@@ -339,7 +339,7 @@ public class Main {
                         .update(didLogFile));
     }
 
-    @SuppressWarnings({"PMD.CognitiveComplexity"})
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops"})
     private static void runDeactivateDidLogCommand(JCommander jc, String parsedCommandName, DeactivateDidLogCommand command) throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogDeactivatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);

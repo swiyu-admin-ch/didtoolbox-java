@@ -58,7 +58,9 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertTrue(params.has("deactivated")); // essential
         assertTrue(params.get("deactivated").getAsBoolean()); // essential
         assertTrue(params.has("updateKeys"));
-        assertTrue(params.get("updateKeys").isJsonArray());
+        var updateKeys = params.get("updateKeys");
+        assertTrue(updateKeys.isJsonArray());
+        assertTrue(updateKeys.getAsJsonArray().isEmpty());
 
         assertTrue(jsonObject.get("state").isJsonObject());
         var didDoc = jsonObject.get("state").getAsJsonObject();
