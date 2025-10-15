@@ -103,7 +103,7 @@ class JCSHasherTest {
 
         var didLogEntryWithoutProofAndSignature = buildDidLogEntryWithoutProofAndSignature();
 
-        String scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+        String scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
 
         // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
         String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\{SCID}", scid);
@@ -134,7 +134,7 @@ class JCSHasherTest {
         String actual = null;
         try {
 
-            actual = JCSHasher.buildSCID(buildDidLogEntryWithoutProofAndSignature().toString()); // MUT
+            actual = JCSHasher.buildSCID(buildDidLogEntryWithoutProofAndSignature()); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -143,6 +143,17 @@ class JCSHasherTest {
         assertEquals("Qma6mc1qZw3NqxwX6SB5GPQYzP4pGN2nXD15Jwi4bcDBKu", actual);
     }
 
+    @Test
+    public void testBuildNextKeyHash() {
+
+        // See https://identity.foundation/didwebvh/v0.3/#log-file-for-version-2
+        var actual = JCSHasher.buildNextKeyHash("z82Lkvgj5NKYhoFh4hWzax9WicQaVDphN8MMzR3JZhontVfHaoGd9JbC4QRpDvmjQH3BLeQ"); // MUT
+        assertEquals("QmcbM5bppyT4yyaL35TQQJ2XdSrSNAhH5t6f4ZcuyR4VSv", actual);
+
+        // See https://github.com/affinidi/affinidi-tdk-rs/blob/6aed623d9e3273759d26b17c68cca59e94777ea5/crates/affinidi-tdk/common/affinidi-secrets-resolver/src/secrets.rs#L456
+        actual = JCSHasher.buildNextKeyHash("z6MkgfFvvWA7sw8WkNWyK3y74kwNVvWc7Qrs5tWnsnqMfLD3"); // MUT
+        assertEquals("QmY1kaguPMgjndEh1sdDZ8kdjX4Uc1SW4vziMfgWC6ndnJ", actual);
+    }
 
     @Test
     public void testBuildEntryHash() { // according to https://identity.foundation/didwebvh/v0.3/#didtdw-example
@@ -150,7 +161,7 @@ class JCSHasherTest {
         String actual = null;
         try {
 
-            actual = JCSHasher.buildSCID(buildDidLog().toString()); // MUT
+            actual = JCSHasher.buildSCID(buildDidLog()); // MUT
 
         } catch (Exception e) {
             fail(e);
@@ -168,8 +179,8 @@ class JCSHasherTest {
 
         try {
 
-            actualDocHashHex = JCSHasher.hashJsonObjectAsHex(JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject());
-            actualProofHashHex = JCSHasher.hashJsonObjectAsHex(JsonParser.parseString(PROOF_OPTIONS_DOCUMENT).getAsJsonObject());
+            actualDocHashHex = JCSHasher.hashAsHex(JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject());
+            actualProofHashHex = JCSHasher.hashAsHex(JsonParser.parseString(PROOF_OPTIONS_DOCUMENT).getAsJsonObject());
 
         } catch (Exception e) {
             fail(e);
@@ -187,11 +198,11 @@ class JCSHasherTest {
         var credentialsWithoutProof = JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject();
         try {
 
-            String docHashHex = JCSHasher.hashJsonObjectAsHex(credentialsWithoutProof);
+            String docHashHex = JCSHasher.hashAsHex(credentialsWithoutProof);
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-credential-without-proof-hex-0
             assertEquals("59b7cb6251b8991add1ce0bc83107e3db9dbbab5bd2c28f687db1a03abc92f19", docHashHex);
 
-            String expectedProofHashHex = JCSHasher.hashJsonObjectAsHex(JsonParser.parseString(PROOF_OPTIONS_DOCUMENT).getAsJsonObject());
+            String expectedProofHashHex = JCSHasher.hashAsHex(JsonParser.parseString(PROOF_OPTIONS_DOCUMENT).getAsJsonObject());
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-1
             assertEquals("66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db", expectedProofHashHex);
 
@@ -210,7 +221,7 @@ class JCSHasherTest {
 
             assertNotNull(actual.remove("proofValue"));
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-1
-            assertEquals("66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db", JCSHasher.hashJsonObjectAsHex(actual));
+            assertEquals("66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db", JCSHasher.hashAsHex(actual));
 
         } catch (Exception e) {
             fail(e);
@@ -223,11 +234,11 @@ class JCSHasherTest {
         var credentialsWithoutProof = JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject();
         try {
 
-            String docHashHex = JCSHasher.hashJsonObjectAsHex(credentialsWithoutProof);
+            String docHashHex = JCSHasher.hashAsHex(credentialsWithoutProof);
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-credential-without-proof-hex-0
             assertEquals("59b7cb6251b8991add1ce0bc83107e3db9dbbab5bd2c28f687db1a03abc92f19", docHashHex);
 
-            String expectedProofHashHex = JCSHasher.hashJsonObjectAsHex(JsonParser.parseString(PROOF_OPTIONS_DOCUMENT).getAsJsonObject());
+            String expectedProofHashHex = JCSHasher.hashAsHex(JsonParser.parseString(PROOF_OPTIONS_DOCUMENT).getAsJsonObject());
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-1
             assertEquals("66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db", expectedProofHashHex);
 
@@ -236,7 +247,7 @@ class JCSHasherTest {
                     true,
                     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
                     new UnsafeEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
-                    "1-" + JCSHasher.buildSCID(credentialsWithoutProof.toString()), // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
+                    "1-" + JCSHasher.buildSCID(credentialsWithoutProof), // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
                     "assertionMethod",
                     ZonedDateTime.parse("2023-02-24T23:36:38Z"));
 
@@ -252,7 +263,7 @@ class JCSHasherTest {
             // CAUTION The value suggested in the spec (66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db)
             //         is irrelevant here since the PROOF_OPTIONS_DOCUMENT (suggested by https://www.w3.org/TR/vc-di-eddsa/#example-proof-options-document-1)
             //         features NO proof's challenge.
-            assertEquals("49dc22583675513d1f0018c7e855bb8406a33d800cadced81838704a0d5d9615", JCSHasher.hashJsonObjectAsHex(actual));
+            assertEquals("49dc22583675513d1f0018c7e855bb8406a33d800cadced81838704a0d5d9615", JCSHasher.hashAsHex(actual));
 
         } catch (Exception e) {
             fail(e);

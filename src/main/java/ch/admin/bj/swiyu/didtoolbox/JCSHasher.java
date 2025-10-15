@@ -1,6 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ipfs.multibase.Base58;
 import org.erdtman.jcs.JsonCanonicalizer;
@@ -27,18 +27,53 @@ public final class JCSHasher {
     }
 
     /**
-     * To generate the required SCID for a did:tdw DID, the DID Controller MUST execute the following function:
-     * <p>base58btc(multihash(JCS(preliminary log entry with placeholders), &lt;hash algorithm&gt;))
+     * To generate the SCID (<b>Self-Certifying IDentifier</b>: <i>An object identifier derived from initial data such that an
+     * attacker could not create a new object with the same identifier</i>)
+     * for a {@code did:*} DID (e.g. {@code did:webvh}), the DID Controller MUST execute the following function:
+     * <p>{@code base58btc(multihash(JCS(preliminary log entry with placeholders), <hash algorithm>))}
      * <p>Where
-     * <li>JCS is an implementation of the JSON Canonicalization Scheme [RFC8785]. It outputs a canonicalized representation of its JSON input.
-     * <li>multihash is an implementation of the multihash specification. Its output is a hash of the input using the associated &lt;hash algorithm&gt;, prefixed with a hash algorithm identifier and the hash size.
-     * <li>&lt;hash algorithm&gt; is the hash algorithm used by the DID Controller. The hash algorithm MUST be one listed in the parameters defined by the version of the did:tdw specification being used by the DID Controller.
-     * <li>base58btc is an implementation of the base58btc function. Its output is the base58 encoded string of its input.
+     * <ol>
+     * <li>{@code JCS} is an implementation of the <a href="https://www.rfc-editor.org/rfc/rfc8785">JSON Canonicalization Scheme [RFC8785]</a>. It outputs a canonicalized representation of its JSON input.
+     * <li>{@code multihash} is an implementation of the multihash specification. Its output is a hash of the input using the associated {@code <hash algorithm>}, prefixed with a hash algorithm identifier and the hash size.
+     * <li>{@code <hash algorithm>} is the hash algorithm used by the DID Controller. The hash algorithm MUST be one listed in the parameters defined by the version of the did:tdw specification being used by the DID Controller.
+     * <li>{@code base58btc} is an implementation of the base58btc function. Its output is the base58 encoded string of its input.
+     * </ol>
+     * As such, the helper can be used out-of-the-box for the purpose of <a href="https://identity.foundation/didwebvh/v1.0/#generate-scid">generate-scid</a>.
      *
-     * @return
+     * @return a valid {@code SCID} for the supplied JSON input
      */
+    public static String buildSCID(JsonElement jsonData) throws IOException {
+        return Base58.encode(multihash((new JsonCanonicalizer(jsonData.toString())).getEncodedString()));
+    }
+
+    /**
+     * @deprecated Use {@link #buildSCID(JsonElement)} instead, whenever possible.
+     */
+    @Deprecated
     public static String buildSCID(String jsonData) throws IOException {
         return Base58.encode(multihash((new JsonCanonicalizer(jsonData)).getEncodedString()));
+    }
+
+    /**
+     * This helper calculates the hash string as {@code base58btc(multihash(multikey))}, where:
+     * <ol>
+     *      <li>{@code multikey} is the multikey representation of a public key</li>
+     *      <li>{@code multihash} is an implementation of the <a href="https://www.w3.org/TR/controller-document/#multihash">multihash</a> specification.
+     *      Its output is a hash of the input using the associated {@code <hash algorithm>},
+     *      prefixed with a hash algorithm identifier and the hash size.</li>
+     *      <li>{@code <hash algorithm>} is the hash algorithm used by the DID Controller.
+     *      The hash algorithm MUST be one listed in the parameters defined by the version of a {@code did:*} (e.g. {@code did:webvh})
+     *      specification being used by the DID Controller.</li>
+     *      <li>{@code base58btc} is an implementation of the base58btc function (converts data to a {@code base58} encoding).
+     *      Its output is the base58 encoded string of its input.</li>
+     * </ol>
+     * As such, the helper can be used out-of-the-box for the purpose of <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">pre-rotation-key-hash-generation-and-verification</a>.
+     *
+     * @param key multikey to build hash for
+     * @return hash string for the supplied multikey
+     */
+    public static String buildNextKeyHash(String key) {
+        return Base58.encode(multihash(key.getBytes(StandardCharsets.UTF_8)));
     }
 
     /**
@@ -49,14 +84,25 @@ public final class JCSHasher {
      * @return
      */
     static byte[] multihash(String str) {
+        return multihash(str.getBytes(StandardCharsets.UTF_8));
+    }
 
-        MessageDigest hasher = null;
+    /**
+     * multihash is an implementation of the <a href="https://www.w3.org/TR/controller-document/#multihash">multihash</a> specification.
+     * Its output is a hash of the input using the associated {@code <hash algorithm>}, prefixed with a hash algorithm identifier and the hash size.
+     *
+     * @param input the array of bytes to be hashed.
+     * @return hashed bytes
+     */
+    static byte[] multihash(byte[] input) {
+
+        MessageDigest hasher;
         try {
             hasher = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalArgumentException(e);
         }
-        hasher.update(str.getBytes(StandardCharsets.UTF_8));
+        hasher.update(input);
         byte[] digest = hasher.digest();
 
         // multihash is an implementation of the multihash specification (https://www.w3.org/TR/controller-document/#multihash).
@@ -71,24 +117,15 @@ public final class JCSHasher {
         return buff.array();
     }
 
-    private static String hashAsHex(String json) throws IOException {
-
-        MessageDigest hasher = null;
+    static String hashAsHex(JsonElement json) throws IOException {
+        MessageDigest hasher;
         try {
             hasher = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalArgumentException(e);
         }
-        hasher.update(((new JsonCanonicalizer(json)).getEncodedString()).getBytes(StandardCharsets.UTF_8));
+        hasher.update(((new JsonCanonicalizer(json.toString())).getEncodedString()).getBytes(StandardCharsets.UTF_8));
         return HexFormat.of().formatHex(hasher.digest());
-    }
-
-    static String hashJsonObjectAsHex(JsonObject json) throws IOException {
-        return hashAsHex(json.toString());
-    }
-
-    static String hashJsonArrayAsHex(JsonArray json) throws IOException {
-        return hashAsHex(json.toString());
     }
 
     /**
@@ -133,7 +170,7 @@ public final class JCSHasher {
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
 
-        JsonObject proof = new JsonObject();
+        var proof = new JsonObject();
 
         // If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context.
         var ctx = unsecuredDocument.get("@context");
@@ -155,8 +192,8 @@ public final class JCSHasher {
             proof.addProperty("challenge", challenge);
         }
 
-        String docHashHex = hashJsonObjectAsHex(unsecuredDocument);
-        String proofHashHex = hashJsonObjectAsHex(proof);
+        String docHashHex = hashAsHex(unsecuredDocument);
+        String proofHashHex = hashAsHex(proof);
 
         var signature = verificationMethodKeyProvider.generateSignature(HexFormat.of().parseHex(proofHashHex + docHashHex));
         //String signatureHex = HexFormat.of().formatHex(signature);

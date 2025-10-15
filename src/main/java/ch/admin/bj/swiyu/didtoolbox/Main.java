@@ -106,7 +106,7 @@ public class Main {
         System.exit(0);
     }
 
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     private static void runCreateDidLogCommand(JCommander jc, String parsedCommandName, CreateDidLogCommand command)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException, CertificateException, DidLogCreatorStrategyException {
         if (command.help) {
@@ -139,6 +139,7 @@ public class Main {
 
         var signingKeyPemFile = command.signingKeyPemFile;
         var verifyingKeyPemFiles = command.verifyingKeyPemFiles;
+        var nextKeyPemFiles = command.nextKeyPemFiles;
 
         var jksFile = command.jksFile;
         var jksPassword = command.jksPassword;
@@ -243,12 +244,13 @@ public class Main {
                 .assertionMethodKeys(assertionMethodKeysMap)
                 .authenticationKeys(authenticationKeysMap)
                 .updateKeys(verifyingKeyPemFiles)
+                .nextKeyHashes(nextKeyPemFiles)
                 .forceOverwrite(forceOverwrite)
                 .build()
                 .create(identifierRegistryUrl));
     }
 
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     private static void runUpdateDidLogCommand(JCommander jc, String parsedCommandName, UpdateDidLogCommand command)
             throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException {
         if (command.help) {
@@ -284,6 +286,7 @@ public class Main {
 
         var signingKeyPemFile = command.signingKeyPemFile;
         var verifyingKeyPemFiles = command.verifyingKeyPemFiles;
+        var nextKeyPemFiles = command.nextKeyPemFiles;
 
         var jksFile = command.jksFile;
         var jksPassword = command.jksPassword;
@@ -335,6 +338,7 @@ public class Main {
                         .assertionMethodKeys(assertionMethodKeysMap)
                         .authenticationKeys(authenticationKeysMap)
                         .updateKeys(verifyingKeyPemFiles)
+                        // TODO .nextKeyHashes(nextKeyPemFiles)
                         .build()
                         .update(didLogFile));
     }

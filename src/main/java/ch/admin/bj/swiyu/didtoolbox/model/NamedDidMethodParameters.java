@@ -32,6 +32,9 @@ public class NamedDidMethodParameters {
     Set<String> updateKeys;
     @Getter
     @Setter
+    Set<String> nextKeyHashes;
+    @Getter
+    @Setter
     Boolean deactivated;
 
     /**

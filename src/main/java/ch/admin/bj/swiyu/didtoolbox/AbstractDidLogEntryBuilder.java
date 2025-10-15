@@ -101,9 +101,24 @@ public abstract class AbstractDidLogEntryBuilder {
      */
     protected abstract DidMethodEnum getDidMethod();
 
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
+    /**
+     * Creates a JSON object representing DID method parameters
+     * as specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">did:webvh</a>
+     * and taking into account all the supplied PEM files.
+     *
+     * @param verificationMethodKeyProvider an implementation of {@link VerificationMethodKeyProvider} providing
+     *                                      one of {@code updateKey} DID method parameter values.
+     * @param updateKeys                    optional set of PEM files, each featuring a public key to be used for the {@code updateKeys} parameter
+     * @param nextKeys                      optional set of PEM files, each featuring a public key to be used for the {@code nextKeyHashes} parameter,
+     *                                      as specified by <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">pre-rotation-key-hash-generation-and-verification</a>
+     * @return a JSON object representing DID method parameters
+     * @throws InvalidKeySpecException if parsing any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
+     * @throws IOException             if loading any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
+     */
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
-                                         Set<File> updateKeys) throws IOException {
+                                         Set<File> updateKeys,
+                                         Set<File> nextKeys) throws InvalidKeySpecException, IOException {
 
         // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didtdw-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
@@ -129,12 +144,7 @@ public abstract class AbstractDidLogEntryBuilder {
         updateKeysJsonArray.add(verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
         if (updateKeys != null) {
             for (var pemFile : updateKeys) { // ...and then add the rest, if any
-                String updateKey;
-                try {
-                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
-                } catch (InvalidKeySpecException e) {
-                    throw new IOException(e);
-                }
+                String updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
 
                 if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) { // it is a distinct list of keys, after all
                     updateKeysJsonArray.add(updateKey);
@@ -142,6 +152,57 @@ public abstract class AbstractDidLogEntryBuilder {
             }
         }
         didMethodParameters.add("updateKeys", updateKeysJsonArray);
+
+        /*
+        As described by https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters:
+
+        A JSON array of strings that are hashes of multikey formatted public keys that MAY be added to the 'updateKeys' list in the next log entry.
+        At least one entry of 'nextKeyHashes' MUST be added to the next 'updateKeys' list.
+
+        - The process for generating the hashes and additional details for using pre-rotation are defined
+          in the Pre-Rotation Key Hash Generation and Verification section of this specification.
+        - If not set in the first log entry, its value defaults to an empty array ([]).
+        - If not set in other log entries, its value is retained from the most recent prior value.
+        - Once the 'nextKeyHashes' parameter has been set to a non-empty array, Key Pre-Rotation is active.
+          While active, the properties nextKeyHashes and 'updateKeys' MUST be present in all log entries.
+        - While Key Pre-Rotation is active, ALL multikey formatted public keys added in a new 'updateKeys' list
+          MUST have their hashes listed in the 'nextKeyHashes' list from the previous log entry.
+        - A DID Controller MAY include extra hashes in the 'nextKeyHashes' array that are not subsequently used in an 'updateKeys' entry.
+          Any unused hashes in 'nextKeyHashes' arrays are ignored.
+        - The value of 'nextKeyHashes' MAY be set to an empty array ([]) to deactivate pre-rotation.
+          For additional details about turning off pre-rotation, see the Pre-Rotation Key Hash Generation and Verification section of this specification.
+         */
+        var nextKeyHashesJsonArray = new JsonArray();
+        if (nextKeys != null) { // Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+
+            //nextKeyHashesJsonArray.add(JCSHasher.buildNextKeyHash(verificationMethodKeyProvider.getVerificationKeyMultibase())); // first and foremost...
+
+            // While Key Pre-Rotation is active, all multikey formatted public keys added in a new updateKeys list
+            // MUST have their hashes listed in the nextKeyHashes list from the previous log entry.
+            /*if (updateKeys != null) {
+
+                for (var pemFile : updateKeys) {
+                    String nextKeyHash = JCSHasher.buildNextKeyHash(
+                            PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile));
+
+                    if (!nextKeyHashesJsonArray.contains(new JsonPrimitive(nextKeyHash))) { // it is a distinct list of keys, after all
+                        nextKeyHashesJsonArray.add(nextKeyHash);
+                    }
+                }
+            }*/
+
+            for (var pemFile : nextKeys) {
+
+                String nextKeyHash = JCSHasher.buildNextKeyHash(
+                        PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile));
+
+                if (!nextKeyHashesJsonArray.contains(new JsonPrimitive(nextKeyHash))) { // it is a distinct list of keys, after all
+                    nextKeyHashesJsonArray.add(nextKeyHash);
+                }
+            }
+
+            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+        }
 
         // MUST set portable to false in the first DID log entry.
         // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:

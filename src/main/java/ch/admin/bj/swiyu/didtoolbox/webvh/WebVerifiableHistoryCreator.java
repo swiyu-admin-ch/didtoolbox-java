@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
+import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -72,6 +73,19 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
+    /**
+     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private Set<File> nextKeys;
     // TODO private File dirToStoreKeyPair;
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
@@ -139,9 +153,10 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         try {
-            didLogEntryWithoutProofAndSignature.add("parameters", createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
-        } catch (IOException e) {
-            throw new DidLogCreatorStrategyException(e);
+            didLogEntryWithoutProofAndSignature.add("parameters",
+                    createDidParams(this.verificationMethodKeyProvider, this.updateKeys, this.nextKeys));
+        } catch (InvalidKeySpecException | IOException ex) {
+            throw new DidLogCreatorStrategyException(ex);
         }
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
@@ -150,7 +165,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         // Generate SCID and replace placeholder in did doc
         String scid;
         try {
-            scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+            scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
         } catch (IOException e) {
             throw new DidLogCreatorStrategyException(e);
         }
@@ -178,7 +193,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature.toString());
+            entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
         } catch (IOException e) {
             throw new DidLogCreatorStrategyException(e);
         }

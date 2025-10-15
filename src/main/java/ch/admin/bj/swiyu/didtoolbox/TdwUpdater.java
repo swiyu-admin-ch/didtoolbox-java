@@ -285,7 +285,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash = null;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
         } catch (IOException e) {
             throw new DidLogUpdaterStrategyException(e);
         }

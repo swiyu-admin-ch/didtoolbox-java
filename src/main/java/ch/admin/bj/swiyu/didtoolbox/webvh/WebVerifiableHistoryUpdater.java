@@ -241,6 +241,27 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             didLogEntryWithoutProofAndSignature.add("parameters", new JsonObject()); // CAUTION params remain the same
         }
 
+        /*
+        As described by https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters:
+
+        A JSON array of strings that are hashes of multikey formatted public keys that MAY be added to the updateKeys list in the next log entry.
+        At least one entry of nextKeyHashes MUST be added to the next updateKeys list.
+
+        - The process for generating the hashes and additional details for using pre-rotation are defined
+          in the Pre-Rotation Key Hash Generation and Verification section of this specification.
+        - If not set in the first log entry, its value defaults to an empty array ([]).
+        - If not set in other log entries, its value is retained from the most recent prior value.
+        - Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+          While active, the properties nextKeyHashes and updateKeys MUST be present in all log entries.
+        - While Key Pre-Rotation is active, all multikey formatted public keys added in a new updateKeys list
+          MUST have their hashes listed in the nextKeyHashes list from the previous log entry.
+        - A DID Controller MAY include extra hashes in the nextKeyHashes array that are not subsequently used in an updateKeys entry.
+          Any unused hashes in nextKeyHashes arrays are ignored.
+        - The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+          For additional details about turning off pre-rotation, see the Pre-Rotation Key Hash Generation and Verification section of this specification.
+         */
+        // TODO didLogMeta.getParams().getNextKeyHashes();
+
         // The JSON object "state" contains the DIDDoc for this version of the DID.
         didLogEntryWithoutProofAndSignature.add("state", didDoc);
 
@@ -250,7 +271,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
         } catch (IOException e) {
             throw new DidLogUpdaterStrategyException(e);
         }
