@@ -1,6 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -164,7 +163,7 @@ public abstract class AbstractDidLogEntryBuilder {
         - If not set in the first log entry, its value defaults to an empty array ([]).
         - If not set in other log entries, its value is retained from the most recent prior value.
         - Once the 'nextKeyHashes' parameter has been set to a non-empty array, Key Pre-Rotation is active.
-          While active, the properties nextKeyHashes and 'updateKeys' MUST be present in all log entries.
+          While active, the properties 'nextKeyHashes' and 'updateKeys' MUST be present in all log entries.
         - While Key Pre-Rotation is active, ALL multikey formatted public keys added in a new 'updateKeys' list
           MUST have their hashes listed in the 'nextKeyHashes' list from the previous log entry.
         - A DID Controller MAY include extra hashes in the 'nextKeyHashes' array that are not subsequently used in an 'updateKeys' entry.
@@ -174,22 +173,6 @@ public abstract class AbstractDidLogEntryBuilder {
          */
         var nextKeyHashesJsonArray = new JsonArray();
         if (nextKeys != null) { // Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
-
-            //nextKeyHashesJsonArray.add(JCSHasher.buildNextKeyHash(verificationMethodKeyProvider.getVerificationKeyMultibase())); // first and foremost...
-
-            // While Key Pre-Rotation is active, all multikey formatted public keys added in a new updateKeys list
-            // MUST have their hashes listed in the nextKeyHashes list from the previous log entry.
-            /*if (updateKeys != null) {
-
-                for (var pemFile : updateKeys) {
-                    String nextKeyHash = JCSHasher.buildNextKeyHash(
-                            PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile));
-
-                    if (!nextKeyHashesJsonArray.contains(new JsonPrimitive(nextKeyHash))) { // it is a distinct list of keys, after all
-                        nextKeyHashesJsonArray.add(nextKeyHash);
-                    }
-                }
-            }*/
 
             for (var pemFile : nextKeys) {
 
@@ -298,42 +281,12 @@ public abstract class AbstractDidLogEntryBuilder {
         return didDoc;
     }
 
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
-    protected static JsonObject initDidMethodParametersByLoadingUpdateKeys(Set<File> updateKeysFiles, Set<String> currentUpdateKeys)
-            throws DidLogUpdaterStrategyException {
-
-        var updateKeysJsonArray = new JsonArray();
-
-        var newUpdateKeys = Set.of(updateKeysFiles.stream().map(file -> {
-            try {
-                return PemUtils.parsePEMFilePublicKeyEd25519Multibase(file);
-            } catch (Throwable ignore) {
-            }
-            return null;
-        }).toArray(String[]::new));
-
-        if (!currentUpdateKeys.containsAll(newUpdateKeys)) { // need for change?
-
-            String updateKey;
-            for (var pemFile : updateKeysFiles) {
-                try {
-                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
-                } catch (IOException | InvalidKeySpecException e) {
-                    throw new DidLogUpdaterStrategyException(e);
-                }
-
-                // it is a distinct list of keys, after all
-                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
-                    updateKeysJsonArray.add(updateKey);
-                }
-            }
+    @SuppressWarnings({"PMD.LawOfDemeter"})
+    protected boolean isVerificationMethodKeyProviderLegal(VerificationMethodKeyProvider verificationMethodKeyProvider) {
+        if (this.didLogMeta.isKeyPreRotationActivated()) {
+            return this.didLogMeta.isPreRotatedUpdateKey(verificationMethodKeyProvider.getVerificationKeyMultibase());
+        } else {
+            return verificationMethodKeyProvider.isKeyMultibaseInSet(this.didLogMeta.getParams().getUpdateKeys());
         }
-
-        var didMethodParameters = new JsonObject();
-        if (!updateKeysJsonArray.isEmpty()) {
-            didMethodParameters.add("updateKeys", updateKeysJsonArray);
-        }
-
-        return didMethodParameters;
     }
 }

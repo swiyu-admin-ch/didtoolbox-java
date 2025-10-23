@@ -10,6 +10,7 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,9 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,7 +63,7 @@ import java.util.Set;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-@SuppressWarnings({"PMD.LawOfDemeter"})
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.GodClass"})
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -76,6 +79,19 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
+    /**
+     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private Set<File> nextUpdateKeys;
     // TODO private File dirToStoreKeyPair;
 
     @Override
@@ -137,12 +153,24 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         }
 
         // CAUTION Only activated DIDs can be updated
-        if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
+        if (super.didLogMeta.getParams().getDeactivated() != null && super.didLogMeta.getParams().getDeactivated()) {
             throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
-        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        if (!super.isVerificationMethodKeyProviderLegal(this.verificationMethodKeyProvider)) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
+        }
+
+        // While Key Pre-Rotation is active, all multikey formatted public keys added in a new 'updateKeys' list
+        // MUST have their hashes listed in the 'nextKeyHashes' list from the previous log entry.
+        if (super.didLogMeta.isKeyPreRotationActivated()) {
+            try {
+                if (!super.didLogMeta.arePreRotatedUpdateKeys(this.updateKeys)) {
+                    throw new DidLogUpdaterStrategyException("Illegal updateKey detected");
+                }
+            } catch (InvalidKeySpecException | IOException e) {
+                throw new DidLogUpdaterStrategyException(e);
+            }
         }
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
@@ -150,7 +178,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         //
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
         // The versionTime of the last entry MUST be earlier than the current time.
-        var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.getDateTime());
+        var lastEntryDateTime = ZonedDateTime.parse(super.didLogMeta.getDateTime());
         if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
             throw new DidLogUpdaterStrategyException("The versionTime of the last entry MUST be earlier than the current time");
         }
@@ -160,12 +188,12 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
 
         // take over context
         var context = new JsonArray();
-        for (var ctx : didLogMeta.getDidDoc().getContext()) {
+        for (var ctx : super.didLogMeta.getDidDoc().getContext()) {
             context.add(ctx);
         }
         didDoc.add("@context", context);
 
-        didDoc.addProperty("id", this.didLogMeta.getDidDoc().getId());
+        didDoc.addProperty("id", super.didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
@@ -183,8 +211,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             JsonArray authentication = new JsonArray();
             for (var key : this.authenticationKeys.entrySet()) {
 
-                authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(this.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
+                authentication.add(super.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(super.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("authentication", authentication);
@@ -195,8 +223,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             JsonArray assertionMethod = new JsonArray();
             for (var key : this.assertionMethodKeys.entrySet()) {
 
-                assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(this.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
+                assertionMethod.add(super.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(super.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
@@ -221,7 +249,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // https://identity.foundation/didwebvh/v1.0/#entry-hash-generation-and-verification:
         // For the first log entry, the predecessor versionId is the SCID (itself a hash),
         // while for all other entries it is the versionId item from the previous log entry.
-        didLogEntryWithoutProofAndSignature.addProperty("versionId", didLogMeta.getLastVersionId());
+        didLogEntryWithoutProofAndSignature.addProperty("versionId", super.didLogMeta.getLastVersionId());
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
@@ -233,34 +261,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-
-        if (this.updateKeys != null) {
-            didLogEntryWithoutProofAndSignature.add("parameters",
-                    initDidMethodParametersByLoadingUpdateKeys(this.updateKeys, didLogMeta.getParams().getUpdateKeys()));
-        } else {
-            didLogEntryWithoutProofAndSignature.add("parameters", new JsonObject()); // CAUTION params remain the same
-        }
-
-        /*
-        As described by https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters:
-
-        A JSON array of strings that are hashes of multikey formatted public keys that MAY be added to the updateKeys list in the next log entry.
-        At least one entry of nextKeyHashes MUST be added to the next updateKeys list.
-
-        - The process for generating the hashes and additional details for using pre-rotation are defined
-          in the Pre-Rotation Key Hash Generation and Verification section of this specification.
-        - If not set in the first log entry, its value defaults to an empty array ([]).
-        - If not set in other log entries, its value is retained from the most recent prior value.
-        - Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
-          While active, the properties nextKeyHashes and updateKeys MUST be present in all log entries.
-        - While Key Pre-Rotation is active, all multikey formatted public keys added in a new updateKeys list
-          MUST have their hashes listed in the nextKeyHashes list from the previous log entry.
-        - A DID Controller MAY include extra hashes in the nextKeyHashes array that are not subsequently used in an updateKeys entry.
-          Any unused hashes in nextKeyHashes arrays are ignored.
-        - The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
-          For additional details about turning off pre-rotation, see the Pre-Rotation Key Hash Generation and Verification section of this specification.
-         */
-        // TODO didLogMeta.getParams().getNextKeyHashes();
+        didLogEntryWithoutProofAndSignature.add("parameters", this.buildDidMethodParameters());
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
         didLogEntryWithoutProofAndSignature.add("state", didDoc);
@@ -297,7 +298,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         JsonObject proof;
         try {
             proof = JCSHasher.buildDataIntegrityProof(
-                    didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
+                    didLogEntryWithProof, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
         } catch (IOException e) {
             throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
@@ -306,7 +307,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         proofs.add(proof);
         didLogEntryWithProof.add("proof", proofs);
 
-        var did = new Did(this.didLogMeta.getDidDoc().getId());
+        var did = new Did(super.didLogMeta.getDidDoc().getId());
         try {
             // NOTE Enforcing DID log conformity is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
@@ -318,5 +319,130 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         }
 
         return didLogEntryWithProof.toString();
+    }
+
+    /**
+     * Simple type converter
+     */
+    private Set<String> loadUpdateKeys() throws DidLogUpdaterStrategyException {
+        var keys = new HashSet<String>();
+        for (var pemFile : this.updateKeys) {
+            try {
+                keys.add(PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile));
+            } catch (IOException | InvalidKeySpecException ex) {
+                throw new DidLogUpdaterStrategyException(ex);
+            }
+        }
+
+        return keys;
+    }
+
+    /**
+     * Simple type converter
+     */
+    private Set<String> loadNextUpdateKeys() throws DidLogUpdaterStrategyException {
+        var keys = new HashSet<String>();
+        for (var pemFile : this.nextUpdateKeys) {
+            try {
+                keys.add(JCSHasher.buildNextKeyHash(PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile)));
+            } catch (IOException | InvalidKeySpecException ex) {
+                throw new DidLogUpdaterStrategyException(ex);
+            }
+        }
+
+        return keys;
+    }
+
+    /**
+     * The <code>parameters</code> are used to configure the DID generation and verification processes.
+     * All parameters MUST be valid and all required values in the first version of the DID MUST be present,
+     * as <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">specified</a>:
+     * <p>
+     * A JSON array of strings that are hashes of multikey formatted public keys that MAY be added to the
+     * list in the next log entry. At least one entry of <code>nextKeyHashes</code> MUST be added to the next <code>updateKeys</code> list.
+     * <p>
+     * <ul>
+     * <li>The process for generating the hashes and additional details for using pre-rotation are defined
+     *     in the Pre-Rotation Key Hash Generation and Verification section of this specification.</li>
+     * <li>If not set in the first log entry, its value defaults to an empty array ([]).</li>
+     * <li>If not set in other log entries, its value is retained from the most recent prior value.</li>
+     * <li>Once the <code>nextKeyHashes</code> parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     *     While active, the properties <code>nextKeyHashes</code> and <code>updateKeys</code> MUST be present in all log entries.</li>
+     * <li>While Key Pre-Rotation is active, all multikey formatted public keys added in a new <code>updateKeys</code> list
+     *     MUST have their hashes listed in the <code>nextKeyHashes</code> list from the previous log entry.</li>
+     * <li>A DID Controller MAY include extra hashes in the <code>nextKeyHashes</code> array that are not subsequently
+     *     used in an <code>updateKeys</code> entry. Any unused hashes in <code>nextKeyHashes</code> arrays are ignored.</li>
+     * <li>The value of <code>nextKeyHashes</code> MAY be set to an empty array (<code>[]</code>) to deactivate pre-rotation.</li>
+     * </ul>
+     *
+     * @return a JSON object populated accordingly
+     * @throws DidLogUpdaterStrategyException if any of files supplied via this class members
+     *                                        (e.g. {@link #updateKeys} or {@link #nextUpdateKeys}) cannot be loaded
+     *                                        or contain no valid public PEM keys
+     */
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
+    private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
+
+        var didMethodParameters = new JsonObject();
+
+        var updateKeysJsonArray = new JsonArray();
+        var nextKeyHashesJsonArray = new JsonArray();
+
+        if (this.updateKeys == null && this.nextUpdateKeys == null && super.didLogMeta.isKeyPreRotationActivated()) {
+
+            updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+
+            didMethodParameters.add("nextKeyHashes", new JsonArray()); // key pre-rotation MUST be deactivated
+
+        } else if (this.updateKeys == null && this.nextUpdateKeys == null && !super.didLogMeta.isKeyPreRotationActivated()) {
+
+            // all parameters remain the same
+
+        } else if (this.updateKeys == null && this.nextUpdateKeys != null && super.didLogMeta.isKeyPreRotationActivated()) {
+
+            updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+
+            loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
+            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+
+        } else if (this.updateKeys == null && this.nextUpdateKeys != null && !super.didLogMeta.isKeyPreRotationActivated()) {
+
+            loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
+            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+
+        } else if (this.updateKeys != null && this.nextUpdateKeys == null && super.didLogMeta.isKeyPreRotationActivated()) {
+
+            loadUpdateKeys().forEach(updateKeysJsonArray::add);
+            if (!updateKeysJsonArray.contains(new JsonPrimitive(this.verificationMethodKeyProvider.getVerificationKeyMultibase()))) {
+                updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+            }
+
+            didMethodParameters.add("nextKeyHashes", new JsonArray()); // key pre-rotation MUST be deactivated
+
+        } else if (this.updateKeys != null && this.nextUpdateKeys == null && !super.didLogMeta.isKeyPreRotationActivated()) {
+
+            // TODO CAUTION Thrown is the: "Invalid update key found. UpdateKey may only be set during key pre-rotation.". Should all parameters remain the same?
+            //updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+
+        } else if (this.updateKeys != null && this.nextUpdateKeys != null && super.didLogMeta.isKeyPreRotationActivated()) {
+
+            updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+
+            loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
+            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+        }
+        /*} else {
+            // all parameters remain the same
+        }*/
+
+        if (!updateKeysJsonArray.isEmpty()) {
+            didMethodParameters.add("updateKeys", updateKeysJsonArray);
+        }
+
+        if (!nextKeyHashesJsonArray.isEmpty()) {
+            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+        }
+
+        return didMethodParameters;
     }
 }

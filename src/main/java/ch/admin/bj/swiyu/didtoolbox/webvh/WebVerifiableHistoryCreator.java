@@ -219,7 +219,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         JsonArray proofs = new JsonArray();
         try {
             proofs.add(JCSHasher.buildDataIntegrityProof(
-                    didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt
+                    didLogEntryWithProof, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt
             ));
         } catch (IOException e) {
             throw new DidLogCreatorStrategyException(e);

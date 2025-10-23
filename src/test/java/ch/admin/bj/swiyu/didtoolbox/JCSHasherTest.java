@@ -147,12 +147,18 @@ class JCSHasherTest {
     public void testBuildNextKeyHash() {
 
         // See https://identity.foundation/didwebvh/v0.3/#log-file-for-version-2
-        var actual = JCSHasher.buildNextKeyHash("z82Lkvgj5NKYhoFh4hWzax9WicQaVDphN8MMzR3JZhontVfHaoGd9JbC4QRpDvmjQH3BLeQ"); // MUT
-        assertEquals("QmcbM5bppyT4yyaL35TQQJ2XdSrSNAhH5t6f4ZcuyR4VSv", actual);
+        assertEquals("QmcbM5bppyT4yyaL35TQQJ2XdSrSNAhH5t6f4ZcuyR4VSv", JCSHasher.buildNextKeyHash("z82Lkvgj5NKYhoFh4hWzax9WicQaVDphN8MMzR3JZhontVfHaoGd9JbC4QRpDvmjQH3BLeQ"));
 
-        // See https://github.com/affinidi/affinidi-tdk-rs/blob/6aed623d9e3273759d26b17c68cca59e94777ea5/crates/affinidi-tdk/common/affinidi-secrets-resolver/src/secrets.rs#L456
-        actual = JCSHasher.buildNextKeyHash("z6MkgfFvvWA7sw8WkNWyK3y74kwNVvWc7Qrs5tWnsnqMfLD3"); // MUT
-        assertEquals("QmY1kaguPMgjndEh1sdDZ8kdjX4Uc1SW4vziMfgWC6ndnJ", actual);
+        // See https://github.com/affinidi/affinidi-tdk-rs/blob/main/crates/affinidi-tdk/common/affinidi-secrets-resolver/src/secrets.rs#L456
+        assertEquals("QmY1kaguPMgjndEh1sdDZ8kdjX4Uc1SW4vziMfgWC6ndnJ", JCSHasher.buildNextKeyHash("z6MkgfFvvWA7sw8WkNWyK3y74kwNVvWc7Qrs5tWnsnqMfLD3"));
+
+        // See https://raw.githubusercontent.com/decentralized-identity/didwebvh-rs/refs/heads/main/tests/test_vectors/pre-1_0-spec.jsonl
+        assertEquals("QmPyrGjbkwKPbDE33StNmA6v9uwNWB9NWgmxMiQ7tV1uJx", JCSHasher.buildNextKeyHash("z6Mkk7qfjoovyci2wpD1GZPvkngtWBjLr4bVdYeZfdWHDkEu"));
+        assertEquals("QmWZg7NR5vyjxHFjNLzyUdpHKXFr6MWM7pQJE8wdKrDZwV", JCSHasher.buildNextKeyHash("z6MkmpTLDBwKi8qWC6J8jz4sGR9zn1oLTizNt6XbYxDEkFQS"));
+
+        // See https://raw.githubusercontent.com/decentralized-identity/didwebvh-rs/refs/heads/main/tests/test_vectors/revoked-did.jsonl
+        assertEquals("QmeLTcLUJ9A2TTHeWdo2xx6yd52E4aPrLoEDnmCbUEhYUi", JCSHasher.buildNextKeyHash("z6Mkr7XVfuk77YmHG9WWX3rxhLRzK2z7oEia7D75fpZC6dzG"));
+        assertEquals("QmejLZab9j1DuA8fD5593XXGS2WXUgKsh3jYGY8ctaSdyC", JCSHasher.buildNextKeyHash("z6MkiwKu88uSsuNP5tYVvcaQSc7ZVpe1248zefnQXtbeHcxE"));
     }
 
     @Test
@@ -208,7 +214,6 @@ class JCSHasherTest {
 
             JsonObject actual = JCSHasher.buildDataIntegrityProof(
                     credentialsWithoutProof,
-                    true,
                     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
                     new UnsafeEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
                     null, // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
@@ -244,7 +249,6 @@ class JCSHasherTest {
 
             JsonObject actual = JCSHasher.buildDataIntegrityProof(
                     credentialsWithoutProof,
-                    true,
                     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
                     new UnsafeEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
                     "1-" + JCSHasher.buildSCID(credentialsWithoutProof), // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!

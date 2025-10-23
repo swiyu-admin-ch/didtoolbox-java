@@ -107,6 +107,19 @@ public class DidLogUpdaterContext {
     private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PACKAGE)
     private Set<File> updateKeys;
+    /**
+     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     */
+    @Getter(AccessLevel.PACKAGE)
+    private Set<File> nextKeys;
 
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
@@ -135,7 +148,7 @@ public class DidLogUpdaterContext {
      */
     public String update(File didLogFile) throws DidLogUpdaterStrategyException {
         try {
-            return update(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
+            return update(Files.readString(didLogFile.toPath()));
         } catch (IOException e) {
             throw new DidLogUpdaterStrategyException(e);
         }

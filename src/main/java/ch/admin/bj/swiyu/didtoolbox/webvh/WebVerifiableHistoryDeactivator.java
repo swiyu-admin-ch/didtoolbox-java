@@ -222,7 +222,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         JsonObject proof;
         try {
             proof = JCSHasher.buildDataIntegrityProof(
-                    didLogEntryWithProof, false, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
+                    didLogEntryWithProof, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
         } catch (IOException e) {
             throw new DidLogDeactivatorStrategyException("Fail to build DID doc data integrity proof", e);
         }

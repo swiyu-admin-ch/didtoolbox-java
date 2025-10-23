@@ -12,9 +12,9 @@ import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.*;
 /**
  * The base class for all Command classes in the package that require supply of a key material.
  */
-class AbstractKeyMaterialTdwCommand extends AbstractDidLogCommandBase {
+public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase {
 
-    protected AbstractKeyMaterialTdwCommand() {
+    protected AbstractKeyMaterialDidLogCommand() {
     }
 
     @Override
@@ -30,13 +30,13 @@ class AbstractKeyMaterialTdwCommand extends AbstractDidLogCommandBase {
             variableArity = true)
     public Set<File> verifyingKeyPemFiles;
 
-    @Parameter(names = {PARAM_NAME_LONG_NEXT_KEY_FILES, PARAM_NAME_SHORT_NEXT_KEY_FILES},
+    @Parameter(names = {PARAM_NAME_LONG_NEXT_VERIFYING_KEY_FILES, PARAM_NAME_SHORT_NEXT_VERIFYING_KEY_FILES},
             description = "One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates key pre-rotation. Deactivating key pre-rotation goes by omitting it altogether.",
             listConverter = PemFileParameterListConverter.class,
             //converter = PemFileParameterConverter.class,
             validateWith = PemFileParameterValidator.class,
             variableArity = true)
-    public Set<File> nextKeyPemFiles;
+    public Set<File> nextVerifyingKeyPemFiles;
 
     @Parameter(names = {PARAM_NAME_LONG_ASSERTION_METHOD_KEYS, PARAM_NAME_SHORT_ASSERTION_METHOD_KEYS},
             description = "One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC P-256 public/verifying key",

@@ -112,7 +112,7 @@ public class DidLogCreatorContext {
      * </ul>
      */
     @Getter(AccessLevel.PACKAGE)
-    private Set<File> nextKeyHashes;
+    private Set<File> nextKeys;
     @Getter(AccessLevel.PACKAGE)
     private boolean forceOverwrite;
 

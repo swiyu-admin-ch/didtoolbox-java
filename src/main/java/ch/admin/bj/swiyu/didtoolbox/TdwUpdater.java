@@ -9,6 +9,7 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -59,7 +61,7 @@ import java.util.Set;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-@SuppressWarnings({"PMD.LawOfDemeter"})
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.GodClass"})
 @Builder
 @Getter
 public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -269,7 +271,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         if (this.updateKeys != null) {
-            didLogEntryWithoutProofAndSignature.add(initDidMethodParametersByLoadingUpdateKeys(this.updateKeys, didLogMeta.getParams().getUpdateKeys()));
+            didLogEntryWithoutProofAndSignature.add(buildDidMethodParameters());
         } else {
             didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same
         }
@@ -333,5 +335,43 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         }
 
         return didLogEntryWithProof.toString();
+    }
+
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
+    private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
+
+        var updateKeysJsonArray = new JsonArray();
+
+        var newUpdateKeys = Set.of(this.updateKeys.stream().map(file -> {
+            try {
+                return PemUtils.parsePEMFilePublicKeyEd25519Multibase(file);
+            } catch (Throwable ignore) {
+            }
+            return null;
+        }).toArray(String[]::new));
+
+        if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)) { // need for change?
+
+            String updateKey;
+            for (var pemFile : this.updateKeys) {
+                try {
+                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                } catch (IOException | InvalidKeySpecException e) {
+                    throw new DidLogUpdaterStrategyException(e);
+                }
+
+                // it is a distinct list of keys, after all
+                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
+                    updateKeysJsonArray.add(updateKey);
+                }
+            }
+        }
+
+        var didMethodParameters = new JsonObject();
+        if (!updateKeysJsonArray.isEmpty()) {
+            didMethodParameters.add("updateKeys", updateKeysJsonArray);
+        }
+
+        return didMethodParameters;
     }
 }

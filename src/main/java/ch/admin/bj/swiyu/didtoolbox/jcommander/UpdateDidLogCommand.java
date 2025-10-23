@@ -21,10 +21,10 @@ import java.io.File;
         parametersValidators = {CommandParametersValidator.class}
 )
 @SuppressWarnings({"PMD.LawOfDemeter"})
-public class UpdateDidLogCommand extends AbstractKeyMaterialTdwCommand {
+public class UpdateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
 
     @Override
-    String getCommandName(){
+    String getCommandName() {
         return COMMAND_NAME;
     }
 

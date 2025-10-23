@@ -24,8 +24,8 @@ public interface CommandParameterNames {
     String PARAM_NAME_LONG_VERIFYING_KEY_FILES = "--verifying-key-files";
     String PARAM_NAME_SHORT_VERIFYING_KEY_FILES = "-v";
 
-    String PARAM_NAME_LONG_NEXT_KEY_FILES = "--next-key-files";
-    String PARAM_NAME_SHORT_NEXT_KEY_FILES = "-w";
+    String PARAM_NAME_LONG_NEXT_VERIFYING_KEY_FILES = "--next-verifying-key-files";
+    String PARAM_NAME_SHORT_NEXT_VERIFYING_KEY_FILES = "-w";
 
     String PARAM_NAME_LONG_VERIFYING_KEY_FILE = "--verifying-key-file";
     String PARAM_NAME_SHORT_VERIFYING_KEY_FILE = "-v";

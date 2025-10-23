@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
+import ch.admin.eid.didresolver.Did;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -8,6 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -78,54 +80,50 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
     @Test
     void testPeek() {
 
-        DidLogMeta meta = null;
-        try {
-            meta = WebVerifiableHistoryDidLogMetaPeeker.peek("""
+        var meta = new AtomicReference<DidLogMeta>();
+        assertDoesNotThrow(() -> {
+            meta.set(WebVerifiableHistoryDidLogMetaPeeker.peek("""
                     { "versionId": "1-QmQNjSbRroDtnctDN57Fjvd4e5jYHWVTgMZpzJiTbPfQ5K", "versionTime": "2025-08-06T08:55:01Z", "parameters": { "method": "did:webvh:1.0", "scid": "QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX", "updateKeys": [ "z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ" ], "portable": false }, "state": { "@context": [ "https://www.w3.org/ns/did/v1", "https://w3id.org/security/jwk/v1" ], "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com", "authentication": [ "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#auth-key-01" ], "assertionMethod": [ "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#assert-key-01" ], "verificationMethod": [ { "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#auth-key-01", "type": "JsonWebKey2020", "publicKeyJwk": { "kty": "EC", "crv": "P-256", "x": "5d-hJaS_UKIU1c05hEBhZa8Xkj_AqBDmqico_PSrRfU", "y": "TK5YKD_osEaVrDBnah-jUDXI27yqFVIo6ZYTfWp-NbY", "kid": "auth-key-01" } }, { "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#assert-key-01", "type": "JsonWebKey2020", "publicKeyJwk": { "kty": "EC", "crv": "P-256", "x": "7jWgolr5tQIUIGp9sDaB0clAiXcFwVYXUhEiXXLkmKg", "y": "NYGIxi2VGEv2OL_WqzVOd_VKjOQbl1kaERYbpAjWo58", "kid": "assert-key-01" } } ] }, "proof": [ { "type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "created": "2025-08-13T05:43:17Z", "verificationMethod": "did:key:z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ#z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ", "proofPurpose": "assertionMethod", "proofValue": "z3L7j2siRiZ4zziQQmRqLY5qH2RfVz6VTC5gbDE6vntw1De5Ej5DNR3wDU6m9KRiUYPm9o8P89yMzNk5EhWVTo4Tn" } ] }
                     { "versionId": "2-QmYkDQ83oPnBqyUEjdUdZZCc8VjQY7aE5BikRaa8cZAxVS", "versionTime": "2025-08-13T08:46:50Z", "parameters": {}, "state": { "@context": [ "https://www.w3.org/ns/did/v1", "https://w3id.org/security/jwk/v1" ], "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com", "authentication": [ "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#auth-key-01" ], "assertionMethod": [ "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#assert-key-01" ], "verificationMethod": [ { "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#auth-key-01", "type": "JsonWebKey2020", "publicKeyJwk": { "kty": "EC", "crv": "P-256", "kid": "auth-key-01", "x": "Ow_aAo2hbAYgEhKAOeu3TYO8bbKOxgJ2gndk46AaXF0", "y": "hdVPThXbmadBl3L5HaYjiz8ewIAve4VHqOgs98MdV5M" } }, { "id": "did:webvh:QmYPmKXuvwHeVF8zWdcMvU3UNksUZnR5kUJbhDjEjbZYvX:example.com#assert-key-01", "type": "JsonWebKey2020", "publicKeyJwk": { "kty": "EC", "crv": "P-256", "kid": "assert-key-02", "x": "oZq9zqDbbYfRV9gdXbLJaaKWF9G27P4CQfTEyC1aT0I", "y": "QS-uHvmj1mVLB5zJtnwTyWYRZIML4RzvCf4qOrsqfWQ" } } ] }, "proof": [ { "type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "created": "2025-08-13T09:02:55Z", "verificationMethod": "did:key:z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ#z6MkkkjG6shmZk6D2ghgDbpJQHD4xvpZhzYiWSLKDeznibiJ", "proofPurpose": "assertionMethod", "proofValue": "z2tZe9tFzyTKWRX7NEpf3ARRs7yZqu5Kq8jzr5qzzffeN9FeJPzmKs6Jb1TMNfpn8Nar6WEfifvMT5SVWozJruTwD" } ] }
-                    """); // MUT
-            assertNotNull(meta);
-            assertNotNull(meta.getDidDoc().getId());
-            // TODO new Did(meta.didDocId); // ultimate test
+                    """)); // MUT
 
-        } catch (Exception e) {
-            fail(e);
-        }
+            assertNotNull(meta.get());
+            assertNotNull(meta.get().getDidDoc().getId());
+            new Did(meta.get().getDidDoc().getId()); // ultimate test
+        });
 
-        assertNotNull(meta.getLastVersionId());
-        assertNotNull(meta.getDateTime());
-        assertEquals(2, meta.lastVersionNumber);
-        assertNotNull(meta.getParams());
-        assertNotNull(meta.getParams().method);
-        assertEquals(DidMethodEnum.WEBVH_1_0, meta.getParams().getDidMethodEnum());
-        assertNotNull(meta.getParams().scid);
-        assertNotNull(meta.getParams().updateKeys);
-        assertFalse(meta.getParams().updateKeys.isEmpty());
-        assertEquals(1, meta.getParams().updateKeys.size());
+        assertNotNull(meta.get().getLastVersionId());
+        assertNotNull(meta.get().getDateTime());
+        assertEquals(2, meta.get().lastVersionNumber);
+        assertNotNull(meta.get().getParams());
+        assertNotNull(meta.get().getParams().method);
+        assertEquals(DidMethodEnum.WEBVH_1_0, meta.get().getParams().getDidMethodEnum());
+        assertNotNull(meta.get().getParams().scid);
+        assertNotNull(meta.get().getParams().updateKeys);
+        assertFalse(meta.get().getParams().updateKeys.isEmpty());
+        assertEquals(1, meta.get().getParams().updateKeys.size());
     }
 
     @Test
     void testPeekGenerated() {
 
-        DidLogMeta meta = null;
-        try {
-            meta = WebVerifiableHistoryDidLogMetaPeeker.peek(buildWebVhDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+        var meta = new AtomicReference<DidLogMeta>();
+        assertDoesNotThrow(() -> {
+            meta.set(WebVerifiableHistoryDidLogMetaPeeker.peek(buildWebVhDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS))); // MUT
+
             assertNotNull(meta);
-            assertNotNull(meta.getDidDoc().getId());
-            // TODO new Did(meta.didDocId); // ultimate test
+            assertNotNull(meta.get().getDidDoc().getId());
+            new Did(meta.get().getDidDoc().getId()); // ultimate test
+        });
 
-        } catch (Exception e) {
-            fail(e);
-        }
-
-        assertNotNull(meta.getLastVersionId());
-        assertNotNull(meta.getDateTime());
+        assertNotNull(meta.get().getLastVersionId());
+        assertNotNull(meta.get().getDateTime());
         // TODO assertEquals(4, meta.lastVersionNumber);
-        assertNotNull(meta.getParams());
-        assertNotNull(meta.getParams().method);
-        assertNotNull(meta.getParams().scid);
-        assertNotNull(meta.getParams().updateKeys);
-        assertFalse(meta.getParams().updateKeys.isEmpty());
-        assertEquals(1, meta.getParams().updateKeys.size());
+        assertNotNull(meta.get().getParams());
+        assertNotNull(meta.get().getParams().method);
+        assertNotNull(meta.get().getParams().scid);
+        assertNotNull(meta.get().getParams().updateKeys);
+        assertFalse(meta.get().getParams().updateKeys.isEmpty());
+        assertEquals(1, meta.get().getParams().updateKeys.size());
     }
 }
