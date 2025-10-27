@@ -171,6 +171,20 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             } catch (InvalidKeySpecException | IOException e) {
                 throw new DidLogUpdaterStrategyException(e);
             }
+        } else if (this.updateKeys != null) {
+
+            for (var key : this.updateKeys) {
+                String multikey;
+                try {
+                    multikey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(key);
+                } catch (InvalidKeySpecException | IOException e) {
+                    throw new DidLogUpdaterStrategyException("Invalid verifying (public) ed25519 key supplied", e);
+                }
+
+                if (!this.verificationMethodKeyProvider.getVerificationKeyMultibase().equals(multikey)) {
+                    throw new DidLogUpdaterStrategyException("No matching verifying (public) ed25519 key supplied");
+                }
+            }
         }
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
@@ -388,29 +402,39 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var updateKeysJsonArray = new JsonArray();
         var nextKeyHashesJsonArray = new JsonArray();
 
-        if (this.updateKeys == null && this.nextUpdateKeys == null && super.didLogMeta.isKeyPreRotationActivated()) {
+        if ((this.updateKeys == null || this.updateKeys.isEmpty())
+                && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
+                && super.didLogMeta.isKeyPreRotationActivated()) {
 
             updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
 
             didMethodParameters.add("nextKeyHashes", new JsonArray()); // key pre-rotation MUST be deactivated
 
-        } else if (this.updateKeys == null && this.nextUpdateKeys == null && !super.didLogMeta.isKeyPreRotationActivated()) {
+        } else if ((this.updateKeys == null || this.updateKeys.isEmpty())
+                && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
+                && !super.didLogMeta.isKeyPreRotationActivated()) {
 
             // all parameters remain the same
 
-        } else if (this.updateKeys == null && this.nextUpdateKeys != null && super.didLogMeta.isKeyPreRotationActivated()) {
+        } else if ((this.updateKeys == null || this.updateKeys.isEmpty())
+                && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
+                && super.didLogMeta.isKeyPreRotationActivated()) {
 
             updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
 
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
             didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
 
-        } else if (this.updateKeys == null && this.nextUpdateKeys != null && !super.didLogMeta.isKeyPreRotationActivated()) {
+        } else if ((this.updateKeys == null || this.updateKeys.isEmpty())
+                && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
+                && !super.didLogMeta.isKeyPreRotationActivated()) {
 
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
             didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
 
-        } else if (this.updateKeys != null && this.nextUpdateKeys == null && super.didLogMeta.isKeyPreRotationActivated()) {
+        } else if ((this.updateKeys != null && !this.updateKeys.isEmpty())
+                && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
+                && super.didLogMeta.isKeyPreRotationActivated()) {
 
             loadUpdateKeys().forEach(updateKeysJsonArray::add);
             if (!updateKeysJsonArray.contains(new JsonPrimitive(this.verificationMethodKeyProvider.getVerificationKeyMultibase()))) {
@@ -419,12 +443,16 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
 
             didMethodParameters.add("nextKeyHashes", new JsonArray()); // key pre-rotation MUST be deactivated
 
-        } else if (this.updateKeys != null && this.nextUpdateKeys == null && !super.didLogMeta.isKeyPreRotationActivated()) {
+        } else if ((this.updateKeys != null && !this.updateKeys.isEmpty())
+                && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
+                && !super.didLogMeta.isKeyPreRotationActivated()) {
 
-            // TODO CAUTION Thrown is the: "Invalid update key found. UpdateKey may only be set during key pre-rotation.". Should all parameters remain the same?
-            //updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+            // CAUTION No "updateKeys" can be set here. Otherwise, thrown is: "Invalid update key found. UpdateKey may only be set during key pre-rotation.".
+            //         Hence, all parameters remain the same.
 
-        } else if (this.updateKeys != null && this.nextUpdateKeys != null && super.didLogMeta.isKeyPreRotationActivated()) {
+        } else if ((this.updateKeys != null && !this.updateKeys.isEmpty())
+                && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
+                && super.didLogMeta.isKeyPreRotationActivated()) {
 
             updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
 

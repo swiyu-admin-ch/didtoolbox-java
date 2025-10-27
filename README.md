@@ -27,6 +27,7 @@ with respect to one of the following specifications:
   - [Create](#did-creation)
   - [Update](#did-update)
   - [DID Deactivation (Revoke)](#did-deactivation-revoke)
+  - [Key Rotation with Pre-Rotation](#key-rotation-with-pre-rotation)
 - [Additional Information](#additional-information)
 - [Missing Features and Known Issues](#missing-features-and-known-issues)
 - [Contributions and Feedback](#contributions-and-feedback)
@@ -644,6 +645,47 @@ The _deactivated_ DID log file should now contain another DID log entry denoting
 
 ```json
 {"versionId":"2-QmQ789n4M1GJNmqJrZc5mh31A6qTWQhGvXBswThav1cEoS","versionTime":"2025-09-16T08:38:57Z","parameters":{"deactivated":true,"updateKeys":[]},"state":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:webvh:QmawSKWDN3LNMMokezM1jwGFeZzroSnuayx4mGmS7WTtiP:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did18fa7c77-9dd1-4e20-a147-fb1bec146085"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-09-16T08:38:57Z","verificationMethod":"did:key:z6Mkr4vcVTZGzinKrfRQisUAa79rCSFrBG5qzf2QatPaZ9Ag#z6Mkr4vcVTZGzinKrfRQisUAa79rCSFrBG5qzf2QatPaZ9Ag","proofPurpose":"assertionMethod","proofValue":"z67KCC9BQzLebaJYQZgNbyKLrGZf7Hpt1Th8pXUTbaFRiJj2nBFwNEqiUadXxpAVw2My9GZp2EhDhKH67PHgHaA6Y"}]}
+```
+
+### Key Rotation with Pre-Rotation
+
+The DID Toolbox also supports a [_post-quantum safe_](https://didwebvh.info/latest/implementers-guide/prerotation-keys/#post-quantum-attacks)
+technique called [Key Rotation with Pre-Rotation](https://didwebvh.info/latest/implementers-guide/prerotation-keys).
+Here is a short script illustrating it:
+
+```shell
+# optionally, get the latest version of DID Toolbox (replace <VERSION> with any of available versions released after 1.6.0)
+# wget https://repo1.maven.org/maven2/io/github/swiyu-admin-ch/didtoolbox/<VERSION>/didtoolbox-<VERSION>-jar-with-dependencies.jar -O didtoolbox.jar
+alias didtoolbox='java -jar didtoolbox.jar'
+
+# generate couple of pre-rotation keys
+rm -fr .didtoolbox*
+for i in {1..5}; do didtoolbox create -f -m did:webvh:1.0 -u https://domain.com/path1/path2 &> /dev/null; mv .didtoolbox .didtoolbox$(printf "%03d" $((i))); done
+
+# initial DID log with a key to be used for pre-rotation 
+didtoolbox create -f -m did:webvh:1.0 \
+    -u https://domain.com/path1/path2 \
+    -w .didtoolbox001/id_ed25519.pub > did001.jsonl
+
+# add more DID log entries featuring previously generated pre-rotation keys
+for i in {1..5}; do didtoolbox update \
+    -d did$(printf "%03d" $((i))).jsonl \
+    -a my-assert-key-01,.didtoolbox/assert-key-01.pub \
+    -t my-auth-key-01,.didtoolbox/auth-key-01.pub \
+    -s .didtoolbox$(printf "%03d" $((i)))/id_ed25519 \
+    -v .didtoolbox$(printf "%03d" $((i)))/id_ed25519.pub \
+    -w .didtoolbox$(printf "%03d" $((i+1)))/id_ed25519.pub > did$(printf "%03d" $((i+1))).jsonl; done
+
+# checkpoint (print only the pre-rotation keys inside the DID log)
+cat did005.jsonl | jq -c '.|.parameters'
+
+# the command above should produce the following output:
+#
+# {"method":"did:webvh:1.0","scid":"QmPQ6QpZ34T2FUN4Qoav4w1UXqRHPEr74Ecthu8Ve1ek3r","updateKeys":["z6MktAwYMZ2DPFwNP9JpJYvZg7DGvUc3rQqoPWVRai8ujUkC"],"nextKeyHashes":["Qmcv4wvjmDbowp6ziKanyEnNxwfRGf8gQ7UZXAmAgwSXg2"],"portable":false}
+# {"nextKeyHashes":["QmXa2irGDLZP2WFiQCSAmuRWpCQVKbKb3NwgUB3EUwFef1"],"updateKeys":["z6MkowukYWPGu3y8pVTskco8ziTMnS4U7tVPKkWv1fAd4XS5"]}
+# {"nextKeyHashes":["QmaiT2EVB9WZcYae9QS94agPhE5isd96xGe8TMyjbRcinm"],"updateKeys":["z6Mki8rv7cMRZ5jiLtGgfbuRvknwfUZbJFjE8SApikXixvVv"]}
+# {"nextKeyHashes":["QmZbAEQCaBLYxWz6eWMQas8nfKa3vXhRoMVQD2o35RDZm2"],"updateKeys":["z6Mko41raveKqxPg5gUzv2g7Gk9a9rmCNXNn5MCKsQECFQ5E"]}
+# {"nextKeyHashes":["QmPjawyNkfnZqNomHMct8zE1QHiqfPPUGfbYyerNuXRxXo"],"updateKeys":["z6MkkPDkNqJ2CmVB89gPyJNhC5GJ2PfiPqtLsWvMHUyHS1L5"]}
 ```
 
 ## Additional Information

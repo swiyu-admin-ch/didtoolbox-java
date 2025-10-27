@@ -283,7 +283,7 @@ MCowBQYDK2VwAyEAWa4cJUqm76RQ9RRxZwQ9EG/37GqeLOXFNoU7v8OomdQ=
             Set<File> nextKeys) {
         try {
             return WebVerifiableHistoryCreator.builder()
-                    // CAUTION Calling .verificationMethodKeyProvider(...) is here irrelevant this redundant
+                    // CAUTION Calling .verificationMethodKeyProvider(...) is here irrelevant thus redundant
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .nextKeys(nextKeys) // IMPORTANT denotes key pre-rotation

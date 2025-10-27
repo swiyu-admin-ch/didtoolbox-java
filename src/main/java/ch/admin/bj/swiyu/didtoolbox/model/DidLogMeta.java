@@ -97,8 +97,8 @@ public class DidLogMeta {
     }
 
     /**
-     * In case of activated key pre-rotation, the method proves whether the supplied {@code pemFiles} is among those
-     * defined by the key pre-rotation, or not.
+     * In case of activated key pre-rotation, the method proves whether the supplied {@code pemFiles} feature public keys
+     * that are among those defined by the key pre-rotation, or not.
      *
      * @param pemFiles to check
      * @return {@code true} if and only if at least one of the supplied {@code pemFiles} is legal w.r.t. key pre-rotation. Otherwise, {@code false}.

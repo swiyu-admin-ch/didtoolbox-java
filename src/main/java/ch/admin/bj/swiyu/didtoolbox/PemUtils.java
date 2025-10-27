@@ -18,7 +18,15 @@ public final class PemUtils {
     private PemUtils() {
     }
 
-    static byte[] parsePEMFile(File pemFile) throws IOException {
+    /**
+     * Loads a PEM key from the supplied file.
+     *
+     * @param pemFile to read PEM key from
+     * @return the PEM key as byte array
+     * @throws FileNotFoundException in case of inappropriate {@code pemFile} parameter value
+     * @throws IOException           in case of a parse error
+     */
+    public static byte[] parsePEMFile(File pemFile) throws IOException {
 
         if (!pemFile.isFile() || !pemFile.exists()) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", pemFile.getAbsolutePath()));

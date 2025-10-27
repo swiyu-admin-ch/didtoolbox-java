@@ -214,7 +214,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         command1.jksAlias = "myalias"; // must match one the pre-rotation key(s) set by the initial entry
         // REMINDER Setting command1.verifyingKeyPemFiles is OPTIONAL, but the value MUST match one of the pre-rotation key(s) set by the initial entry
         //command1.verifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0]);
-        command1.nextVerifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0], TEST_KEY_FILES[1]);
+        command1.nextVerifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0], TEST_KEY_FILES[1]); // TEST_KEY_FILES[1] may be now also be used in the future
 
         assertDoesNotThrow(() -> {
 
@@ -240,7 +240,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         // Rotate to keypair TEST_SIGNING_KEY_FILES[1]/TEST_KEY_FILES[1]
         command2.signingKeyPemFile = TEST_SIGNING_KEY_FILES[1]; // must match one of the pre-rotation key(s) set by the initial entry
         command2.verifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0], TEST_KEY_FILES[1]); // MUST be among pre-rotation key(s) set by the initial entry
-        // CAUTION By skipping command2.nextVerifyingKeyPemFiles, "key pre-rotation" should be DEACTIVATED
+        // CAUTION By leaving command2.nextVerifyingKeyPemFiles unset, "key pre-rotation" should be DEACTIVATED
 
         assertDoesNotThrow(() -> {
 
@@ -266,7 +266,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         // CAUTION At this point, no appropriate JKS available for setting command1.jks* values, so get keys from the file system
 
         // Rotate back to keypair TEST_SIGNING_KEY_FILES[0]/TEST_KEY_FILES[0]
-        command3.signingKeyPemFile = TEST_SIGNING_KEY_FILES[0]; // must match one of the pre-rotation key(s) set by the initial entry
+        command3.signingKeyPemFile = TEST_SIGNING_KEY_FILES[0]; // MUST match one of the pre-rotation key(s) set by the initial entry
         command3.verifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0]); // MUST be among pre-rotation key(s) set by the initial entry
 
         assertDoesNotThrow(() -> {

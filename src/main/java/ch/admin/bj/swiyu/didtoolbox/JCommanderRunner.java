@@ -241,6 +241,7 @@ final class JCommanderRunner {
                 for (var pemFile : verifyingKeyPemFiles) {
                     try {
                         var multikey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                        // Only pre-rotation keys are relevant here
                         if (didLogMeta.isPreRotatedUpdateKey(multikey)) {
                             // the signing key is supplied externally, but verifying key should be already among updateKeys
                             signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), multikey);
@@ -253,6 +254,22 @@ final class JCommanderRunner {
                 }
 
             } else {
+
+                for (var pemFile : verifyingKeyPemFiles) {
+                    try {
+                        var multikey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                        // the signing key is supplied externally, but verifying key should be already among updateKeys
+                        signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), multikey);
+                        // At this point, the matching verifying key is detected, so we are free to break from the loop
+                        matchingUpdateKey = multikey;
+                        break;
+                    } catch (Throwable ignoreNonMatchingKey) {
+                    }
+                }
+
+                if (matchingUpdateKey == null) {
+                    overAndOut(jc, parsedCommandName, "No matching verifying (public) ed25519 key supplied");
+                }
 
                 for (var key : didLogMeta.getParams().getUpdateKeys()) {
                     try {
@@ -287,7 +304,7 @@ final class JCommanderRunner {
             }
 
         } else {
-            overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
+            overAndOut(jc, parsedCommandName, "Incomplete source of the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
         }
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
