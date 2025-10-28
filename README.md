@@ -102,6 +102,7 @@ Usage: didtoolbox [options] [command] [command options]
             Defines the DID method specification version to use when generating a DID log. Case-insensitive. Valid values: 'did:tdw:0.3', 
             'did:webvh:1.0' 
             Default: did:webvh:1.0
+            Possible Values: [TDW_0_3, WEBVH_1_0]
           --primus-credentials, -p
             A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. It should 
             feature a quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and 
@@ -119,6 +120,9 @@ Usage: didtoolbox [options] [command] [command options]
             conjunction with any of --jks-* or --primus-* CLI parameters
           --verifying-key-files, -v
             One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
+          --verifying-key-files-next, -w
+            One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key 
+            pre-rotation'. Analogously, deactivating 'key pre-rotation' goes simply by omitting this option altogether
 
     update      Update a DID log by replacing the existing verification material in DID document. To supply a signing/verifying key pair, always rely 
             on one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key material: PEM 
@@ -164,6 +168,9 @@ Usage: didtoolbox [options] [command] [command options]
             conjunction with any of --jks-* or --primus-* CLI parameters
           --verifying-key-files, -v
             One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
+          --verifying-key-files-next, -w
+            One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key 
+            pre-rotation'. Analogously, deactivating 'key pre-rotation' goes simply by omitting this option altogether
 
     deactivate      Deactivate (revoke) a DID log. To supply a signing/verifying key pair, always rely on one of the three available command 
             parameter sets exclusively, each of then denoting a whole another source of such key material: PEM files, a Java KeyStore (PKCS12) or a 
@@ -256,7 +263,7 @@ Usage: didtoolbox [options] [command] [command options]
 
 $ java -jar didtoolbox.jar -V
 
-didtoolbox 1.6.0
+didtoolbox 1.7.0
 ```
 
 ## Quickstart – Create Your First DID

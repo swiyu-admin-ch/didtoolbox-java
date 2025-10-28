@@ -31,7 +31,7 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
     public Set<File> verifyingKeyPemFiles;
 
     @Parameter(names = {PARAM_NAME_LONG_NEXT_VERIFYING_KEY_FILES, PARAM_NAME_SHORT_NEXT_VERIFYING_KEY_FILES},
-            description = "One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates key pre-rotation. Deactivating key pre-rotation goes by omitting it altogether.",
+            description = "One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key pre-rotation'. Analogously, deactivating 'key pre-rotation' goes simply by omitting this option altogether",
             listConverter = PemFileParameterListConverter.class,
             //converter = PemFileParameterConverter.class,
             validateWith = PemFileParameterValidator.class,
