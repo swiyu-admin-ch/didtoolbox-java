@@ -63,7 +63,7 @@ import java.util.Set;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-@SuppressWarnings({"PMD.LawOfDemeter", "PMD.GodClass"})
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.GodClass", "PMD.CyclomaticComplexity"})
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {

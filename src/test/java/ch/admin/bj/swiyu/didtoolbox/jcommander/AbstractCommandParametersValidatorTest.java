@@ -31,8 +31,8 @@ abstract class AbstractCommandParametersValidatorTest {
 
     protected static File dummyDidLogFile = null;
 
-    protected static File somePrivatePEMFile = new File("src/test/data/private.pem");
-    protected static File somePublicPEMFile = new File("src/test/data/public.pem");
+    protected static final File somePrivatePEMFile = new File("src/test/data/private.pem");
+    protected static final File somePublicPEMFile = new File("src/test/data/public.pem");
 
     // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
     final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER_JKS;

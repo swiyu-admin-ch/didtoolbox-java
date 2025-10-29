@@ -53,7 +53,7 @@ public final class PemUtils {
     }
 
     static PublicKey getPublicKeyEd25519(byte[] encodedKey) throws InvalidKeySpecException {
-        KeyFactory factory = null;
+        KeyFactory factory;
         try {
             factory = KeyFactory.getInstance("Ed25519");
         } catch (NoSuchAlgorithmException e) {
@@ -87,7 +87,7 @@ public final class PemUtils {
     }
 
     static PrivateKey getPrivateKeyEd25519(byte[] encodedKey) throws InvalidKeySpecException {
-        KeyFactory factory = null;
+        KeyFactory factory;
         try {
             factory = KeyFactory.getInstance("Ed25519");
         } catch (NoSuchAlgorithmException e) {

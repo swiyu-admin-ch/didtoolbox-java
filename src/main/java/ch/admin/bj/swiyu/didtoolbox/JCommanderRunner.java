@@ -308,7 +308,6 @@ final class JCommanderRunner {
         }
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
-        assert didLogMeta != null;
         jc.getConsole().println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
                 DidLogUpdaterContext.builder()
                         .didMethod(didLogMeta.getParams().getDidMethodEnum())
@@ -348,7 +347,6 @@ final class JCommanderRunner {
         if (signingKeyPemFile != null) {
 
             String matchingUpdateKey = null;
-            assert didLogMeta != null;
             // CAUTION In case the supplied DID log have already been deactivated (i.e. "parameters":{"deactivated":true,"updateKeys":[]}),
             //         the updateKeys collection would be null
             if (didLogMeta.getParams().getUpdateKeys() != null) {
@@ -476,15 +474,23 @@ final class JCommanderRunner {
         System.exit(1);
     }
 
+    /**
+     * Simple helper for extracting DID method parameters in a specification-agnostic fashion.
+     *
+     * @param jc                {@code JCommander} object to use to display appropriate message in case of error
+     * @param parsedCommandName name of the existing command to display in case of err
+     * @param didLogFile        {@code File} object containing a valid DID log
+     * @return a {@code DidLogMeta} object, never {@code null}
+     */
     private static DidLogMeta fetchDidLogMeta(JCommander jc,
                                               String parsedCommandName,
                                               File didLogFile) {
         DidLogMeta didLogMeta = null;
         try {
-            return TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:tdw log
+            didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:tdw log
         } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
             try {
-                return WebVerifiableHistoryDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:webvh log
+                didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:webvh log
             } catch (DidLogMetaPeekerException | IOException exc1) { // not a did:webvh log
                 overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
             }
@@ -498,6 +504,6 @@ final class JCommanderRunner {
             throw new IllegalArgumentException("Incomplete metadata");
         }
 
-        return null;
+        return didLogMeta;
     }
 }

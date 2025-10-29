@@ -231,7 +231,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = null;
+        String entryHash;
         try {
             entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
         } catch (IOException e) {
@@ -253,7 +253,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         var proofs = new JsonArray();
-        JsonObject proof = null;
+        JsonObject proof;
         try {
             proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
         } catch (IOException e) {

@@ -45,7 +45,7 @@ public final class JwkUtils {
 
         // see https://connect2id.com/products/nimbus-jose-jwt/examples/pem-encoded-objects
 
-        ECPublicKey publicKey = null;
+        ECPublicKey publicKey;
         try {
             publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(ecPublicPemFile), "EC");
         } catch (NoSuchAlgorithmException e) {
@@ -85,7 +85,7 @@ public final class JwkUtils {
      */
     public static String generatePublicEC256(String kid, File keyPairPemFile, boolean forceOverwrite) throws IOException {
 
-        KeyPairGenerator keyPairGenerator = null;
+        KeyPairGenerator keyPairGenerator;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProviderSingleton.getInstance());
         } catch (NoSuchAlgorithmException e) {
@@ -107,7 +107,7 @@ public final class JwkUtils {
         }
         String publicKeyPem = stringWriter.toString();
 
-        ECKey publicJwk = null;
+        ECKey publicJwk;
         try {
             // CAUTION By using com.nimbusds.jose.jwk.gen.ECKeyGenerator (see https://connect2id.com/products/nimbus-jose-jwt/examples/jws-with-ec-signature)
             //         to create a com.nimbusds.jose.jwk.JWK object you may end up having incomplete EC PRIVATE KEY export later on.

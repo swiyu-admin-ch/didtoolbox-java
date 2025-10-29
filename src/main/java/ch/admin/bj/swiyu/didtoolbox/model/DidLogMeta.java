@@ -35,7 +35,7 @@ public class DidLogMeta {
     @Getter
     final private String lastVersionId;
     @Getter
-    int lastVersionNumber;
+    final int lastVersionNumber;
     @Getter
     final private String dateTime;
     @Getter
