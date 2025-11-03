@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
@@ -29,8 +30,8 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         var params = jsonArray.get(2).getAsJsonObject();
         assertTrue(params.has("method"));
         assertTrue(params.has("scid"));
-        assertTrue(params.has("updateKeys"));
-        assertTrue(params.get("updateKeys").isJsonArray());
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
 
         assertTrue(jsonArray.get(3).isJsonObject());
         assertTrue(jsonArray.get(3).getAsJsonObject().has("value"));
@@ -103,8 +104,8 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         assertDidLogEntry(didLogEntry.get());
 
         var params = JsonParser.parseString(didLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
-        assertFalse(params.get("updateKeys").getAsJsonArray().isEmpty());
-        assertEquals(2, params.get("updateKeys").getAsJsonArray().size());// Effectively, it is only 2 distinct keys
+        assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
+        assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size());// Effectively, it is only 2 distinct keys
     }
 
     @DisplayName("Building TDW log entry for various identifierRegistryUrl variants using Java Keystore (JKS)")

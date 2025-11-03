@@ -5,6 +5,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -369,7 +370,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
 
         var didMethodParameters = new JsonObject();
         if (!updateKeysJsonArray.isEmpty()) {
-            didMethodParameters.add("updateKeys", updateKeysJsonArray);
+            didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
         }
 
         return didMethodParameters;

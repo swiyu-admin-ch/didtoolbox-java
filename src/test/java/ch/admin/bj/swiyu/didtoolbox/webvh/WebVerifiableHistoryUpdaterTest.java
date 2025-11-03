@@ -2,6 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonParser;
@@ -32,8 +33,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         //var params = jsonObject.get("parameters").getAsJsonObject();
         //assertTrue(params.has("method"));
         //assertTrue(params.has("scid"));
-        //assertTrue(params.has("updateKeys"));
-        //assertTrue(params.get("updateKeys").isJsonArray());
+        //assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        //assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
 
         assertTrue(jsonObject.get("state").isJsonObject());
         var didDoc = jsonObject.get("state").getAsJsonObject();
@@ -142,7 +143,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
         // At this point should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
         var params = JsonParser.parseString(nextLogEntry).getAsJsonObject().get("parameters").getAsJsonObject();
-        assertFalse(params.has("updateKeys")); // no new updateKeys, really
+        assertFalse(params.has(NamedDidMethodParameters.UPDATE_KEYS)); // no new updateKeys, really
 
         updatedDidLog.append(nextLogEntry).append(System.lineSeparator());
 
@@ -167,7 +168,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
         // Once the 'nextKeyHashes' parameter has been set to a non-empty array, Key Pre-Rotation is active.
         // While active, the properties 'nextKeyHashes' and 'updateKeys' MUST be present in all log entries.
-        assertTrue(JsonParser.parseString(initialDidLogEntry).getAsJsonObject().get("parameters").getAsJsonObject().has("nextKeyHashes")); // denotes key pre-rotation
+        assertTrue(JsonParser.parseString(initialDidLogEntry).getAsJsonObject().get("parameters").getAsJsonObject().has(NamedDidMethodParameters.NEXT_KEY_HASHES)); // denotes key pre-rotation
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
@@ -197,8 +198,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         // Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
         // While active, the properties nextKeyHashes and updateKeys MUST be present in all log entries.
         var params = JsonParser.parseString(nextLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
-        assertTrue(params.has("updateKeys"));
-        //assertTrue(params.has("nextKeyHashes"));
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        //assertTrue(params.has(NamedDidMethodParameters.NEXT_KEY_HASHES));
 
         updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
         //System.out.println(updatedDidLog);
@@ -307,8 +308,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             var resolveAll = new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
             // At this point, it is sufficient just to check on 'updateKeys'
             var params = resolveAll.getDidMethodParameters();
-            assertTrue(params.containsKey("updateKeys"));
-            var updateKeys = params.get("updateKeys");
+            assertTrue(params.containsKey(NamedDidMethodParameters.UPDATE_KEYS));
+            var updateKeys = params.get(NamedDidMethodParameters.UPDATE_KEYS);
             assertTrue(updateKeys.isArray());
             assertFalse(updateKeys.isEmptyArray());
             assertNotNull(updateKeys.getStringArrayValue());

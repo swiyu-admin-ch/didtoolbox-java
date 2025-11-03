@@ -18,6 +18,7 @@ public class Main {
             description = "Display version")
     boolean version;
 
+    @SuppressWarnings({"PMD.DoNotTerminateVM"})
     public static void main(String... args) {
         var main = new Main();
 
@@ -82,6 +83,7 @@ public class Main {
         System.exit(0);
     }
 
+    @SuppressWarnings({"PMD.DoNotTerminateVM"})
     private static void overAndOut(JCommander jc, String commandName, String message) {
         jc.getConsole().println(message);
         jc.getConsole().println("");

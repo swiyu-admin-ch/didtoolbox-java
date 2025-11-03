@@ -58,9 +58,9 @@ public class DidLogMeta {
                 metaParams.setMethod(param.getStringValue());
             } else if (name.equals("scid") && param.isString()) {
                 metaParams.setScid(param.getStringValue());
-            } else if (name.equals("updateKeys") && param.isArray() && !param.isEmptyArray()) {
+            } else if (name.equals(NamedDidMethodParameters.UPDATE_KEYS) && param.isArray() && !param.isEmptyArray()) {
                 metaParams.setUpdateKeys(new HashSet<>(Objects.requireNonNull(param.getStringArrayValue())));
-            } else if (name.equals("nextKeyHashes") && param.isArray() && !param.isEmptyArray()) {
+            } else if (name.equals(NamedDidMethodParameters.NEXT_KEY_HASHES) && param.isArray() && !param.isEmptyArray()) {
                 metaParams.setNextKeyHashes(new HashSet<>(Objects.requireNonNull(param.getStringArrayValue())));
             } else if (name.equals("deactivated") && param.isBool()) {
                 metaParams.setDeactivated(param.getBoolValue());

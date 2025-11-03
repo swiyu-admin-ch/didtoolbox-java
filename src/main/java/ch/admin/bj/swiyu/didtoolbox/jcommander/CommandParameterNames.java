@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox.jcommander;
 /**
  * The home for all CLI parameter names, both short and long.
  */
+@SuppressWarnings({"PMD.ConstantsInInterface"})
 public interface CommandParameterNames {
     String PARAM_NAME_LONG_USAGE = "--help";
     String PARAM_NAME_SHORT_USAGE = "-h";

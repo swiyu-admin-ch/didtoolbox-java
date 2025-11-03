@@ -114,7 +114,7 @@ public abstract class AbstractDidLogEntryBuilder {
      * @throws InvalidKeySpecException if parsing any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
      * @throws IOException             if loading any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
      */
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
                                          Set<File> updateKeys,
                                          Set<File> nextKeys) throws InvalidKeySpecException, IOException {
@@ -150,7 +150,7 @@ public abstract class AbstractDidLogEntryBuilder {
                 }
             }
         }
-        didMethodParameters.add("updateKeys", updateKeysJsonArray);
+        didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
 
         /*
         As described by https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters:
@@ -171,9 +171,9 @@ public abstract class AbstractDidLogEntryBuilder {
         - The value of 'nextKeyHashes' MAY be set to an empty array ([]) to deactivate pre-rotation.
           For additional details about turning off pre-rotation, see the Pre-Rotation Key Hash Generation and Verification section of this specification.
          */
-        var nextKeyHashesJsonArray = new JsonArray();
         if (nextKeys != null) { // Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
 
+            var nextKeyHashesJsonArray = new JsonArray();
             for (var pemFile : nextKeys) {
 
                 String nextKeyHash = JCSHasher.buildNextKeyHash(
@@ -184,7 +184,7 @@ public abstract class AbstractDidLogEntryBuilder {
                 }
             }
 
-            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
         }
 
         // MUST set portable to false in the first DID log entry.

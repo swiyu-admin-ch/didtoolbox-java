@@ -2,6 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
@@ -56,8 +57,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertEquals(2, params.size()); // only "deactivated" (true) and optionally "updateKeys" (empty) expected
         assertTrue(params.has("deactivated")); // essential
         assertTrue(params.get("deactivated").getAsBoolean()); // essential
-        assertTrue(params.has("updateKeys"));
-        assertTrue(params.get("updateKeys").isJsonArray());
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
 
         assertTrue(jsonArray.get(3).isJsonObject());
         assertTrue(jsonArray.get(3).getAsJsonObject().has("value"));

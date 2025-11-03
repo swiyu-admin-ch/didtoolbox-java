@@ -6,6 +6,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -408,7 +409,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
 
             updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
 
-            didMethodParameters.add("nextKeyHashes", new JsonArray()); // key pre-rotation MUST be deactivated
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, new JsonArray()); // key pre-rotation MUST be deactivated
 
         } else if ((this.updateKeys == null || this.updateKeys.isEmpty())
                 && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
@@ -423,14 +424,14 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
 
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
-            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
 
         } else if ((this.updateKeys == null || this.updateKeys.isEmpty())
                 && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
                 && !super.didLogMeta.isKeyPreRotationActivated()) {
 
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
-            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
 
         } else if ((this.updateKeys != null && !this.updateKeys.isEmpty())
                 && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
@@ -441,7 +442,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
             }
 
-            didMethodParameters.add("nextKeyHashes", new JsonArray()); // key pre-rotation MUST be deactivated
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, new JsonArray()); // key pre-rotation MUST be deactivated
 
         } else if ((this.updateKeys != null && !this.updateKeys.isEmpty())
                 && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
@@ -457,18 +458,18 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
 
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
-            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
         }
         /*} else {
             // all parameters remain the same
         }*/
 
         if (!updateKeysJsonArray.isEmpty()) {
-            didMethodParameters.add("updateKeys", updateKeysJsonArray);
+            didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
         }
 
         if (!nextKeyHashesJsonArray.isEmpty()) {
-            didMethodParameters.add("nextKeyHashes", nextKeyHashesJsonArray);
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
         }
 
         return didMethodParameters;

@@ -5,6 +5,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -218,7 +219,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         // https://identity.foundation/didwebvh/v0.3/#deactivate-revoke:
         // A DID MAY update the DIDDoc further to indicate the deactivation of the DID, such as including an empty updateKeys list
         // ("updateKeys": []) in the parameters, preventing further versions of the DID.
-        didMethodParameters.add("updateKeys", new JsonArray());
+        didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, new JsonArray());
 
         didLogEntryWithoutProofAndSignature.add(didMethodParameters);
 

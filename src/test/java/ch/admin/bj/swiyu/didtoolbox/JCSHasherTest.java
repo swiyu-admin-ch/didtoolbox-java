@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -74,10 +75,10 @@ class JCSHasherTest {
 
         JsonArray updateKeys = new JsonArray();
         updateKeys.add("z82LkvR3CBNkb9tUVps4GhGpNvEVP6vWzdwgGwQbA1iYoZwd7m1F1hSvkJFSe6sWci7JiXc");
-        parameters.add("updateKeys", updateKeys);
+        parameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeys);
         JsonArray nextKeyHashes = new JsonArray();
         nextKeyHashes.add("QmcbM5bppyT4yyaL35TQQJ2XdSrSNAhH5t6f4ZcuyR4VSv");
-        parameters.add("nextKeyHashes", nextKeyHashes);
+        parameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashes);
 
         parameters.addProperty("method", "did:tdw:0.3");
         parameters.addProperty("scid", "{SCID}");

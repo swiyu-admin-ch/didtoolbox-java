@@ -118,7 +118,8 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
         assertNotNull(meta.get().getLastVersionId());
         assertNotNull(meta.get().getDateTime());
-        // TODO assertEquals(4, meta.lastVersionNumber);
+        // CAUTION An expected value depends on buildWebVhDidLog helper
+        assertEquals(4, meta.get().lastVersionNumber);
         assertNotNull(meta.get().getParams());
         assertNotNull(meta.get().getParams().method);
         assertNotNull(meta.get().getParams().scid);

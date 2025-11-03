@@ -10,13 +10,8 @@ import java.io.IOException;
 public class PemFileParameterValidator implements IParameterValidator {
     @Override
     public void validate(String name, String value) { // throws ParameterException {
-        var file = new File(value);
-        if (!file.isFile() || !file.exists()) {
-            throw new ParameterException("Parameter " + name + " should be a regular file containing key in PEM format (found " + value + ")");
-        }
-
         try {
-            PemUtils.parsePEMFile(file);
+            PemUtils.parsePEMFile(new File(value));
         } catch (IOException e) {
             throw new ParameterException("Parameter " + name + " should be a regular file containing key in PEM format (found " + value + ")");
         }

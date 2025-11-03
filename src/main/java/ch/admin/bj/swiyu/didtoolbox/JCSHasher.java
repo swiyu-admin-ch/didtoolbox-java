@@ -80,11 +80,11 @@ public final class JCSHasher {
      * multihash is an implementation of the <a href="https://www.w3.org/TR/controller-document/#multihash">multihash</a> specification.
      * Its output is a hash of the input using the associated <hash algorithm>, prefixed with a hash algorithm identifier and the hash size.
      *
-     * @param str
-     * @return
+     * @param input string to be hashed
+     * @return {@code input} string hashed accordingly
      */
-    static byte[] multihash(String str) {
-        return multihash(str.getBytes(StandardCharsets.UTF_8));
+    static byte[] multihash(String input) {
+        return multihash(input.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -129,8 +129,8 @@ public final class JCSHasher {
     }
 
     /**
-     * As specified by <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">...</a>.
-     * <p>See example: <a href="https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022">...</a>
+     * As specified by <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">Data Integrity EdDSA Cryptosuites v1.0</a>.
+     * <p>See <a href="https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022">example</a>
      *
      * <p>A proof contains the attributes specified in the <a href="https://www.w3.org/TR/vc-data-integrity/#proofs">Proofs</a> section
      * of <a href="https://www.w3.org/TR/vc-di-eddsa/#bib-vc-data-integrity">VC-DATA-INTEGRITY</a> with the following restrictions.
@@ -197,8 +197,6 @@ public final class JCSHasher {
         String proofHashHex = hashAsHex(proof);
 
         var signature = verificationMethodKeyProvider.generateSignature(HexFormat.of().parseHex(proofHashHex + docHashHex));
-        //String signatureHex = HexFormat.of().formatHex(signature);
-        //String verifyingKeyHex = HexFormat.of().formatHex(verificationMethodKeyProvider.verifyingKey);
 
         // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
         //     https://www.w3.org/TR/controller-document/#multibase-0
@@ -208,8 +206,8 @@ public final class JCSHasher {
     }
 
     /**
-     * As specified by <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">...</a>.
-     * <p>See example: <a href="https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022">...</a>
+     * As specified by <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">Data Integrity EdDSA Cryptosuites v1.0</a>.
+     * <p>See <a href="https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022">example</a>
      *
      * <p>A proof contains the attributes specified in the <a href="https://www.w3.org/TR/vc-data-integrity/#proofs">Proofs</a> section
      * of <a href="https://www.w3.org/TR/vc-di-eddsa/#bib-vc-data-integrity">VC-DATA-INTEGRITY</a> with the following restrictions.
@@ -274,8 +272,6 @@ public final class JCSHasher {
         String proofHashHex = hashAsHex(proof);
 
         var signature = verificationMethodKeyProvider.generateSignature(HexFormat.of().parseHex(proofHashHex + docHashHex));
-        //String signatureHex = HexFormat.of().formatHex(signature);
-        //String verifyingKeyHex = HexFormat.of().formatHex(verificationMethodKeyProvider.verifyingKey);
 
         // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
         //     https://www.w3.org/TR/controller-document/#multibase-0
