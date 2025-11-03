@@ -62,7 +62,7 @@ import java.util.Set;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-@SuppressWarnings({"PMD.LawOfDemeter", "PMD.GodClass"})
+@SuppressWarnings({"PMD.GodClass"})
 @Builder
 @Getter
 public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -170,7 +170,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
@@ -338,7 +338,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         return didLogEntryWithProof.toString();
     }
 
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
+    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.AvoidInstantiatingObjectsInLoops"})
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
 
         var updateKeysJsonArray = new JsonArray();

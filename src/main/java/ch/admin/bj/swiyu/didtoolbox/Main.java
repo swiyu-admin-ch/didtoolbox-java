@@ -6,7 +6,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.UnixStyleUsageFormatter;
 
-@SuppressWarnings({"PMD.LawOfDemeter", "PMD.CyclomaticComplexity"})
+@SuppressWarnings({"PMD.DoNotTerminateVM", "PMD.LawOfDemeter", "PMD.CyclomaticComplexity"})
 public class Main {
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},
@@ -18,7 +18,6 @@ public class Main {
             description = "Display version")
     boolean version;
 
-    @SuppressWarnings({"PMD.DoNotTerminateVM"})
     public static void main(String... args) {
         var main = new Main();
 
@@ -83,7 +82,6 @@ public class Main {
         System.exit(0);
     }
 
-    @SuppressWarnings({"PMD.DoNotTerminateVM"})
     private static void overAndOut(JCommander jc, String commandName, String message) {
         jc.getConsole().println(message);
         jc.getConsole().println("");

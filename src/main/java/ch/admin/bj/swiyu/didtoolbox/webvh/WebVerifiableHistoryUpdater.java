@@ -64,7 +64,7 @@ import java.util.Set;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-@SuppressWarnings({"PMD.LawOfDemeter", "PMD.GodClass", "PMD.CyclomaticComplexity"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity"})
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -143,7 +143,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 

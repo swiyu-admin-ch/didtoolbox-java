@@ -11,7 +11,6 @@ import java.io.File;
 /**
  * The base class for all Command classes in the package that focus on DID logs.
  */
-@SuppressWarnings({"PMD.LawOfDemeter"})
 abstract class AbstractDidLogCommandBase extends AbstractCommandBase {
 
     @Override

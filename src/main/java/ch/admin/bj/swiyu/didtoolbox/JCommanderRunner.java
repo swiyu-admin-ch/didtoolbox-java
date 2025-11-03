@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * The class is introduced for the sake of being able to test the CLI with no hassle involved.
  */
-@SuppressWarnings({"PMD.LawOfDemeter", "PMD.CyclomaticComplexity"})
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.CyclomaticComplexity", "PMD.DoNotTerminateVM"})
 final class JCommanderRunner {
 
     private final JCommander jc;
@@ -40,7 +40,7 @@ final class JCommanderRunner {
         this.parsedCommandName = parsedCommandName;
     }
 
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap", "PMD.DoNotTerminateVM"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     void runCreateDidLogCommand(CreateDidLogCommand command)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException, CertificateException, DidLogCreatorStrategyException {
         if (command.help) {
@@ -184,7 +184,7 @@ final class JCommanderRunner {
                 .create(identifierRegistryUrl));
     }
 
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap", "PMD.DoNotTerminateVM"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     void runUpdateDidLogCommand(UpdateDidLogCommand command)
             throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException {
         if (command.help) {
@@ -321,7 +321,7 @@ final class JCommanderRunner {
                         .update(didLogFile));
     }
 
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.DoNotTerminateVM"})
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops"})
     void runDeactivateDidLogCommand(DeactivateDidLogCommand command) throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, DidLogDeactivatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
@@ -388,7 +388,7 @@ final class JCommanderRunner {
                         .deactivate(didLogFile));
     }
 
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.DoNotTerminateVM"})
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     void runPoPCreateCommand(CreateProofOfPossessionCommand command)
             throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyException, ProofOfPossessionCreatorException {
         if (command.help) {
@@ -442,7 +442,6 @@ final class JCommanderRunner {
         jc.getConsole().println(proof.serialize());
     }
 
-    @SuppressWarnings({"PMD.DoNotTerminateVM"})
     void runPoPVerifyCommand(VerifyProofOfPossessionCommand command) throws IOException {
         if (command.help) {
             jc.usage(parsedCommandName);
@@ -464,7 +463,6 @@ final class JCommanderRunner {
         }
     }
 
-    @SuppressWarnings({"PMD.DoNotTerminateVM"})
     private static void overAndOut(JCommander jc, String commandName, String message) {
         jc.getConsole().println(message);
         jc.getConsole().println("");
