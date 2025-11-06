@@ -165,13 +165,17 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // While Key Pre-Rotation is active, all multikey formatted public keys added in a new 'updateKeys' list
         // MUST have their hashes listed in the 'nextKeyHashes' list from the previous log entry.
         if (super.didLogMeta.isKeyPreRotationActivated()) {
+            boolean arePreRotatedUpdateKeys;
             try {
-                if (!super.didLogMeta.arePreRotatedUpdateKeys(this.updateKeys)) {
-                    throw new DidLogUpdaterStrategyException("Illegal updateKey detected");
-                }
+                arePreRotatedUpdateKeys = super.didLogMeta.arePreRotatedUpdateKeys(this.updateKeys);
             } catch (InvalidKeySpecException | IOException e) {
                 throw new DidLogUpdaterStrategyException(e);
             }
+
+            if (!arePreRotatedUpdateKeys) {
+                throw new DidLogUpdaterStrategyException("Illegal updateKey detected");
+            }
+
         } else if (this.updateKeys != null) {
 
             for (var key : this.updateKeys) {
