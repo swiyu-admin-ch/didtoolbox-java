@@ -55,6 +55,19 @@
 
         <project.main.class>ch.admin.bj.swiyu.didtoolbox.Main</project.main.class>
         <!--project.dependencies.directory>lib/</project.dependencies.directory-->
+
+        <didresolver.version>2.3.0</didresolver.version>
+        <jna.version>5.17.0</jna.version>
+        <gson.version>2.13.2</gson.version>
+        <java-multibase.version>v1.1.1</java-multibase.version>
+        <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
+        <lombok.version>1.18.42</lombok.version>
+        <jcommander.version>2.0</jcommander.version>
+        <bouncycastle.version>1.82</bouncycastle.version>
+        <nimbus-jose-jwt.version>10.6</nimbus-jose-jwt.version>
+        <tink.version>1.19.0</tink.version>
+        <junit-jupiter.version>5.11.4</junit-jupiter.version>
+        <junit-pioneer.version>2.3.0</junit-pioneer.version>
     </properties>
 
     <build>
@@ -99,7 +112,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.38</version>
+                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -342,7 +355,8 @@
     </distributionManagement-->
 
     <repositories>
-        <!-- required for https://github.com/multiformats/java-multibase -->
+        <!-- required for https://github.com/multiformats/java-multibase
+             as described by https://jitpack.io/#multiformats/java-multibase/ -->
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
@@ -356,55 +370,52 @@
             <!-- https://mvnrepository.com/artifact/io.github.swiyu-admin-ch/didresolver -->
             <groupId>io.github.swiyu-admin-ch</groupId>
             <artifactId>didresolver</artifactId>
-            <version>2.3.0</version>
+            <version>${didresolver.version}</version>
         </dependency>
         <!-- MANDATORY (required by didresolver) -->
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
-            <version>5.17.0</version>
+            <version>${jna.version}</version>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.13.1</version>
+            <version>${gson.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.multiformats/java-multibase -->
         <dependency>
             <groupId>com.github.multiformats</groupId>
             <artifactId>java-multibase</artifactId>
-            <version>v1.1.1</version>
+            <version>${java-multibase.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.github.erdtman/java-json-canonicalization -->
         <dependency>
             <groupId>io.github.erdtman</groupId>
             <artifactId>java-json-canonicalization</artifactId>
-            <version>1.1</version>
+            <version>${java-json-canonicalization.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on -->
         <!-- https://www.bouncycastle.org/download/bouncy-castle-java/?filter=java%3Drelease-1-81 -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.81</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcutil-jdk18on</artifactId>
-            <version>1.81</version>
-            <optional>true</optional>
+            <version>${bouncycastle.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
-            <version>1.81</version>
+            <version>${bouncycastle.version}</version>
         </dependency>
-        <!--dependency>
+        <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on -->
+        <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-ext-jdk15on</artifactId>
-            <version>1.70</version>
-        </dependency-->
+            <artifactId>bcutil-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+            <optional>true</optional>
+        </dependency>
         <!-- Securosys Primus HSM (JCE security provider) -->
         <!-- https://nexus.bit.admin.ch/#browse/browse:bit-pki-raw-hosted:securosys%2Fjce-provider -->
         <!-- CAUTION using local Maven repo instead, so it becomes integral part of the "fat" jar
@@ -423,50 +434,55 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.38</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.jcommander/jcommander -->
         <dependency>
             <groupId>org.jcommander</groupId>
             <artifactId>jcommander</artifactId>
-            <version>2.0</version>
+            <version>${jcommander.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>10.3</version>
+            <version>${nimbus-jose-jwt.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.crypto.tink/tink
             Required by com.nimbusds.jose.crypto.Ed25519Signer -->
         <dependency>
             <groupId>com.google.crypto.tink</groupId>
             <artifactId>tink</artifactId>
-            <version>1.18.0</version>
+            <version>${tink.version}</version>
+            <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.11.0</version>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.11.0</version>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-params -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>5.11.0</version>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer -->
         <dependency>
             <groupId>org.junit-pioneer</groupId>
             <artifactId>junit-pioneer</artifactId>
-            <version>2.3.0</version>
+            <version>${junit-pioneer.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
