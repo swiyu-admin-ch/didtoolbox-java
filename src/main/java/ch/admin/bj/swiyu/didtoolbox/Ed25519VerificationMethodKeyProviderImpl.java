@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * The {@link Ed25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation used to generate pairs of
  * public and private keys for the Ed25519 algorithm (or loading them from the file system). Such key pair is then used
- * for the purpose of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log creation.
+ * for the purpose of DID (<a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> or <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>) log creation.
  * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
  * It builds on top of {@link java.security} and introduces various useful helpers.
  * <p>

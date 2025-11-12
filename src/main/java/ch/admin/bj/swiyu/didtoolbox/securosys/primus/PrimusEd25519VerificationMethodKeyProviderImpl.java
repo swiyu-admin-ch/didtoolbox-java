@@ -14,7 +14,7 @@ import java.security.UnrecoverableEntryException;
  * The {@link PrimusEd25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation
  * built on top of {@link Ed25519VerificationMethodKeyProviderImpl}
  * relying completely on Securosys Primus HSM cluster as source of key pairs for the Ed25519 algorithm.
- * Such key pair is then used for the purpose of <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log creation.
+ * Such key pair is then used for the purpose of DID (<a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> or <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>) log creation.
  * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
  * <p>
  * It is predominantly intended to be used within a:
