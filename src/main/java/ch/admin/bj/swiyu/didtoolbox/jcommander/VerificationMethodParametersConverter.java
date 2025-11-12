@@ -18,7 +18,7 @@ public class VerificationMethodParametersConverter implements IStringConverter<L
 
             String kid = splitted[0];
 
-            String jwk = null;
+            String jwk;
             try {
 
                 jwk = JwkUtils.loadECPublicJWKasJSON(new File(splitted[1]), kid);

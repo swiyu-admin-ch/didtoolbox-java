@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -69,26 +70,24 @@ class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
     @Test
     void testPeek() {
 
-        DidLogMeta meta = null;
-        try {
-            meta = TdwDidLogMetaPeeker.peek(buildTdwDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+        AtomicReference<DidLogMeta> meta = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            meta.set(TdwDidLogMetaPeeker.peek(buildTdwDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS))); // MUT
+
             assertNotNull(meta);
-            assertNotNull(meta.getDidDoc().getId());
-            new Did(meta.getDidDoc().getId()); // ultimate test
+            assertNotNull(meta.get().getDidDoc().getId());
+            new Did(meta.get().getDidDoc().getId()); // ultimate test
+        });
 
-        } catch (Exception e) {
-            fail(e);
-        }
-
-        assertNotNull(meta.getLastVersionId());
-        assertNotNull(meta.getDateTime());
-        assertEquals(4, meta.lastVersionNumber);
-        assertNotNull(meta.getParams());
-        assertNotNull(meta.getParams().method);
-        assertEquals(DidMethodEnum.TDW_0_3, meta.getParams().getDidMethodEnum());
-        assertNotNull(meta.getParams().scid);
-        assertNotNull(meta.getParams().updateKeys);
-        assertFalse(meta.getParams().updateKeys.isEmpty());
-        assertEquals(1, meta.getParams().updateKeys.size());
+        assertNotNull(meta.get().getLastVersionId());
+        assertNotNull(meta.get().getDateTime());
+        assertEquals(4, meta.get().lastVersionNumber);
+        assertNotNull(meta.get().getParams());
+        assertNotNull(meta.get().getParams().method);
+        assertEquals(DidMethodEnum.TDW_0_3, meta.get().getParams().getDidMethodEnum());
+        assertNotNull(meta.get().getParams().scid);
+        assertNotNull(meta.get().getParams().updateKeys);
+        assertFalse(meta.get().getParams().updateKeys.isEmpty());
+        assertEquals(1, meta.get().getParams().updateKeys.size());
     }
 }

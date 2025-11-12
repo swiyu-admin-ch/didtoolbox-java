@@ -18,10 +18,29 @@ import java.util.Set;
  *     <li>{@code method}</li>
  *     <li>{@code scid}</li>
  *     <li>{@code updateKeys}</li>
+ *     <li>{@code nextKeyHashes}</li>
  *     <li>{@code deactivated}</li>
  * </ul>
  */
 public class NamedDidMethodParameters {
+
+    /**
+     * Actual name of {@code updateKeys} DID method parameter, as specified by either of:
+     * <ul>
+     *     <li><a href="https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters">did:tdw DID Method Parameters</a> or</li>
+     *     <li><a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">did:webvh DID Method Parameters</a></li>
+     * </ul>
+     */
+    final public static String UPDATE_KEYS = "updateKeys";
+
+    /**
+     * Actual name of {@code nextKeyHashes} DID method parameter, as specified by either of:
+     * <ul>
+     *     <li><a href="https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters">did:tdw DID Method Parameters</a> or</li>
+     *     <li><a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">did:webvh DID Method Parameters</a></li>
+     * </ul>
+     */
+    final public static String NEXT_KEY_HASHES = "nextKeyHashes";
 
     @Setter
     String method;
@@ -30,6 +49,9 @@ public class NamedDidMethodParameters {
     @Getter
     @Setter
     Set<String> updateKeys;
+    @Getter
+    @Setter
+    Set<String> nextKeyHashes;
     @Getter
     @Setter
     Boolean deactivated;

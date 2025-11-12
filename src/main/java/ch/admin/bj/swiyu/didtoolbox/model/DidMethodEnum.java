@@ -92,7 +92,7 @@ public enum DidMethodEnum {
 
     @SuppressWarnings({"PMD.LawOfDemeter"})
     public static DidMethodEnum detectDidMethod(String didLog) throws DidLogMetaPeekerException {
-        DidLogMeta didLogMeta = null;
+        DidLogMeta didLogMeta;
         try {
             didLogMeta = TdwDidLogMetaPeeker.peek(didLog); // assume a did:tdw log
         } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
@@ -103,7 +103,7 @@ public enum DidMethodEnum {
             }
         }
 
-        if (didLogMeta == null || didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
+        if (didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
             throw new DidLogMetaPeekerException("Incomplete metadata");
         }
 

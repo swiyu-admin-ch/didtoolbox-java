@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
+import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -141,7 +142,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         // Create initial did doc with placeholder
-        JsonObject didDoc = null;
+        JsonObject didDoc;
         try {
             didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
         } catch (IOException e) {
@@ -164,9 +165,10 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
         try {
-            didLogEntryWithoutProofAndSignature.add(createDidParams(this.verificationMethodKeyProvider, this.updateKeys));
-        } catch (IOException e) {
-            throw new DidLogCreatorStrategyException(e);
+            // CAUTION nextKeyHashes parameter (pre-rotation keys) not (yet) implemented for the class
+            didLogEntryWithoutProofAndSignature.add(createDidParams(this.verificationMethodKeyProvider, this.updateKeys, null));
+        } catch (InvalidKeySpecException | IOException ex) {
+            throw new DidLogCreatorStrategyException(ex);
         }
 
         // Add the initial DIDDoc
@@ -176,9 +178,9 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         didLogEntryWithoutProofAndSignature.add(initialDidDoc);
 
         // Generate SCID and replace placeholder in did doc
-        String scid = null;
+        String scid;
         try {
-            scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+            scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
         } catch (IOException e) {
             throw new DidLogCreatorStrategyException(e);
         }
@@ -203,9 +205,9 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = null;
+        String entryHash;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature.toString());
+            entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
         } catch (IOException e) {
             throw new DidLogCreatorStrategyException(e);
         }

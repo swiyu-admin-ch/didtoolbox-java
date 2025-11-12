@@ -4,6 +4,7 @@ import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -33,8 +34,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         var params = jsonObject.get("parameters").getAsJsonObject();
         assertTrue(params.has("method"));
         assertTrue(params.has("scid"));
-        assertTrue(params.has("updateKeys"));
-        assertTrue(params.get("updateKeys").isJsonArray());
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
 
         assertTrue(jsonObject.get("state").isJsonObject());
         var didDoc = jsonObject.get("state").getAsJsonObject();
@@ -78,7 +79,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreate(URL identifierRegistryUrl) {
+    public void testCreateDidLog(URL identifierRegistryUrl) {
 
         String didLogEntry = null;
         try {
@@ -100,7 +101,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys)")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreateWithMultipleUpdateKeys(URL identifierRegistryUrl) {
+    public void testCreateDidLogWithMultipleUpdateKeys(URL identifierRegistryUrl) {
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -116,14 +117,105 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDidLogEntry(didLogEntry.get());
 
         var params = JsonParser.parseString(didLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
-        assertFalse(params.get("updateKeys").getAsJsonArray().isEmpty());
-        assertEquals(2, params.get("updateKeys").getAsJsonArray().size());// Effectively, it is only 2 distinct keys
+        assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
+        assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size());// Effectively, it is only 2 distinct keys
+    }
+
+    @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation(URL identifierRegistryUrl) {
+
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+
+        assertDoesNotThrow(() -> {
+            // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
+            didLogEntry.set(WebVerifiableHistoryCreator.builder()
+                    // the default signer (verificationMethodKeyProvider) is used
+                    .updateKeys(Set.of(new File("src/test/data/public.pem")))
+                    .nextKeys(Set.of(new File("src/test/data/public.pem"))) // activate prerotation by adding one of the 'updateKeys'
+                    .forceOverwrite(true)
+                    .build()
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
+
+        assertDidLogEntry(didLogEntry.get());
+
+        var params = JsonParser.parseString(didLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
+        assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
+        assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys...
+        assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
+        assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
+        assertEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()),
+                params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST match the last added updateKey
+    }
+
+    @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation2(URL identifierRegistryUrl) {
+
+        // Now, try activating prerotation by adding a hash of whole another key to be used in the future
+
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+
+        assertDoesNotThrow(() -> {
+            // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
+            didLogEntry.set(WebVerifiableHistoryCreator.builder()
+                    // the default signer (verificationMethodKeyProvider) is used
+                    .updateKeys(Set.of(new File("src/test/data/public.pem")))
+                    .nextKeys(Set.of(new File("src/test/data/public01.pem"))) // activate prerotation by adding another key for the future
+                    .forceOverwrite(true)
+                    .build()
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
+
+        assertDidLogEntry(didLogEntry.get());
+
+        var params = JsonParser.parseString(didLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
+        assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
+        assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys...
+        assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
+        assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
+        assertNotEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()),
+                params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST NOT match the last added updateKey
+    }
+
+    @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    public void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation3(URL identifierRegistryUrl) {
+
+        // Now, try activating prerotation by adding a hash of whole another key to be used in the future
+
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+
+        assertDoesNotThrow(() -> {
+            // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
+            didLogEntry.set(WebVerifiableHistoryCreator.builder()
+                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .updateKeys(Set.of(new File("src/test/data/public.pem"))) // it matches the signing key, thus it should not be added to 'updateKeys'
+                    .nextKeys(Set.of(new File("src/test/data/public.pem"))) // activate prerotation by adding one of the 'updateKeys'
+                    .forceOverwrite(true)
+                    .build()
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
+
+        assertDidLogEntry(didLogEntry.get());
+
+        var params = JsonParser.parseString(didLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
+        assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
+        assertEquals(1, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is one single keys...
+        assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
+        assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
+        assertEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(0).getAsString()),
+                params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST match the last added (in this case, the only) updateKey
     }
 
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants using Java Keystore (JKS)")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testBuildUsingJKS(URL identifierRegistryUrl) {
+    public void testCreateDidLogUsingJKS(URL identifierRegistryUrl) {
 
         String didLogEntry = null;
         try {
@@ -161,7 +253,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (incl. external authentication/assertion keys) using existing keys")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testBuildUsingJksWithExternalVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
+    public void testCreateDidLogUsingJksWithExternalVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         String didLogEntry = null;
         try {
@@ -206,7 +298,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (incl. generated authentication/assertion keys) using existing keys")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testBuildUsingJksWithGeneratedVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
+    public void testCreateDidLogUsingJksWithGeneratedVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         String didLogEntry = null;
         try {
@@ -245,7 +337,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (incl. generated authentication/assertion keys) using existing keys")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testBuildUsingJksWithPartiallyGeneratedVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
+    public void testCreateDidLogUsingJksWithPartiallyGeneratedVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         String didLogEntry = null;
         try {
@@ -286,7 +378,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (incl. generated authentication/assertion keys) using existing keys")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testBuildUsingJksWithPartiallyGeneratedVerificationMethodKeys2(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
+    public void testCreateDidLogUsingJksWithPartiallyGeneratedVerificationMethodKeys2(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         String didLogEntry = null;
         try {

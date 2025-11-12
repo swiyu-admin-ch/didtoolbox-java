@@ -1,55 +1,25 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
-import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonParser;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 // This will suppress all the PMD warnings in this (test) class
 @SuppressWarnings("PMD")
 class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
-
-    public static Collection<Object[]> keys() {
-        return Arrays.asList(new String[][]{
-                /*
-                All lines in the private/public matrix were generated using openssl command by running the following script:
-
-                openssl genpkey -algorithm ed25519 -out private.pem
-                openssl pkey -inform pem -in private.pem -outform der -out private.der
-                cat private.pem | openssl pkey -pubout -outform der -out public.der
-                cat private.pem | openssl pkey -pubout -out public.pem
-                secret_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 private.der) | xxd -r -p | bs58)
-                public_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 public.der)  | xxd -r -p | bs58)
-                echo "{\"${secret_key_multibase}\", \"${public_key_multibase}\", \"\"\"\n$(cat public.pem)\n\"\"\"}"
-                 */
-                {"z6MkmwdD6L2F3nZPFDmE5VwfBctqz3iRK3sufLQD7KeqeRmn", "z6Mkk3HuYK5Vah4BjBgHYZtbFzGHufw9TWDgBcXeEtjJEesW", """
------BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAUwJJXsOciz7/TGdT2Osy0nOCqEL0oO67m0P3elFU9D0=
------END PUBLIC KEY-----
-"""},
-                {"z6Mks1E1R9Ec3sQpFAe848dHuniKvgVRibSUoBGgk8QFgdeK", "z6MkfsYSSNJ3vWFceenzLfASHMcYk7e3dEza6vz1RZcyRfcR", """
------BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
------END PUBLIC KEY-----
-"""},
-        });
-    }
 
     private static void assertDidLogEntry(String didLogEntry) {
 
@@ -63,8 +33,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         //var params = jsonObject.get("parameters").getAsJsonObject();
         //assertTrue(params.has("method"));
         //assertTrue(params.has("scid"));
-        //assertTrue(params.has("updateKeys"));
-        //assertTrue(params.get("updateKeys").isJsonArray());
+        //assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        //assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
 
         assertTrue(jsonObject.get("state").isJsonObject());
         var didDoc = jsonObject.get("state").getAsJsonObject();
@@ -88,7 +58,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertTrue(proof.isJsonObject());
         var proofJsonObj = proof.getAsJsonObject();
         assertTrue(proofJsonObj.has("type"));
-        Assertions.assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
+        assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
         assertTrue(proofJsonObj.has("cryptosuite"));
         assertEquals(JCSHasher.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
         assertTrue(proofJsonObj.has("verificationMethod"));
@@ -106,7 +76,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     }
 
     @Test
-    void testUpdateThrowsUpdateKeyMismatchWebVerifiableHistoryUpdaterException() {
+    void testUpdateDidLogThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
@@ -120,7 +90,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
                     .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
-                    .updateKeys(Set.of(new File("src/test/data/public.pem"))) // ...with NO matching key supplied!
+                    .updateKeys(Set.of(new File(TEST_DATA_PATH_PREFIX + "public.pem"))) // ...with NO matching key supplied!
                     .build()
                     .updateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
         });
@@ -128,7 +98,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     }
 
     @Test
-    void testUpdateThrowsDateTimeInThePastWebVerifiableHistoryUpdaterException() {
+    void testUpdateDidLogThrowsDateTimeInThePastDidLogUpdaterStrategyException() {
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
@@ -142,7 +112,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     }
 
     @Test
-    void testUpdateWithKeyChangeUsingExistingUpdateKey() {
+    void testUpdateDidLogWithKeyAlternationUsingExistingUpdateKey() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
@@ -173,7 +143,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         // At this point should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
         var params = JsonParser.parseString(nextLogEntry).getAsJsonObject().get("parameters").getAsJsonObject();
-        assertFalse(params.has("updateKeys")); // no new updateKeys, really
+        assertFalse(params.has(NamedDidMethodParameters.UPDATE_KEYS)); // no new updateKeys, really
 
         updatedDidLog.append(nextLogEntry).append(System.lineSeparator());
 
@@ -185,96 +155,201 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         });
     }
 
-    @DisplayName("Updating DID log using various existing keys")
-    @ParameterizedTest(name = "Using signing key: {0}")
-    @MethodSource("keys")
-    void testUpdateWithKeyChange(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) {
+    @DisplayName("Updating DID log by using another (pre-rotation) key")
+    @Test
+    void testUpdateDidLogWithKeyPrerotation() {
 
-        File publicKeyPemFile = null;
-        try {
-            publicKeyPemFile = File.createTempFile("mypublickey", "");
-            new Ed25519VerificationMethodKeyProviderImpl().writePublicKeyAsPem(publicKeyPemFile);
-        } catch (IOException e) {
-            fail(e);
-        }
-        publicKeyPemFile.deleteOnExit();
+        // The initial entry features 2 pre-rotation keys, both eligible for updating the DID log
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
+                Set.of(
+                        new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
+                        new File(TEST_DATA_PATH_PREFIX + "public01.pem") // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER
+                ));
 
-        var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
-        // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(verificationMethodKeyProvider);
+        // Once the 'nextKeyHashes' parameter has been set to a non-empty array, Key Pre-Rotation is active.
+        // While active, the properties 'nextKeyHashes' and 'updateKeys' MUST be present in all log entries.
+        assertTrue(JsonParser.parseString(initialDidLogEntry).getAsJsonObject().get("parameters").getAsJsonObject().has(NamedDidMethodParameters.NEXT_KEY_HASHES)); // denotes key pre-rotation
 
-        String nextLogEntry = null;
+        AtomicReference<String> nextLogEntry = new AtomicReference<>();
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
-        try {
-
-            nextLogEntry = WebVerifiableHistoryUpdater.builder()
-                    //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using a whole another verification key provider
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
+        assertDoesNotThrow(() -> {
+            nextLogEntry.set(WebVerifiableHistoryUpdater.builder()
+                    // 1st key supplied implicitly via VerificationMethodKeyProvider:
+                    //     Given the setup of initialDidLogEntry (see above), either of TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS and
+                    //     TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER must work
+                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .updateKeys(Set.of(new File("src/test/data/public.pem"), publicKeyPemFile))
+                    // 2nd updateKey supplied explicitly (from file)
+                    .updateKeys(Set.of(
+                            //new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
+                            new File(TEST_DATA_PATH_PREFIX + "public01.pem") // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER
+                    ))
+                    .build()
+                    // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                    // The versionTime of the last entry MUST be earlier than the current time.
+                    .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+        });
+
+        assertDidLogEntry(nextLogEntry.get());
+
+        // Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+        // While active, the properties nextKeyHashes and updateKeys MUST be present in all log entries.
+        var params = JsonParser.parseString(nextLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        //assertTrue(params.has(NamedDidMethodParameters.NEXT_KEY_HASHES));
+
+        updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
+        //System.out.println(updatedDidLog);
+
+        var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
+        // System.out.println(finalUpdatedDidLog); // checkpoint
+        assertDoesNotThrow(() -> {
+            assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
+            new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+        });
+    }
+
+    @Test
+    void testUpdateDidLogWithKeyPrerotationThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
+
+        // The initial entry features pre-rotation key(s), eligible for the DID log update
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
+                Set.of(
+                        //new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER
+                        new File(TEST_DATA_PATH_PREFIX + "public01.pem") // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER
+                ));
+
+        // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
+        StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+
+        var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
+            WebVerifiableHistoryUpdater.builder()
+                    // IMPORTANT Let the builder set any VerificationMethodKeyProvider itself, as long as it delivers a key different than the one from initial entry
+                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
                     .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1)); // MUT
+        });
+        assertEquals("Update key mismatch", exc.getMessage());
+    }
 
-        } catch (Exception e) {
-            fail(e);
-        }
+    @Test
+    void testUpdateDidLogWithKeyPrerotationThrowsIllegalUpdateKeyDidLogUpdaterStrategyException() {
 
-        assertDidLogEntry(nextLogEntry);
+        // The initial entry features pre-rotation key(s), eligible for the DID log update
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
+                Set.of(
+                        //new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER
+                        new File(TEST_DATA_PATH_PREFIX + "public01.pem") // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER
+                ));
 
-        // At this point should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
-        var params = JsonParser.parseString(nextLogEntry).getAsJsonObject().get("parameters").getAsJsonObject();
-        assertTrue(params.has("updateKeys"));
-        assertTrue(params.get("updateKeys").isJsonArray());
-        assertFalse(params.get("updateKeys").getAsJsonArray().isEmpty());
-        assertEquals(2, params.get("updateKeys").getAsJsonArray().size()); // a new one
+        // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
+        StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
-        updatedDidLog.append(nextLogEntry).append(System.lineSeparator());
+        var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
+            WebVerifiableHistoryUpdater.builder()
+                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER) // using a whole another verification key provider
+                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    // IMPORTANT The key does not match TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER thus ILLEGAL
+                    .updateKeys(Set.of(new File(TEST_DATA_PATH_PREFIX + "public.pem")))
+                    .build()
+                    // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                    // The versionTime of the last entry MUST be earlier than the current time.
+                    .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1)); // MUT
+        });
+        assertEquals("Illegal updateKey detected", exc.getMessage());
+    }
+
+    @DisplayName("Updating DID log by alternating between various existing (alternate) keys")
+    @Test
+    void testUpdateDidLogWithKeyAlternation() {
+
+        var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(TEST_KEYS[0][0], TEST_KEYS[0][1]);
+        // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(verificationMethodKeyProvider);
+
+        assertTrue(JsonParser.parseString(initialDidLogEntry).getAsJsonObject().get("parameters").getAsJsonObject().has("updateKeys")); // denotes key pre-rotation
+
+        AtomicReference<String> nextLogEntry = new AtomicReference<>();
+        // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
+        StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+
+        assertDoesNotThrow(() -> {
+            nextLogEntry.set(WebVerifiableHistoryUpdater.builder()
+                    // using already available verification method key provider
+                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
+                    //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
+                    .build()
+                    // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                    // The versionTime of the last entry MUST be earlier than the current time.
+                    .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+        });
+
+        assertDidLogEntry(nextLogEntry.get());
+
+        // At this point should be all fine with the nextLogEntry
+
+        updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
 
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
-        // System.out.println(finalUpdatedDidLog); // checkpoint
+        //System.out.println(finalUpdatedDidLog); // checkpoint
+
         assertDoesNotThrow(() -> {
             assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            var resolveAll = new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            // At this point, it is sufficient just to check on 'updateKeys'
+            var params = resolveAll.getDidMethodParameters();
+            assertTrue(params.containsKey(NamedDidMethodParameters.UPDATE_KEYS));
+            var updateKeys = params.get(NamedDidMethodParameters.UPDATE_KEYS);
+            assertTrue(updateKeys.isArray());
+            assertFalse(updateKeys.isEmptyArray());
+            assertNotNull(updateKeys.getStringArrayValue());
+            assertEquals(2, updateKeys.getStringArrayValue().size()); // publicKeyMultibase + another one supplied via
+            assertTrue(updateKeys.getStringArrayValue().contains(TEST_KEYS[0][1]));
         });
     }
 
-    @DisplayName("Multiple update of DID log using various existing keys")
-    @ParameterizedTest(name = "Using signing key: {0}")
-    @MethodSource("keys")
-    void testMultipleUpdates(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) {
+    @DisplayName("Multiple update of DID log using various existing (alternate) keys")
+    @Test
+    void testMultipleUpdateDidLogWithKeyAlternation() {
 
-        File publicKeyPemFile = null;
-        try {
-            publicKeyPemFile = File.createTempFile("mypublickey", "");
-            new Ed25519VerificationMethodKeyProviderImpl().writePublicKeyAsPem(publicKeyPemFile);
-        } catch (IOException e) {
-            fail(e);
-        }
-        publicKeyPemFile.deleteOnExit();
-
-        var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
-        // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
+        var verificationMethodKeyProvider = TEST_SIGNERS[0]; // irrelevant
+        // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(verificationMethodKeyProvider);
 
-        String nextLogEntry;
-        StringBuilder updatedDidLog = null;
+        // Available key providers to use when updating
+        var keyProviders = new VerificationMethodKeyProvider[]{
+                verificationMethodKeyProvider,
+                TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS,
+        };
+
+        //String nextLogEntry;
+        AtomicReference<StringBuilder> updatedDidLog = new AtomicReference<>();
         int totalEntriesCount = 5;
-        try {
+        assertDoesNotThrow(() -> {
 
             // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
-            updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+            updatedDidLog.set(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()));
             for (int i = 2; i < totalEntriesCount + 1; i++) { // update DID log by adding several new entries
 
-                nextLogEntry = WebVerifiableHistoryUpdater.builder()
-                        .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using another verification key provider
+                // Alternate between available key providers
+                var keyProvider = keyProviders[i % 2];
+
+                var nextLogEntry = WebVerifiableHistoryUpdater.builder()
+                        .verificationMethodKeyProvider(keyProvider) // different for odd and even entries (key alternation)
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
-                        .updateKeys(Set.of(new File("src/test/data/public.pem"), publicKeyPemFile))
+                        // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
+                        //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.
@@ -282,17 +357,61 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
                 assertDidLogEntry(nextLogEntry);
 
-                updatedDidLog.append(nextLogEntry).append(System.lineSeparator());
+                updatedDidLog.get().append(nextLogEntry).append(System.lineSeparator());
             }
 
-        } catch (Exception e) {
-            fail(e);
-        }
+        });
 
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         //System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(totalEntriesCount, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
+            new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+        });
+    }
+
+    @DisplayName("Multiple update of DID log using various existing (pre-rotation) keys")
+    @Test
+    void testMultipleUpdateDidLogWithKeyPrerotation() {
+
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(Set.of(
+                TEST_KEY_FILES[0] // the (single) pre-rotation key to be used when building the next DID log entry
+        ));
+
+        assertTrue(JsonParser.parseString(initialDidLogEntry).getAsJsonObject().get("parameters").getAsJsonObject().has("updateKeys")); // denotes key pre-rotation
+
+        AtomicReference<StringBuilder> updatedDidLog = new AtomicReference<>();
+        // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
+        updatedDidLog.set(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()));
+        assertDoesNotThrow(() -> {
+
+            // Update DID log by adding as many entries as there are keys. Keep "rotating" keys while updating
+            for (int i = 2; i < TEST_KEY_FILES.length + 1; i++) {
+
+                String nextLogEntry = WebVerifiableHistoryUpdater.builder()
+                        .verificationMethodKeyProvider(TEST_SIGNERS[i - 2]) // rotate to the key defined by the previous entry
+                        .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
+                        .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                        // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
+                        //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
+                        .nextUpdateKeys(Set.of(
+                                TEST_KEY_FILES[i - 1] // get a whole another (single) pre-rotation key to be used when building the next DID log entry
+                        ))
+                        .build()
+                        // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                        // The versionTime of the last entry MUST be earlier than the current time.
+                        .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(i - 1)); // MUT
+
+                assertDidLogEntry(nextLogEntry);
+
+                updatedDidLog.get().append(nextLogEntry).append(System.lineSeparator());
+            }
+        });
+
+        var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
+        //System.out.println(finalUpdatedDidLog); // checkpoint
+        assertDoesNotThrow(() -> {
+            assertEquals(TEST_KEY_FILES.length, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
             new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }

@@ -5,10 +5,12 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -59,7 +62,7 @@ import java.util.Set;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-@SuppressWarnings({"PMD.LawOfDemeter"})
+@SuppressWarnings({"PMD.GodClass"})
 @Builder
 @Getter
 public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -167,7 +170,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
@@ -269,7 +272,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         if (this.updateKeys != null) {
-            didLogEntryWithoutProofAndSignature.add(initDidMethodParametersByLoadingUpdateKeys(this.updateKeys, didLogMeta.getParams().getUpdateKeys()));
+            didLogEntryWithoutProofAndSignature.add(buildDidMethodParameters());
         } else {
             didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same
         }
@@ -283,9 +286,9 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = null;
+        String entryHash;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
         } catch (IOException e) {
             throw new DidLogUpdaterStrategyException(e);
         }
@@ -305,7 +308,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         var proofs = new JsonArray();
-        JsonObject proof = null;
+        JsonObject proof;
         try {
             proof = JCSHasher.buildDataIntegrityProof(
                     didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
@@ -333,5 +336,43 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         }
 
         return didLogEntryWithProof.toString();
+    }
+
+    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.AvoidInstantiatingObjectsInLoops"})
+    private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
+
+        var updateKeysJsonArray = new JsonArray();
+
+        var newUpdateKeys = Set.of(this.updateKeys.stream().map(file -> {
+            try {
+                return PemUtils.parsePEMFilePublicKeyEd25519Multibase(file);
+            } catch (Throwable ignore) {
+            }
+            return null;
+        }).toArray(String[]::new));
+
+        if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)) { // need for change?
+
+            String updateKey;
+            for (var pemFile : this.updateKeys) {
+                try {
+                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                } catch (IOException | InvalidKeySpecException e) {
+                    throw new DidLogUpdaterStrategyException(e);
+                }
+
+                // it is a distinct list of keys, after all
+                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
+                    updateKeysJsonArray.add(updateKey);
+                }
+            }
+        }
+
+        var didMethodParameters = new JsonObject();
+        if (!updateKeysJsonArray.isEmpty()) {
+            didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
+        }
+
+        return didMethodParameters;
     }
 }

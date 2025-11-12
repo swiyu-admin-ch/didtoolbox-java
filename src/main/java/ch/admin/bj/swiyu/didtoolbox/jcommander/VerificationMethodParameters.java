@@ -2,8 +2,8 @@ package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
 public class VerificationMethodParameters {
 
-    public String key;
-    public String jwk;
+    public final String key;
+    public final String jwk;
 
     public VerificationMethodParameters(String key, String jwk) {
         this.key = key;

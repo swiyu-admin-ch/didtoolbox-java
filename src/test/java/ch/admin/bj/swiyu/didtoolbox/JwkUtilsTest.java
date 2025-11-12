@@ -42,10 +42,8 @@ class JwkUtilsTest {
 
     @Test
     void testGeneratePublicEC256WithOutputOverwriteExisting() {
-        File tempFile = null;
-        File pubTempFile = null;
         try {
-            tempFile = File.createTempFile("myprivatekey", "");
+            var tempFile = File.createTempFile("myprivatekey", "");
             // Exists at the moment of key generation, and should therefore be overwritten if forceOverwritten == true
             tempFile.deleteOnExit();
 
@@ -54,20 +52,13 @@ class JwkUtilsTest {
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
-            pubTempFile = new File(tempFile.getPath() + ".pub");
+            var pubTempFile = new File(tempFile.getPath() + ".pub");
             assertNotEquals(0, Files.size(pubTempFile.toPath()));
             JwkUtils.ecPemSanityCheck(tempFile, pubTempFile);
             pubTempFile.deleteOnExit(); // clean it up
 
         } catch (Exception e) {
             fail(e);
-        } finally {
-            if (tempFile != null) {
-                tempFile.delete();
-            }
-            if (pubTempFile != null) {
-                pubTempFile.delete();
-            }
         }
     }
 
@@ -102,12 +93,12 @@ class JwkUtilsTest {
 
     @Test
     void testGeneratePublicEC256WithOutputOverwriteNonExisting() {
-        File tempFile = null;
-        File pubTempFile = null;
+        File tempFile;
+        File pubTempFile;
         try {
             tempFile = File.createTempFile("myprivatekey", "");
             // Delete it immediately, so it will NOT exist at the moment of key generation and should therefore be created regardless of forceOverwritten flag
-            tempFile.delete();
+            tempFile.deleteOnExit();
 
             var kid = "auth-key-01";
             assertGeneratePublicEC256(JwkUtils.generatePublicEC256(kid, tempFile, true), kid); // MUT
@@ -121,13 +112,6 @@ class JwkUtilsTest {
 
         } catch (Exception e) {
             fail(e);
-        } finally {
-            if (tempFile != null) {
-                tempFile.delete();
-            }
-            if (pubTempFile != null) {
-                pubTempFile.delete();
-            }
         }
     }
 

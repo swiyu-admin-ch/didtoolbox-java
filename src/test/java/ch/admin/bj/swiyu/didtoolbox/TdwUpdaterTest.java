@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
@@ -152,7 +153,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         // At this point should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
         var params = JsonParser.parseString(nextLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
-        assertFalse(params.has("updateKeys")); // no new updateKeys, really
+        assertFalse(params.has(NamedDidMethodParameters.UPDATE_KEYS)); // no new updateKeys, really
 
         updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
 
@@ -204,10 +205,10 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         // At this point should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
         var params = JsonParser.parseString(nextLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
-        assertTrue(params.has("updateKeys"));
-        assertTrue(params.get("updateKeys").isJsonArray());
-        assertFalse(params.get("updateKeys").getAsJsonArray().isEmpty());
-        assertEquals(2, params.get("updateKeys").getAsJsonArray().size()); // a new one
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
+        assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
+        assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // a new one
 
         updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
 

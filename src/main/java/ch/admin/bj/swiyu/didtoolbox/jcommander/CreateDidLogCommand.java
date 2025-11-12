@@ -22,10 +22,10 @@ import java.net.URL;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
-public class CreateDidLogCommand extends AbstractKeyMaterialTdwCommand {
+public class CreateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
 
     @Override
-    String getCommandName(){
+    String getCommandName() {
         return COMMAND_NAME;
     }
 

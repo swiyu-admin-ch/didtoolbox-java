@@ -1,7 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
-import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -27,6 +31,9 @@ abstract class AbstractCommandParametersValidatorTest {
 
     protected static File dummyDidLogFile = null;
 
+    protected static final File somePrivatePEMFile = new File("src/test/data/private.pem");
+    protected static final File somePublicPEMFile = new File("src/test/data/public.pem");
+
     // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
     final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER_JKS;
     final private static Map<String, String> ASSERTION_METHOD_KEYS;
@@ -48,24 +55,24 @@ abstract class AbstractCommandParametersValidatorTest {
         try {
             dummyDidLogFile = File.createTempFile("my-did", ".jsonl");
 
-            var initialDidLogEntry = TdwCreator.builder()
+            var initialDidLogEntry = DidLogCreatorContext.builder()
                     .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                     .assertionMethodKeys(ASSERTION_METHOD_KEYS)
                     .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
                     //.updateKeys(Set.of(new File("src/test/data/public.pem")))
                     .forceOverwrite(true)
                     .build()
-                    .createDidLog(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null));
+                    .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null));
 
             var updatedDidLog = new StringBuilder(initialDidLogEntry)
                     .append(System.lineSeparator())
-                    .append(TdwUpdater.builder()
+                    .append(DidLogUpdaterContext.builder()
                             .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
                             .assertionMethodKeys(ASSERTION_METHOD_KEYS)
                             .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
                             //.updateKeys(Set.of(new File("src/test/data/public.pem")))
                             .build()
-                            .updateDidLog(initialDidLogEntry));
+                            .update(initialDidLogEntry));
 
             Files.writeString(dummyDidLogFile.toPath(), updatedDidLog);
 
@@ -83,27 +90,27 @@ abstract class AbstractCommandParametersValidatorTest {
 
         var ambiguousParams = new String[][]{ // perhaps using HashSet<String[]> instead?
                 {
-                        CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, dummyDidLogFile.getPath(),
+                        CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, somePrivatePEMFile.getPath(),
                         CommandParameterNames.PARAM_NAME_LONG_JKS_FILE, dummyDidLogFile.getPath()
                 },
                 {
-                        CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE, dummyDidLogFile.getPath(),
+                        CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE, somePrivatePEMFile.getPath(),
                         CommandParameterNames.PARAM_NAME_LONG_JKS_FILE, dummyDidLogFile.getPath()
                 },
                 {
-                        CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE, dummyDidLogFile.getPath(),
+                        CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE, somePrivatePEMFile.getPath(),
                         CommandParameterNames.PARAM_NAME_SHORT_JKS_FILE, dummyDidLogFile.getPath()
                 },
                 {
-                        CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, dummyDidLogFile.getPath(),
+                        CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, somePrivatePEMFile.getPath(),
                         CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
                 },
                 {
-                        CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE, dummyDidLogFile.getPath(),
+                        CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE, somePrivatePEMFile.getPath(),
                         CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
                 },
                 {
-                        CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE, dummyDidLogFile.getPath(),
+                        CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE, somePrivatePEMFile.getPath(),
                         CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
                 },
                 {
@@ -122,7 +129,7 @@ abstract class AbstractCommandParametersValidatorTest {
 
         for (var params : ambiguousParams) {
             assertThrowsParameterException(() -> buildCommandParser().parse(appendToRequiredCommandArgs(params)),
-                    "Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys"
+                    "The supplied sources of (signing/verifying) keys are ambiguous. Use one of the relevant options to supply keys"
             );
         }
     }
@@ -182,7 +189,7 @@ abstract class AbstractCommandParametersValidatorTest {
 
         for (var params : incompleteBoundParams) {
             assertThrowsParameterException(() -> buildCommandParser().parse(appendToRequiredCommandArgs(params)),
-                    "parameters are incomplete. Use one of the relevant options to supply missing parameters"
+                    "parameter(s) are incomplete. Use one of the relevant options to supply missing parameters"
             );
         }
 

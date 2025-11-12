@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox.jcommander;
 /**
  * The home for all CLI parameter names, both short and long.
  */
+@SuppressWarnings({"PMD.ConstantsInInterface"})
 public interface CommandParameterNames {
     String PARAM_NAME_LONG_USAGE = "--help";
     String PARAM_NAME_SHORT_USAGE = "-h";
@@ -23,6 +24,9 @@ public interface CommandParameterNames {
 
     String PARAM_NAME_LONG_VERIFYING_KEY_FILES = "--verifying-key-files";
     String PARAM_NAME_SHORT_VERIFYING_KEY_FILES = "-v";
+
+    String PARAM_NAME_LONG_NEXT_VERIFYING_KEY_FILES = "--verifying-key-files-next";
+    String PARAM_NAME_SHORT_NEXT_VERIFYING_KEY_FILES = "-w";
 
     String PARAM_NAME_LONG_VERIFYING_KEY_FILE = "--verifying-key-file";
     String PARAM_NAME_SHORT_VERIFYING_KEY_FILE = "-v";

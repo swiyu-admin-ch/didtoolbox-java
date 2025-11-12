@@ -8,7 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.ByteBuffer;
-import java.security.*;
+import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HexFormat;
@@ -118,7 +118,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
     @DisplayName("Decode and encode again various multibase encoded public keys")
     @ParameterizedTest(name = "Converting key: {0}")
     @MethodSource("publicKeyMultibase")
-    void testFromMultibase(String publicKeyMultibase) throws InvalidAlgorithmParameterException {
+    void testFromMultibase(String publicKeyMultibase) {
         var decoded = Ed25519Utils.decodeMultibase(publicKeyMultibase);
         var encoded = Ed25519Utils.encodeMultibase(decoded);
         assertEquals(publicKeyMultibase, encoded);
@@ -126,7 +126,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
 
     @DisplayName("Attempt to decode various invalid Multibase")
     @Test
-    void testFromMultibaseWithInvalidValues() throws Exception {
+    void testFromMultibaseWithInvalidValues() {
         var nonMultibaseValue = "just some random string";
         assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(nonMultibaseValue));
 

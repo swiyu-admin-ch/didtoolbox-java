@@ -6,7 +6,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-class DeactivateTdwCommandParametersValidatorTest extends AbstractCommandParametersValidatorTest {
+class DeactivateDidLogCommandParametersValidatorTest extends AbstractCommandParametersValidatorTest {
 
     @Override
     protected JCommander buildCommandParser() {

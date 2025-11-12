@@ -5,6 +5,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -218,7 +219,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         // https://identity.foundation/didwebvh/v0.3/#deactivate-revoke:
         // A DID MAY update the DIDDoc further to indicate the deactivation of the DID, such as including an empty updateKeys list
         // ("updateKeys": []) in the parameters, preventing further versions of the DID.
-        didMethodParameters.add("updateKeys", new JsonArray());
+        didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, new JsonArray());
 
         didLogEntryWithoutProofAndSignature.add(didMethodParameters);
 
@@ -231,9 +232,9 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = null;
+        String entryHash;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature.toString());
+            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
         } catch (IOException e) {
             throw new DidLogDeactivatorStrategyException(e);
         }
@@ -253,7 +254,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         var proofs = new JsonArray();
-        JsonObject proof = null;
+        JsonObject proof;
         try {
             proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
         } catch (IOException e) {

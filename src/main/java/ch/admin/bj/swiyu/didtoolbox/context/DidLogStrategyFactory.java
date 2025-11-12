@@ -34,6 +34,7 @@ final class DidLogStrategyFactory {
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
                         .updateKeys(ctx.getUpdateKeys())
+                        .nextKeys(ctx.getNextKeys())
                         .forceOverwrite(ctx.isForceOverwrite())
                         .build();
             }
@@ -49,6 +50,8 @@ final class DidLogStrategyFactory {
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
                         .updateKeys(ctx.getUpdateKeys())
+                        // CAUTION Not implemented yet:
+                        // .nextKeys(ctx.getNextKeys())
                         .build();
             }
             case WEBVH_1_0 -> {
@@ -57,6 +60,7 @@ final class DidLogStrategyFactory {
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
                         .updateKeys(ctx.getUpdateKeys())
+                        .nextUpdateKeys(ctx.getNextKeys())
                         .build();
             }
             default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");

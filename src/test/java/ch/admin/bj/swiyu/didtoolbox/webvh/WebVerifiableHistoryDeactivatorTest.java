@@ -1,9 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
@@ -57,8 +58,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertEquals(2, params.size()); // only "deactivated" (true) and optionally "updateKeys" (empty) expected
         assertTrue(params.has("deactivated")); // essential
         assertTrue(params.get("deactivated").getAsBoolean()); // essential
-        assertTrue(params.has("updateKeys"));
-        var updateKeys = params.get("updateKeys");
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        var updateKeys = params.get(NamedDidMethodParameters.UPDATE_KEYS);
         assertTrue(updateKeys.isJsonArray());
         assertTrue(updateKeys.getAsJsonArray().isEmpty());
 

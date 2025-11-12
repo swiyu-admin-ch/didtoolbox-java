@@ -17,7 +17,11 @@ public class CommandParametersValidator implements IParametersValidator {
     }
 
     private static void validateAmbiguousParameters(Map<String, Object> parameters) { // throws ParameterException {
-        var isSigningKeyFileParamSupplied = parameters.get(CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE) != null;
+        var isSigningKeyFileParamSupplied = (
+                parameters.get(CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE) != null
+                        || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE) != null
+        );
+
         var isAnyOfJksParamsSupplied = (parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_FILE) != null
                 || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_JKS_FILE) != null)
                 || parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_ALIAS) != null
@@ -31,7 +35,7 @@ public class CommandParametersValidator implements IParametersValidator {
         if (isSigningKeyFileParamSupplied && isAnyOfJksParamsSupplied
                 || isAnyOfJksParamsSupplied && isAnyOfPrimusParamsSupplied
                 || isSigningKeyFileParamSupplied && isAnyOfPrimusParamsSupplied) {
-            throw new ParameterException("Supplied source for the (signing/verifying) keys is ambiguous. Use one of the relevant options to supply keys");
+            throw new ParameterException("The supplied sources of (signing/verifying) keys are ambiguous. Use one of the relevant options to supply keys");
         }
     }
 
@@ -43,7 +47,7 @@ public class CommandParametersValidator implements IParametersValidator {
         if (isJksFileParamSupplied && !isJksAliasParamSupplied
                 || !isJksFileParamSupplied && isJksAliasParamSupplied
                 || !isJksAliasParamSupplied && isJksPasswordParamSupplied) {
-            throw new ParameterException("Supplied JKS parameters are incomplete. Use one of the relevant options to supply missing parameters");
+            throw new ParameterException("The supplied JKS parameter(s) are incomplete. Use one of the relevant options to supply missing parameters");
         }
 
         var isPrimusCredentialsParamSupplied = (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) != null);
@@ -53,7 +57,7 @@ public class CommandParametersValidator implements IParametersValidator {
         if (isPrimusCredentialsParamSupplied && !isPrimusKeystoreAliasParamSupplied
                 || !isPrimusCredentialsParamSupplied && isPrimusKeystoreAliasParamSupplied
                 || !isPrimusKeystoreAliasParamSupplied && isPrimusKeystorePasswordParamSupplied) {
-            throw new ParameterException("Supplied Primus parameters are incomplete. Use one of the relevant options to supply missing parameters");
+            throw new ParameterException("The supplied Primus parameter(s) are incomplete. Use one of the relevant options to supply missing parameters");
         }
     }
 
