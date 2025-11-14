@@ -177,12 +177,10 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
          */
 
-        // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
-        String didDocWithSCID = didDoc.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
+        String didDocWithSCID = didDoc.toString().replace(SCID_PLACEHOLDER, scid);
         didDoc = JsonParser.parseString(didDocWithSCID).getAsJsonObject();
 
-        // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
-        String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
+        String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replace(SCID_PLACEHOLDER, scid);
         //JsonArray didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonArray();
         var didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonObject();
 
