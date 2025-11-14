@@ -106,8 +106,7 @@ class JCSHasherTest {
 
         String scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
 
-        // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
-        String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\{SCID}", scid);
+        String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replace("{SCID}", scid);
 
         return JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonArray();
     }

@@ -192,13 +192,13 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
          */
 
-        // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
-        String didDocWithSCID = didDoc.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
-        didDoc = JsonParser.parseString(didDocWithSCID).getAsJsonObject();
+        didDoc = JsonParser.parseString(
+                didDoc.toString().replace(SCID_PLACEHOLDER, scid)
+        ).getAsJsonObject();
 
-        // CAUTION "\\" prevents "java.util.regex.PatternSyntaxException: Illegal repetition near index 1"
-        String didLogEntryWithoutProofAndSignatureWithSCID = didLogEntryWithoutProofAndSignature.toString().replaceAll("\\" + SCID_PLACEHOLDER, scid);
-        JsonArray didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(didLogEntryWithoutProofAndSignatureWithSCID).getAsJsonArray();
+        var didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(
+                didLogEntryWithoutProofAndSignature.toString().replace(SCID_PLACEHOLDER, scid)
+        ).getAsJsonArray();
 
         // See https://identity.foundation/didwebvh/v0.3/#generate-entry-hash
         // After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).

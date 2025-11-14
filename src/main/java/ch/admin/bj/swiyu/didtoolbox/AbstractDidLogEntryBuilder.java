@@ -216,7 +216,7 @@ public abstract class AbstractDidLogEntryBuilder {
         if (!path.isEmpty()) {
             didTDW = "%s%s".formatted(didTDW,
                     path.replace("/did.jsonl", "") // cleanup
-                            .replaceAll("/", ":")); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation);
+                            .replace("/", ":")); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation);
         }
 
         var context = new JsonArray();
