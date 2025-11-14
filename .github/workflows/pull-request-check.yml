@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: java
           config-file: ./.github/codeql/codeql-config.yml
@@ -35,7 +35,7 @@ jobs:
         run: mvn --batch-mode clean compile
         # Note: codeQL MUST be after the compile step
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:java"
       - name: Run PMD static analysis
@@ -45,6 +45,6 @@ jobs:
           rulesets: '.github/rulesets/java/pmd_omni_ruleset.xml'
 
       - name: Upload PMD SARIF to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: pmd-report.sarif
