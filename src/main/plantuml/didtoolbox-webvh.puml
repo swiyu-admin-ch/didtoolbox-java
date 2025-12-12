@@ -1,5 +1,5 @@
 ```plantuml
-[plantuml,didtoolbox.puml.png,png]
+[plantuml,didtoolbox-webvh.puml.png,png]
 ----
 @startuml
 
@@ -49,45 +49,6 @@ class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier {
 	{field} -updateKeys : java.util.Set
 	{method} +isValid ( paramSignedJWT1 : com.nimbusds.jwt.SignedJWT , paramString2 : String ) : boolean
 	{method} +verify ( paramSignedJWT1 : com.nimbusds.jwt.SignedJWT , paramString2 : String ) : void
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.TdwCreator {
-	{field} -assertionMethodKeys : java.util.Map
-	{field} -authenticationKeys : java.util.Map
-	{field} -forceOverwrite : boolean
-	{field} -updateKeys : java.util.Set
-	{method} +create ( paramURL1 : java.net.URL ) : String <<deprecated>> 
-	{method} +create ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String <<deprecated>> 
-	{method} +createDidLog ( paramURL1 : java.net.URL ) : String
-	{method} +createDidLog ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
-	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.TdwDeactivator {
-	{method} +deactivate ( paramString1 : String ) : String <<deprecated>> 
-	{method} ~deactivate ( paramFile1 : java.io.File ) : String <<deprecated>> 
-	{method} +deactivate ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String <<deprecated>> 
-	{method} +deactivateDidLog ( paramString1 : String ) : String
-	{method} +deactivateDidLog ( paramFile1 : java.io.File ) : String
-	{method} +deactivateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
-	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.TdwUpdater {
-	{field} -assertionMethodKeys : java.util.Map
-	{field} -authenticationKeys : java.util.Map
-	{field} -updateKeys : java.util.Set
-	{method} -buildDidMethodParameters () : com.google.gson.JsonObject
-	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
-	{method} +update ( paramString1 : String ) : String <<deprecated>> 
-	{method} ~update ( paramFile1 : java.io.File ) : String <<deprecated>> 
-	{method} ~update ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String <<deprecated>> 
-	{method} +updateDidLog ( paramString1 : String ) : String
-	{method} +updateDidLog ( paramFile1 : java.io.File ) : String
-	{method} +updateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
 }
 
 
@@ -180,10 +141,6 @@ class ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters {
 }
 
 
-class ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker {
-}
-
-
 class ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker {
 }
 
@@ -230,12 +187,6 @@ ch.admin.bj.swiyu.didtoolbox.Ed25519ProofOfPossessionJWSSignerImpl ..|>  ch.admi
 ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator *--  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner : signer
 ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
-ch.admin.bj.swiyu.didtoolbox.TdwCreator -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
-ch.admin.bj.swiyu.didtoolbox.TdwCreator ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
-ch.admin.bj.swiyu.didtoolbox.TdwDeactivator -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
-ch.admin.bj.swiyu.didtoolbox.TdwDeactivator ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
-ch.admin.bj.swiyu.didtoolbox.TdwUpdater -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
-ch.admin.bj.swiyu.didtoolbox.TdwUpdater ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
 ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider

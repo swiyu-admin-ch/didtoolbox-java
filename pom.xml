@@ -332,11 +332,41 @@
             </plugin>
             <!-- https://devlauer.github.io/plantuml-generator/plantuml-generator-maven-plugin/latest/class-diagram/examples.html -->
             <!-- mvn generate-test-sources -->
+            <!-- https://mvnrepository.com/artifact/de.elnarion.maven/plantuml-generator-maven-plugin -->
             <plugin>
-                <artifactId>plantuml-generator-maven-plugin</artifactId>
                 <groupId>de.elnarion.maven</groupId>
-                <version>1.1.2</version>
+                <artifactId>plantuml-generator-maven-plugin</artifactId>
+                <version>3.0.1</version>
                 <executions>
+                    <execution>
+                        <id>generate-diagram-didtoolbox-classes-only</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
+                            <outputFilename>didtoolbox-classes-only.puml</outputFilename>
+                            <scanPackages>
+                                <scanPackage>ch.admin.bj.swiyu.didtoolbox</scanPackage>
+                            </scanPackages>
+                            <fieldClassifierListToIgnore>
+                                <fieldClassifierListToIgnore>STATIC</fieldClassifierListToIgnore>
+                            </fieldClassifierListToIgnore>
+                            <methodClassifierListToIgnore>STATIC</methodClassifierListToIgnore>
+                            <hideFields>true</hideFields>
+                            <hideMethods>true</hideMethods>
+                            <!--useShortClassNames>true</useShortClassNames-->
+                            <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
+                            <blacklistRegexp>.*Builder*.*|.*Exception*.*|.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*Primus*.*|.*FilesPrivacy*.*</blacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>generate-diagram-didtoolbox</id>
                         <goals>
@@ -347,34 +377,23 @@
                             <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
                             <outputFilename>didtoolbox.puml</outputFilename>
                             <scanPackages>
-                                <scanPackage>
-                                    ch.admin.bj.swiyu.didtoolbox
-                                </scanPackage>
+                                <scanPackage>ch.admin.bj.swiyu.didtoolbox</scanPackage>
                             </scanPackages>
+                            <fieldClassifierListToIgnore>
+                                <fieldClassifierListToIgnore>STATIC</fieldClassifierListToIgnore>
+                            </fieldClassifierListToIgnore>
+                            <methodClassifierListToIgnore>STATIC</methodClassifierListToIgnore>
                             <!--hideFields>true</hideFields>
                             <hideMethods>true</hideMethods-->
+                            <!--useShortClassNames>true</useShortClassNames-->
+                            <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
+                            <blacklistRegexp>.*Builder*.*|.*Exception*.*|.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*Primus*.*|.*FilesPrivacy*.*</blacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-diagram-webvh</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <phase>generate-test-sources</phase>
-                        <configuration>
-                            <!--outputDirectory>${build.directory}/docs/plantuml</outputDirectory-->
-                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
-                            <outputFilename>webvh.puml</outputFilename>
-                            <scanPackages>
-                                <scanPackage>
-                                    ch.admin.bj.swiyu.didtoolbox
-                                </scanPackage>
-                            </scanPackages>
-                            <!--hideFields>true</hideFields>
-                            <hideMethods>true</hideMethods-->
-                            <blacklistRegexp>.*Tdw*.*</blacklistRegexp>
-                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
                         </configuration>
                     </execution>
                 </executions>

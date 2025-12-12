@@ -46,7 +46,7 @@ jobs:
           find . -name '*.svg' -ls
 
       - name: Render .puml to .png
-        if: false
+        #if: false
         run: |
           find . -name '*.puml' -exec java -jar plantuml.jar -tpng -o . {} +
           find . -name '*.png' -ls

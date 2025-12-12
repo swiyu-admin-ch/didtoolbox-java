@@ -1,5 +1,5 @@
 ```plantuml
-[plantuml,didtoolbox.puml.png,png]
+[plantuml,didtoolbox-classes-only.puml.png,png]
 ----
 @startuml
 
@@ -250,6 +250,8 @@ ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator ..|>  ch.admi
 ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy
 
+hide fields
+hide methods
 
 @enduml
 ----

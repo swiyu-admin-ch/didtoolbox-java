@@ -1,5 +1,5 @@
 # [PlantUML](https://plantuml.com/) diagrams
 
-![Alt text](didtoolbox.svg)
+![Alt text](didtoolbox-classes-only.svg)
 
-![Alt text](webvh.svg)
+![Alt text](didtoolbox.svg)
