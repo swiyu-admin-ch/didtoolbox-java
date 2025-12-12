@@ -40,8 +40,16 @@ jobs:
       #   run: echo "<expected_sha256_here>  plantuml.jar" | sha256sum -c -
 
       - name: Render .puml to .svg
+        #if: false
         run: |
           find . -name '*.puml' -exec java -jar plantuml.jar -tsvg -o . {} +
+          find . -name '*.svg' -ls
+
+      - name: Render .puml to .png
+        if: false
+        run: |
+          find . -name '*.puml' -exec java -jar plantuml.jar -tpng -o . {} +
+          find . -name '*.png' -ls
 
       - name: Commit rendered diagrams
         run: |
@@ -53,6 +61,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No diagram changes to commit."
           else
+            git status
             #git commit -m "docs: auto-rendered PlantUML diagrams"
             #git push
           fi
