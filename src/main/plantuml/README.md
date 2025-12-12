@@ -1,4 +1,4 @@
-# [PlantUML](https://plantuml.com/) diagrams
+# Class diagrams
 
 ![Alt text](didtoolbox-classes-only.svg)
 

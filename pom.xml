@@ -350,6 +350,8 @@
                             <scanPackages>
                                 <scanPackage>ch.admin.bj.swiyu.didtoolbox</scanPackage>
                             </scanPackages>
+                            <maxVisibilityFields>PROTECTED</maxVisibilityFields>
+                            <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
                             <fieldClassifierListToIgnore>
                                 <fieldClassifierListToIgnore>STATIC</fieldClassifierListToIgnore>
                             </fieldClassifierListToIgnore>
@@ -358,12 +360,11 @@
                             <hideMethods>true</hideMethods>
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
-                            <blacklistRegexp>.*Builder*.*|.*Exception*.*|.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*Primus*.*|.*FilesPrivacy*.*</blacklistRegexp>
-                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <blacklistRegexp>.*Builder*.*|.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*FilesPrivacy*.*</blacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
-                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>scale 3/4</additionalPlantUmlConfig>
                             </additionalPlantUmlConfigs>
                         </configuration>
                     </execution>
@@ -379,6 +380,8 @@
                             <scanPackages>
                                 <scanPackage>ch.admin.bj.swiyu.didtoolbox</scanPackage>
                             </scanPackages>
+                            <maxVisibilityFields>PROTECTED</maxVisibilityFields>
+                            <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
                             <fieldClassifierListToIgnore>
                                 <fieldClassifierListToIgnore>STATIC</fieldClassifierListToIgnore>
                             </fieldClassifierListToIgnore>
@@ -387,12 +390,11 @@
                             <hideMethods>true</hideMethods-->
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
-                            <blacklistRegexp>.*Builder*.*|.*Exception*.*|.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*Primus*.*|.*FilesPrivacy*.*</blacklistRegexp>
-                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <blacklistRegexp>.*Builder*.*|.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*FilesPrivacy*.*</blacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
-                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>scale 3/4</additionalPlantUmlConfig>
                             </additionalPlantUmlConfigs>
                         </configuration>
                     </execution>
