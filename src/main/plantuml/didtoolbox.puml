@@ -1,0 +1,904 @@
+[plantuml,didtoolbox.puml.png,png]
+----
+@startuml
+
+abstract class ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder {
+	{field} {static} #SCID_PLACEHOLDER : String
+	{method}  {static} #buildVerificationMethodWithPublicKeyJwk ( paramString1 : String , paramString2 : String , paramString3 : String ) : com.google.gson.JsonObject
+	{method}  {static} #buildVerificationMethodWithPublicKeyJwk ( paramString1 : String , paramString2 : String , paramString3 : String , paramFile4 : java.io.File , paramboolean5 : boolean ) : com.google.gson.JsonObject
+	{method} #createDidDoc ( paramURL1 : java.net.URL , paramMap2 : java.util.Map , paramMap3 : java.util.Map , paramboolean4 : boolean ) : com.google.gson.JsonObject
+	{method} #createDidParams ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider , paramSet2 : java.util.Set , paramSet3 : java.util.Set ) : com.google.gson.JsonObject
+	{method}  {static} #createPrivateKeyDirectoryIfDoesNotExist ( paramString1 : String ) : java.io.File
+	{method}  {abstract} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+	{method} #isVerificationMethodKeyProviderLegal ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : boolean
+	{method} #peek ( paramString1 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.Ed25519ProofOfPossessionJWSSignerImpl {
+	{method} +supportedJWSAlgorithms () : java.util.Set
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.Ed25519Utils {
+	{field} {static} -PUBLIC_KEY_LENGTH : int
+	{method}  {static} +decodeMultibase ( paramString1 : String ) : [B
+	{method}  {static} ~encodeMultibase ( param[B1 : [B ) : String
+	{method}  {static} +encodeMultibase ( paramPublicKey1 : java.security.PublicKey ) : String
+	{method}  {static} -reverse ( param[B1 : [B , paramint2 : int , paramint3 : int ) : [B
+	{method}  {static} ~toPublicKey ( param[B1 : [B ) : java.security.PublicKey
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl {
+	{field} {static} -DEFAULT_JCE_PROVIDER_NAME : String
+	{field} #keyPair : java.security.KeyPair
+	{field} #provider : java.security.Provider
+	{method}  {static} -createFromKeyStore ( paramKeyStore1 : java.security.KeyStore , paramString2 : String , paramString3 : String ) : ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl
+	{method} +generateSignature ( param[B1 : [B ) : [B
+	{method} +getVerificationKeyMultibase () : String
+	{method} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
+	{method}  {static} -lambda$sanityCheck$0 ( paramint1 : int ) : boolean
+	{method}  {static} #sanityCheck ( paramEd25519VerificationMethodKeyProviderImpl1 : ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl ) : void
+	{method} ~verify ( param[B1 : [B , param[B2 : [B ) : boolean
+	{method} ~writePrivateKeyAsPem ( paramFile1 : java.io.File ) : void
+	{method} +writePublicKeyAsPem ( paramFile1 : java.io.File ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.FilesPrivacy {
+	{field} {static} -ACL_PERMISSIONS_FULL_CONTROL : java.util.Set
+	{field} {static} -ALL_ACL_FLAGS : java.util.EnumSet
+	{field} {static} -POSIX_FILE_PERM_OWNER_READ_WRITE : java.util.Set
+	{field} {static} -POSIX_FILE_PERM_OWNER_READ_WRITE_EXEC : java.util.Set
+	{method}  {static} ~createPrivateDirectory ( paramPath1 : java.nio.file.Path , paramboolean2 : boolean ) : java.nio.file.Path
+	{method}  {static} ~createPrivateFile ( paramPath1 : java.nio.file.Path , paramboolean2 : boolean ) : java.nio.file.Path
+	{method}  {static} -getCurrentUserPrincipal ( paramPath1 : java.nio.file.Path ) : java.nio.file.attribute.UserPrincipal
+	{method}  {static} ~restrictAccessToCurrentUserOnly ( paramPath1 : java.nio.file.Path ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.FilesPrivacy$1 {
+	{method} +name () : String
+	{method} +value () : java.util.List
+	{method} +value () : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.FilesPrivacy$2 {
+	{method} +name () : String
+	{method} +value () : java.util.List
+	{method} +value () : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.InvalidDidLogException {
+	{field} {static} -serialVersionUID : long
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.JCSHasher {
+	{field} {static} +DATA_INTEGRITY_PROOF : String
+	{field} {static} +DID_KEY : String
+	{field} {static} +EDDSA_JCS_2022 : String
+	{field} {static} +PROOF_PURPOSE_ASSERTION_METHOD : String
+	{field} {static} +PROOF_PURPOSE_AUTHENTICATION : String
+	{method}  {static} +buildDataIntegrityProof ( paramJsonObject1 : com.google.gson.JsonObject , paramVerificationMethodKeyProvider2 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider , paramString3 : String , paramString4 : String , paramZonedDateTime5 : java.time.ZonedDateTime ) : com.google.gson.JsonObject
+	{method}  {static} +buildDataIntegrityProof ( paramJsonObject1 : com.google.gson.JsonObject , paramboolean2 : boolean , paramVerificationMethodKeyProvider3 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider , paramString4 : String , paramString5 : String , paramZonedDateTime6 : java.time.ZonedDateTime ) : com.google.gson.JsonObject <<deprecated>> 
+	{method}  {static} +buildNextKeyHash ( paramString1 : String ) : String
+	{method}  {static} +buildSCID ( paramString1 : String ) : String <<deprecated>> 
+	{method}  {static} +buildSCID ( paramJsonElement1 : com.google.gson.JsonElement ) : String
+	{method}  {static} ~hashAsHex ( paramJsonElement1 : com.google.gson.JsonElement ) : String
+	{method}  {static} ~multihash ( paramString1 : String ) : [B
+	{method}  {static} ~multihash ( param[B1 : [B ) : [B
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.JCommanderRunner {
+	{field} -jc : com.beust.jcommander.JCommander
+	{field} -parsedCommandName : String
+	{method}  {static} -fetchDidLogMeta ( paramJCommander1 : com.beust.jcommander.JCommander , paramString2 : String , paramFile3 : java.io.File ) : ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta
+	{method}  {static} -overAndOut ( paramJCommander1 : com.beust.jcommander.JCommander , paramString2 : String , paramString3 : String ) : void
+	{method} ~runCreateDidLogCommand ( paramCreateDidLogCommand1 : ch.admin.bj.swiyu.didtoolbox.jcommander.CreateDidLogCommand ) : void
+	{method} ~runDeactivateDidLogCommand ( paramDeactivateDidLogCommand1 : ch.admin.bj.swiyu.didtoolbox.jcommander.DeactivateDidLogCommand ) : void
+	{method} ~runPoPCreateCommand ( paramCreateProofOfPossessionCommand1 : ch.admin.bj.swiyu.didtoolbox.jcommander.CreateProofOfPossessionCommand ) : void
+	{method} ~runPoPVerifyCommand ( paramVerifyProofOfPossessionCommand1 : ch.admin.bj.swiyu.didtoolbox.jcommander.VerifyProofOfPossessionCommand ) : void
+	{method} ~runUpdateDidLogCommand ( paramUpdateDidLogCommand1 : ch.admin.bj.swiyu.didtoolbox.jcommander.UpdateDidLogCommand ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.JwkUtils {
+	{method}  {static} -createPrivateFile ( paramFile1 : java.io.File , paramboolean2 : boolean ) : void
+	{method}  {static} ~ecPemSanityCheck ( paramFile1 : java.io.File , paramFile2 : java.io.File ) : void
+	{method}  {static} -exportEcPublicKeyToPem ( paramECKey1 : com.nimbusds.jose.jwk.ECKey , paramFile2 : java.io.File ) : void
+	{method}  {static} +generatePublicEC256 ( paramString1 : String , paramFile2 : java.io.File , paramboolean3 : boolean ) : String
+	{method}  {static} +loadECPublicJWKasJSON ( paramFile1 : java.io.File , paramString2 : String ) : String
+	{method}  {static} +loadECPublicJWKasJSON ( paramKeyStore1 : java.security.KeyStore , paramString2 : String , paramString3 : String ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.Main {
+	{field} ~help : boolean
+	{field} ~version : boolean
+	{method}  {static} +main ( paramString;1 : [Ljava.lang.String; ) : void
+	{method}  {static} -overAndOut ( paramJCommander1 : com.beust.jcommander.JCommander , paramString2 : String , paramString3 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ManifestUtils {
+	{method}  {static} ~getImplementationTitle () : String
+	{method}  {static} ~getImplementationVersion () : String
+	{method}  {static} -getManifestMainAttributeValue ( paramString1 : String ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.PemUtils {
+	{method}  {static} ~getPrivateKey ( param[B1 : [B , paramString2 : String ) : java.security.PrivateKey
+	{method}  {static} ~getPrivateKeyEd25519 ( param[B1 : [B ) : java.security.PrivateKey
+	{method}  {static} ~getPublicKey ( param[B1 : [B , paramString2 : String ) : java.security.PublicKey
+	{method}  {static} ~getPublicKeyEd25519 ( param[B1 : [B ) : java.security.PublicKey
+	{method}  {static} +parsePEMFile ( paramFile1 : java.io.File ) : [B
+	{method}  {static} +parsePEMFilePublicKeyEd25519Multibase ( paramFile1 : java.io.File ) : String
+	{method}  {static} ~parsePEMPublicKeyEd25519Multibase ( paramString1 : String ) : String
+	{method}  {static} ~readPemObject ( paramReader1 : java.io.Reader ) : [B
+	{method}  {static} ~readPrivateKeyFromFile ( paramString1 : String , paramString2 : String ) : java.security.PrivateKey
+	{method}  {static} ~readPublicKeyFromFile ( paramString1 : String , paramString2 : String ) : java.security.PublicKey
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator {
+	{method} +create ( paramString1 : String , paramDuration2 : java.time.Duration ) : com.nimbusds.jwt.SignedJWT
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreatorException {
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner {
+	{method} +getJCAContext () : com.nimbusds.jose.jca.JCAContext
+	{method} +sign ( paramJWSHeader1 : com.nimbusds.jose.JWSHeader , param[B2 : [B ) : com.nimbusds.jose.util.Base64URL
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier {
+	{field} -updateKeys : java.util.Set
+	{method} +isValid ( paramSignedJWT1 : com.nimbusds.jwt.SignedJWT , paramString2 : String ) : boolean
+	{method} +verify ( paramSignedJWT1 : com.nimbusds.jwt.SignedJWT , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException {
+	{method}  {static} ~expired () : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	{method}  {static} ~failedToVerify ( paramException1 : Exception ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	{method}  {static} ~invalidNonce ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	{method}  {static} ~invalidSignature () : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	{method}  {static} ~keyMismatch ( paramString1 : String ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	{method}  {static} ~unparsable ( paramException1 : Exception ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	{method}  {static} ~unsupportedAlgorithm ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	{method}  {static} ~unsupportedKeySubtype () : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+}
+
+
+enum ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException$ErrorCause {
+	{field} +EXPIRED
+	{field} +FAILED_TO_VERIFY
+	{field} +INVALID_NONCE
+	{field} +INVALID_SIGNATURE
+	{field} +KEY_MISMATCH
+	{field} +UNPARSABLE
+	{field} +UNSUPPORTED_ALGORITHM
+	{field} +UNSUPPORTED_KEY_SUBTYPE
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.TdwCreator {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -forceOverwrite : boolean
+	{field} -updateKeys : java.util.Set
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder
+	{method} +create ( paramURL1 : java.net.URL ) : String <<deprecated>> 
+	{method} +create ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String <<deprecated>> 
+	{method} +createDidLog ( paramURL1 : java.net.URL ) : String
+	{method} +createDidLog ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -forceOverwrite : boolean
+	{field} -updateKeys : java.util.Set
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +assertionMethodKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder
+	{method} +authenticationKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.TdwCreator
+	{method} +forceOverwrite ( paramboolean1 : boolean ) : ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder
+	{method} +toString () : String
+	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.TdwDeactivator {
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.TdwDeactivator$TdwDeactivatorBuilder
+	{method} +deactivate ( paramString1 : String ) : String <<deprecated>> 
+	{method} ~deactivate ( paramFile1 : java.io.File ) : String <<deprecated>> 
+	{method} +deactivate ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String <<deprecated>> 
+	{method} +deactivateDidLog ( paramString1 : String ) : String
+	{method} +deactivateDidLog ( paramFile1 : java.io.File ) : String
+	{method} +deactivateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.TdwDeactivator$TdwDeactivatorBuilder {
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.TdwDeactivator
+	{method} +toString () : String
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.TdwDeactivator$TdwDeactivatorBuilder
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.TdwDeactivatorException {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.TdwUpdater {
+	{field} {static} -SCID_PLACEHOLDER : String
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -updateKeys : java.util.Set
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method} -buildDidMethodParameters () : com.google.gson.JsonObject
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.TdwUpdater$TdwUpdaterBuilder
+	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+	{method}  {static} -lambda$buildDidMethodParameters$0 ( paramFile1 : java.io.File ) : String
+	{method}  {static} -lambda$buildDidMethodParameters$1 ( paramint1 : int ) : [Ljava.lang.String;
+	{method} +update ( paramString1 : String ) : String <<deprecated>> 
+	{method} ~update ( paramFile1 : java.io.File ) : String <<deprecated>> 
+	{method} ~update ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String <<deprecated>> 
+	{method} +updateDidLog ( paramString1 : String ) : String
+	{method} +updateDidLog ( paramFile1 : java.io.File ) : String
+	{method} +updateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.TdwUpdater$TdwUpdaterBuilder {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -updateKeys : java.util.Set
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +assertionMethodKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.TdwUpdater$TdwUpdaterBuilder
+	{method} +authenticationKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.TdwUpdater$TdwUpdaterBuilder
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.TdwUpdater
+	{method} +toString () : String
+	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.TdwUpdater$TdwUpdaterBuilder
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.TdwUpdater$TdwUpdaterBuilder
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.TdwUpdaterException {
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider {
+	{method}  {abstract} +generateSignature ( param[B1 : [B ) : [B
+	{method}  {abstract} +getVerificationKeyMultibase () : String
+	{method}  {abstract} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -forceOverwrite : boolean
+	{field} -nextKeys : java.util.Set
+	{field} -updateKeys : java.util.Set
+	{method}  {static} -$default$didMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +create ( paramURL1 : java.net.URL ) : String
+	{method} ~create ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -didMethod$set : boolean
+	{field} -forceOverwrite : boolean
+	{field} -nextKeys : java.util.Set
+	{field} -updateKeys : java.util.Set
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +assertionMethodKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +authenticationKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +forceOverwrite ( paramboolean1 : boolean ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +nextKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +toString () : String
+	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy {
+	{method}  {abstract} +createDidLog ( paramURL1 : java.net.URL ) : String
+	{method}  {abstract} +createDidLog ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext {
+	{method}  {static} -$default$didMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
+	{method} +deactivate ( paramString1 : String ) : String
+	{method} +deactivate ( paramFile1 : java.io.File ) : String
+	{method} ~deactivate ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder {
+	{field} -didMethod$set : boolean
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
+	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
+	{method} +toString () : String
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy {
+	{method}  {abstract} +deactivateDidLog ( paramString1 : String ) : String
+	{method}  {abstract} +deactivateDidLog ( paramFile1 : java.io.File ) : String
+	{method}  {abstract} +deactivateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory {
+	{method}  {static} ~getCreatorStrategy ( paramDidLogCreatorContext1 : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
+	{method}  {static} ~getDeactivatorStrategy ( paramDidLogDeactivatorContext1 : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
+	{method}  {static} ~getUpdaterStrategy ( paramDidLogUpdaterContext1 : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory$1 {
+	{field} {static} ~$SwitchMap$ch$admin$bj$swiyu$didtoolbox$model$DidMethodEnum : [I
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext {
+	{field} {static} -SCID_PLACEHOLDER : String
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -nextKeys : java.util.Set
+	{field} -updateKeys : java.util.Set
+	{method}  {static} -$default$didMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +update ( paramString1 : String ) : String
+	{method} +update ( paramFile1 : java.io.File ) : String
+	{method} ~update ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -didMethod$set : boolean
+	{field} -nextKeys : java.util.Set
+	{field} -updateKeys : java.util.Set
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +assertionMethodKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +authenticationKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
+	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +nextKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +toString () : String
+	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy {
+	{method}  {abstract} +updateDidLog ( paramString1 : String ) : String
+	{method}  {abstract} +updateDidLog ( paramFile1 : java.io.File ) : String
+	{method}  {abstract} +updateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException {
+}
+
+
+abstract class ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractCommandBase {
+	{field} +help : boolean
+	{method}  {abstract} ~getCommandName () : String
+}
+
+
+abstract class ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractDidLogCommandBase {
+	{field} +jksAlias : String
+	{field} +jksFile : java.io.File
+	{field} +jksPassword : String
+	{field} +primusKeyAlias : String
+	{field} +primusKeyPassword : String
+	{field} +signingKeyPemFile : java.io.File
+	{method}  {abstract} ~getCommandName () : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractKeyMaterialDidLogCommand {
+	{field} +nextVerifyingKeyPemFiles : java.util.Set
+	{field} +verifyingKeyPemFiles : java.util.Set
+	{method} ~getCommandName () : String
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames {
+	{field} {static} +PARAM_NAME_LONG_ASSERTION_METHOD_KEYS : String
+	{field} {static} +PARAM_NAME_LONG_AUTHENTICATION_METHOD_KEYS : String
+	{field} {static} +PARAM_NAME_LONG_DID_LOG_FILE : String
+	{field} {static} +PARAM_NAME_LONG_JKS_ALIAS : String
+	{field} {static} +PARAM_NAME_LONG_JKS_FILE : String
+	{field} {static} +PARAM_NAME_LONG_JKS_PASSWORD : String
+	{field} {static} +PARAM_NAME_LONG_JWT : String
+	{field} {static} +PARAM_NAME_LONG_NEXT_VERIFYING_KEY_FILES : String
+	{field} {static} +PARAM_NAME_LONG_NONCE : String
+	{field} {static} +PARAM_NAME_LONG_PRIMUS_CREDENTIALS : String
+	{field} {static} +PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS : String
+	{field} {static} +PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD : String
+	{field} {static} +PARAM_NAME_LONG_SIGNING_KEY_FILE : String
+	{field} {static} +PARAM_NAME_LONG_USAGE : String
+	{field} {static} +PARAM_NAME_LONG_VERIFYING_KEY_FILE : String
+	{field} {static} +PARAM_NAME_LONG_VERIFYING_KEY_FILES : String
+	{field} {static} +PARAM_NAME_SHORT_ASSERTION_METHOD_KEYS : String
+	{field} {static} +PARAM_NAME_SHORT_AUTHENTICATION_METHOD_KEYS : String
+	{field} {static} +PARAM_NAME_SHORT_DID_LOG_FILE : String
+	{field} {static} +PARAM_NAME_SHORT_JKS_FILE : String
+	{field} {static} +PARAM_NAME_SHORT_JWT : String
+	{field} {static} +PARAM_NAME_SHORT_NEXT_VERIFYING_KEY_FILES : String
+	{field} {static} +PARAM_NAME_SHORT_NONCE : String
+	{field} {static} +PARAM_NAME_SHORT_PRIMUS_CREDENTIALS : String
+	{field} {static} +PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS : String
+	{field} {static} +PARAM_NAME_SHORT_SIGNING_KEY_FILE : String
+	{field} {static} +PARAM_NAME_SHORT_USAGE : String
+	{field} {static} +PARAM_NAME_SHORT_VERIFYING_KEY_FILE : String
+	{field} {static} +PARAM_NAME_SHORT_VERIFYING_KEY_FILES : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.CreateDidLogCommand {
+	{field} {static} +COMMAND_NAME : String
+	{field} +forceOverwrite : boolean
+	{field} +identifierRegistryUrl : java.net.URL
+	{method} ~getCommandName () : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.CreateProofOfPossessionCommand {
+	{field} {static} +COMMAND_NAME : String
+	{field} +nonce : String
+	{field} +verifyingKeyPemFile : java.io.File
+	{method} ~getCommandName () : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.DeactivateDidLogCommand {
+	{field} {static} +COMMAND_NAME : String
+	{field} +didLogFile : java.io.File
+	{method} ~getCommandName () : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.DidLogFileParameterConverter {
+	{method} +convert ( paramString1 : String ) : java.io.File
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.DidMethodParameterConverter {
+	{method} +convert ( paramString1 : String ) : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.IdentifierRegistryUrlParameterConverter {
+	{method} +convert ( paramString1 : String ) : java.net.URL
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.JWTParameterConverter {
+	{method} +convert ( paramString1 : String ) : com.nimbusds.jwt.SignedJWT
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.JksFileParameterConverter {
+	{method} +convert ( paramString1 : String ) : java.io.File
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.PemFileParameterConverter {
+	{method} +convert ( paramString1 : String ) : java.io.File
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.PemFileParameterListConverter {
+	{method} +convert ( paramString1 : String ) : java.util.Set
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.PrimusCredentialsFileParameterConverter {
+	{method} +convert ( paramString1 : String ) : ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.UpdateDidLogCommand {
+	{field} {static} +COMMAND_NAME : String
+	{field} +didLogFile : java.io.File
+	{method} ~getCommandName () : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.VerificationMethodParameters {
+	{field} +jwk : String
+	{field} +key : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.VerificationMethodParametersConverter {
+	{method} +convert ( paramString1 : String ) : java.util.List
+	{method} +convert ( paramString1 : String ) : Object
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.VerifyProofOfPossessionCommand {
+	{field} {static} +COMMAND_NAME : String
+	{field} +didLogFile : java.io.File
+	{field} +jwt : com.nimbusds.jwt.SignedJWT
+	{field} +nonce : String
+	{method} ~getCommandName () : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.CommandParametersValidator {
+	{method} +validate ( paramMap1 : java.util.Map ) : void
+	{method}  {static} -validateAmbiguousParameters ( paramMap1 : java.util.Map ) : void
+	{method}  {static} -validateBoundParameters ( paramMap1 : java.util.Map ) : void
+	{method}  {static} -validatePrimusParameters ( paramMap1 : java.util.Map ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.DidLogFileParameterValidator {
+	{method}  {static} -buildParameterException ( paramString1 : String , paramString2 : String , paramThrowable3 : Throwable ) : com.beust.jcommander.ParameterException
+	{method} +validate ( paramString1 : String , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.DidMethodParameterValidator {
+	{method} +validate ( paramString1 : String , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.IdentifierRegistryUrlParameterValidator {
+	{method} +validate ( paramString1 : String , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.JWTParameterValidator {
+	{method} +validate ( paramString1 : String , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.JksFileParameterValidator {
+	{method} +validate ( paramString1 : String , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.PemFileParameterValidator {
+	{method} +validate ( paramString1 : String , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.PrimusCredentialsFileParameterValidator {
+	{method} +validate ( paramString1 : String , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.validator.VerificationMethodKeyParametersValidator {
+	{method} +validate ( paramString1 : String , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.DidDocument {
+	{field} ~assertionMethod : java.util.Set
+	{field} ~authentication : java.util.Set
+	{field} ~context : java.util.Set
+	{field} ~id : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta {
+	{field} -dateTime : String
+	{field} -didDoc : ch.admin.eid.did_sidekicks.DidDoc
+	{field} -lastVersionId : String
+	{field} ~lastVersionNumber : int
+	{method} +arePreRotatedUpdateKeys ( paramSet1 : java.util.Set ) : boolean
+	{method} +isKeyPreRotationActivated () : boolean
+	{method} +isPreRotatedUpdateKey ( paramString1 : String ) : boolean
+	{method}  {static} -lambda$setParams$0 ( paramNamedDidMethodParameters1 : ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters , paramString2 : String , paramDidMethodParameter3 : ch.admin.eid.did_sidekicks.DidMethodParameter ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException {
+}
+
+
+enum ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum {
+	{field} +TDW_0_3
+	{field} +WEBVH_1_0
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum$1 {
+	{method} +isTdw03 () : boolean
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum$2 {
+	{method} +isWebVh10 () : boolean
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.MalformedTdwDidLogMetaPeekerException {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.MalformedWebVerifiableHistoryDidLogMetaPeekerException {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters {
+	{field} {static} +NEXT_KEY_HASHES : String
+	{field} {static} +UPDATE_KEYS : String
+	{field} +deactivated : Boolean
+	{field} ~method : String
+	{field} +nextKeyHashes : java.util.Set
+	{field} ~scid : String
+	{field} +updateKeys : java.util.Set
+	{method} +getDidMethodEnum () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker {
+	{method}  {static} -lambda$peek$0 ( paramAtomicReference1 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference2 : java.util.concurrent.atomic.AtomicReference , paramString3 : String ) : boolean
+	{method}  {static} -lambda$peek$1 ( paramAtomicReference1 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference2 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference3 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference4 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference5 : java.util.concurrent.atomic.AtomicReference , paramString6 : String ) : void
+	{method}  {static} +peek ( paramString1 : String ) : ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker$DidDocValue {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker {
+	{method}  {static} -lambda$peek$0 ( paramAtomicReference1 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference2 : java.util.concurrent.atomic.AtomicReference , paramString3 : String ) : boolean
+	{method}  {static} -lambda$peek$1 ( paramAtomicReference1 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference2 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference3 : java.util.concurrent.atomic.AtomicReference , paramAtomicReference4 : java.util.concurrent.atomic.AtomicReference , paramString5 : String ) : void
+	{method}  {static} +peek ( paramString1 : String ) : ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker$WebVhDidLogEntry {
+	{field} ~versionId : String
+	{field} ~versionTime : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl {
+	{method} +supportedJWSAlgorithms () : java.util.Set
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl {
+	{field} {static} #ENCODER_CLASS : String
+	{field} {static} #UNDERIFY_METHOD : String
+	{method} +generateSignature ( param[B1 : [B ) : [B
+	{method}  {static} #optionallyUnderifyRS ( param[B1 : [B ) : [B
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreInitializationException {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader {
+	{field} {static} -KEY_STORE_TYPE_GETTER : String
+	{field} {static} +PROVIDER_CLASS : String
+	{field} {static} -PROVIDER_NAME_GETTER : String
+	{field} -keyStore : java.security.KeyStore
+	{method} ~loadKeyPair ( paramString1 : String , paramString2 : String ) : java.security.KeyPair
+}
+
+
+enum ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader$SecurosysPrimusEnvironment {
+	{field} +SECUROSYS_PRIMUS_HOST
+	{field} +SECUROSYS_PRIMUS_PASSWORD
+	{field} +SECUROSYS_PRIMUS_PORT
+	{field} +SECUROSYS_PRIMUS_USER
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -forceOverwrite : boolean
+	{field} -nextKeys : java.util.Set
+	{field} -updateKeys : java.util.Set
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
+	{method} +createDidLog ( paramURL1 : java.net.URL ) : String
+	{method} +createDidLog ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -forceOverwrite : boolean
+	{field} -nextKeys : java.util.Set
+	{field} -updateKeys : java.util.Set
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +assertionMethodKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
+	{method} +authenticationKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator
+	{method} +forceOverwrite ( paramboolean1 : boolean ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
+	{method} +nextKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
+	{method} +toString () : String
+	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator {
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator$WebVerifiableHistoryDeactivatorBuilder
+	{method} +deactivateDidLog ( paramString1 : String ) : String
+	{method} +deactivateDidLog ( paramFile1 : java.io.File ) : String
+	{method} +deactivateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator$WebVerifiableHistoryDeactivatorBuilder {
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator
+	{method} +toString () : String
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator$WebVerifiableHistoryDeactivatorBuilder
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater {
+	{field} {static} -SCID_PLACEHOLDER : String
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -nextUpdateKeys : java.util.Set
+	{field} -updateKeys : java.util.Set
+	{method}  {static} -$default$verificationMethodKeyProvider () : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+	{method} -buildDidMethodParameters () : com.google.gson.JsonObject
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder
+	{method} #getDidMethod () : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+	{method} -loadNextUpdateKeys () : java.util.Set
+	{method} -loadUpdateKeys () : java.util.Set
+	{method} +updateDidLog ( paramString1 : String ) : String
+	{method} +updateDidLog ( paramFile1 : java.io.File ) : String
+	{method} +updateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder {
+	{field} -assertionMethodKeys : java.util.Map
+	{field} -authenticationKeys : java.util.Map
+	{field} -nextUpdateKeys : java.util.Set
+	{field} -updateKeys : java.util.Set
+	{field} -verificationMethodKeyProvider$set : boolean
+	{method} +assertionMethodKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder
+	{method} +authenticationKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater
+	{method} +nextUpdateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder
+	{method} +toString () : String
+	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder
+}
+
+
+
+
+ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta : didLogMeta
+ch.admin.bj.swiyu.didtoolbox.Ed25519ProofOfPossessionJWSSignerImpl --|>  ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl
+ch.admin.bj.swiyu.didtoolbox.Ed25519ProofOfPossessionJWSSignerImpl ..|>  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator -->  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner : signer
+ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException -->  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException$ErrorCause : errorCause
+ch.admin.bj.swiyu.didtoolbox.TdwCreator -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.TdwCreator --|>  ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder
+ch.admin.bj.swiyu.didtoolbox.TdwCreator ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
+ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.TdwDeactivator -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.TdwDeactivator --|>  ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder
+ch.admin.bj.swiyu.didtoolbox.TdwDeactivator ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
+ch.admin.bj.swiyu.didtoolbox.TdwDeactivator$TdwDeactivatorBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.TdwUpdater -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.TdwUpdater --|>  ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder
+ch.admin.bj.swiyu.didtoolbox.TdwUpdater ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy
+ch.admin.bj.swiyu.didtoolbox.TdwUpdater$TdwUpdaterBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractDidLogCommandBase -->  ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader : securosysPrimusKeyStoreLoader
+ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractDidLogCommandBase --|>  ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractCommandBase
+ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractKeyMaterialDidLogCommand "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.jcommander.VerificationMethodParameters : assertionMethodKeys
+ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractKeyMaterialDidLogCommand "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.jcommander.VerificationMethodParameters : authenticationKeys
+ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractKeyMaterialDidLogCommand --|>  ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractDidLogCommandBase
+ch.admin.bj.swiyu.didtoolbox.jcommander.CreateDidLogCommand -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : DEFAULT_METHOD_VERSION
+ch.admin.bj.swiyu.didtoolbox.jcommander.CreateDidLogCommand -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : methodVersion
+ch.admin.bj.swiyu.didtoolbox.jcommander.CreateDidLogCommand --|>  ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractKeyMaterialDidLogCommand
+ch.admin.bj.swiyu.didtoolbox.jcommander.CreateProofOfPossessionCommand --|>  ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractDidLogCommandBase
+ch.admin.bj.swiyu.didtoolbox.jcommander.DeactivateDidLogCommand --|>  ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractDidLogCommandBase
+ch.admin.bj.swiyu.didtoolbox.jcommander.UpdateDidLogCommand --|>  ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractKeyMaterialDidLogCommand
+ch.admin.bj.swiyu.didtoolbox.jcommander.VerifyProofOfPossessionCommand --|>  ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractCommandBase
+ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta -->  ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters : params
+ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum$1 --|>  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum$2 --|>  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+ch.admin.bj.swiyu.didtoolbox.model.MalformedTdwDidLogMetaPeekerException --|>  ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException
+ch.admin.bj.swiyu.didtoolbox.model.MalformedWebVerifiableHistoryDidLogMetaPeekerException --|>  ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException
+ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker$DidDocValue -->  ch.admin.bj.swiyu.didtoolbox.model.DidDocument : value
+ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker$WebVhDidLogEntry -->  ch.admin.bj.swiyu.didtoolbox.model.DidDocument : didDocument
+ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl --|>  ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl
+ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl ..|>  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl --|>  ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator --|>  ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator --|>  ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator$WebVerifiableHistoryDeactivatorBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater --|>  ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater ..|>  ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy
+ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+
+
+@enduml
+----

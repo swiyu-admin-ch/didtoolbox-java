@@ -126,7 +126,7 @@ public class DidLogCreatorContext {
      * {@link DidLogCreatorContext.DidLogCreatorContextBuilder#assertionMethodKeys(Map)}.
      *
      * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
-     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">he-did-to-https-transformation</a>
+     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
      * @return a valid DID log
      * @throws DidLogCreatorStrategyException if creation fails for whatever reason
      * @see #create(URL, ZonedDateTime)
