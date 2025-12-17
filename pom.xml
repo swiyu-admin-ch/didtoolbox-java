@@ -338,6 +338,84 @@
                 <artifactId>plantuml-generator-maven-plugin</artifactId>
                 <version>3.0.1</version>
                 <executions>
+                    <!-- sequence diagrams -->
+                    <execution>
+                        <id>generate-sequence-diagram-DidLogCreatorContext-create</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
+                            <outputFilename>DidLogCreatorContext-create.puml</outputFilename>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext</startClass>
+                            <startMethod>create</startMethod>
+                            <classBlacklistRegexp>.*Builder*.*</classBlacklistRegexp>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <!--ignoreStandardClasses>true</ignoreStandardClasses-->
+                            <showReturnTypes>true</showReturnTypes>
+                            <!--hideMethodName>true</hideMethodName>
+                            <hideSuperClass>true</hideSuperClass-->
+                            <useShortClassNames>false</useShortClassNames>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-simple-diagram-DidLogUpdaterContext-update</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
+                            <outputFilename>DidLogUpdaterContext-update.puml</outputFilename>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext</startClass>
+                            <startMethod>update</startMethod>
+                            <classBlacklistRegexp>.*Builder*.*</classBlacklistRegexp>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <!--ignoreStandardClasses>true</ignoreStandardClasses-->
+                            <showReturnTypes>true</showReturnTypes>
+                            <!--hideMethodName>true</hideMethodName>
+                            <hideSuperClass>true</hideSuperClass-->
+                            <useShortClassNames>false</useShortClassNames>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-simple-diagram-DidLogDeactivatorContext-update</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
+                            <outputFilename>DidLogDeactivatorContext-deactivate.puml</outputFilename>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext</startClass>
+                            <startMethod>deactivate</startMethod>
+                            <classBlacklistRegexp>.*Builder*.*</classBlacklistRegexp>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <!--ignoreStandardClasses>true</ignoreStandardClasses-->
+                            <showReturnTypes>true</showReturnTypes>
+                            <!--hideMethodName>true</hideMethodName>
+                            <hideSuperClass>true</hideSuperClass-->
+                            <useShortClassNames>false</useShortClassNames>
+                        </configuration>
+                    </execution>
+                    <!--execution>
+                        <id>generate-simple-diagram-WebVerifiableHistoryCreator-createDidLog</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
+                            <outputFilename>WebVerifiableHistoryCreator-createDidLog.puml</outputFilename>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator</startClass>
+                            <startMethod>createDidLog</startMethod>
+                            <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*</classBlacklistRegexp>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution-->
+                    <!-- class diagrams -->
                     <execution>
                         <id>generate-diagram-didtoolbox-classes-only</id>
                         <goals>

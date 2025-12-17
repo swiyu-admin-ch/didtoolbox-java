@@ -1,0 +1,83 @@
+```plantuml
+@startuml
+
+participant ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+participant ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
+participant ch.admin.bj.swiyu.didtoolbox.TdwCreator
+participant ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator
+participant ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
+
+activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+	ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : create
+	activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+		ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : getCreatorStrategy
+		activate ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getDidMethod
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.TdwCreator : builder
+			activate ch.admin.bj.swiyu.didtoolbox.TdwCreator
+				ch.admin.bj.swiyu.didtoolbox.TdwCreator --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder
+			deactivate ch.admin.bj.swiyu.didtoolbox.TdwCreator
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getVerificationMethodKeyProvider
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getAssertionMethodKeys
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getAuthenticationKeys
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getUpdateKeys
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : isForceOverwrite
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : boolean
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator : builder
+			activate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator
+				ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
+			deactivate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getVerificationMethodKeyProvider
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getAssertionMethodKeys
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getAuthenticationKeys
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getUpdateKeys
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getNextKeys
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : isForceOverwrite
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : boolean
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
+		deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
+		ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy : createDidLog
+		activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : java.lang.String
+		deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
+		ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : java.lang.String
+	deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+
+@enduml
+
+```

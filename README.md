@@ -28,6 +28,7 @@ with respect to one of the following specifications:
   - [Update](#did-update)
   - [DID Deactivation (Revoke)](#did-deactivation-revoke)
   - [Key Rotation with Pre-Rotation](#key-rotation-with-pre-rotation)
+- [The DID Toolbox (Java) API](#the-did-toolbox-java-api)
 - [Additional Information](#additional-information)
 - [Missing Features and Known Issues](#missing-features-and-known-issues)
 - [Contributions and Feedback](#contributions-and-feedback)
@@ -694,6 +695,21 @@ cat did005.jsonl | jq -c '.|.parameters'
 # {"nextKeyHashes":["QmZbAEQCaBLYxWz6eWMQas8nfKa3vXhRoMVQD2o35RDZm2"],"updateKeys":["z6Mko41raveKqxPg5gUzv2g7Gk9a9rmCNXNn5MCKsQECFQ5E"]}
 # {"nextKeyHashes":["QmPjawyNkfnZqNomHMct8zE1QHiqfPPUGfbYyerNuXRxXo"],"updateKeys":["z6MkkPDkNqJ2CmVB89gPyJNhC5GJ2PfiPqtLsWvMHUyHS1L5"]}
 ```
+
+## The DID Toolbox (Java) API
+
+The sole bedrock of DID Toolbox (Java) API are the classes residing in the `ch.admin.bj.swiyu.didtoolbox.context` package:
+* [DidLogCreatorContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/context/DidLogCreatorContext.java)
+* [DidLogUpdaterContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/context/DidLogUpdaterContext.java)
+* [DidLogDeactivatorContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/context/DidLogDeactivatorContext.java)
+
+Each of these complementary classes are in charge of DID log manipulation in specification-agnostic fashion
+i.e. regardless of DID method specification, whereas currently supported are only `did:tdw:0.3` (legacy) and `did:webvh:1.0` (final).
+By relying fully on the [Builder (creational) Design Pattern](https://en.wikipedia.org/wiki/Builder_pattern), thus making heavy use of
+[fluent design](https://en.wikipedia.org/wiki/Fluent_interface), these classes are intended to be instantiated exclusively
+via their static `builder()` methods. The relevant Java documentation also feature some typical usage examples.
+
+For further details, please see the relevant [PlantUML diagrams](src/main/plantuml/README.md).
 
 ## Additional Information
 - **Output Directory**: When creating new DIDs, the `.didtoolbox` directory is automatically created in the current working directory. Ensure you have the necessary permissions to create and write to this directory.
