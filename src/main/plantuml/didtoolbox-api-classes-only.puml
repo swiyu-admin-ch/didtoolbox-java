@@ -1,0 +1,138 @@
+```plantuml
+@startuml
+
+left to right direction
+
+
+class ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl {
+	{field} #keyPair : java.security.KeyPair
+	{field} #provider : java.security.Provider
+	{method} +generateSignature ( param[B1 : [B ) : [B
+	{method} +getVerificationKeyMultibase () : String
+	{method} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
+	{method} +writePublicKeyAsPem ( paramFile1 : java.io.File ) : void
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider {
+	{method}  {abstract} +generateSignature ( param[B1 : [B ) : [B
+	{method}  {abstract} +getVerificationKeyMultibase () : String
+	{method}  {abstract} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext {
+	{method} +create ( paramURL1 : java.net.URL ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder {
+	{method} +assertionMethodKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +authenticationKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +forceOverwrite ( paramboolean1 : boolean ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +nextKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +toString () : String
+	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy {
+	{method}  {abstract} +createDidLog ( paramURL1 : java.net.URL ) : String
+	{method}  {abstract} +createDidLog ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext {
+	{method} +deactivate ( paramString1 : String ) : String
+	{method} +deactivate ( paramFile1 : java.io.File ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder {
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
+	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
+	{method} +toString () : String
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy {
+	{method}  {abstract} +deactivateDidLog ( paramString1 : String ) : String
+	{method}  {abstract} +deactivateDidLog ( paramFile1 : java.io.File ) : String
+	{method}  {abstract} +deactivateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException {
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext {
+	{method} +update ( paramString1 : String ) : String
+	{method} +update ( paramFile1 : java.io.File ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder {
+	{method} +assertionMethodKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +authenticationKeys ( paramMap1 : java.util.Map ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +build () : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
+	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +nextKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +toString () : String
+	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method} +verificationMethodKeyProvider ( paramVerificationMethodKeyProvider1 : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy {
+	{method}  {abstract} +updateDidLog ( paramString1 : String ) : String
+	{method}  {abstract} +updateDidLog ( paramFile1 : java.io.File ) : String
+	{method}  {abstract} +updateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException {
+}
+
+
+enum ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum {
+	{field} +TDW_0_3
+	{field} +WEBVH_1_0
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl {
+	{method} +generateSignature ( param[B1 : [B ) : [B
+}
+
+
+
+
+ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl --|>  ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl
+
+hide fields
+hide methods
+
+@enduml
+```

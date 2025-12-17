@@ -417,16 +417,17 @@
                     </execution-->
                     <!-- class diagrams -->
                     <execution>
-                        <id>generate-diagram-didtoolbox-classes-only</id>
+                        <id>generate-diagram-didtoolbox-api-classes-only</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <phase>generate-test-sources</phase>
                         <configuration>
                             <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
-                            <outputFilename>didtoolbox-classes-only.puml</outputFilename>
+                            <outputFilename>didtoolbox-api-classes-only.puml</outputFilename>
                             <scanPackages>
                                 <scanPackage>ch.admin.bj.swiyu.didtoolbox</scanPackage>
+                                <!--scanPackage>ch.admin.bj.swiyu.didtoolbox.context</scanPackage-->
                             </scanPackages>
                             <maxVisibilityFields>PROTECTED</maxVisibilityFields>
                             <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
@@ -438,25 +439,32 @@
                             <hideMethods>true</hideMethods>
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
-                            <blacklistRegexp>.*Builder*.*|.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*FilesPrivacy*.*</blacklistRegexp>
+                            <blacklistRegexp>.*Util*.*|.*Command.*|.*Validator.*|.*Converter*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*</blacklistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*Enum*.*|.*Context*.*|.*Strategy*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
+                                <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->
+                                <!--additionalPlantUmlConfig>header some header</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>footer some footer</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>title context package</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>caption some caption</additionalPlantUmlConfig-->
                                 <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
-                                <additionalPlantUmlConfig>scale 3/4</additionalPlantUmlConfig>
+                                <!--additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig-->
                             </additionalPlantUmlConfigs>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-diagram-didtoolbox</id>
+                        <id>generate-diagram-didtoolbox-api</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <phase>generate-test-sources</phase>
                         <configuration>
                             <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
-                            <outputFilename>didtoolbox.puml</outputFilename>
+                            <outputFilename>didtoolbox-api.puml</outputFilename>
                             <scanPackages>
                                 <scanPackage>ch.admin.bj.swiyu.didtoolbox</scanPackage>
+                                <!--scanPackage>ch.admin.bj.swiyu.didtoolbox.context</scanPackage-->
                             </scanPackages>
                             <maxVisibilityFields>PROTECTED</maxVisibilityFields>
                             <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
@@ -468,11 +476,17 @@
                             <hideMethods>true</hideMethods-->
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
-                            <blacklistRegexp>.*Builder*.*|.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*FilesPrivacy*.*</blacklistRegexp>
+                            <blacklistRegexp>.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*</blacklistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*Enum*.*|.*Context*.*|.*Strategy*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
+                                <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->
+                                <!--additionalPlantUmlConfig>header some header</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>footer some footer</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>title context package</additionalPlantUmlConfig>
+                                <additionalPlantUmlConfig>caption some caption</additionalPlantUmlConfig-->
                                 <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
-                                <additionalPlantUmlConfig>scale 3/4</additionalPlantUmlConfig>
+                                <!--additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig-->
                             </additionalPlantUmlConfigs>
                         </configuration>
                     </execution>

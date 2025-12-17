@@ -703,6 +703,8 @@ The sole bedrock of DID Toolbox (Java) API are the classes residing in the `ch.a
 * [DidLogUpdaterContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/context/DidLogUpdaterContext.java)
 * [DidLogDeactivatorContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/context/DidLogDeactivatorContext.java)
 
+![didtoolbox-classes-only](src/main/plantuml/didtoolbox-api-classes-only.svg)
+
 Each of these complementary classes are in charge of DID log manipulation in specification-agnostic fashion
 i.e. regardless of DID method specification, whereas currently supported are only `did:tdw:0.3` (legacy) and `did:webvh:1.0` (final).
 By relying fully on the [Builder (creational) Design Pattern](https://en.wikipedia.org/wiki/Builder_pattern), thus making heavy use of

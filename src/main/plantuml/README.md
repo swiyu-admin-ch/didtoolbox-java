@@ -2,13 +2,13 @@
 
 ## Class diagrams
 
-### Big picture
+### The DID Toolbox Java API (condensed)
 
-![Alt text](didtoolbox-classes-only.svg)
+![Alt text](didtoolbox-api-classes-only.svg)
 
-### Detailed
+### The DID Toolbox Java API (detailed)
 
-![Alt text](didtoolbox.svg)
+![Alt text](didtoolbox-api.svg)
 
 ## Sequence diagrams
 
