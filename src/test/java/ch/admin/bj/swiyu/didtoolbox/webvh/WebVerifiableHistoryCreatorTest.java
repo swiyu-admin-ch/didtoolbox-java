@@ -3,11 +3,14 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -413,5 +416,33 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
 
         //assertTrue("""
         //        """.contains(didLogEntry));
+    }
+
+    @DisplayName("Building did:webvh log entry from an existing DID document")
+    @Test
+    void testFromDidDoc() {
+
+        var zdt = ZonedDateTime.now();
+        assertDoesNotThrow(() -> {
+            var url = identifierRegistryUrl().stream().toList();
+            var tdwUrl = url.getFirst();
+            var webvhUrl = url.getLast();
+
+            var didDoc = ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker.peek(
+                            DidLogCreatorContext.builder()
+                                    .didMethod(DidMethodEnum.TDW_0_3)
+                                    // the default signer (verificationMethodKeyProvider) is used
+                                    //.updateKeys(Set.of(new File("src/test/data/public.pem")))
+                                    .forceOverwrite(true)
+                                    .build()
+                                    .create(tdwUrl)
+                    )
+                    .getDidDoc();
+
+            assertDidLogEntry(
+                    WebVerifiableHistoryCreator
+                            .fromDidDoc(didDoc, webvhUrl, zdt) // MUT
+            );
+        });
     }
 }
