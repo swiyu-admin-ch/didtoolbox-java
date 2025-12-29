@@ -65,7 +65,7 @@
         <didresolver.version>2.4.0</didresolver.version>
         <jna.version>5.17.0</jna.version>
         <gson.version>2.13.2</gson.version>
-        <java-multibase.version>v1.1.1</java-multibase.version>
+        <java-multibase.version>v1.2.1</java-multibase.version>
         <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
         <lombok.version>1.18.42</lombok.version>
         <jcommander.version>2.0</jcommander.version>
