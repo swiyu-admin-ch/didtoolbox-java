@@ -68,7 +68,7 @@
         <java-multibase.version>v1.2.1</java-multibase.version>
         <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
         <lombok.version>1.18.42</lombok.version>
-        <jcommander.version>2.0</jcommander.version>
+        <jcommander.version>3.0</jcommander.version>
         <bouncycastle.version>1.83</bouncycastle.version>
         <nimbus-jose-jwt.version>10.6</nimbus-jose-jwt.version>
         <tink.version>1.19.0</tink.version>
