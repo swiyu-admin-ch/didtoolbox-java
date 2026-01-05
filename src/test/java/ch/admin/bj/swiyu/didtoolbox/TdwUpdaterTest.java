@@ -35,7 +35,7 @@ class TdwUpdaterTest extends AbstractUtilTestBase {
                 openssl pkey -inform pem -in private.pem -outform der -out private.der
                 cat private.pem | openssl pkey -pubout -outform der -out public.der
                 cat private.pem | openssl pkey -pubout -out public.pem
-                secret_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 private.der) | xxd -r -p | bs58)
+                secret_key_multibase=z$(echo 8026$(xxd -plain -cols 32 -s -32 private.der) | xxd -r -p | bs58)
                 public_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 public.der)  | xxd -r -p | bs58)
                 echo "{\"${secret_key_multibase}\", \"${public_key_multibase}\", \"\"\"\n$(cat public.pem)\n\"\"\"}"
                  */

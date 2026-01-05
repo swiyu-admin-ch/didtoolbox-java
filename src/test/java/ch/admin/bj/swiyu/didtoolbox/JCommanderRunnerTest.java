@@ -28,12 +28,12 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     private StringBuilder output;
     final private JCommander.Builder jCommanderBuilder = JCommander.newBuilder().console(new Console() {
         @Override
-        public void print(String msg) {
+        public void print(CharSequence charSequence) {
         }
 
         @Override
-        public void println(String msg) {
-            output.append(msg);
+        public void println(CharSequence charSequence) {
+            output.append(charSequence);
         }
 
         @Override

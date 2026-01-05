@@ -15,7 +15,7 @@ This is the list of all third-party dependencies grouped by their license type. 
 * **java-json-canonicalization** (io.github.erdtman:java-json-canonicalization:1.1 - https://github.com/erdtman/java-json-canonicalization)
 * **Java Native Access** (net.java.dev.jna:jna:5.17.0 - https://github.com/java-native-access/jna)
 * **org.apiguardian:apiguardian-api** (org.apiguardian:apiguardian-api:1.1.2 - https://github.com/apiguardian-team/apiguardian)
-* **jcommander** (org.jcommander:jcommander:2.0 - https://jcommander.org)
+* **jcommander** (org.jcommander:jcommander:3.0 - https://jcommander.org)
 * **IntelliJ IDEA Annotations** (org.jetbrains:annotations:13.0 - http://www.jetbrains.org)
 * **Kotlin Stdlib** (org.jetbrains.kotlin:kotlin-stdlib:1.9.23 - https://kotlinlang.org/)
 * **org.opentest4j:opentest4j** (org.opentest4j:opentest4j:1.3.0 - https://github.com/ota4j-team/opentest4j)
@@ -26,9 +26,9 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## Bouncy Castle Licence:
 
-* **Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs** (org.bouncycastle:bcpkix-jdk18on:1.82 - https://www.bouncycastle.org/download/bouncy-castle-java/)
-* **Bouncy Castle Provider** (org.bouncycastle:bcprov-jdk18on:1.82 - https://www.bouncycastle.org/download/bouncy-castle-java/)
-* **Bouncy Castle ASN.1 Extension and Utility APIs** (org.bouncycastle:bcutil-jdk18on:1.82 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs** (org.bouncycastle:bcpkix-jdk18on:1.83 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle Provider** (org.bouncycastle:bcprov-jdk18on:1.83 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle ASN.1 Extension and Utility APIs** (org.bouncycastle:bcutil-jdk18on:1.83 - https://www.bouncycastle.org/download/bouncy-castle-java/)
 
 ## Eclipse Public License v2.0:
 
@@ -46,6 +46,6 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## MIT License:
 
-* **multibase** (com.github.multiformats:java-multibase:v1.1.1 - https://github.com/multiformats/java-multibase)
+* **multibase** (com.github.multiformats:java-multibase:v1.2.1 - https://github.com/multiformats/java-multibase)
 * **DID Resolver** (io.github.swiyu-admin-ch:didresolver:2.4.0 - https://github.com/swiyu-admin-ch/didresolver-kotlin)
 * **Project Lombok** (org.projectlombok:lombok:1.18.42 - https://projectlombok.org)

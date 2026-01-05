@@ -41,7 +41,7 @@ class Ed25519VerificationMethodKeyProviderImplTest {
                 openssl genpkey -algorithm ed25519 -out private.pem
                 openssl pkey -inform pem -in private.pem -outform der -out private.der
                 cat private.pem | openssl pkey -pubout -outform der -out public.der
-                secret_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 private.der) | xxd -r -p | bs58)
+                secret_key_multibase=z$(echo 8026$(xxd -plain -cols 32 -s -32 private.der) | xxd -r -p | bs58)
                 public_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 public.der)  | xxd -r -p | bs58)
                 echo "{\"${secret_key_multibase}\", \"${public_key_multibase}\", \"<some_hex_signature>\"}"
                  */
@@ -244,7 +244,7 @@ class Ed25519VerificationMethodKeyProviderImplTest {
     @Test
     void testGetVerificationKeyMultibaseExample() {
 
-        // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
+        // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
         String actual = new UnsafeEd25519VerificationMethodKeyProviderImpl(
                 "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq",
                 "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2")
