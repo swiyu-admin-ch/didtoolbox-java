@@ -330,11 +330,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
         assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("my-auth-key-01"));
         assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("my-assert-key-01"));
-
-        //System.out.println(didLogEntry);
-
-        //assertTrue("""
-        //        """.contains(didLogEntry));
     }
 
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (incl. generated authentication/assertion keys) using existing keys")
@@ -370,11 +365,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
         assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("auth-key-01")); // created by default
         assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("my-assert-key-01"));
-
-        //System.out.println(didLogEntry);
-
-        //assertTrue("""
-        //        """.contains(didLogEntry));
     }
 
 
@@ -411,11 +401,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
         assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("my-auth-key-01"));
         assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("assert-key-01")); // created by default
-
-        //System.out.println(didLogEntry);
-
-        //assertTrue("""
-        //        """.contains(didLogEntry));
     }
 
     @DisplayName("Building did:webvh log entry from an existing DID document")
@@ -441,7 +426,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
 
             assertDidLogEntry(
                     WebVerifiableHistoryCreator
-                            .fromDidDoc(didDoc, webvhUrl, zdt) // MUT
+                            .createDidLogFromDidDoc(didDoc, webvhUrl, zdt) // MUT
             );
         });
     }

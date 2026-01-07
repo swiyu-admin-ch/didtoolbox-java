@@ -37,14 +37,10 @@ public abstract class AbstractDidLogEntryBuilder {
         JsonObject verificationMethodObj = new JsonObject();
         verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
         // CAUTION The "controller" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDSYS-35
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("controller", didTDW);
+        // - https://confluence.bit.admin.ch/x/3e0EMw
         verificationMethodObj.addProperty("type", "JsonWebKey2020");
         // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDOMNI-35
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
+        // - https://confluence.bit.admin.ch/x/3e0EMw
         verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
 
         return verificationMethodObj;

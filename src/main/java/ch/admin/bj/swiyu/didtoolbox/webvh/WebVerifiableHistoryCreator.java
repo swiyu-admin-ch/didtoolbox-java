@@ -240,7 +240,8 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     }
 
     /**
-     * A static helper...
+     * A static helper aiming at creation of a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
+     * DID log featuring cryptographic key material from the supplied {@link DidDoc}.
      *
      * @param didDoc                a valid <a href="https://www.w3.org/TR/did-1.0/#did-document-properties">DID document</a>
      *                              object containing cryptographic key material
@@ -251,7 +252,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      * @throws DidLogCreatorStrategyException if creation fails for whatever reason
      * @since 1.8.0
      */
-    public static String fromDidDoc(DidDoc didDoc, URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
+    public static String createDidLogFromDidDoc(DidDoc didDoc, URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         var newDidDoc = new JsonObject();
 
@@ -265,41 +266,61 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
 
         newDidDoc.addProperty("id", did);
 
-        var authIds = didDoc.getAuthentication().stream()
-                .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining())).collect(Collectors.toSet());
         var authentication = new JsonArray();
-        authIds.forEach(authentication::add);
+        didDoc.getAuthentication().stream()
+                .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining()))
+                .forEach(authentication::add);
         newDidDoc.add("authentication", authentication);
 
-        var assertIds = didDoc.getAssertionMethod().stream()
-                .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining())).collect(Collectors.toSet());
         var assertionMethod = new JsonArray();
-        assertIds.forEach(assertionMethod::add);
+        didDoc.getAssertionMethod().stream()
+                .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining()))
+                .forEach(assertionMethod::add);
         newDidDoc.add("assertionMethod", assertionMethod);
 
-        // Collect cryptographic key material from the supplied DID document object...
-        var publicKeyJwkSet = didDoc.getVerificationMethod().stream()
-                .map(VerificationMethod::getPublicKeyJwk).collect(Collectors.toSet());
-        // ... and convert it to JSON according to specification
+        // Collect cryptographic key material from the supplied DID document object and convert it to JSON according to specification
         var verificationMethod = new JsonArray();
-        publicKeyJwkSet.forEach(jwk -> {
+        didDoc.getVerificationMethod().stream().map(VerificationMethod::getPublicKeyJwk).forEach(jwk -> {
+
+            var kid = jwk.getKid(); // optional, as specified by https://www.rfc-editor.org/rfc/rfc7517#section-4.5
+            if (kid == null || kid.contains("#") || kid.isEmpty()) { // however, in this context required
+                throw new IllegalArgumentException("Illegal 'kid' (key ID) parameter detected in the supplied DID document");
+            }
+
             var verificationMethodObj = new JsonObject();
-            verificationMethodObj.addProperty("id", did + "#" + jwk.getKid());
+            verificationMethodObj.addProperty("id", did + "#" + kid);
+
             // CAUTION The "controller" property must not be present w.r.t.:
-            // - https://jira.bit.admin.ch/browse/EIDSYS-35
-            // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-            //verificationMethodObj.addProperty("controller", didTDW);
+            // - https://confluence.bit.admin.ch/x/3e0EMw
             verificationMethodObj.addProperty("type", "JsonWebKey2020");
+
             // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-            // - https://jira.bit.admin.ch/browse/EIDOMNI-35
-            // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-            //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
+            // - https://confluence.bit.admin.ch/x/3e0EMw
+
             var jwkJsonObj = new JsonObject();
-            jwkJsonObj.addProperty("kid", jwk.getKid());
-            jwkJsonObj.addProperty("kty", jwk.getKty());
-            jwkJsonObj.addProperty("crv", jwk.getCrv());
-            jwkJsonObj.addProperty("x", jwk.getX());
-            jwkJsonObj.addProperty("y", jwk.getY());
+
+            jwkJsonObj.addProperty("kid", kid);
+
+            var kty = jwk.getKty(); // optional
+            if (kty != null) {
+                jwkJsonObj.addProperty("kty", kty);
+            }
+
+            var crv = jwk.getCrv(); // optional
+            if (crv != null) {
+                jwkJsonObj.addProperty("crv", crv);
+            }
+
+            var x = jwk.getX(); // optional
+            if (x != null) {
+                jwkJsonObj.addProperty("x", x);
+            }
+
+            var y = jwk.getY(); // optional
+            if (y != null) {
+                jwkJsonObj.addProperty("y", y);
+            }
+
             verificationMethodObj.add("publicKeyJwk", jwkJsonObj);
 
             verificationMethod.add(verificationMethodObj);
