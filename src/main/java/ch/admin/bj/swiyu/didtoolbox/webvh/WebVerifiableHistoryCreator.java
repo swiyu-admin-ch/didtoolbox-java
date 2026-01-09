@@ -7,6 +7,8 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.eid.did_sidekicks.DidDoc;
+import ch.admin.eid.did_sidekicks.VerificationMethod;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -23,8 +25,10 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * {@link WebVerifiableHistoryCreator} is a {@link DidLogCreatorStrategy} implementation in charge of
@@ -125,7 +129,6 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
      * @throws DidLogCreatorStrategyException if creation fails for whatever reason
      */
-    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.CyclomaticComplexity"})
     @Override
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
@@ -136,6 +139,12 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         } catch (IOException e) {
             throw new DidLogCreatorStrategyException(e);
         }
+
+        return createDidLog(didDoc, zdt);
+    }
+
+    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.CyclomaticComplexity"})
+    private String createDidLog(JsonObject didDoc, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
         var didLogEntryWithoutProofAndSignature = new JsonObject();
@@ -228,5 +237,97 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         }
 
         return didLogEntryWithProof.toString();
+    }
+
+    /**
+     * A static helper aiming at creation of a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
+     * DID log featuring cryptographic key material from the supplied {@link DidDoc}.
+     *
+     * @param didDoc                a valid <a href="https://www.w3.org/TR/did-1.0/#did-document-properties">DID document</a>
+     *                              object containing cryptographic key material
+     * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t.
+     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
+     * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
+     * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
+     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
+     * @since 1.8.0
+     */
+    public static String createDidLogFromDidDoc(DidDoc didDoc, URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
+
+        var newDidDoc = new JsonObject();
+
+        var ctx = new JsonArray();
+        didDoc.getContext().forEach(ctx::add);
+        newDidDoc.add("@context", ctx);
+
+        var creator = builder().build();
+
+        var did = creator.buildDid(identifierRegistryUrl);
+
+        newDidDoc.addProperty("id", did);
+
+        var authentication = new JsonArray();
+        didDoc.getAuthentication().stream()
+                .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining()))
+                .forEach(authentication::add);
+        newDidDoc.add("authentication", authentication);
+
+        var assertionMethod = new JsonArray();
+        didDoc.getAssertionMethod().stream()
+                .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining()))
+                .forEach(assertionMethod::add);
+        newDidDoc.add("assertionMethod", assertionMethod);
+
+        // Collect cryptographic key material from the supplied DID document object and convert it to JSON according to specification
+        var verificationMethod = new JsonArray();
+        didDoc.getVerificationMethod().stream().map(VerificationMethod::getPublicKeyJwk).forEach(jwk -> {
+
+            var kid = jwk.getKid(); // optional, as specified by https://www.rfc-editor.org/rfc/rfc7517#section-4.5
+            if (kid == null || kid.contains("#") || kid.isEmpty()) { // however, in this context required
+                throw new IllegalArgumentException("Illegal 'kid' (key ID) parameter detected in the supplied DID document");
+            }
+
+            var verificationMethodObj = new JsonObject();
+            verificationMethodObj.addProperty("id", did + "#" + kid);
+
+            // CAUTION The "controller" property must not be present w.r.t.:
+            // - https://confluence.bit.admin.ch/x/3e0EMw
+            verificationMethodObj.addProperty("type", "JsonWebKey2020");
+
+            // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
+            // - https://confluence.bit.admin.ch/x/3e0EMw
+
+            var jwkJsonObj = new JsonObject();
+
+            jwkJsonObj.addProperty("kid", kid);
+
+            var kty = jwk.getKty(); // optional
+            if (kty != null) {
+                jwkJsonObj.addProperty("kty", kty);
+            }
+
+            var crv = jwk.getCrv(); // optional
+            if (crv != null) {
+                jwkJsonObj.addProperty("crv", crv);
+            }
+
+            var x = jwk.getX(); // optional
+            if (x != null) {
+                jwkJsonObj.addProperty("x", x);
+            }
+
+            var y = jwk.getY(); // optional
+            if (y != null) {
+                jwkJsonObj.addProperty("y", y);
+            }
+
+            verificationMethodObj.add("publicKeyJwk", jwkJsonObj);
+
+            verificationMethod.add(verificationMethodObj);
+        });
+
+        newDidDoc.add("verificationMethod", verificationMethod);
+
+        return creator.createDidLog(newDidDoc, zdt); // may throw DidLogCreatorStrategyException
     }
 }

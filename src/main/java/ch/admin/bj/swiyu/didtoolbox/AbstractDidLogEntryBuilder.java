@@ -37,14 +37,10 @@ public abstract class AbstractDidLogEntryBuilder {
         JsonObject verificationMethodObj = new JsonObject();
         verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
         // CAUTION The "controller" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDSYS-35
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("controller", didTDW);
+        // - https://confluence.bit.admin.ch/x/3e0EMw
         verificationMethodObj.addProperty("type", "JsonWebKey2020");
         // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDOMNI-35
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //verificationMethodObj.addProperty("publicKeyMultibase", publicKeyMultibase);
+        // - https://confluence.bit.admin.ch/x/3e0EMw
         verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
 
         return verificationMethodObj;
@@ -199,25 +195,38 @@ public abstract class AbstractDidLogEntryBuilder {
         return didMethodParameters;
     }
 
+    /**
+     * Builds a <a href="https://identity.foundation/didwebvh/v1.0/#method-specific-identifier">method-specific identifier</a>
+     * w.r.t. <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">DID-to-HTTPS-transformation</a>.
+     * <p>
+     * See <a href="https://identity.foundation/didwebvh/v1.0/#example-3">example</a>.
+     *
+     * @param identifierRegistryUrl an HTTPS URL to transform from
+     * @return a DID method-specific identifier
+     */
+    protected String buildDid(URL identifierRegistryUrl) {
+
+        var did = "%s:{SCID}:%s".formatted(getDidMethod().getPrefix(), identifierRegistryUrl.getHost());
+        int port = identifierRegistryUrl.getPort(); // the port number, or -1 if the port is not set
+        if (port != -1) {
+            did = "%s%%3A%d".formatted(did, port);
+        }
+        String path = identifierRegistryUrl.getPath(); // the path part of this URL, or an empty string if one does not exist
+        if (!path.isEmpty()) {
+            did = "%s%s".formatted(did,
+                    path.replace("/did.jsonl", "") // cleanup
+                            .replace("/", ":")); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation);
+        }
+
+        return did;
+    }
+
     protected JsonObject createDidDoc(URL identifierRegistryUrl,
                                       Map<String, String> authenticationKeys,
                                       Map<String, String> assertionMethodKeys,
                                       boolean forceOverwrite) throws IOException {
 
-        // Method-Specific Identifier: https://identity.foundation/didwebvh/v1.0/#method-specific-identifier
-        // W.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation
-        // See also https://identity.foundation/didwebvh/v1.0/#example-7
-        var didTDW = "%s:{SCID}:%s".formatted(getDidMethod().getPrefix(), identifierRegistryUrl.getHost());
-        int port = identifierRegistryUrl.getPort(); // the port number, or -1 if the port is not set
-        if (port != -1) {
-            didTDW = "%s%%3A%d".formatted(didTDW, port);
-        }
-        String path = identifierRegistryUrl.getPath(); // the path part of this URL, or an empty string if one does not exist
-        if (!path.isEmpty()) {
-            didTDW = "%s%s".formatted(didTDW,
-                    path.replace("/did.jsonl", "") // cleanup
-                            .replace("/", ":")); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation);
-        }
+        var did = buildDid(identifierRegistryUrl);
 
         var context = new JsonArray();
         // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:
@@ -228,11 +237,11 @@ public abstract class AbstractDidLogEntryBuilder {
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
         didDoc.add("@context", context);
-        didDoc.addProperty("id", didTDW);
+        didDoc.addProperty("id", did);
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //didDoc.addProperty("controller", didTDW);
+        //didDoc.addProperty("controller", did);
 
         JsonArray verificationMethod = new JsonArray();
 
@@ -240,8 +249,8 @@ public abstract class AbstractDidLogEntryBuilder {
 
             JsonArray authentication = new JsonArray();
             for (var key : authenticationKeys.entrySet()) {
-                authentication.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue(), null, forceOverwrite));
+                authentication.add(did + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, key.getKey(), key.getValue(), null, forceOverwrite));
             }
 
             didDoc.add("authentication", authentication);
@@ -249,10 +258,10 @@ public abstract class AbstractDidLogEntryBuilder {
         } else {
 
             var outputDir = createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "auth-key-01", null, new File(outputDir, "auth-key-01"), forceOverwrite)); // default
+            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, "auth-key-01", null, new File(outputDir, "auth-key-01"), forceOverwrite)); // default
 
             JsonArray authentication = new JsonArray();
-            authentication.add(didTDW + "#" + "auth-key-01");
+            authentication.add(did + "#" + "auth-key-01");
             didDoc.add("authentication", authentication);
         }
 
@@ -260,8 +269,8 @@ public abstract class AbstractDidLogEntryBuilder {
 
             JsonArray assertionMethod = new JsonArray();
             for (var key : assertionMethodKeys.entrySet()) {
-                assertionMethod.add(didTDW + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, key.getKey(), key.getValue(), null, forceOverwrite));
+                assertionMethod.add(did + "#" + key.getKey());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, key.getKey(), key.getValue(), null, forceOverwrite));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
@@ -269,10 +278,10 @@ public abstract class AbstractDidLogEntryBuilder {
         } else {
 
             var outputDir = createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(didTDW, "assert-key-01", null, new File(outputDir, "assert-key-01"), forceOverwrite)); // default
+            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, "assert-key-01", null, new File(outputDir, "assert-key-01"), forceOverwrite)); // default
 
             JsonArray assertionMethod = new JsonArray();
-            assertionMethod.add(didTDW + "#" + "assert-key-01");
+            assertionMethod.add(did + "#" + "assert-key-01");
             didDoc.add("assertionMethod", assertionMethod);
         }
 
