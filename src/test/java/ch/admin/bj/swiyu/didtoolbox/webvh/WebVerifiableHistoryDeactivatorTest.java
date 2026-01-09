@@ -10,8 +10,6 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,32 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 // This will suppress PMD warnings in this (test) class
 @SuppressWarnings({"PMD"})
 class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
-
-    private static Collection<Object[]> keys() {
-        return Arrays.asList(new String[][]{
-                /*
-                All lines in the private/public matrix were generated using openssl command by running the following script:
-
-                openssl genpkey -algorithm ed25519 -out private.pem
-                openssl pkey -inform pem -in private.pem -outform der -out private.der
-                cat private.pem | openssl pkey -pubout -outform der -out public.der
-                cat private.pem | openssl pkey -pubout -out public.pem
-                secret_key_multibase=z$(echo 8026$(xxd -plain -cols 32 -s -32 private.der) | xxd -r -p | bs58)
-                public_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 public.der)  | xxd -r -p | bs58)
-                echo "{\"${secret_key_multibase}\", \"${public_key_multibase}\", \"\"\"\n$(cat public.pem)\n\"\"\"}"
-                 */
-                {"z6MkmwdD6L2F3nZPFDmE5VwfBctqz3iRK3sufLQD7KeqeRmn", "z6Mkk3HuYK5Vah4BjBgHYZtbFzGHufw9TWDgBcXeEtjJEesW", """
------BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAUwJJXsOciz7/TGdT2Osy0nOCqEL0oO67m0P3elFU9D0=
------END PUBLIC KEY-----
-"""},
-                {"z6Mks1E1R9Ec3sQpFAe848dHuniKvgVRibSUoBGgk8QFgdeK", "z6MkfsYSSNJ3vWFceenzLfASHMcYk7e3dEza6vz1RZcyRfcR", """
------BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
------END PUBLIC KEY-----
-"""},
-        });
-    }
 
     private static void assertDeactivatedDidLogEntry(String didLogEntry) {
 

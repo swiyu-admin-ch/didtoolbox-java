@@ -2,6 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
+import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -9,6 +10,7 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -106,4 +108,23 @@ public final class PemUtils {
         return getPrivateKey(bytes, algorithm);
     }
 
+    /**
+     * Returns ASN.1 DER-encoded PKCS#8 private key, if feasible.
+     *
+     * @throws IOException              if a generic PEM writer (based on RFC 1421) fails for any reason
+     * @throws IllegalArgumentException if the supplied PrivateKey implementation does not support encoding
+     *                                  (i.e. export in its primary encoding format)
+     */
+    static String asPkcs8Pem(PrivateKey privateKey) throws IOException {
+        var privateKeyEncoded = privateKey.getEncoded();
+        if (privateKeyEncoded == null) {
+            throw new IllegalArgumentException("The supplied java.security.PrivateKey implementation that does not support encoding");
+        }
+        var w = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(w)) {
+            pemWriter.writeObject(new PemObject("PRIVATE KEY", privateKeyEncoded));
+        }
+
+        return w.toString();
+    }
 }

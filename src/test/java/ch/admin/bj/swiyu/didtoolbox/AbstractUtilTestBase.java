@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,31 +108,31 @@ public abstract class AbstractUtilTestBase {
      * </pre>
      */
     final protected static String[][] TEST_KEYS = new String[][]{
-            {"z6MkiquaFKYtQSfvawZSk6r9DPcfr7L2NAK7WzRLVr86HdPM", "z6MkqbNsNjSx638GN8br34NwCfUZN37rmroum6BesJwMg8n3", """
+            {"z3u2iCfD6b5dW4vV9b8uF1xb2t2SZGETfBsyjhfTF4in4CLc", "z6Mkqc1baWFKrggkLZKUENm5miHajNsZLAAWk14rhx46Xkik", """
 -----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEIEE79Yz9F/pLYb7Zy14CYwjsyCkKye9abB6H5sjRTyCQ
+MC4CAQAwBQYDK2VwBCIEIPxLZijS8GbSE105Xjiofms8nRKTxOWBJQQY/M8esjGl
 -----END PRIVATE KEY-----
 """, """
 -----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEApYTrHmd/Y2FYFKir7VjqTboK9BEAX5kcXFmqRx2Li4g=
+MCowBQYDK2VwAyEApa5yTiKfpVZbJYY6K0KwtdnAG9R8vWq8X/9gE1nylCE=
 -----END PUBLIC KEY-----
 """},
-            {"z6MkiNxGXHiTcKxLiaa6VNzoa6EdHRZ4FEgMX4ixoW5QMW2c", "z6MkvaLb3LJ7Vv9kaYjYwZh249HaBRPWNQKTySdACDLWLsjv", """
+            {"z3u2UUEtR41WAyKAcaGmLzgfjANKt6dcwT5YRmkUUyFdZo1f", "z6MkmSMnpy1m61MmrPyK9XbmqnvZGgzgd9mSU4cqHpFBqU14", """
 -----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEIDpUUuub3SyJ/HI0izp1HmO9gtgq0OKX1Co6bYE5gADB
+MC4CAQAwBQYDK2VwBCIEIDBFku6dTtnlOouoxDJHztCYn3phCwgxbKphopaz+pke
 -----END PRIVATE KEY-----
 """, """
 -----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEA74sxQb+rWZ/n5pgKX9osV6FfZw9yTQ/OnsPfu5NLlOk=
+MCowBQYDK2VwAyEAZ8a5Xaab/uXt8dwuVsyY7dhyLA0phIPnboYMfZdDu28=
 -----END PUBLIC KEY-----
 """},
-            {"z6Mkq6W6P3JmiYvfJGzezXXEMeodr7iT142gCNYUheFYPcSs", "z6MkkVLKBYqrfJbCcELAcDbpDdt9nWexUW9Nc1PLts1fWPpo", """
+            {"z3u2eJ6TNxhz7uWMVCo2EXmu2B9CmT2BMjMYbQoNCgHqDR54", "z6MktBBGPxxRehpwAidG9fpLyPg9juRnc2w8syn5R5nRZyaS", """
 -----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEIJ4fPlGL6zpqkIJEA+RFSfpwEFOrd7mHC39vH92cqB0o
+MC4CAQAwBQYDK2VwBCIEIMJBGfbOGJR5Un3X2gZ1q5xQp/vWa50iL3OZZnnyqAdr
 -----END PRIVATE KEY-----
 """, """
 -----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAWa4cJUqm76RQ9RRxZwQ9EG/37GqeLOXFNoU7v8OomdQ=
+MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
 -----END PUBLIC KEY-----
 """}
     };
@@ -159,24 +160,24 @@ MCowBQYDK2VwAyEAWa4cJUqm76RQ9RRxZwQ9EG/37GqeLOXFNoU7v8OomdQ=
             try {
                 privateKeyPemFile = File.createTempFile("myprivatekey", "");
                 publicKeyPemFile = File.createTempFile("mypublickey", "");
-                TEST_SIGNERS[i] = new UnsafeEd25519VerificationMethodKeyProviderImpl(key[0], key[1]);
+                TEST_SIGNERS[i] = new DalekEd25519VerificationMethodKeyProviderImpl(key[0]);
                 Files.writeString(privateKeyPemFile.toPath(), key[2]);
                 Files.writeString(publicKeyPemFile.toPath(), key[3]);
                 TEST_SIGNING_KEY_FILES[i] = privateKeyPemFile;
                 TEST_KEY_FILES[i++] = publicKeyPemFile;
-            } catch (IOException intolerable) {
+            } catch (IOException | DidSidekicksException intolerable) {
+                //} catch (IOException intolerable) {
                 throw new IllegalArgumentException(intolerable);
             }
             privateKeyPemFile.deleteOnExit();
             publicKeyPemFile.deleteOnExit();
         }
 
-        // Using (example) keys from https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-        TEST_POP_JWS_SIGNER = new UnsafeEd25519ProofOfPossessionJWSSignerImpl(
-                TEST_PRIVATE_KEY_MULTIBASE, TEST_PUBLIC_KEY_MULTIBASE);
-        TEST_VERIFICATION_METHOD_KEY_PROVIDER = TEST_POP_JWS_SIGNER;
-
         try {
+            // Using (example) keys from https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
+            TEST_POP_JWS_SIGNER = new DalekEd25519ProofOfPossessionJWSSignerImpl(TEST_PRIVATE_KEY_MULTIBASE);
+            TEST_VERIFICATION_METHOD_KEY_PROVIDER = TEST_POP_JWS_SIGNER;
+
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
             TEST_POP_JWS_SIGNER_JKS = new Ed25519ProofOfPossessionJWSSignerImpl(
                     Files.newInputStream(Path.of(TEST_DATA_PATH_PREFIX + "mykeystore.jks")), "changeit", "myalias", "changeit");

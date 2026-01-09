@@ -116,7 +116,7 @@ public final class Ed25519Utils {
      * @param multibase is a publicKey encoded as multibase
      * @return publicKey
      */
-    public static byte[] decodeMultibase(String multibase) {
+    public static byte[] decodePublicKeyMultibase(String multibase) {
         if (multibase.isEmpty() || multibase.charAt(0) != 'z') {
             throw new IllegalArgumentException();
         }
@@ -126,7 +126,30 @@ public final class Ed25519Utils {
         if (buf[0] == (byte) 0xed && buf[1] == (byte) 0x01) {// Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
             return Arrays.copyOfRange(buf, 2, buf.length);
         }
+
         throw new IllegalArgumentException("Only Ed25519 public key is supported");
     }
 
+    public static byte[] decodePrivateKeyMultibase(String multibase) {
+        if (multibase.isEmpty() || multibase.charAt(0) != 'z') {
+            throw new IllegalArgumentException();
+        }
+        var buf = Base58.decode(multibase.substring(1));
+
+        // As specified by [Multikey]:
+        //
+        // The encoding of an Ed25519 secret key MUST start with the two-byte prefix 0x8026 (the varint expression of 0x1300),
+        // followed by the 32-byte secret key data. The resulting 34-byte value MUST then be encoded using the base-58-btc alphabet,
+        // according to Section 2.4 Multibase (https://www.w3.org/TR/controller-document/#multibase-0),
+        // and then prepended with the base-58-btc Multibase header (z).
+        //
+        // [Multikey]: https://www.w3.org/TR/controller-document/#Multikey
+        //
+        // See https://github.com/multiformats/multicodec/blob/master/table.csv#L187
+        if (buf[0] == (byte) 0x80 && buf[1] == (byte) 0x26) {
+            return Arrays.copyOfRange(buf, 2, buf.length);
+        }
+
+        throw new IllegalArgumentException("Only Ed25519 private key is supported");
+    }
 }

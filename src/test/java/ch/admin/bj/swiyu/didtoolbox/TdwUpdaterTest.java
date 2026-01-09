@@ -179,13 +179,15 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         }
         publicKeyPemFile.deleteOnExit();
 
-        var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
-        // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialTdwDidLogEntry(verificationMethodKeyProvider);
+        AtomicReference<String> initialDidLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER
+            initialDidLogEntry.set(buildInitialTdwDidLogEntry(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)));
+        });
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
-        StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+        StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry.get()).append(System.lineSeparator());
 
         File finalPublicKeyPemFile = publicKeyPemFile;
         assertDoesNotThrow(() -> {
@@ -216,7 +218,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(2, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            new Did(TdwDidLogMetaPeeker.peek(initialDidLogEntry.get()).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
 
@@ -234,9 +236,11 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         }
         publicKeyPemFile.deleteOnExit();
 
-        var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase, publicKeyMultibase);
-        // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialTdwDidLogEntry(verificationMethodKeyProvider);
+        AtomicReference<String> initialDidLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER
+            initialDidLogEntry.set(buildInitialTdwDidLogEntry(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)));
+        });
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         AtomicReference<StringBuilder> updatedDidLog = new AtomicReference<>();
@@ -246,7 +250,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertDoesNotThrow(() -> {
 
             // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
-            updatedDidLog.set(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()));
+            updatedDidLog.set(new StringBuilder(initialDidLogEntry.get()).append(System.lineSeparator()));
             for (int i = 2; i < totalEntriesCount + 1; i++) { // update DID log by adding several new entries
 
                 nextLogEntry.set(TdwUpdater.builder()

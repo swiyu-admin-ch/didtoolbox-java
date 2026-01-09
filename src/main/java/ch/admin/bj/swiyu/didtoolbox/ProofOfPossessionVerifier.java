@@ -125,7 +125,7 @@ public class ProofOfPossessionVerifier {
         // check if the value of JWT claim 'kid' matches the DataIntegrityProof did:key:* value (in DID log)
         var kid = signedJWT.getHeader().getKeyID();
         var publicKeyMultibase = kid.split("#")[1];
-        var publicKey = Ed25519Utils.decodeMultibase(publicKeyMultibase);
+        var publicKey = Ed25519Utils.decodePublicKeyMultibase(publicKeyMultibase);
 
         if (!this.updateKeys.contains(publicKeyMultibase)) {
             throw ProofOfPossessionVerifierException.keyMismatch(publicKeyMultibase);

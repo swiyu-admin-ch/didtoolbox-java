@@ -23,7 +23,10 @@ public final class JCSHasher {
     public static final String PROOF_PURPOSE_AUTHENTICATION = "authentication";
     public static final String PROOF_PURPOSE_ASSERTION_METHOD = "assertionMethod";
 
+    //final private ch.admin.eid.did_sidekicks.JcsSha256Hasher hasher;
+
     private JCSHasher() {
+        // TODO hasher = ch.admin.eid.did_sidekicks.JcsSha256Hasher.Companion.`default`();
     }
 
     /**

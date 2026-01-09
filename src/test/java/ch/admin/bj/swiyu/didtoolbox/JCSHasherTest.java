@@ -116,31 +116,17 @@ class JCSHasherTest {
     @MethodSource("multihashInputExpected")
     public void testMultihash(String input, String expectedHex) {
 
-        String actual = null;
-        try {
-
-            actual = HexFormat.of().formatHex(JCSHasher.multihash(input)); // MUT
-
-        } catch (Exception e) {
-            fail(e);
-        }
-
-        assertEquals(expectedHex, actual);
+        assertDoesNotThrow(() -> {
+            assertEquals(expectedHex, HexFormat.of().formatHex(JCSHasher.multihash(input))); // MUT
+        });
     }
 
     @Test
     public void testBuildSCID() { // according to https://identity.foundation/didwebvh/v0.3/#didtdw-example
 
-        String actual = null;
-        try {
-
-            actual = JCSHasher.buildSCID(buildDidLogEntryWithoutProofAndSignature()); // MUT
-
-        } catch (Exception e) {
-            fail(e);
-        }
-
-        assertEquals("Qma6mc1qZw3NqxwX6SB5GPQYzP4pGN2nXD15Jwi4bcDBKu", actual);
+        assertDoesNotThrow(() -> {
+            assertEquals("Qma6mc1qZw3NqxwX6SB5GPQYzP4pGN2nXD15Jwi4bcDBKu", JCSHasher.buildSCID(buildDidLogEntryWithoutProofAndSignature())); // MUT
+        });
     }
 
     @Test
@@ -201,8 +187,8 @@ class JCSHasherTest {
     @Test
     public void testBuildDataIntegrityProofExample() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
 
-        var credentialsWithoutProof = JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject();
-        try {
+        assertDoesNotThrow(() -> {
+            var credentialsWithoutProof = JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject();
 
             String docHashHex = JCSHasher.hashAsHex(credentialsWithoutProof);
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-credential-without-proof-hex-0
@@ -215,7 +201,7 @@ class JCSHasherTest {
             JsonObject actual = JCSHasher.buildDataIntegrityProof(
                     credentialsWithoutProof,
                     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-                    new UnsafeEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
+                    new DalekEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"),
                     null, // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
                     "assertionMethod",
                     ZonedDateTime.parse("2023-02-24T23:36:38Z"));
@@ -227,17 +213,14 @@ class JCSHasherTest {
             assertNotNull(actual.remove("proofValue"));
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-proof-options-document-hex-1
             assertEquals("66ab154f5c2890a140cb8388a22a160454f80575f6eae09e5a097cabe539a1db", JCSHasher.hashAsHex(actual));
-
-        } catch (Exception e) {
-            fail(e);
-        }
+        });
     }
 
     @Test
     public void testBuildDataIntegrityProofExampleWithChallenge() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
 
-        var credentialsWithoutProof = JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject();
-        try {
+        assertDoesNotThrow(() -> {
+            var credentialsWithoutProof = JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject();
 
             String docHashHex = JCSHasher.hashAsHex(credentialsWithoutProof);
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-hash-of-canonical-credential-without-proof-hex-0
@@ -250,7 +233,7 @@ class JCSHasherTest {
             JsonObject actual = JCSHasher.buildDataIntegrityProof(
                     credentialsWithoutProof,
                     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-                    new UnsafeEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq", "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2"),
+                    new DalekEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"),
                     "1-" + JCSHasher.buildSCID(credentialsWithoutProof), // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
                     "assertionMethod",
                     ZonedDateTime.parse("2023-02-24T23:36:38Z"));
@@ -268,10 +251,6 @@ class JCSHasherTest {
             //         is irrelevant here since the PROOF_OPTIONS_DOCUMENT (suggested by https://www.w3.org/TR/vc-di-eddsa/#example-proof-options-document-1)
             //         features NO proof's challenge.
             assertEquals("49dc22583675513d1f0018c7e855bb8406a33d800cadced81838704a0d5d9615", JCSHasher.hashAsHex(actual));
-
-        } catch (Exception e) {
-            fail(e);
-        }
+        });
     }
-
 }

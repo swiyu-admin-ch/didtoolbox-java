@@ -270,15 +270,18 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
     @Test
     void testUpdateDidLogWithKeyAlternation() {
 
-        var verificationMethodKeyProvider = new UnsafeEd25519VerificationMethodKeyProviderImpl(TEST_KEYS[0][0], TEST_KEYS[0][1]);
         // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
-        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(verificationMethodKeyProvider);
+        AtomicReference<String> initialDidLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            initialDidLogEntry.set(buildInitialWebVerifiableHistoryDidLogEntry(
+                    new DalekEd25519VerificationMethodKeyProviderImpl(TEST_KEYS[0][0])));
+        });
 
-        assertTrue(JsonParser.parseString(initialDidLogEntry).getAsJsonObject().get("parameters").getAsJsonObject().has("updateKeys")); // denotes key pre-rotation
+        assertTrue(JsonParser.parseString(initialDidLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject().has("updateKeys")); // denotes key pre-rotation
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
-        StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+        StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry.get()).append(System.lineSeparator());
 
         assertDoesNotThrow(() -> {
             nextLogEntry.set(WebVerifiableHistoryUpdater.builder()
@@ -305,7 +308,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
         assertDoesNotThrow(() -> {
             assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            var resolveAll = new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            var resolveAll = new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry.get()).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
             // At this point, it is sufficient just to check on 'updateKeys'
             var params = resolveAll.getDidMethodParameters();
             assertTrue(params.containsKey(NamedDidMethodParameters.UPDATE_KEYS));

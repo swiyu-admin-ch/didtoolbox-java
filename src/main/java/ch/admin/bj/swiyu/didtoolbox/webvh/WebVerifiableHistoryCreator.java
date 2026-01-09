@@ -38,10 +38,10 @@ import java.util.Set;
  * log goes simply by calling {@link #createDidLog(URL)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
- * <li>{@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load keys from the file system, the following helpers are available:
@@ -98,8 +98,8 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log by taking into account other
      * features of this {@link WebVerifiableHistoryCreator} object, optionally customized by previously calling fluent methods like
-     * {@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider}, {@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} or
-     * {@link WebVerifiableHistoryCreator.WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)}.
+     * {@link WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider}, {@link WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} or
+     * {@link WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)}.
      *
      * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
      *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>

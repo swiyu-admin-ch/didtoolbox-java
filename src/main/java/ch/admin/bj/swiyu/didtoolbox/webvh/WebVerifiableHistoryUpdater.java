@@ -322,7 +322,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+        //proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());
         proofs.add(proof);
         didLogEntryWithProof.add("proof", proofs);
 

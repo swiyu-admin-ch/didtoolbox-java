@@ -119,7 +119,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
     @ParameterizedTest(name = "Converting key: {0}")
     @MethodSource("publicKeyMultibase")
     void testFromMultibase(String publicKeyMultibase) {
-        var decoded = Ed25519Utils.decodeMultibase(publicKeyMultibase);
+        var decoded = Ed25519Utils.decodePublicKeyMultibase(publicKeyMultibase);
         var encoded = Ed25519Utils.encodeMultibase(decoded);
         assertEquals(publicKeyMultibase, encoded);
     }
@@ -128,13 +128,13 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
     @Test
     void testFromMultibaseWithInvalidValues() {
         var nonMultibaseValue = "just some random string";
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(nonMultibaseValue));
+        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodePublicKeyMultibase(nonMultibaseValue));
 
         var emptyMultibaseValue = "";
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(emptyMultibaseValue));
+        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodePublicKeyMultibase(emptyMultibaseValue));
 
         var missingPrefixMultibaseValue = "6MkrBQ9BhY6odonjhdwpkZ5eD7BawVXiyR1S24wsD7xXvPS";
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(missingPrefixMultibaseValue));
+        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodePublicKeyMultibase(missingPrefixMultibaseValue));
 
         var buff = ByteBuffer.allocate(34);
         buff.put((byte) 0xed);
@@ -142,7 +142,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         buff.put(Arrays.copyOfRange(TEST_PUBLIC_KEY_ANOTHER, 0, TEST_PUBLIC_KEY_ANOTHER.length));
         // base64, see https://github.com/multiformats/multibase/blob/master/multibase.csv#L23
         var base64MultibaseValue = "m" + Base64.encode(buff.array());
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(base64MultibaseValue));
+        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodePublicKeyMultibase(base64MultibaseValue));
 
         buff = ByteBuffer.allocate(34);
         // private key Ed25519, see https://github.com/multiformats/multicodec/blob/master/table.csv#L182
@@ -150,6 +150,6 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         buff.put((byte) 0x00);
         buff.put(Arrays.copyOfRange(TEST_PRIVATE_KEY_ANOTHER, 0, TEST_PRIVATE_KEY_ANOTHER.length));
         var unsupportedTypeMultibaseValue = "z" + Base58.encode(buff.array());
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(unsupportedTypeMultibaseValue));
+        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodePublicKeyMultibase(unsupportedTypeMultibaseValue));
     }
 }
