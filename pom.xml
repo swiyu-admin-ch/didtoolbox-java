@@ -62,16 +62,15 @@
         <project.main.class>ch.admin.bj.swiyu.didtoolbox.Main</project.main.class>
         <!--project.dependencies.directory>lib/</project.dependencies.directory-->
 
-        <didresolver.version>2.5.0</didresolver.version>
+        <didresolver.version>2.6.0</didresolver.version>
         <jna.version>5.17.0</jna.version>
         <gson.version>2.13.2</gson.version>
         <java-multibase.version>v1.2.1</java-multibase.version>
-        <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
         <lombok.version>1.18.42</lombok.version>
         <jcommander.version>3.0</jcommander.version>
         <bouncycastle.version>1.83</bouncycastle.version>
-        <nimbus-jose-jwt.version>10.6</nimbus-jose-jwt.version>
-        <tink.version>1.19.0</tink.version>
+        <nimbus-jose-jwt.version>10.7</nimbus-jose-jwt.version>
+        <tink.version>1.20.0</tink.version>
         <junit-jupiter.version>5.11.4</junit-jupiter.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
     </properties>
@@ -244,7 +243,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -306,7 +305,7 @@
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.9.0</version>
+                <version>0.10.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>
@@ -557,12 +556,6 @@
             <groupId>com.github.multiformats</groupId>
             <artifactId>java-multibase</artifactId>
             <version>${java-multibase.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/io.github.erdtman/java-json-canonicalization -->
-        <dependency>
-            <groupId>io.github.erdtman</groupId>
-            <artifactId>java-json-canonicalization</artifactId>
-            <version>${java-json-canonicalization.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on -->
         <!-- https://www.bouncycastle.org/download/bouncy-castle-java/?filter=java%3Drelease-1-81 -->

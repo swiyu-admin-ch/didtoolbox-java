@@ -1,10 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.eid.did_sidekicks.*;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import io.ipfs.multibase.Base58;
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.signers.Ed25519Signer;
 
 import java.io.File;
 import java.net.URL;
@@ -12,7 +12,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The {@link DalekEd25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation
@@ -26,7 +28,7 @@ import java.util.List;
  * <a href="https://github.com/dalek-cryptography/curve25519-dalek/tree/main/ed25519-dalek">Dalek elliptic curve cryptography</a>,
  * a fast end efficient Rust implementation of ed25519 key generation, signing, and verification.
  * <p>
- * It is predominantly intended to be used within a:
+ * As any other {@link VerificationMethodKeyProvider} implementation, it is predominantly intended to be used in conjunction with:
  * <ul>
  * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext.DidLogCreatorContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#create(URL)} call)</li>
@@ -40,11 +42,17 @@ import java.util.List;
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
  * </ul>
  */
-public class DalekEd25519VerificationMethodKeyProviderImpl extends Ed25519VerificationMethodKeyProviderImpl {
+public class DalekEd25519VerificationMethodKeyProviderImpl implements VerificationMethodKeyProvider {
 
     protected Ed25519SigningKey signingKey;
     protected EddsaJcs2022Cryptosuite cryptoSuite;
 
+    /**
+     * The empty constructor delivers a fully operational <a href="https://w3c.github.io/vc-di-eddsa/#eddsa-jcs-2022">eddsa-jcs-2022</a> cryptosuite.
+     * <p>
+     * Both new Ed25519 signing key (as defined in <a href="https://www.rfc-editor.org/rfc/rfc8032#section-5.1">RFC8032 § 5.1.5</a>)
+     * as well as a suitable <a href="https://w3c.github.io/vc-di-eddsa/#eddsa-jcs-2022">eddsa-jcs-2022</a> cryptosuite will be generated as well.
+     */
     public DalekEd25519VerificationMethodKeyProviderImpl() {
         signingKey = Ed25519SigningKey.Companion.generate();
         cryptoSuite = EddsaJcs2022Cryptosuite.Companion.fromSigningKey(signingKey);
@@ -58,7 +66,7 @@ public class DalekEd25519VerificationMethodKeyProviderImpl extends Ed25519Verifi
      * @throws DidSidekicksException if any of the given key specifications is inappropriate for its key factory to produce a key.
      */
     public DalekEd25519VerificationMethodKeyProviderImpl(File pkcs8PemFile) throws DidSidekicksException {
-        signingKey = Ed25519SigningKey.Companion.readPkcs8PemFile(pkcs8PemFile.toPath().toString());
+        signingKey = Ed25519SigningKey.Companion.readPkcs8PemFile(pkcs8PemFile.getPath());
         cryptoSuite = EddsaJcs2022Cryptosuite.Companion.fromSigningKey(signingKey);
     }
 
@@ -80,21 +88,25 @@ public class DalekEd25519VerificationMethodKeyProviderImpl extends Ed25519Verifi
     }
 
     /**
+     * Write ASN.1 DER-encoded PKCS#8 private key to the given path.
+     * <p>
      * CAUTION The method does not ensure that the private key file access is restricted to the current user only.
      *
-     * @param pkcs8PemFile to store the key
-     * @throws DidSidekicksException
+     * @param pkcs8PemFile to store the key into
+     * @throws DidSidekicksException if the writing operation fails
      */
-    void writePkcs8PemFile(String pkcs8PemFile) throws DidSidekicksException {
-        signingKey.writePkcs8PemFile(pkcs8PemFile);
+    void writePkcs8PemFile(File pkcs8PemFile) throws DidSidekicksException {
+        signingKey.writePkcs8PemFile(pkcs8PemFile.getPath());
     }
 
     /**
-     * @param publicKeyPemFile to store the key
-     * @throws DidSidekicksException
+     * Write ASN.1 DER-encoded public key to the given file.
+     *
+     * @param publicKeyPemFile to store the key into
+     * @throws DidSidekicksException if the writing operation fails
      */
-    public void writePublicKeyAsPem(String publicKeyPemFile) throws DidSidekicksException {
-        signingKey.getVerifyingKey().writePublicKeyPemFile(publicKeyPemFile);
+    public void writePublicKeyPemFile(File publicKeyPemFile) throws DidSidekicksException {
+        signingKey.getVerifyingKey().writePublicKeyPemFile(publicKeyPemFile.getPath());
     }
 
     /**
@@ -112,47 +124,30 @@ public class DalekEd25519VerificationMethodKeyProviderImpl extends Ed25519Verifi
         return signingKey.getVerifyingKey().toMultibase();
     }
 
-    /**
-     * The {@link VerificationMethodKeyProvider} interface method implementation using Ed25519 algorithm.
-     *
-     * @param message to sign
-     * @return signed message
-     */
     @Override
     public byte[] generateSignature(byte[] message) {
-        /* TODO Call this.signingKey.sign() method, instead of relying on org.bouncycastle.crypto.* classes
-        return Base58.decode(this.signingKey.sign(StringUtils.newStringUtf8(message)).toMultibase().substring(1));
-         */
-
-        // may throw java.lang.IllegalArgumentException: invalid public key
-        var secretKeyParameters = new Ed25519PrivateKeyParameters(
-                Ed25519Utils.decodePrivateKeyMultibase(this.signingKey.toMultibase()), 0);
-        var signer = new Ed25519Signer();
-        signer.init(true, secretKeyParameters);
-        signer.update(message, 0, message.length);
-
-        return signer.generateSignature();
-    }
-
-    /*
-    @Override
-    public PrivateKey getSigningKey() throws InvalidKeySpecException {
-        File privateKeyPemFile = null;
         try {
-            privateKeyPemFile = File.createTempFile("myprivatekey", "");
-            signingKey.writePkcs8PemFile(privateKeyPemFile.getPath());
-            return PemUtils.readPrivateKeyFromFile(privateKeyPemFile.getPath(), "Ed25519");
-        } catch (IOException | DidSidekicksException | NoSuchAlgorithmException intolerable) {
-            throw new IllegalArgumentException(intolerable);
-        } finally {
-            if (privateKeyPemFile != null) {
-                privateKeyPemFile.deleteOnExit();
-            }
+            return Base58.decode(this.signingKey.signHex(HexFormat.of().formatHex(message)).toMultibase().substring(1));
+        } catch (DidSidekicksException e) {
+            // The 'signHex' will never fail as long HexFormat.of().formatHex call ensures the message is supplied as hex-encoded string
+            throw new RuntimeException(e);
         }
     }
-     */
 
-    boolean verify(byte[] message, byte[] signature) {
+    @Override
+    public boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys) {
+        return multibaseEncodedKeys.contains(this.getVerificationKeyMultibase());
+    }
+
+    /**
+     * "Strictly" verify a signature on a message with "malleability" in mind, as thoroughly elaborated
+     * <a href="https://docs.rs/ed25519-dalek/latest/ed25519_dalek/struct.VerifyingKey.html#method.verify_strict">here</a>.
+     *
+     * @param message   to verify the supplied signature for
+     * @param signature multibase-encoded Ed25519 signature on the supplied message
+     * @return {@code true} if the signature is valid, otherwise {@code false}.
+     */
+    boolean verifyStrict(byte[] message, byte[] signature) {
 
         Ed25519Signature sign;
         try {
@@ -172,29 +167,27 @@ public class DalekEd25519VerificationMethodKeyProviderImpl extends Ed25519Verifi
         }
 
         return true;
-
-        /*
-        // may throw java.lang.IllegalArgumentException: invalid public key
-        Ed25519PublicKeyParameters publicKeyParameters = new Ed25519PublicKeyParameters(
-                Ed25519Utils.decodePublicKeyMultibase(this.signingKey.getVerifyingKey().toMultibase()), 0);
-        var verifier = new Ed25519Signer();
-        verifier.init(false, publicKeyParameters);
-        verifier.update(message, 0, message.length);
-
-        return verifier.verifySignature(signature);
-         */
     }
 
-    public String addEddsaJcs2022DataIntegrityProof(JsonElement unsecuredDocument,
+    @Override
+    public String addEddsaJcs2022DataIntegrityProof(String unsecuredDocument,
                                                     String challenge,
                                                     String proofPurpose,
                                                     ZonedDateTime dateTime)
-            throws DidSidekicksException {
+            throws VerificationMethodKeyProviderException {
+
+        JsonObject unsecuredDocumentJsonObject;
+        try {
+            unsecuredDocumentJsonObject = JsonParser.parseString(unsecuredDocument).getAsJsonObject();
+        } catch (JsonSyntaxException | IllegalStateException ex) {
+            throw new VerificationMethodKeyProviderException(ex.getMessage());
+        }
 
         var verifyingKeyMultibase = this.signingKey.getVerifyingKey().toMultibase();
 
-        // If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context.
-        var ctx = unsecuredDocument.getAsJsonObject().get("@context");
+        // According to https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022:
+        // 2) If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context.
+        var ctx = unsecuredDocumentJsonObject.get("@context");
         List<String> context = new ArrayList<>();
         if (ctx != null && ctx.isJsonArray()) {
             ctx.getAsJsonArray().forEach(jsonElement -> {
@@ -202,26 +195,25 @@ public class DalekEd25519VerificationMethodKeyProviderImpl extends Ed25519Verifi
             });
         }
 
-        var securedDoc = this.cryptoSuite.addProof(
-                unsecuredDocument.toString(),
-                CryptoSuiteProofOptions.Companion.newEddsaJcs2022(
-                        DateTimeFormatter.ISO_INSTANT.format(dateTime.truncatedTo(ChronoUnit.SECONDS)),
-                        "did:key:" + verifyingKeyMultibase + '#' + verifyingKeyMultibase,
-                        proofPurpose,
-                        context,
-                        challenge
-                )
-        );
+        List<String> finalContext = null;
+        if (!context.isEmpty()) {
+            finalContext = context;
+        }
 
-        /*
-        // sanity check
-        var proof = JsonParser.parseString(securedDoc).getAsJsonObject().get("proof");
-        this.cryptoSuite.verifyProof( // may throw DidSidekicksException
-                DataIntegrityProof.Companion.fromJsonString(proof.toString()),
-                JCSHasher.hashAsHex(unsecuredDocument)
-        );
-         */
+        try {
+            return this.cryptoSuite.addProof(
+                    unsecuredDocument,
+                    CryptoSuiteProofOptions.Companion.newEddsaJcs2022(
+                            DateTimeFormatter.ISO_INSTANT.format(dateTime.truncatedTo(ChronoUnit.SECONDS)),
+                            "did:key:" + verifyingKeyMultibase + '#' + verifyingKeyMultibase,
+                            proofPurpose,
+                            finalContext,
+                            challenge
+                    )
+            );
 
-        return securedDoc;
+        } catch (DidSidekicksException e) {
+            throw new VerificationMethodKeyProviderException(e);
+        }
     }
 }

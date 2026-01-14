@@ -6,6 +6,8 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -57,7 +59,7 @@ import java.time.temporal.ChronoUnit;
 public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
     @Builder.Default
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -233,9 +235,9 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash;
-        try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (IOException e) {
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            entryHash = hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
+        } catch (DidSidekicksException e) {
             throw new DidLogDeactivatorStrategyException(e);
         }
 
@@ -257,7 +259,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         JsonObject proof;
         try {
             proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
-        } catch (IOException e) {
+        } catch (DidSidekicksException e) {
             throw new DidLogDeactivatorStrategyException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"

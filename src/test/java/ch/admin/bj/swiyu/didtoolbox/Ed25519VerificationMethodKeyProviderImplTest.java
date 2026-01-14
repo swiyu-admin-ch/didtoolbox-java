@@ -1,12 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import org.bouncycastle.util.encoders.Hex;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,8 +19,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,7 +53,7 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
     @MethodSource("keyMessageSignature")
     public void testSign(String unusedPrivateKeyMultibase, String unusedPublicKeyMultibase, String message) {
 
-        var signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl()
+        var signed = HexFormat.of().formatHex(new Ed25519VerificationMethodKeyProviderImpl()
                 .generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
@@ -112,7 +116,7 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
     public void testSignUsingJKS(String unusedPrivateKeyMultibase, String unusedPublicKeyMultibase, String message, String expected)
             throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, KeyException {
 
-        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "myalias", "changeit").generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
+        String signed = HexFormat.of().formatHex(new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "myalias", "changeit").generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -125,7 +129,7 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
     public void testVerifyUsingJKS(String unusedPrivateKeyMultibase, String unusedPublicKeyMultibase, String message, String expected)
             throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, KeyException {
 
-        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "myalias", "changeit").verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
+        boolean verified = new Ed25519VerificationMethodKeyProviderImpl(Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "myalias", "changeit").verify(message.getBytes(StandardCharsets.UTF_8), HexFormat.of().parseHex(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -134,9 +138,9 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
     @ParameterizedTest(name = "Signing: {2}")
     @MethodSource("keyMessageSignature")
     public void testSignUsingPemKeys(String unusedPrivateKey, String unusedPublicKey, String message, String expected)
-            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, DidSidekicksException {
 
-        String signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(
+        String signed = HexFormat.of().formatHex(new Ed25519VerificationMethodKeyProviderImpl(
                 Files.newBufferedReader(Path.of("src/test/data/private.pem")),
                 Files.newBufferedReader(Path.of("src/test/data/public.pem"))).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
@@ -146,9 +150,9 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
 
         // Using another ("hybrid") signature
 
-        signed = Hex.toHexString(new Ed25519VerificationMethodKeyProviderImpl(
+        signed = HexFormat.of().formatHex(new Ed25519VerificationMethodKeyProviderImpl(
                 Files.newBufferedReader(Path.of("src/test/data/private.pem")),
-                PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem"))).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
+                PemUtils.readEd25519PublicKeyPemFileToMultibase(new File("src/test/data/public.pem"))).generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
 
         assertNotNull(signed);
         assertEquals(128, signed.length());
@@ -159,11 +163,11 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
     @ParameterizedTest(name = "Verifying signed message: {2}")
     @MethodSource("keyMessageSignature")
     public void testVerifyUsingPemKeys(String unusedPrivateKeyMultibase, String unusedPublicKeyMultibase, String message, String expected)
-            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, DidSidekicksException {
 
         boolean verified = new Ed25519VerificationMethodKeyProviderImpl(
                 Files.newBufferedReader(Path.of("src/test/data/private.pem")),
-                Files.newBufferedReader(Path.of("src/test/data/public.pem"))).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
+                Files.newBufferedReader(Path.of("src/test/data/public.pem"))).verify(message.getBytes(StandardCharsets.UTF_8), HexFormat.of().parseHex(expected)); // MUT
 
         assertTrue(verified);
 
@@ -171,7 +175,7 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
 
         verified = new Ed25519VerificationMethodKeyProviderImpl(
                 Files.newBufferedReader(Path.of("src/test/data/private.pem")),
-                PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem"))).verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected)); // MUT
+                PemUtils.readEd25519PublicKeyPemFileToMultibase(new File("src/test/data/public.pem"))).verify(message.getBytes(StandardCharsets.UTF_8), HexFormat.of().parseHex(expected)); // MUT
 
         assertTrue(verified);
     }
@@ -189,6 +193,58 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
 
         assertThrowsExactly(InvalidKeySpecException.class, () -> {
             new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(Path.of("src/test/data/public.pem")), Files.newBufferedReader(Path.of("src/test/data/public.pem"))); // wrong private key PEM file
+        });
+    }
+
+    @Test
+    public void testAddEddsaJcs2022DataIntegrityProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
+
+        File privateKeyPemFile, publicKeyPemFile;
+        try {
+            privateKeyPemFile = File.createTempFile("myprivatekey", "");
+            publicKeyPemFile = File.createTempFile("mypublickey", "");
+            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
+            var dalek = new DalekEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq");
+            dalek.writePkcs8PemFile(privateKeyPemFile);
+            dalek.writePublicKeyPemFile(publicKeyPemFile);
+        } catch (IOException | DidSidekicksException intolerable) {
+            throw new IllegalArgumentException(intolerable);
+        }
+        privateKeyPemFile.deleteOnExit();
+        publicKeyPemFile.deleteOnExit();
+
+        assertDoesNotThrow(() -> {
+
+            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
+            var credentialsWithProof = new Ed25519VerificationMethodKeyProviderImpl(
+                    new FileReader(privateKeyPemFile), new FileReader(publicKeyPemFile))
+                    .addEddsaJcs2022DataIntegrityProof(
+                            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
+                            """
+                                    {
+                                         "@context": [
+                                             "https://www.w3.org/ns/credentials/v2",
+                                             "https://www.w3.org/ns/credentials/examples/v2"
+                                         ],
+                                         "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
+                                         "type": ["VerifiableCredential", "AlumniCredential"],
+                                         "name": "Alumni Credential",
+                                         "description": "A minimum viable example of an Alumni Credential.",
+                                         "issuer": "https://vc.example/issuers/5678",
+                                         "validFrom": "2023-01-01T00:00:00Z",
+                                         "credentialSubject": {
+                                             "id": "did:example:abcdefgh",
+                                             "alumniOf": "The School of Examples"
+                                         }
+                                    }
+                                    """,
+                            null, // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
+                            "assertionMethod",
+                            ZonedDateTime.parse("2023-02-24T23:36:38Z")); // MUT
+
+            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-signature-of-combined-hashes-base58-btc-1
+            assertEquals("z2HnFSSPPBzR36zdDgK8PbEHeXbR56YF24jwMpt3R1eHXQzJDMWS93FCzpvJpwTWd3GAVFuUfjoJdcnTMuVor51aX",
+                    JsonParser.parseString(credentialsWithProof).getAsJsonObject().get("proof").getAsJsonArray().get(0).getAsJsonObject().get("proofValue").getAsString());
         });
     }
 }

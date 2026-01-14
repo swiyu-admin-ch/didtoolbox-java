@@ -6,6 +6,8 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
-import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -69,7 +70,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     private Map<String, String> authenticationKeys;
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
     @Getter(AccessLevel.PRIVATE)
@@ -167,7 +168,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         try {
             // CAUTION nextKeyHashes parameter (pre-rotation keys) not (yet) implemented for the class
             didLogEntryWithoutProofAndSignature.add(createDidParams(this.verificationMethodKeyProvider, this.updateKeys, null));
-        } catch (InvalidKeySpecException | IOException ex) {
+        } catch (DidSidekicksException ex) {
             throw new DidLogCreatorStrategyException(ex);
         }
 
@@ -179,9 +180,9 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
 
         // Generate SCID and replace placeholder in did doc
         String scid;
-        try {
-            scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (IOException e) {
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            scid = hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
+        } catch (DidSidekicksException e) {
             throw new DidLogCreatorStrategyException(e);
         }
 
@@ -206,9 +207,9 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash;
-        try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
-        } catch (IOException e) {
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            entryHash = hasher.base58btcEncodeMultihash(didLogEntryWithSCIDWithoutProofAndSignature.toString());
+        } catch (DidSidekicksException e) {
             throw new DidLogCreatorStrategyException(e);
         }
 
@@ -231,7 +232,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
             proofs.add(JCSHasher.buildDataIntegrityProof(
                     didDoc, false, this.verificationMethodKeyProvider, challenge, JCSHasher.PROOF_PURPOSE_AUTHENTICATION, zdt
             ));
-        } catch (IOException e) {
+        } catch (DidSidekicksException e) {
             throw new DidLogCreatorStrategyException(e);
         }
         didLogEntryWithProof.add(proofs);

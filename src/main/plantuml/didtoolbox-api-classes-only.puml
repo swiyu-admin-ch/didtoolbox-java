@@ -7,16 +7,18 @@ left to right direction
 class ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl {
 	{field} #cryptoSuite : ch.admin.eid.did_sidekicks.EddsaJcs2022Cryptosuite
 	{field} #signingKey : ch.admin.eid.did_sidekicks.Ed25519SigningKey
-	{method} +addEddsaJcs2022DataIntegrityProof ( paramJsonElement1 : com.google.gson.JsonElement , paramString2 : String , paramString3 : String , paramZonedDateTime4 : java.time.ZonedDateTime ) : String
+	{method} +addEddsaJcs2022DataIntegrityProof ( paramString1 : String , paramString2 : String , paramString3 : String , paramZonedDateTime4 : java.time.ZonedDateTime ) : String
 	{method} +generateSignature ( param[B1 : [B ) : [B
 	{method} +getVerificationKeyMultibase () : String
-	{method} +writePublicKeyAsPem ( paramString1 : String ) : void
+	{method} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
+	{method} +writePublicKeyPemFile ( paramFile1 : java.io.File ) : void
 }
 
 
 class ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl {
 	{field} #keyPair : java.security.KeyPair
 	{field} #provider : java.security.Provider
+	{method} +addEddsaJcs2022DataIntegrityProof ( paramString1 : String , paramString2 : String , paramString3 : String , paramZonedDateTime4 : java.time.ZonedDateTime ) : String
 	{method} +generateSignature ( param[B1 : [B ) : [B
 	{method} +getVerificationKeyMultibase () : String
 	{method} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
@@ -25,9 +27,14 @@ class ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl {
 
 
 interface ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider {
+	{method}  {abstract} +addEddsaJcs2022DataIntegrityProof ( paramString1 : String , paramString2 : String , paramString3 : String , paramZonedDateTime4 : java.time.ZonedDateTime ) : String
 	{method}  {abstract} +generateSignature ( param[B1 : [B ) : [B
 	{method}  {abstract} +getVerificationKeyMultibase () : String
 	{method}  {abstract} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProviderException {
 }
 
 
@@ -126,7 +133,7 @@ class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMet
 
 
 
-ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl --|>  ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl
+ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod

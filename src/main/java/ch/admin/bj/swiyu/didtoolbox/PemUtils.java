@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.Ed25519VerifyingKey;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
@@ -10,7 +12,6 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -64,28 +65,18 @@ public final class PemUtils {
         return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
     }
 
-    public static String parsePEMFilePublicKeyEd25519Multibase(File pemFile) throws InvalidKeySpecException, IOException {
+    public static String readEd25519PublicKeyPemFileToMultibase(File pemFile) throws DidSidekicksException {
 
-        PublicKey pubKey = PemUtils.getPublicKeyEd25519(parsePEMFile(pemFile));
-
-        // may throw IllegalArgumentException if the supplied public key does not support encoding
-        return Ed25519Utils.encodeMultibase(pubKey);
+        try (var publicKey = Ed25519VerifyingKey.Companion.readPublicKeyPemFile(pemFile.getPath())) {
+            return publicKey.toMultibase();
+        }
     }
 
-    static String parsePEMPublicKeyEd25519Multibase(String pemPublicKey) throws InvalidKeySpecException, IOException {
+    static String fromEd25519PublicKeyPemToMultibase(String pemPublicKey) throws IOException, DidSidekicksException {
 
-        File tempFile = File.createTempFile("mypublickey", ".pem");
-        tempFile.deleteOnExit();
-
-        Writer w = Files.newBufferedWriter(tempFile.toPath());
-        try {
-            w.write(pemPublicKey);
-            w.flush();
-        } finally {
-            w.close();
+        try (var publicKey = Ed25519VerifyingKey.Companion.fromPublicKeyPem(pemPublicKey)) {
+            return publicKey.toMultibase();
         }
-
-        return parsePEMFilePublicKeyEd25519Multibase(tempFile);
     }
 
     static PrivateKey getPrivateKeyEd25519(byte[] encodedKey) throws InvalidKeySpecException {

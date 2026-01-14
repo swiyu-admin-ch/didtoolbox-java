@@ -6,6 +6,8 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -20,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
-import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -75,7 +76,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     private Map<String, String> authenticationKeys;
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
@@ -287,9 +288,9 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash;
-        try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (IOException e) {
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            entryHash = hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
+        } catch (DidSidekicksException e) {
             throw new DidLogUpdaterStrategyException(e);
         }
 
@@ -312,7 +313,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         try {
             proof = JCSHasher.buildDataIntegrityProof(
                     didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
-        } catch (IOException e) {
+        } catch (DidSidekicksException e) {
             throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"
@@ -345,7 +346,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
 
         var newUpdateKeys = Set.of(this.updateKeys.stream().map(file -> {
             try {
-                return PemUtils.parsePEMFilePublicKeyEd25519Multibase(file);
+                return PemUtils.readEd25519PublicKeyPemFileToMultibase(file);
             } catch (Throwable ignore) {
             }
             return null;
@@ -356,8 +357,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             String updateKey;
             for (var pemFile : this.updateKeys) {
                 try {
-                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
-                } catch (IOException | InvalidKeySpecException e) {
+                    updateKey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
+                } catch (DidSidekicksException e) {
                     throw new DidLogUpdaterStrategyException(e);
                 }
 

@@ -67,7 +67,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
     void testVerifyKeyIdMismatch() {
         var nonce = "my_nonce";
 
-        var publicKeyMultibase = Ed25519Utils.encodeMultibase(TEST_PUBLIC_KEY_ANOTHER); // CAUTION: Using a whole other key
+        var publicKeyMultibase = TEST_POP_JWS_SIGNER_ANOTHER.getVerificationKeyMultibase(); // CAUTION: Using a whole another key
         var signedJWT = new com.nimbusds.jwt.SignedJWT(
                 new com.nimbusds.jose.JWSHeader.Builder(com.nimbusds.jose.JWSAlgorithm.Ed25519)
                         .keyID("did:key:" + publicKeyMultibase + "#" + publicKeyMultibase)

@@ -1,5 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import io.ipfs.multibase.Base58;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
@@ -17,7 +23,11 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.NamedParameterSpec;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.Random;
 import java.util.Set;
 
@@ -366,8 +376,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     @Override
     public String getVerificationKeyMultibase() {
-        // may throw IllegalArgumentException if the supplied public key does not support encoding
-        return Ed25519Utils.encodeMultibase(this.keyPair.getPublic());
+        return Ed25519Utils.encodePublicKeyToMultibase(this.keyPair.getPublic());
     }
 
     /**
@@ -404,5 +413,72 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             // the JCE provider should be already properly initialized in the constructor
             throw new IllegalArgumentException(e);
         }
+    }
+
+    @Override
+    public String addEddsaJcs2022DataIntegrityProof(String unsecuredDocument,
+                                                    String challenge,
+                                                    String proofPurpose,
+                                                    ZonedDateTime dateTime)
+            throws VerificationMethodKeyProviderException {
+
+        JsonObject unsecuredDocumentJsonObject;
+        try {
+            unsecuredDocumentJsonObject = JsonParser.parseString(unsecuredDocument).getAsJsonObject();
+        } catch (JsonSyntaxException | IllegalStateException ex) {
+            throw new VerificationMethodKeyProviderException(ex);
+        }
+
+        /*
+        https://identity.foundation/didwebvh/v0.3/#data-integrity-proof-generation-and-first-log-entry:
+        The last step in the creation of the first log entry is the generation of the data integrity proof.
+        One of the keys in the updateKeys parameter MUST be used (in the form of a did:key) to generate the signature in the proof,
+        with the versionId value (item 1 of the did log) used as the challenge item.
+        The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
+         */
+
+        var proof = new JsonObject();
+
+        // According to https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022:
+        // 2) If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context.
+        var ctx = unsecuredDocumentJsonObject.get("@context");
+        if (ctx != null) {
+            proof.add("@context", ctx);
+        }
+
+        proof.addProperty("type", DATA_INTEGRITY_PROOF);
+        // According to https://www.w3.org/TR/vc-di-eddsa/#proof-configuration-eddsa-jcs-2022
+        proof.addProperty("cryptosuite", EDDSA_JCS_2022);
+        proof.addProperty("created", DateTimeFormatter.ISO_INSTANT.format(dateTime.truncatedTo(ChronoUnit.SECONDS)));
+
+        /*
+        The data integrity proof verificationMethod is the did:key from the first log entry, and the challenge is the versionId from this log entry.
+         */
+        proof.addProperty("verificationMethod", DID_KEY + this.getVerificationKeyMultibase() + '#' + this.getVerificationKeyMultibase());
+        proof.addProperty("proofPurpose", proofPurpose);
+        if (challenge != null) {
+            proof.addProperty("challenge", challenge);
+        }
+
+        String docHashHex;
+        String proofHashHex;
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            docHashHex = hasher.encodeHex(unsecuredDocumentJsonObject.toString());
+            proofHashHex = hasher.encodeHex(proof.toString());
+        } catch (DidSidekicksException e) {
+            throw new VerificationMethodKeyProviderException(e);
+        }
+
+        var signature = this.generateSignature(HexFormat.of().parseHex(proofHashHex + docHashHex));
+
+        // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
+        //     https://www.w3.org/TR/controller-document/#multibase-0
+        proof.addProperty("proofValue", 'z' + Base58.encode(signature));
+
+        var proofs = new JsonArray();
+        proofs.add(proof);
+        unsecuredDocumentJsonObject.add("proof", proofs);
+
+        return unsecuredDocumentJsonObject.toString();
     }
 }

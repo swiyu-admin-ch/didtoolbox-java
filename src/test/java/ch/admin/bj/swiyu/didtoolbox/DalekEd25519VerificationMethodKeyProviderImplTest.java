@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import com.google.gson.JsonParser;
-import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,42 +34,6 @@ class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTest
                 {"z3u2hupzknQ8uB64d7RudVnXhyzHXnya3jfrSNkoXZ116XwD", "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP", "Carpe diem", "9f3c0f2517201cc461de1758d5797e2d36cfee08b592d39b9eac6149c4ff8586a1a517b713dfc8264d42bd52d2a9026443cd9b8ef35889dbbd6bdbc0326f8e0f"},
         });
     }
-
-    // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
-    private static final String CREDENTIAL_WITHOUT_PROOF = """
-            {
-                 "@context": [
-                     "https://www.w3.org/ns/credentials/v2",
-                     "https://www.w3.org/ns/credentials/examples/v2"
-                 ],
-                 "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
-                 "type": ["VerifiableCredential", "AlumniCredential"],
-                 "name": "Alumni Credential",
-                 "description": "A minimum viable example of an Alumni Credential.",
-                 "issuer": "https://vc.example/issuers/5678",
-                 "validFrom": "2023-01-01T00:00:00Z",
-                 "credentialSubject": {
-                     "id": "did:example:abcdefgh",
-                     "alumniOf": "The School of Examples"
-                 }
-            }
-            """;
-
-    // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-proof-options-document-1
-    private static final String PROOF_OPTIONS_DOCUMENT = """
-            {
-                "type": "DataIntegrityProof",
-                "cryptosuite": "eddsa-jcs-2022",
-                "created": "2023-02-24T23:36:38Z",
-                "verificationMethod": "did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2#z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2",
-                "proofPurpose": "assertionMethod",
-                "@context": [
-                    "https://www.w3.org/ns/credentials/v2",
-                    "https://www.w3.org/ns/credentials/examples/v2"
-               ]
-            }
-            """;
-
 
     @Test
     void testGetVerificationKeyMultibaseExample() {
@@ -102,52 +66,57 @@ class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTest
 
         assertDoesNotThrow(() -> {
             assertTrue(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)
-                    .verify("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8), Hex.decode(expected))); // MUT
-        });
-    }
-
-
-    @DisplayName("Verifying using various existing keys")
-    @ParameterizedTest(name = "Verifying using key: {0}")
-    @MethodSource("keyMessageSignature")
-    public void testVerify(String privateKeyMultibase, String publicKeyMultibase, String message, String expected) {
-
-        assertDoesNotThrow(() -> {
-
-            /*
-            var signed = Hex.toHexString(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)
-                    .generateSignature(message.getBytes(StandardCharsets.UTF_8))); // MUT
-            System.out.println(signed);
-             */
-
-            assertTrue(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)
-                    .verify(message.getBytes(StandardCharsets.UTF_8), Hex.decode(expected))); // MUT
+                    .verifyStrict("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8), HexFormat.of().parseHex(expected))); // MUT
         });
     }
 
     @DisplayName("Signing using various existing keys")
     @ParameterizedTest(name = "Signing using key: {0}")
-    @MethodSource("keysSignature")
-    public void testSignUsingKeys(String privateKeyMultibase, String publicKeyMultibase, String expected) {
+    @MethodSource("keyMessageSignature")
+    public void testSignUsingKeys(String privateKeyMultibase, String publicKeyMultibase, String message, String expected) {
 
         assertDoesNotThrow(() -> {
-            var signed = Hex.toHexString(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)
-                    .generateSignature("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8))); // MUT
+            var msg = message.getBytes(StandardCharsets.UTF_8);
+
+            var signer = new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase);
+
+            var signed = HexFormat.of().formatHex(signer.generateSignature(msg)); // MUT
 
             assertNotNull(signed);
             assertEquals(128, signed.length());
             assertEquals(expected, signed);
+
+            // checkpoint
+            assertTrue(signer.verifyStrict(msg, HexFormat.of().parseHex(expected)));
         });
     }
 
     @Test
-    public void testBuildDataIntegrityProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
+    public void testAddEddsaJcs2022DataIntegrityProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
 
         assertDoesNotThrow(() -> {
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
             var credentialsWithProof = new DalekEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq")
                     .addEddsaJcs2022DataIntegrityProof(
-                            JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject(),
+                            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
+                            """
+                                    {
+                                         "@context": [
+                                             "https://www.w3.org/ns/credentials/v2",
+                                             "https://www.w3.org/ns/credentials/examples/v2"
+                                         ],
+                                         "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
+                                         "type": ["VerifiableCredential", "AlumniCredential"],
+                                         "name": "Alumni Credential",
+                                         "description": "A minimum viable example of an Alumni Credential.",
+                                         "issuer": "https://vc.example/issuers/5678",
+                                         "validFrom": "2023-01-01T00:00:00Z",
+                                         "credentialSubject": {
+                                             "id": "did:example:abcdefgh",
+                                             "alumniOf": "The School of Examples"
+                                         }
+                                    }
+                                    """,
                             null, // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
                             "assertionMethod",
                             ZonedDateTime.parse("2023-02-24T23:36:38Z")); // MUT

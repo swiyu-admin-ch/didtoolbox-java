@@ -2,6 +2,9 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.Ed25519VerifyingKey;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
@@ -9,9 +12,11 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
+import io.ipfs.multibase.Base58;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 
@@ -55,11 +60,18 @@ public class ProofOfPossessionVerifier {
 
     @SuppressWarnings({"PMD.LawOfDemeter"})
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
+        Set<String> updateKeys;
         try {
-            this.updateKeys = TdwDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys();
-        } catch (DidLogMetaPeekerException e) {
-            throw new ProofOfPossessionVerifierException(e);
+            updateKeys = TdwDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys(); // assume a did:tdw log
+        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+            try {
+                updateKeys = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys(); // assume a did:webvh log
+            } catch (DidLogMetaPeekerException exc1) { // not a did:webvh log
+                throw new ProofOfPossessionVerifierException(exc1);
+            }
         }
+
+        this.updateKeys = updateKeys;
     }
 
     /**
@@ -125,7 +137,16 @@ public class ProofOfPossessionVerifier {
         // check if the value of JWT claim 'kid' matches the DataIntegrityProof did:key:* value (in DID log)
         var kid = signedJWT.getHeader().getKeyID();
         var publicKeyMultibase = kid.split("#")[1];
-        var publicKey = Ed25519Utils.decodePublicKeyMultibase(publicKeyMultibase);
+        byte[] publicKeyBytes;
+        // The fromMultibase constructor may denote (via MultibaseConversionFailed error code)
+        // that a supplied string value is not multibase-encoded as specified by
+        // The Multibase Data Format (https://www.ietf.org/archive/id/draft-multiformats-multibase-08.html)
+        try (var ignored = Ed25519VerifyingKey.Companion.fromMultibase(publicKeyMultibase)) {
+            var buf = Base58.decode(publicKeyMultibase.substring(1));
+            publicKeyBytes = Arrays.copyOfRange(buf, 2, buf.length);
+        } catch (DidSidekicksException e) {
+            throw ProofOfPossessionVerifierException.malformedClaimKid(e);
+        }
 
         if (!this.updateKeys.contains(publicKeyMultibase)) {
             throw ProofOfPossessionVerifierException.keyMismatch(publicKeyMultibase);
@@ -133,7 +154,7 @@ public class ProofOfPossessionVerifier {
 
         var jwk = new OctetKeyPair.Builder(
                 Curve.Ed25519,
-                Base64URL.encode(publicKey))
+                Base64URL.encode(publicKeyBytes))
                 .build();
 
         Ed25519Verifier verifier;

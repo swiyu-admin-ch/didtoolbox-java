@@ -7,8 +7,8 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.eid.didresolver.Did;
-import ch.admin.eid.didresolver.DidResolveException;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.Builder;
@@ -58,7 +58,7 @@ import java.time.temporal.ChronoUnit;
 public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
     @Builder.Default
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -196,20 +196,20 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
         String entryHash;
-        try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (IOException e) {
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            entryHash = hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
+        } catch (DidSidekicksException e) {
             throw new DidLogDeactivatorStrategyException(e);
         }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
-        var didLogEntryWithProof = new JsonObject();
+        var didLogEntryWithoutProof = new JsonObject();
 
         var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + entryHash; // versionId as the proof challenge
-        didLogEntryWithProof.addProperty("versionId", challenge);
-        didLogEntryWithProof.add("versionTime", didLogEntryWithoutProofAndSignature.get("versionTime"));
-        didLogEntryWithProof.add("parameters", didLogEntryWithoutProofAndSignature.get("parameters"));
-        didLogEntryWithProof.add("state", didLogEntryWithoutProofAndSignature.get("state"));
+        didLogEntryWithoutProof.addProperty("versionId", challenge);
+        didLogEntryWithoutProof.add("versionTime", didLogEntryWithoutProofAndSignature.get("versionTime"));
+        didLogEntryWithoutProof.add("parameters", didLogEntryWithoutProofAndSignature.get("parameters"));
+        didLogEntryWithoutProof.add("state", didLogEntryWithoutProofAndSignature.get("state"));
 
         /*
         https://identity.foundation/didwebvh/v1.0/#update-rotate:
@@ -219,30 +219,12 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
-        var proofs = new JsonArray();
-        JsonObject proof;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(
-                    didLogEntryWithProof, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-        } catch (IOException e) {
+            return this.verificationMethodKeyProvider.addEddsaJcs2022DataIntegrityProof(
+                    didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
+
+        } catch (VerificationMethodKeyProviderException e) {
             throw new DidLogDeactivatorStrategyException("Fail to build DID doc data integrity proof", e);
         }
-        // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());
-        proofs.add(proof);
-        didLogEntryWithProof.add("proof", proofs);
-
-        Did did = new Did(didLogMeta.getDidDoc().getId());
-        try {
-            // NOTE Enforcing DID log conformity is already part of the `resolve` method.
-            // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolveAll(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
-        } catch (DidResolveException e) {
-            throw new InvalidDidLogException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
-        } finally {
-            did.close();
-        }
-
-        return didLogEntryWithProof.toString();
     }
 }

@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.*;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -117,7 +118,7 @@ public abstract class AbstractDidLogEntryBuilder {
     @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
                                          Set<File> updateKeys,
-                                         Set<File> nextKeys) throws InvalidKeySpecException, IOException {
+                                         Set<File> nextKeys) throws DidSidekicksException {
 
         // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didtdw-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
@@ -143,7 +144,7 @@ public abstract class AbstractDidLogEntryBuilder {
         updateKeysJsonArray.add(verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
         if (updateKeys != null) {
             for (var pemFile : updateKeys) { // ...and then add the rest, if any
-                String updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                String updateKey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
 
                 if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) { // it is a distinct list of keys, after all
                     updateKeysJsonArray.add(updateKey);
@@ -177,7 +178,7 @@ public abstract class AbstractDidLogEntryBuilder {
             for (var pemFile : nextKeys) {
 
                 String nextKeyHash = JCSHasher.buildNextKeyHash(
-                        PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile));
+                        PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile));
 
                 if (!nextKeyHashesJsonArray.contains(new JsonPrimitive(nextKeyHash))) { // it is a distinct list of keys, after all
                     nextKeyHashesJsonArray.add(nextKeyHash);

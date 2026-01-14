@@ -8,6 +8,8 @@ import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.Ed25519VerifyingKey;
 import com.beust.jcommander.JCommander;
 
 import java.io.File;
@@ -42,7 +44,8 @@ final class JCommanderRunner {
 
     @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     void runCreateDidLogCommand(CreateDidLogCommand command)
-            throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException, CertificateException, DidLogCreatorStrategyException {
+            throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException,
+            CertificateException, DidLogCreatorStrategyException, DidSidekicksException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -96,11 +99,14 @@ final class JCommanderRunner {
             File verifyingKeyPemFile = null;
             for (var pemFile : verifyingKeyPemFiles) {
                 try {
-                    signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), Files.newBufferedReader(pemFile.toPath())); // supplied external key pair
-                    // At this point, the matching verifying key is detected, so we are free to break from the loop
-                    verifyingKeyPemFile = pemFile;
-                    break;
-                } catch (Throwable ignoreNonMatchingKey) {
+                    signer = new DalekEd25519VerificationMethodKeyProviderImpl(signingKeyPemFile); // supplied external key (pair)
+                    if (Ed25519VerifyingKey.Companion.readPublicKeyPemFile(pemFile.getPath()).toMultibase()
+                            .equals(signer.getVerificationKeyMultibase())) {
+                        // At this point, the matching verifying key is detected, so we are free to break from the loop
+                        verifyingKeyPemFile = pemFile;
+                        break;
+                    }
+                } catch (DidSidekicksException ignoreMalformedPemFiles) {
                 }
             }
 
@@ -120,7 +126,8 @@ final class JCommanderRunner {
 
         } else {
 
-            signer = new Ed25519VerificationMethodKeyProviderImpl();
+            var dalekSigner = new DalekEd25519VerificationMethodKeyProviderImpl();
+            signer = dalekSigner;
 
                     /*
                     File outputDir = createCommand.outputDir;
@@ -164,8 +171,8 @@ final class JCommanderRunner {
                     overAndOut(jc, parsedCommandName, "The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath());
                 }
 
-                ((Ed25519VerificationMethodKeyProviderImpl) signer).writePrivateKeyAsPem(privateKeyFile);
-                ((Ed25519VerificationMethodKeyProviderImpl) signer).writePublicKeyAsPem(new File(outputDir, privateKeyFile.getName() + ".pub"));
+                dalekSigner.writePkcs8PemFile(privateKeyFile);
+                dalekSigner.writePublicKeyPemFile(new File(outputDir, privateKeyFile.getName() + ".pub"));
             } else {
                 overAndOut(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
             }
@@ -240,16 +247,18 @@ final class JCommanderRunner {
 
                 for (var pemFile : verifyingKeyPemFiles) {
                     try {
-                        var multikey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                        var multikey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
                         // Only pre-rotation keys are relevant here
                         if (didLogMeta.isPreRotatedUpdateKey(multikey)) {
                             // the signing key is supplied externally, but verifying key should be already among updateKeys
-                            signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), multikey);
-                            // At this point, the matching verifying key is detected, so we are free to break from the loop
-                            matchingUpdateKey = multikey;
-                            break;
+                            signer = new DalekEd25519VerificationMethodKeyProviderImpl(signingKeyPemFile);
+                            if (multikey.equals(signer.getVerificationKeyMultibase())) {
+                                // At this point, the matching verifying key is detected, so we are free to break from the loop
+                                matchingUpdateKey = multikey;
+                                break;
+                            }
                         }
-                    } catch (Throwable ignoreNonMatchingKey) {
+                    } catch (DidSidekicksException ignoreMalformedPemFiles) {
                     }
                 }
 
@@ -257,28 +266,32 @@ final class JCommanderRunner {
 
                 for (var pemFile : verifyingKeyPemFiles) {
                     try {
-                        var multikey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                        var publicKeyEd25519Multibase = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
                         // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), multikey);
-                        // At this point, the matching verifying key is detected, so we are free to break from the loop
-                        matchingUpdateKey = multikey;
-                        break;
-                    } catch (Throwable ignoreNonMatchingKey) {
+                        signer = new DalekEd25519VerificationMethodKeyProviderImpl(signingKeyPemFile);
+                        if (publicKeyEd25519Multibase.equals(signer.getVerificationKeyMultibase())) {
+                            // At this point, the matching verifying key is detected, so we are free to break from the loop
+                            matchingUpdateKey = publicKeyEd25519Multibase;
+                            break;
+                        }
+                    } catch (DidSidekicksException ignoreMalformedPemFiles) {
                     }
                 }
 
                 if (matchingUpdateKey == null) {
-                    overAndOut(jc, parsedCommandName, "No matching verifying (public) ed25519 key supplied");
+                    overAndOut(jc, parsedCommandName, "No valid matching verifying (public) ed25519 key supplied");
                 }
 
-                for (var key : didLogMeta.getParams().getUpdateKeys()) {
+                for (var publicKeyEd25519Multibase : didLogMeta.getParams().getUpdateKeys()) {
                     try {
                         // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), key);
-                        // At this point, the matching verifying key is detected, so we are free to break from the loop
-                        matchingUpdateKey = key;
-                        break;
-                    } catch (Throwable ignoreNonMatchingKey) {
+                        signer = new DalekEd25519VerificationMethodKeyProviderImpl(signingKeyPemFile);
+                        if (publicKeyEd25519Multibase.equals(signer.getVerificationKeyMultibase())) {
+                            // At this point, the matching verifying key is detected, so we are free to break from the loop
+                            matchingUpdateKey = publicKeyEd25519Multibase;
+                            break;
+                        }
+                    } catch (DidSidekicksException ignoreMalformedPemFiles) {
                     }
                 }
             }
@@ -350,19 +363,21 @@ final class JCommanderRunner {
             // CAUTION In case the supplied DID log have already been deactivated (i.e. "parameters":{"deactivated":true,"updateKeys":[]}),
             //         the updateKeys collection would be null
             if (didLogMeta.getParams().getUpdateKeys() != null) {
-                for (var key : didLogMeta.getParams().getUpdateKeys()) {
+                for (var publicKeyEd25519Multibase : didLogMeta.getParams().getUpdateKeys()) {
                     try {
                         // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        signer = new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(signingKeyPemFile.toPath()), key);
-                        // At this point, the matching verifying key is detected, so we are free to break from the loop
-                        matchingUpdateKey = key;
-                        break;
-                    } catch (Throwable ignoreNonMatchingKey) {
+                        signer = new DalekEd25519VerificationMethodKeyProviderImpl(signingKeyPemFile);
+                        if (publicKeyEd25519Multibase.equals(signer.getVerificationKeyMultibase())) {
+                            // At this point, the matching verifying key is detected, so we are free to break from the loop
+                            matchingUpdateKey = publicKeyEd25519Multibase;
+                            break;
+                        }
+                    } catch (DidSidekicksException ignoreMalformedPemFiles) {
                     }
                 }
 
                 if (matchingUpdateKey == null) {
-                    overAndOut(jc, parsedCommandName, "No matching signing key supplied");
+                    overAndOut(jc, parsedCommandName, "No valid matching signing key supplied");
                 }
             }
 
@@ -375,7 +390,7 @@ final class JCommanderRunner {
             signer = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
 
         } else {
-            overAndOut(jc, parsedCommandName, "No source for the (signing/verifying) keys supplied. Use one of the relevant options to supply keys");
+            overAndOut(jc, parsedCommandName, "No valid source of signing/verifying ed25519 keys supplied. Use one of the relevant options to supply keys");
         }
 
         // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
@@ -417,14 +432,12 @@ final class JCommanderRunner {
 
             overAndOut(jc, parsedCommandName, "No matching verifying (public) ed25519 key supplied");
 
-        } else if (signingKeyPemFile != null) { // at this point, verifyingKeyPemFiles must be non-null already
+        } else if (signingKeyPemFile != null) {
 
             try {
-                signer = new Ed25519ProofOfPossessionJWSSignerImpl(
-                        Files.newBufferedReader(signingKeyPemFile.toPath()),
-                        Files.newBufferedReader(verifyingKeyPemFile.toPath())); // supplied external key pair
-            } catch (Throwable ex) {
-                overAndOut(jc, parsedCommandName, "The supplied ed25519 key pair mismatch: " + ex.getLocalizedMessage());
+                signer = new DalekEd25519ProofOfPossessionJWSSignerImpl(signingKeyPemFile); // supplied external key pair
+            } catch (DidSidekicksException ex) {
+                overAndOut(jc, parsedCommandName, "Failed to load the supplied ed25519 key (pair): " + ex.getLocalizedMessage());
             }
 
         } else if (jksFile != null && jksAlias != null) {

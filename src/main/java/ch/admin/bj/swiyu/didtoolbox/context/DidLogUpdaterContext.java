@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
+import ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
@@ -104,7 +105,7 @@ public class DidLogUpdaterContext {
     private Map<String, String> authenticationKeys;
     @Builder.Default
     @Getter(AccessLevel.PACKAGE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
     @Getter(AccessLevel.PACKAGE)
     private Set<File> updateKeys;
     /**
