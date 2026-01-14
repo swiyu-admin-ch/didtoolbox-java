@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HexFormat;
@@ -162,5 +163,26 @@ class JCSHasherTest {
         }
 
         assertEquals("QmdwvukAYUU6VYwqM4jQbSiKk1ctg12j5hMTY6EfbbkyEJ", actual);
+    }
+
+    @Test
+    public void testBuildDataIntegrityProofExample() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
+
+        assertDoesNotThrow(() -> {
+            var credentialsWithoutProof = JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject();
+
+            JsonObject actual = JCSHasher.buildDataIntegrityProof(
+                    credentialsWithoutProof,
+                    true,
+                    // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
+                    new DalekEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"),
+                    null, // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
+                    "assertionMethod",
+                    ZonedDateTime.parse("2023-02-24T23:36:38Z"));
+
+            String actualProofValue = actual.asMap().get("proofValue").getAsString();
+            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-signature-of-combined-hashes-base58-btc-1
+            assertEquals("z2HnFSSPPBzR36zdDgK8PbEHeXbR56YF24jwMpt3R1eHXQzJDMWS93FCzpvJpwTWd3GAVFuUfjoJdcnTMuVor51aX", actualProofValue);
+        });
     }
 }

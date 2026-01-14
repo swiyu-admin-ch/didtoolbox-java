@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -173,8 +174,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         File publicKeyPemFile = null;
         try {
             publicKeyPemFile = File.createTempFile("mypublickey", "");
-            new Ed25519VerificationMethodKeyProviderImpl().writePublicKeyAsPem(publicKeyPemFile);
-        } catch (IOException e) {
+            new DalekEd25519VerificationMethodKeyProviderImpl().writePublicKeyPemFile(publicKeyPemFile);
+        } catch (IOException | DidSidekicksException e) {
             fail(e);
         }
         publicKeyPemFile.deleteOnExit();
@@ -230,8 +231,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         File publicKeyPemFile = null;
         try {
             publicKeyPemFile = File.createTempFile("mypublickey", "");
-            new Ed25519VerificationMethodKeyProviderImpl().writePublicKeyAsPem(publicKeyPemFile);
-        } catch (IOException e) {
+            new DalekEd25519VerificationMethodKeyProviderImpl().writePublicKeyPemFile(publicKeyPemFile);
+        } catch (IOException | DidSidekicksException e) {
             fail(e);
         }
         publicKeyPemFile.deleteOnExit();

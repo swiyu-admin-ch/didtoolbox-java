@@ -116,6 +116,7 @@ public final class JCSHasher {
      * @param dateTime                      of the proof creation
      * @return JsonObject representing the data integrity proof
      * @throws DidSidekicksException may come from a hasher
+     * @deprecated Rely on {@link VerificationMethodKeyProvider#addEddsaJcs2022DataIntegrityProof(String, String, String, ZonedDateTime)} instead
      */
     @Deprecated
     public static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument,
