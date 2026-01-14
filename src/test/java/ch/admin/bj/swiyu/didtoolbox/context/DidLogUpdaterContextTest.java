@@ -10,6 +10,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SuppressWarnings("PMD")
 class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
     @Test

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.function.Executable;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SuppressWarnings("PMD")
 class VerificationMethodKeyParametersValidatorTest {
     @Test
     void testValidate() {

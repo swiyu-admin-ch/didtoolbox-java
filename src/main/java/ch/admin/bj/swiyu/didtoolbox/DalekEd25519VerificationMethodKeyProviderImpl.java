@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.eid.did_sidekicks.*;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -8,6 +10,7 @@ import io.ipfs.multibase.Base58;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -30,10 +33,10 @@ import java.util.Set;
  * <p>
  * As any other {@link VerificationMethodKeyProvider} implementation, it is predominantly intended to be used in conjunction with:
  * <ul>
- * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext.DidLogCreatorContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
- * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#create(URL)} call)</li>
- * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
- * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext#update(String)} call).</li>
+ * <li> {@link DidLogCreatorContext.DidLogCreatorContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * (prior to a {@link DidLogCreatorContext#create(URL)} call)</li>
+ * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * (prior to a {@link DidLogUpdaterContext#update(String)} call).</li>
  * </ul>
  * <p>
  * Thanks to the following constructor(s), it is also capable of loading an already existing key material from the file system:
@@ -124,6 +127,7 @@ public class DalekEd25519VerificationMethodKeyProviderImpl implements Verificati
         return signingKey.getVerifyingKey().toMultibase();
     }
 
+    @SuppressWarnings({"PMD.AvoidThrowingRawExceptionTypes"})
     @Override
     public byte[] generateSignature(byte[] message) {
         try {
@@ -149,21 +153,20 @@ public class DalekEd25519VerificationMethodKeyProviderImpl implements Verificati
      */
     boolean verifyStrict(byte[] message, byte[] signature) {
 
-        Ed25519Signature sign;
-        try {
-            sign = Ed25519Signature.Companion.fromMultibase('z' + Base58.encode(signature));
+        try (var sign = Ed25519Signature.Companion.fromMultibase('z' + Base58.encode(signature))) {
+
+            try {
+                this.signingKey.getVerifyingKey().verifyStrict(new String(message, Charset.defaultCharset()), sign);
+            } catch (DidSidekicksException ignore) {
+                return false;
+            }
+
         } catch (DidSidekicksException e) {
             // may throw ch.admin.eid.did_sidekicks.DidSidekicksException$MultibaseKeyConversionFailed denoting for instance that it:
             // > failed to convert key from multibase format:
             // > the supplied DID document is invalid or contains an argument which isn't part of the DID specification/recommendation:
             // > buffer provided to decode base58 encoded string into was too small
             throw new IllegalArgumentException(e);
-        }
-
-        try {
-            this.signingKey.getVerifyingKey().verifyStrict(new String(message), sign);
-        } catch (DidSidekicksException e) {
-            return false;
         }
 
         return true;
@@ -180,7 +183,7 @@ public class DalekEd25519VerificationMethodKeyProviderImpl implements Verificati
         try {
             unsecuredDocumentJsonObject = JsonParser.parseString(unsecuredDocument).getAsJsonObject();
         } catch (JsonSyntaxException | IllegalStateException ex) {
-            throw new VerificationMethodKeyProviderException(ex.getMessage());
+            throw new VerificationMethodKeyProviderException(ex);
         }
 
         var verifyingKeyMultibase = this.signingKey.getVerifyingKey().toMultibase();

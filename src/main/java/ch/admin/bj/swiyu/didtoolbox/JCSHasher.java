@@ -22,7 +22,7 @@ public final class JCSHasher {
     public static final String PROOF_PURPOSE_AUTHENTICATION = "authentication";
     public static final String PROOF_PURPOSE_ASSERTION_METHOD = "assertionMethod";
 
-    final private static JcsSha256Hasher hasher = JcsSha256Hasher.Companion.build();
+    final private static JcsSha256Hasher HASHER = JcsSha256Hasher.Companion.build();
 
     private JCSHasher() {
     }
@@ -162,7 +162,7 @@ public final class JCSHasher {
         proof.addProperty("proofValue", 'z' + Base58.encode(
                 verificationMethodKeyProvider.generateSignature(
                         HexFormat.of().parseHex(
-                                hasher.encodeHex(proof.toString()) + hasher.encodeHex(unsecuredDocument.toString())))));
+                                HASHER.encodeHex(proof.toString()) + HASHER.encodeHex(unsecuredDocument.toString())))));
 
         return proof;
     }

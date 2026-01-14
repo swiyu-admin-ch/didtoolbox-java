@@ -13,6 +13,7 @@ import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("PMD")
 class Ed25519UtilsTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> publicKeyMultibase() {

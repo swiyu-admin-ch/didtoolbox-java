@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@SuppressWarnings("PMD")
 class PemUtilsTest {
 
     @Test

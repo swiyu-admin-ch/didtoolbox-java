@@ -53,6 +53,7 @@ import java.util.Set;
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
  * </ul>
  */
+@SuppressWarnings({"PMD.GodClass"})
 public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMethodKeyProvider {
 
     final private static String DEFAULT_JCE_PROVIDER_NAME = BouncyCastleProvider.PROVIDER_NAME;
@@ -338,11 +339,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (privateKeyEncoded == null) {
             throw new IllegalArgumentException("The key pair features a private key that does not support encoding");
         }
-        PemWriter pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()));
-        try {
+        try (var pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()))) {
             pemWriter.writeObject(new PemObject("PRIVATE KEY", privateKeyEncoded));
-        } finally {
-            pemWriter.close();
         }
     }
 
@@ -356,11 +354,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (publicKeyEncoded == null) {
             throw new IllegalArgumentException("The key pair features a public key that does not support encoding");
         }
-        PemWriter pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()));
-        try {
+        try (var pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()))) {
             pemWriter.writeObject(new PemObject("PUBLIC KEY", publicKeyEncoded));
-        } finally {
-            pemWriter.close();
         }
     }
 

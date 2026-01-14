@@ -14,6 +14,7 @@ import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("PMD")
 class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> keysSignature() {

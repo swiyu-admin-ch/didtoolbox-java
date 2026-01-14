@@ -27,8 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 // This will suppress all the PMD warnings in this (test) class
 @SuppressWarnings("PMD")
-// TODO Extend AbstractCommandParametersValidatorTest class, instead
-class VerifyProofOfPossessionCommandParametersValidatorTest {
+class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend AbstractCommandParametersValidatorTest class, instead
     protected static File dummyDidLogFile = null;
     protected static final String dummyJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
 
