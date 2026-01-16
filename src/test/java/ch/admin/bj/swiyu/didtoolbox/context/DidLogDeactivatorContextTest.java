@@ -15,7 +15,7 @@ class DidLogDeactivatorContextTest extends AbstractUtilTestBase {
 
         // did:tdw
 
-        var didLog = buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS);
+        var didLog = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS);
         String finalDidLog1 = didLog;
 
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
@@ -29,7 +29,7 @@ class DidLogDeactivatorContextTest extends AbstractUtilTestBase {
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.TDW_0_3)
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
+                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
                     .build()
                     .deactivate(finalDidLog1); // MUT
         });
@@ -48,7 +48,7 @@ class DidLogDeactivatorContextTest extends AbstractUtilTestBase {
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.detectDidMethod(finalDidLog1))
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
+                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
                     .build()
                     .deactivate(finalDidLog1); // MUT
         });
@@ -56,7 +56,7 @@ class DidLogDeactivatorContextTest extends AbstractUtilTestBase {
 
         // did:webvh
 
-        didLog = buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS);
+        didLog = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS);
         String finalDidLog2 = didLog;
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
@@ -70,7 +70,7 @@ class DidLogDeactivatorContextTest extends AbstractUtilTestBase {
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             DidLogDeactivatorContext.builder()
                     // default: .didMethod(DidMethodEnum.WEBVH_1_0)
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
+                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
                     .build()
                     .deactivate(finalDidLog2); // MUT
         });
@@ -89,7 +89,7 @@ class DidLogDeactivatorContextTest extends AbstractUtilTestBase {
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             DidLogDeactivatorContext.builder()
                     .didMethod(DidMethodEnum.detectDidMethod(finalDidLog2)) // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
+                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
                     .build()
                     .deactivate(finalDidLog2); // MUT
         });

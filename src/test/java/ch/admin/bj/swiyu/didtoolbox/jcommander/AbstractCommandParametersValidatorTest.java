@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
-import ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
@@ -34,14 +34,14 @@ abstract class AbstractCommandParametersValidatorTest {
     protected static final File somePublicPEMFile = new File("src/test/data/public.pem");
 
     // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-    final protected static VerificationMethodKeyProvider TEST_VERIFICATION_METHOD_KEY_PROVIDER;
+    final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE;
     final protected static Map<String, String> TEST_ASSERTION_METHOD_KEYS;
     final protected static Map<String, String> TEST_AUTHENTICATION_METHOD_KEYS;
 
     static {
         try {
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            TEST_VERIFICATION_METHOD_KEY_PROVIDER = new DalekEd25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"));
+            TEST_CRYPTO_SUITE = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem"));
             TEST_ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"));
             TEST_AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"));
         } catch (Exception intolerable) {
@@ -54,7 +54,7 @@ abstract class AbstractCommandParametersValidatorTest {
             dummyDidLogFile = File.createTempFile("my-did", ".jsonl");
 
             var initialDidLogEntry = DidLogCreatorContext.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     //.updateKeys(Set.of(new File("src/test/data/public.pem")))
@@ -65,7 +65,7 @@ abstract class AbstractCommandParametersValidatorTest {
             var updatedDidLog = new StringBuilder(initialDidLogEntry)
                     .append(System.lineSeparator())
                     .append(DidLogUpdaterContext.builder()
-                            .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                            .cryptographicSuite(TEST_CRYPTO_SUITE)
                             .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                             .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                             //.updateKeys(Set.of(new File("src/test/data/public.pem")))

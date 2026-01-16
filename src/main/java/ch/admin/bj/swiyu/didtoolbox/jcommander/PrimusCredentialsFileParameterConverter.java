@@ -6,6 +6,9 @@ import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 public class PrimusCredentialsFileParameterConverter implements IStringConverter<PrimusKeyStoreLoader> {
     @Override
@@ -17,7 +20,7 @@ public class PrimusCredentialsFileParameterConverter implements IStringConverter
             throw new ParameterException("Parameter value '" + value + "' do may feature all valid Securosys Primus credentials. "
                     + "However, Securosys Primus Key Store could not be initialized regardless of it. "
                     + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system");
-        } catch (Throwable ignore) {
+        } catch (CertificateException | IOException | NoSuchAlgorithmException ignore) {
         }
 
         try {

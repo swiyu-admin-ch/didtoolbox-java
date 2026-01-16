@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonObject;
@@ -116,15 +117,15 @@ public final class JCSHasher {
      * @param dateTime                      of the proof creation
      * @return JsonObject representing the data integrity proof
      * @throws DidSidekicksException may come from a hasher
-     * @deprecated Rely on {@link VerificationMethodKeyProvider#addEddsaJcs2022DataIntegrityProof(String, String, String, ZonedDateTime)} instead
+     * @deprecated Use {@link VcDataIntegrityCryptographicSuite#addProof(String, String, String, ZonedDateTime)} instead. Since 1.8.0
      */
     @Deprecated
-    public static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument,
-                                                     boolean useContext,
-                                                     VerificationMethodKeyProvider verificationMethodKeyProvider,
-                                                     String challenge,
-                                                     String proofPurpose,
-                                                     ZonedDateTime dateTime)
+    static JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument,
+                                              boolean useContext,
+                                              VerificationMethodKeyProvider verificationMethodKeyProvider,
+                                              String challenge,
+                                              String proofPurpose,
+                                              ZonedDateTime dateTime)
             throws DidSidekicksException {
 
         /*

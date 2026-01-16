@@ -29,7 +29,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)))
         );
 
         assertTrue(verifier.get().isValid(proof.get(), nonce));
@@ -54,7 +54,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER_ANOTHER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER))) // CAUTION: Using a whole other key
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_ANOTHER))) // CAUTION: Using a whole other key
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();
@@ -88,7 +88,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)))
         );
 
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.get().verify(signedJWT, nonce));
@@ -105,7 +105,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
 
         try {
             // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
-            var verifier = new ProofOfPossessionVerifier(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER));
+            var verifier = new ProofOfPossessionVerifier(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE));
             verifier.verify(expiredJWT.get(), "foo");
             fail();
         } catch (ProofOfPossessionVerifierException e) {
@@ -128,7 +128,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)))
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();
@@ -150,7 +150,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)))
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();

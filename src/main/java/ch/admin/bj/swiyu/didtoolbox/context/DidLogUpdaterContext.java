@@ -1,9 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
-import ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -97,9 +98,19 @@ public class DidLogUpdaterContext {
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> authenticationKeys;
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
-    @Getter(AccessLevel.PACKAGE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
+    @Getter(AccessLevel.PRIVATE)
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
     @Getter(AccessLevel.PACKAGE)
     private Set<File> updateKeys;
     /**
@@ -118,6 +129,14 @@ public class DidLogUpdaterContext {
 
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
+
+    VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
 
     /**
      * Updates a valid DID log by taking into account other

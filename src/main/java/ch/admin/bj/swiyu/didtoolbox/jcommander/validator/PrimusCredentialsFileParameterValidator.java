@@ -6,6 +6,9 @@ import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 public class PrimusCredentialsFileParameterValidator implements IParameterValidator {
     @Override
@@ -20,7 +23,7 @@ public class PrimusCredentialsFileParameterValidator implements IParameterValida
         } catch (PrimusKeyStoreInitializationException exc) {
             throw new ParameterException("Parameter value '" + value + "' do may feature all valid Securosys Primus credentials. "
                     + "However, Securosys Primus Key Store could not be initialized regardless of it due to: " + exc.getMessage());
-        } catch (Throwable ignore) {
+        } catch (CertificateException | IOException | NoSuchAlgorithmException ignore) {
         }
     }
 }

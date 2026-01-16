@@ -196,7 +196,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
                     .updateKeys(Set.of(new File("src/test/data/public.pem"))) // it matches the signing key, thus it should not be added to 'updateKeys'
                     .nextKeys(Set.of(new File("src/test/data/public.pem"))) // activate prerotation by adding one of the 'updateKeys'
                     .forceOverwrite(true)
@@ -224,7 +224,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
                     .forceOverwrite(true)
                     .build()
                     .createDidLog(identifierRegistryUrl); // MUT
@@ -262,7 +262,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of(
                             "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
                     ))
@@ -307,7 +307,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
@@ -341,7 +341,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     // CAUTION An "authentication" key will be added by default, so need to call method: .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
@@ -377,7 +377,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
                     // CAUTION An "assertionMethod" key will be added by default, so need to call method: .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)

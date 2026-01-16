@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonArray;
@@ -175,7 +176,7 @@ class JCSHasherTest {
                     credentialsWithoutProof,
                     true,
                     // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-                    new DalekEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"),
+                    new EdDsaJcs2022VcDataIntegrityCryptographicSuite("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"),
                     null, // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
                     "assertionMethod",
                     ZonedDateTime.parse("2023-02-24T23:36:38Z"));

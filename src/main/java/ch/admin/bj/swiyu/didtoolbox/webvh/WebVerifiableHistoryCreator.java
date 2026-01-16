@@ -1,10 +1,16 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
+import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
@@ -17,7 +23,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,7 +44,7 @@ import java.util.stream.Collectors;
  * log goes simply by calling {@link #createDidLog(URL)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * <li>{@link WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
@@ -59,15 +64,25 @@ import java.util.stream.Collectors;
  */
 @Builder
 @Getter
+@SuppressWarnings("PMD.ExcessiveImports")
 public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
     /**
@@ -86,6 +101,14 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     // TODO private File dirToStoreKeyPair;
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
+
+    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -126,17 +149,10 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         // Create initial did doc with placeholder
-        JsonObject didDoc;
-        try {
-            didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
-        } catch (IOException e) {
-            throw new DidLogCreatorStrategyException(e);
-        }
-
-        return createDidLog(didDoc, zdt);
+        return createDidLog(createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite), zdt);
     }
 
-    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.CyclomaticComplexity"})
+    //@SuppressWarnings({"PMD.CyclomaticComplexity"})
     private String createDidLog(JsonObject didDoc, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
@@ -144,25 +160,21 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
 
         // Add a preliminary versionId value
         // The first item in the input JSON array MUST be the placeholder string {SCID}.
-        didLogEntryWithoutProofAndSignature.addProperty("versionId", SCID_PLACEHOLDER);
+        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, SCID_PLACEHOLDER);
         // Add the versionTime value
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
-        didLogEntryWithoutProofAndSignature.addProperty("versionTime", DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
+        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
 
         // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        try {
-            didLogEntryWithoutProofAndSignature.add("parameters",
-                    createDidParams(this.verificationMethodKeyProvider, this.updateKeys, this.nextKeys));
-        } catch (DidSidekicksException ex) {
-            throw new DidLogCreatorStrategyException(ex);
-        }
+        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
+                createDidParams(this.getCryptoSuite(), this.updateKeys, this.nextKeys));
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
-        didLogEntryWithoutProofAndSignature.add("state", didDoc);
+        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);
 
         // Generate SCID and replace placeholder in did doc
         String scid;
@@ -199,10 +211,13 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         var didLogEntryWithoutProof = new JsonObject();
 
         var challenge = "1-" + entryHash; // versionId as the proof challenge
-        didLogEntryWithoutProof.addProperty("versionId", challenge);
-        didLogEntryWithoutProof.add("versionTime", didLogEntryWithSCIDWithoutProofAndSignature.get("versionTime"));
-        didLogEntryWithoutProof.add("parameters", didLogEntryWithSCIDWithoutProofAndSignature.get("parameters"));
-        didLogEntryWithoutProof.add("state", didLogEntryWithSCIDWithoutProofAndSignature.get("state"));
+        didLogEntryWithoutProof.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
+                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME));
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
+                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS));
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE,
+                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE));
 
         /*
         https://identity.foundation/didwebvh/v1.0/#create-register:
@@ -214,9 +229,9 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
             Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
         try {
-            return this.verificationMethodKeyProvider.addEddsaJcs2022DataIntegrityProof(
+            return this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-        } catch (VerificationMethodKeyProviderException e) {
+        } catch (VcDataIntegrityCryptographicSuiteException e) {
             throw new DidLogCreatorStrategyException(e);
         }
     }

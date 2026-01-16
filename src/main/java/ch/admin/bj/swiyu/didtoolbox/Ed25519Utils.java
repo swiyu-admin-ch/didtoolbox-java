@@ -4,9 +4,7 @@ import io.ipfs.multibase.Base58;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.EdECPoint;
 import java.security.spec.EdECPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
@@ -20,10 +18,10 @@ import java.util.Arrays;
 public final class Ed25519Utils {
 
     /**
-     * The length of byte array representing an Ed25519 public key as specified by the
+     * The length of byte array representing an Ed25519 key as specified by the
      * <a href="https://datatracker.ietf.org/doc/html/rfc8032#section-5.1.5">RFC 8032</a> standard
      */
-    final private static int PUBLIC_KEY_LENGTH = 32;
+    final private static int ED25519_KEY_LENGTH = 32;
 
     private Ed25519Utils() {
     }
@@ -39,10 +37,10 @@ public final class Ed25519Utils {
      */
     static PublicKey toPublicKey(final byte[] ed25519publicKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         var len = ed25519publicKey.length;
-        if (len != PUBLIC_KEY_LENGTH)
+        if (len != ED25519_KEY_LENGTH)
             throw new IllegalArgumentException("The supplied Ed25519 public key must be of length 32 (bytes), but got " + len);
 
-        final var reversed = reverse(ed25519publicKey, 0, PUBLIC_KEY_LENGTH);
+        final var reversed = reverse(ed25519publicKey, 0, ED25519_KEY_LENGTH);
         final int last = reversed[0] & 0xFF;
         final boolean xOdd = (last & 0b1000_0000) == 0b1000_0000;
         reversed[0] = (byte) (last & Byte.MAX_VALUE);
@@ -62,34 +60,41 @@ public final class Ed25519Utils {
     }
 
     /**
-     * A convenient package-scope weak-typing encoding helper.
+     * A convenient encoding helper implementing <a href="https://www.w3.org/TR/cid/#Multikey">Multikey</a> formatting of Ed25519 keys.
      * <p>
      * The encoding of an Ed25519 public key MUST start with the two-byte prefix 0xed01 (the varint expression of 0xed),
      * followed by the 32-byte public key data. The resulting 34-byte value MUST then be encoded using the base-58-btc alphabet,
-     * and then prepended with the <a href="https://www.w3.org/TR/controller-document/#multibase-0">base-58-btc Multibase header (z)</a>.
+     * and then prepended with the <a href="https://www.w3.org/TR/cid/#multibase-0">base-58-btc Multibase header (z)</a>.
      * </p>
-     * <p>See <a href="https://www.w3.org/TR/controller-document/#Multikey">Multikey</a></p>
+     * The encoding of an Ed25519 secret key MUST start with the two-byte prefix 0x8026 (the varint expression of 0x1300),
+     * followed by the 32-byte secret key data. The resulting 34-byte value MUST then be encoded using the base-58-btc alphabet,
+     * according to <a href="https://www.w3.org/TR/cid/#multibase-0">Multibase</a>, and then prepended with the base-58-btc Multibase header (z).
      *
-     * @param publicKey Ed25519 public key to encode. It is assumed the key supports its primary encoding format.
-     *                  Otherwise, {@link IllegalArgumentException} is thrown
-     * @return multibase encoded Ed25519 public key
+     * @param key Ed25519 (either private or public) key to encode. It is assumed the key supports its primary encoding format.
+     *            Otherwise, {@link IllegalArgumentException} is thrown
+     * @return multibase encoded Ed25519 key
      */
-    public static String encodePublicKeyToMultibase(PublicKey publicKey) {
+    public static String toMultibase(Key key) {
 
-        byte[] publicKeyEncoded = publicKey.getEncoded();
-        if (publicKeyEncoded == null) {
-            throw new IllegalArgumentException("The supplied public key does not support encoding");
+        byte[] keyEncoded = key.getEncoded();
+        if (keyEncoded == null) {
+            throw new IllegalArgumentException("The supplied key does not support encoding");
         }
 
-        var len = publicKeyEncoded.length;
-        if (len < PUBLIC_KEY_LENGTH)
-            throw new IllegalArgumentException("The supplied encoded Ed25519 public key must be at least of length 32 (bytes), but got " + len);
+        var len = keyEncoded.length;
+        if (len < ED25519_KEY_LENGTH)
+            throw new IllegalArgumentException("The supplied Ed25519 key must be at least of length 32 (bytes), but got " + len);
 
-        // See https://github.com/multiformats/multicodec/blob/master/table.csv#L98
-        var buff = ByteBuffer.allocate(PUBLIC_KEY_LENGTH + 2)
-                .put((byte) 0xed) // Ed25519Pub/ed25519-pub is a draft code tagged "key" and described by: Ed25519 public key.
-                .put((byte) 0x01)
-                .put(Arrays.copyOfRange(publicKeyEncoded, publicKeyEncoded.length - 32, publicKeyEncoded.length));
+        var buff = ByteBuffer.allocate(ED25519_KEY_LENGTH + 2);
+        if (key instanceof PublicKey) {
+            buff.put((byte) 0xed).put((byte) 0x01);
+        } else if (key instanceof PrivateKey) {
+            buff.put((byte) 0x80).put((byte) 0x26);
+        } else {
+            throw new IllegalArgumentException("The supplied Ed25519 must be either private or public");
+        }
+
+        buff.put(Arrays.copyOfRange(keyEncoded, keyEncoded.length - 32, keyEncoded.length));
 
         return 'z' + Base58.encode(buff.array());
     }

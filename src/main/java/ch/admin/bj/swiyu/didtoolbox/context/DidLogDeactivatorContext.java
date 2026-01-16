@@ -1,7 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
-import ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import lombok.AccessLevel;
@@ -24,7 +25,7 @@ import java.time.ZonedDateTime;
  * log goes simply by calling {@link #deactivate(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link DidLogDeactivatorContext.DidLogDeactivatorContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting a signing (Ed25519) key</li>
+ * <li>{@link DidLogDeactivatorContext.DidLogDeactivatorContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * </ul>
  * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
  * feel free to explore all available {@link VerificationMethodKeyProvider} implementations.
@@ -78,12 +79,30 @@ import java.time.ZonedDateTime;
 @Getter
 public class DidLogDeactivatorContext {
 
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
-    @Getter(AccessLevel.PACKAGE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
+    @Getter(AccessLevel.PRIVATE)
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
 
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
+
+    VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
 
     /**
      * Immediately deactivates a presumably valid DID log.

@@ -68,7 +68,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         assertEquals("EdDSA", actual.getAlgorithm());
         assertEquals("X.509", actual.getFormat());
         assertEquals(44, actual.getEncoded().length);
-        assertEquals(publicKeyMultibase, Ed25519Utils.encodePublicKeyToMultibase(actual));
+        assertEquals(publicKeyMultibase, Ed25519Utils.toMultibase(actual));
     }
 
     @DisplayName("Converting various test vector public keys")

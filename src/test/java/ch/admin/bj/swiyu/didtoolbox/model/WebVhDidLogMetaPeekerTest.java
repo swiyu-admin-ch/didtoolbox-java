@@ -109,7 +109,7 @@ class WebVhDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
         var meta = new AtomicReference<DidLogMeta>();
         assertDoesNotThrow(() -> {
-            meta.set(WebVerifiableHistoryDidLogMetaPeeker.peek(buildWebVhDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS))); // MUT
+            meta.set(WebVerifiableHistoryDidLogMetaPeeker.peek(buildWebVhDidLog(TEST_CRYPTO_SUITE_JKS))); // MUT
 
             assertNotNull(meta);
             assertNotNull(meta.get().getDidDoc().getId());

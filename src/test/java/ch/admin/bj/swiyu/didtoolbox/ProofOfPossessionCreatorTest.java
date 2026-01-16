@@ -43,7 +43,7 @@ class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
         //      - EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER and EXAMPLE_POP_JWS_SIGNER_ANOTHER
 
         // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER_ANOTHER here, instead
-        var didLog = buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER);
+        var didLog = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_ANOTHER);
 
         // create proof
         var proof = new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER)

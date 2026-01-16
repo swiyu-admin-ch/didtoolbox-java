@@ -20,9 +20,9 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			activate ch.admin.bj.swiyu.didtoolbox.TdwUpdater
 				ch.admin.bj.swiyu.didtoolbox.TdwUpdater --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.TdwUpdater$TdwUpdaterBuilder
 			deactivate ch.admin.bj.swiyu.didtoolbox.TdwUpdater
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getVerificationMethodKeyProvider
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getCryptoSuite
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getAssertionMethodKeys
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
@@ -40,9 +40,9 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			activate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater
 				ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater$WebVerifiableHistoryUpdaterBuilder
 			deactivate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getVerificationMethodKeyProvider
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getCryptoSuite
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getAssertionMethodKeys
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext

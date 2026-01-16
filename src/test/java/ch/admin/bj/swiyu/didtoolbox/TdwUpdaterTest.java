@@ -3,7 +3,8 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -98,16 +99,16 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             TdwUpdater.builder()
                     // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
-                    .updateDidLog(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .updateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             TdwUpdater.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
+                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
                     .updateKeys(Set.of(new File("src/test/data/public.pem"))) // ...with NO matching key supplied!
                     .build()
-                    .updateDidLog(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .updateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
     }
@@ -117,10 +118,10 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             TdwUpdater.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .build()
                     .updateDidLog( // MUT
-                            buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS),
+                            buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS),
                             ZonedDateTime.parse(ISO_DATE_TIME).minusMinutes(1)); // In the past!
         });
         assertEquals("The versionTime of the last entry MUST be earlier than the current time", exc.getMessage());
@@ -130,7 +131,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testUpdateWithKeyChangeUsingExistingUpdateKey() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE);
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
@@ -139,7 +140,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertDoesNotThrow(() -> {
             nextLogEntry.set(TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     // CAUTION No need for explicit call of method: .updateKeys(Set.of(new File("src/test/data/public.pem")))
@@ -174,8 +175,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         File publicKeyPemFile = null;
         try {
             publicKeyPemFile = File.createTempFile("mypublickey", "");
-            new DalekEd25519VerificationMethodKeyProviderImpl().writePublicKeyPemFile(publicKeyPemFile);
-        } catch (IOException | DidSidekicksException e) {
+            new EdDsaJcs2022VcDataIntegrityCryptographicSuite().writePublicKeyPemFile(publicKeyPemFile);
+        } catch (IOException | VcDataIntegrityCryptographicSuiteException e) {
             fail(e);
         }
         publicKeyPemFile.deleteOnExit();
@@ -183,7 +184,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         AtomicReference<String> initialDidLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER
-            initialDidLogEntry.set(buildInitialTdwDidLogEntry(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)));
+            initialDidLogEntry.set(buildInitialTdwDidLogEntry(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKeyMultibase)));
         });
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
@@ -194,7 +195,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertDoesNotThrow(() -> {
             nextLogEntry.set(TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using a whole another verification key provider
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .updateKeys(Set.of(new File("src/test/data/public.pem"), finalPublicKeyPemFile))
@@ -231,8 +232,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         File publicKeyPemFile = null;
         try {
             publicKeyPemFile = File.createTempFile("mypublickey", "");
-            new DalekEd25519VerificationMethodKeyProviderImpl().writePublicKeyPemFile(publicKeyPemFile);
-        } catch (IOException | DidSidekicksException e) {
+            new EdDsaJcs2022VcDataIntegrityCryptographicSuite().writePublicKeyPemFile(publicKeyPemFile);
+        } catch (IOException | VcDataIntegrityCryptographicSuiteException e) {
             fail(e);
         }
         publicKeyPemFile.deleteOnExit();
@@ -240,7 +241,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         AtomicReference<String> initialDidLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER
-            initialDidLogEntry.set(buildInitialTdwDidLogEntry(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)));
+            initialDidLogEntry.set(buildInitialTdwDidLogEntry(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKeyMultibase)));
         });
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
@@ -255,7 +256,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             for (int i = 2; i < totalEntriesCount + 1; i++) { // update DID log by adding several new entries
 
                 nextLogEntry.set(TdwUpdater.builder()
-                        .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using another verification key provider
+                        .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using another verification key provider
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                         .updateKeys(Set.of(new File("src/test/data/public.pem"), finalPublicKeyPemFile))

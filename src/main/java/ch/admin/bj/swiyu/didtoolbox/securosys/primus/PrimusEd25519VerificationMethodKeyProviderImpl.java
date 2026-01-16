@@ -19,9 +19,9 @@ import java.security.UnrecoverableEntryException;
  * <p>
  * It is predominantly intended to be used within a:
  * <ul>
- * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext.DidLogCreatorContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext.DidLogCreatorContextBuilder#cryptographicSuite(ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite)} method
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#create(URL)} call)</li>
- * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext.DidLogUpdaterContextBuilder#cryptographicSuite(ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite)} method
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext#update(String)} call).</li>
  * </ul>
  * <p>
@@ -38,7 +38,6 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
     /**
      * The only public constructor of the class, capable of loading an already existing key material directly from a Securosys Primus HSM (cluster).
      */
-    @SuppressWarnings({"PMD.LawOfDemeter"})
     public PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, String password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 

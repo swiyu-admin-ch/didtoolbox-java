@@ -6,6 +6,8 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import ch.admin.eid.didresolver.Did;
@@ -19,8 +21,6 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -40,7 +40,7 @@ import java.util.Set;
  * log goes simply by calling {@link #updateDidLog(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwUpdaterBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * <li>{@link TdwUpdaterBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link TdwUpdaterBuilder#assertionMethodKeys(Map)} for setting/assertion
@@ -70,12 +70,30 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
+
+    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -167,7 +185,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
@@ -182,7 +200,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
-        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
@@ -308,12 +326,12 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         JsonObject proof;
         try {
             proof = JCSHasher.buildDataIntegrityProof(
-                    didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
+                    didDoc, false, this.getCryptoSuite(), challenge, "authentication", zdt);
         } catch (DidSidekicksException e) {
             throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+        proof.addProperty("verificationMethod", "did:key:" + this.getCryptoSuite().getVerificationKeyMultibase() + '#' + this.getCryptoSuite().getVerificationKeyMultibase());
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
@@ -335,7 +353,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         return didLogEntryWithProof.toString();
     }
 
-    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.AvoidInstantiatingObjectsInLoops"})
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
 
         var updateKeysJsonArray = new JsonArray();
@@ -343,7 +361,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         var newUpdateKeys = Set.of(this.updateKeys.stream().map(file -> {
             try {
                 return PemUtils.readEd25519PublicKeyPemFileToMultibase(file);
-            } catch (Throwable ignore) {
+            } catch (DidSidekicksException ignore) {
             }
             return null;
         }).toArray(String[]::new));

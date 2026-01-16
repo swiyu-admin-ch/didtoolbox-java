@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
-import ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
@@ -32,14 +32,14 @@ class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend Abs
     protected static final String dummyJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
 
     // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-    final private static VerificationMethodKeyProvider TEST_VERIFICATION_METHOD_KEY_PROVIDER;
+    final private static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE;
     final private static Map<String, String> TEST_ASSERTION_METHOD_KEYS;
     final private static Map<String, String> TEST_AUTHENTICATION_METHOD_KEYS;
 
     static {
         try {
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            TEST_VERIFICATION_METHOD_KEY_PROVIDER = new DalekEd25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"));
+            TEST_CRYPTO_SUITE = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem"));
             TEST_ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"));
             TEST_AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"));
         } catch (Exception intolerable) {
@@ -52,7 +52,7 @@ class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend Abs
             dummyDidLogFile = File.createTempFile("my-did", ".jsonl");
 
             var initialDidLogEntry = DidLogCreatorContext.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .forceOverwrite(true)
@@ -62,7 +62,7 @@ class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend Abs
             var updatedDidLog = new StringBuilder(initialDidLogEntry)
                     .append(System.lineSeparator())
                     .append(DidLogUpdaterContext.builder()
-                            .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                            .cryptographicSuite(TEST_CRYPTO_SUITE)
                             .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                             .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                             //.updateKeys(Set.of(new File("src/test/data/public.pem")))

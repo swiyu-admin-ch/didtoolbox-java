@@ -1,5 +1,6 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.vc_data_integrity;
 
+import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import java.util.HexFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("PMD")
-class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase {
+class EdDsaJcs2022VcDataIntegrityCryptographicSuiteTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> keysSignature() {
         return Arrays.asList(new String[][]{
@@ -42,7 +43,7 @@ class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTest
         // From https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
         assertDoesNotThrow(() -> {
             assertEquals("z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2",
-                    new DalekEd25519VerificationMethodKeyProviderImpl(
+                    new EdDsaJcs2022VcDataIntegrityCryptographicSuite(
                             "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq")
                             .getVerificationKeyMultibase());
         });
@@ -54,7 +55,7 @@ class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTest
     void testGetVerificationKeyMultibase(String privateKeyMultibase, String publicKeyMultibase, String expected) {
 
         assertDoesNotThrow(() -> {
-            assertEquals(publicKeyMultibase, new DalekEd25519VerificationMethodKeyProviderImpl(
+            assertEquals(publicKeyMultibase, new EdDsaJcs2022VcDataIntegrityCryptographicSuite(
                     privateKeyMultibase)
                     .getVerificationKeyMultibase());
         });
@@ -66,7 +67,7 @@ class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTest
     public void testVerifyUsingKeys(String privateKeyMultibase, String publicKeyMultibase, String expected) {
 
         assertDoesNotThrow(() -> {
-            assertTrue(new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase)
+            assertTrue(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKeyMultibase)
                     .verifyStrict("The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8), HexFormat.of().parseHex(expected))); // MUT
         });
     }
@@ -79,7 +80,7 @@ class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTest
         assertDoesNotThrow(() -> {
             var msg = message.getBytes(StandardCharsets.UTF_8);
 
-            var signer = new DalekEd25519VerificationMethodKeyProviderImpl(privateKeyMultibase);
+            var signer = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKeyMultibase);
 
             var signed = HexFormat.of().formatHex(signer.generateSignature(msg)); // MUT
 
@@ -93,12 +94,12 @@ class DalekEd25519VerificationMethodKeyProviderImplTest extends AbstractUtilTest
     }
 
     @Test
-    public void testAddEddsaJcs2022DataIntegrityProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
+    public void testAddProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
 
         assertDoesNotThrow(() -> {
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-            var credentialsWithProof = new DalekEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq")
-                    .addEddsaJcs2022DataIntegrityProof(
+            var credentialsWithProof = new EdDsaJcs2022VcDataIntegrityCryptographicSuite("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq")
+                    .addProof(
                             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
                             """
                                     {

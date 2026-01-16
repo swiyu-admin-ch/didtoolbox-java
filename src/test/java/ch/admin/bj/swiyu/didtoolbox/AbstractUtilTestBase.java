@@ -2,8 +2,10 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +23,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * The base class for all test class in this package relying on test data of any kind.
@@ -39,59 +40,49 @@ public abstract class AbstractUtilTestBase {
     /**
      * Sharing the very same keys with {@link #TEST_POP_JWS_SIGNER_JKS}
      */
-    final protected static VerificationMethodKeyProvider TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS;
+    final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE_JKS;
 
     /**
      * Sharing the very same keys ({@link #TEST_PRIVATE_KEY_MULTIBASE}, {@link #TEST_PUBLIC_KEY_MULTIBASE}) with {@link #TEST_POP_JWS_SIGNER}
      */
-    final protected static VerificationMethodKeyProvider TEST_VERIFICATION_METHOD_KEY_PROVIDER;
+    final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE;
 
     /**
      * Sharing the very same keys with {@link #TEST_POP_JWS_SIGNER_ANOTHER}
      */
-    final protected static VerificationMethodKeyProvider TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER;
+    final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE_ANOTHER;
 
     final protected static Map<String, String> TEST_ASSERTION_METHOD_KEYS;
     final protected static Map<String, String> TEST_AUTHENTICATION_METHOD_KEYS;
 
     /**
-     * The Ed25519 private key matching {@link #TEST_PUBLIC_KEY_MULTIBASE} and delivered by {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER}
+     * The Ed25519 private key matching {@link #TEST_PUBLIC_KEY_MULTIBASE} and delivered by {@link #TEST_CRYPTO_SUITE}
      *
      * @see <a href="https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0">example</a>
      */
     final protected static String TEST_PRIVATE_KEY_MULTIBASE = "z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq";
 
     /**
-     * The Ed25519 public key matching {@link #TEST_PRIVATE_KEY_MULTIBASE} and delivered by {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER}
+     * The Ed25519 public key matching {@link #TEST_PRIVATE_KEY_MULTIBASE} and delivered by {@link #TEST_CRYPTO_SUITE}
      *
      * @see <a href="https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0">example</a>
      */
     final protected static String TEST_PUBLIC_KEY_MULTIBASE = "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2";
 
     /**
-     * Sharing the very same keys with {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS}
+     * Sharing the very same keys with {@link #TEST_CRYPTO_SUITE_JKS}
      */
     final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER_JKS;
 
     /**
-     * Sharing the very same keys ({@link #TEST_PRIVATE_KEY_MULTIBASE}, {@link #TEST_PUBLIC_KEY_MULTIBASE}) with {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER}
+     * Sharing the very same keys ({@link #TEST_PRIVATE_KEY_MULTIBASE}, {@link #TEST_PUBLIC_KEY_MULTIBASE}) with {@link #TEST_CRYPTO_SUITE}
      */
     final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER;
 
     /**
-     * Sharing the very same keys with {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER}
+     * Sharing the very same keys with {@link #TEST_CRYPTO_SUITE_ANOTHER}
      */
     final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER_ANOTHER;
-
-    /**
-     * The private key delivered by {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER}
-     */
-    final protected static byte[] TEST_PRIVATE_KEY_ANOTHER;
-
-    /**
-     * The public key delivered by {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER}
-     */
-    final protected static byte[] TEST_PUBLIC_KEY_ANOTHER;
 
     /**
      * Collection of signing/verifying Ed25519 keys in various (appropriate) format intended for testing purposes only
@@ -150,7 +141,7 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
     /**
      * VerificationMethodKeyProvider objects extracted from {@link #TEST_KEYS}
      */
-    final protected static VerificationMethodKeyProvider[] TEST_SIGNERS = new VerificationMethodKeyProvider[TEST_KEYS.length];
+    final protected static VcDataIntegrityCryptographicSuite[] TEST_CRYPTO_SUITES = new VcDataIntegrityCryptographicSuite[TEST_KEYS.length];
 
     static {
         // Populate TEST_* arrays
@@ -160,13 +151,12 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
             try {
                 privateKeyPemFile = File.createTempFile("myprivatekey", "");
                 publicKeyPemFile = File.createTempFile("mypublickey", "");
-                TEST_SIGNERS[i] = new DalekEd25519VerificationMethodKeyProviderImpl(key[0]);
+                TEST_CRYPTO_SUITES[i] = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(key[0]);
                 Files.writeString(privateKeyPemFile.toPath(), key[2]);
                 Files.writeString(publicKeyPemFile.toPath(), key[3]);
                 TEST_SIGNING_KEY_FILES[i] = privateKeyPemFile;
                 TEST_KEY_FILES[i++] = publicKeyPemFile;
-            } catch (IOException | DidSidekicksException intolerable) {
-                //} catch (IOException intolerable) {
+            } catch (IOException | VcDataIntegrityCryptographicSuiteException intolerable) {
                 throw new IllegalArgumentException(intolerable);
             }
             privateKeyPemFile.deleteOnExit();
@@ -175,13 +165,13 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
 
         try {
             // Using (example) keys from https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-            TEST_POP_JWS_SIGNER = new DalekEd25519ProofOfPossessionJWSSignerImpl(TEST_PRIVATE_KEY_MULTIBASE);
-            TEST_VERIFICATION_METHOD_KEY_PROVIDER = TEST_POP_JWS_SIGNER;
+            TEST_POP_JWS_SIGNER = new EdDsaJcs2022ProofOfPossessionJWSSignerImpl(TEST_PRIVATE_KEY_MULTIBASE);
+            TEST_CRYPTO_SUITE = TEST_POP_JWS_SIGNER;
 
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            TEST_POP_JWS_SIGNER_JKS = new Ed25519ProofOfPossessionJWSSignerImpl(
+            TEST_POP_JWS_SIGNER_JKS = new EdDsaJcs2022ProofOfPossessionJWSSigner(
                     Files.newInputStream(Path.of(TEST_DATA_PATH_PREFIX + "mykeystore.jks")), "changeit", "myalias", "changeit");
-            TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS = TEST_POP_JWS_SIGNER_JKS;
+            TEST_CRYPTO_SUITE_JKS = TEST_POP_JWS_SIGNER_JKS;
 
             TEST_ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01",
                     JwkUtils.loadECPublicJWKasJSON(new File(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"), "my-assert-key-01"));
@@ -192,13 +182,8 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
         }
 
         try {
-            var signer = new Ed25519ProofOfPossessionJWSSignerImpl(
-                    Files.newBufferedReader(Path.of(TEST_DATA_PATH_PREFIX + "private01.pem")),
-                    Files.newBufferedReader(Path.of(TEST_DATA_PATH_PREFIX + "public01.pem"))); // supplied external key pair
-            TEST_POP_JWS_SIGNER_ANOTHER = signer;
-            TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER = TEST_POP_JWS_SIGNER_ANOTHER;
-            TEST_PRIVATE_KEY_ANOTHER = decodeEncodedKey(signer.keyPair.getPrivate().getEncoded());
-            TEST_PUBLIC_KEY_ANOTHER = decodeEncodedKey(signer.keyPair.getPublic().getEncoded());
+            TEST_POP_JWS_SIGNER_ANOTHER = new EdDsaJcs2022ProofOfPossessionJWSSigner(new File(TEST_DATA_PATH_PREFIX + "private01.pem")); // supplied external key pair
+            TEST_CRYPTO_SUITE_ANOTHER = TEST_POP_JWS_SIGNER_ANOTHER;
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
@@ -227,18 +212,18 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
     }
 
     /**
-     * The helper delivers an initial {@code did:tdw} DID log entry featuring the {@code updateKey} provided by {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS}.
+     * The helper delivers an initial {@code did:tdw} DID log entry featuring the {@code updateKey} provided by {@link #TEST_CRYPTO_SUITE_JKS}.
      *
-     * @param signer to be used for signing the new {@code did:tdw} DID log
+     * @param cryptoSuite to be used for signing the new {@code did:tdw} DID log
      * @return a valid DID log
-     * @see #buildInitialWebVerifiableHistoryDidLogEntry(VerificationMethodKeyProvider)
+     * @see #buildInitialWebVerifiableHistoryDidLogEntry(VcDataIntegrityCryptographicSuite)
      */
-    protected static String buildInitialTdwDidLogEntry(VerificationMethodKeyProvider signer) {
+    protected static String buildInitialTdwDidLogEntry(VcDataIntegrityCryptographicSuite cryptoSuite) {
 
         AtomicReference<String> didLog = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             didLog.set(TdwCreator.builder()
-                    .verificationMethodKeyProvider(signer)
+                    .cryptographicSuite(cryptoSuite)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .updateKeys(Set.of(new File(TEST_DATA_PATH_PREFIX + "public.pem"))) // to be able to use VERIFICATION_METHOD_KEY_PROVIDER while updating
@@ -250,16 +235,16 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
     }
 
     /**
-     * The helper delivers an initial {@code did:webvh} DID log entry featuring the {@code updateKey} provided by {@link #TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS}.
+     * The helper delivers an initial {@code did:webvh} DID log entry featuring the {@code updateKey} provided by {@link #TEST_CRYPTO_SUITE_JKS}.
      *
-     * @param signer to be used for signing the new {@code did:webvh} DID log
+     * @param cryptoSuite to be used for signing the new {@code did:webvh} DID log
      * @return a valid {@code did:webvh} DID log entry
-     * @see #buildInitialTdwDidLogEntry(VerificationMethodKeyProvider)
+     * @see #buildInitialTdwDidLogEntry(VcDataIntegrityCryptographicSuite)
      */
-    protected static String buildInitialWebVerifiableHistoryDidLogEntry(VerificationMethodKeyProvider signer) {
+    protected static String buildInitialWebVerifiableHistoryDidLogEntry(VcDataIntegrityCryptographicSuite cryptoSuite) {
         try {
             return WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(signer)
+                    .cryptographicSuite(cryptoSuite)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .updateKeys(Set.of(
@@ -278,7 +263,7 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
      *
      * @param nextKeys to be used when adding the next {@code did:webvh} DID log entry
      * @return a valid {@code did:webvh} DID log entry
-     * @see #buildInitialTdwDidLogEntry(VerificationMethodKeyProvider)
+     * @see #buildInitialTdwDidLogEntry(VcDataIntegrityCryptographicSuite)
      */
     protected static String buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
             Set<File> nextKeys) {
@@ -295,11 +280,12 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
         }
     }
 
-    protected static String buildTdwDidLog(VerificationMethodKeyProvider signer) {
+    protected static String buildTdwDidLog(VcDataIntegrityCryptographicSuite cryptoSuite) {
 
-        var updatedDidLog = new StringBuilder(buildInitialTdwDidLogEntry(signer));
+        var updatedDidLog = new StringBuilder(buildInitialTdwDidLogEntry(cryptoSuite));
 
-        try {
+        assertDoesNotThrow(() -> {
+
             for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
 
                 // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -308,29 +294,27 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
 
                 var nextLogEntry = DidLogUpdaterContext.builder()
                         .didMethod(DidMethodEnum.TDW_0_3) // the legacy spec. version thus not default
-                        .verificationMethodKeyProvider(signer)
+                        .cryptographicSuite(cryptoSuite)
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                         .build()
-                        .update(updatedDidLog.toString());
+                        .update(updatedDidLog.toString()); // MUT
 
                 updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
             }
-
-        } catch (Exception e) {
-            fail(e);
-        }
+        });
 
         //System.out.println(updatedDidLog);
 
         return updatedDidLog.toString();
     }
 
-    protected static String buildWebVhDidLog(VerificationMethodKeyProvider signer) {
+    protected static String buildWebVhDidLog(VcDataIntegrityCryptographicSuite cryptoSuite) {
 
-        var updatedDidLog = new StringBuilder(buildInitialWebVerifiableHistoryDidLogEntry(signer));
+        var updatedDidLog = new StringBuilder(buildInitialWebVerifiableHistoryDidLogEntry(cryptoSuite));
 
-        try {
+        assertDoesNotThrow(() -> {
+
             for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
 
                 // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -339,18 +323,15 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
 
                 var nextLogEntry = DidLogUpdaterContext.builder()
                         //.didMethod(DidMethodEnum.WEBVH_1_0) // default
-                        .verificationMethodKeyProvider(signer)
+                        .cryptographicSuite(cryptoSuite)
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                         .build()
-                        .update(updatedDidLog.toString());
+                        .update(updatedDidLog.toString()); // MUT
 
                 updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
             }
-
-        } catch (Exception e) {
-            fail(e);
-        }
+        });
 
         //System.out.println(updatedDidLog);
 

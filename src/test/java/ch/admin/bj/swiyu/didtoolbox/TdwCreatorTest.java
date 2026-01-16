@@ -117,7 +117,7 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .forceOverwrite(true)
                     .build()
                     .createDidLog(identifierRegistryUrl); // MUT
@@ -155,7 +155,7 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of(
                             "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
                     ))
@@ -200,7 +200,7 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
@@ -239,7 +239,7 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     // CAUTION An "authentication" key will be added by default, so need to call method: .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
@@ -280,7 +280,7 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = TdwCreator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     // CAUTION An "assertionMethod" key will be added by default, so need to call method: .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)

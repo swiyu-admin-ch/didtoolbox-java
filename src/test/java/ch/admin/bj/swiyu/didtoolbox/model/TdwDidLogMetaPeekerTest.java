@@ -72,7 +72,7 @@ class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
         AtomicReference<DidLogMeta> meta = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            meta.set(TdwDidLogMetaPeeker.peek(buildTdwDidLog(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS))); // MUT
+            meta.set(TdwDidLogMetaPeeker.peek(buildTdwDidLog(TEST_CRYPTO_SUITE_JKS))); // MUT
 
             assertNotNull(meta);
             assertNotNull(meta.get().getDidDoc().getId());

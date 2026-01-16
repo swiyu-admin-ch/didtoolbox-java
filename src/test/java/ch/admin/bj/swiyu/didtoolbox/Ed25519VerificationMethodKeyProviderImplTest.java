@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
@@ -197,17 +199,17 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
     }
 
     @Test
-    public void testAddEddsaJcs2022DataIntegrityProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
+    public void testAddProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
 
         File privateKeyPemFile, publicKeyPemFile;
         try {
             privateKeyPemFile = File.createTempFile("myprivatekey", "");
             publicKeyPemFile = File.createTempFile("mypublickey", "");
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-            var dalek = new DalekEd25519VerificationMethodKeyProviderImpl("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq");
-            dalek.writePkcs8PemFile(privateKeyPemFile);
-            dalek.writePublicKeyPemFile(publicKeyPemFile);
-        } catch (IOException | DidSidekicksException intolerable) {
+            var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq");
+            cryptoSuite.writePkcs8PemFile(privateKeyPemFile);
+            cryptoSuite.writePublicKeyPemFile(publicKeyPemFile);
+        } catch (IOException | VcDataIntegrityCryptographicSuiteException intolerable) {
             throw new IllegalArgumentException(intolerable);
         }
         privateKeyPemFile.deleteOnExit();
@@ -218,7 +220,7 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
             var credentialsWithProof = new Ed25519VerificationMethodKeyProviderImpl(
                     new FileReader(privateKeyPemFile), new FileReader(publicKeyPemFile))
-                    .addEddsaJcs2022DataIntegrityProof(
+                    .addProof(
                             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
                             """
                                     {

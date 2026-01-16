@@ -56,22 +56,18 @@ import java.util.Set;
  */
 public class ProofOfPossessionVerifier {
 
-    private final Set<String> updateKeys;
+    private Set<String> updateKeys;
 
-    @SuppressWarnings({"PMD.LawOfDemeter"})
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
-        Set<String> updateKeys;
         try {
-            updateKeys = TdwDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys(); // assume a did:tdw log
+            this.updateKeys = TdwDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys(); // assume a did:tdw log
         } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
             try {
-                updateKeys = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys(); // assume a did:webvh log
+                this.updateKeys = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys(); // assume a did:webvh log
             } catch (DidLogMetaPeekerException exc1) { // not a did:webvh log
                 throw new ProofOfPossessionVerifierException(exc1);
             }
         }
-
-        this.updateKeys = updateKeys;
     }
 
     /**

@@ -82,15 +82,15 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             TdwDeactivator.builder()
                     // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
-                    .deactivateDidLog(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .deactivateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
         assertEquals("Deactivation key mismatch", exc.getMessage());
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             TdwDeactivator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
+                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
                     .build()
-                    .deactivateDidLog(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .deactivateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
         assertEquals("Deactivation key mismatch", exc.getMessage());
     }
@@ -100,10 +100,10 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             TdwDeactivator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .build()
                     .deactivateDidLog( // MUT
-                            buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS),
+                            buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS),
                             ZonedDateTime.parse(ISO_DATE_TIME).minusMinutes(1)); // In the past!
         });
         assertEquals("The versionTime of the last entry MUST be earlier than the current time", exc.getMessage());
@@ -113,7 +113,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testDeactivateWithKeyChangeUsingExistingUpdateKey() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE);
 
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
@@ -122,7 +122,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertDoesNotThrow(() -> {
             nextLogEntry.set(TdwDeactivator.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -152,7 +152,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testUpdateAlreadyDeactivatedThrowsDidLogUpdaterStrategyException() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE);
 
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
@@ -160,7 +160,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             nextLogEntry.set(TdwDeactivator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
                     //.verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -173,7 +173,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // Try updating the DID log
         var updaterExc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             TdwUpdater.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
                     .build()
                     .updateDidLog(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString(),
                             // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -187,7 +187,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testDeactivateAlreadyDeactivatedThrowsDidLogDeactivatorStrategyException() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE);
 
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
@@ -195,7 +195,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             nextLogEntry.set(TdwDeactivator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
                     //.verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.

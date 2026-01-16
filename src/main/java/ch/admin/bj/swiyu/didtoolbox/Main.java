@@ -6,7 +6,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.UnixStyleUsageFormatter;
 
-@SuppressWarnings({"PMD.DoNotTerminateVM", "PMD.LawOfDemeter", "PMD.CyclomaticComplexity"})
+@SuppressWarnings({"PMD.DoNotTerminateVM", "PMD.CyclomaticComplexity"})
 public class Main {
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},

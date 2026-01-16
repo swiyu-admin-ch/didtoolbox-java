@@ -1,7 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
-import ch.admin.bj.swiyu.didtoolbox.DalekEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import lombok.AccessLevel;
@@ -26,7 +27,7 @@ import java.util.Set;
  * log goes simply by calling {@link #create(URL)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link DidLogCreatorContext.DidLogCreatorContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link DidLogCreatorContext.DidLogCreatorContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * <li>{@link DidLogCreatorContext.DidLogCreatorContextBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link DidLogCreatorContext.DidLogCreatorContextBuilder#assertionMethodKeys(Map)} for setting/assertion
@@ -90,9 +91,19 @@ public class DidLogCreatorContext {
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> authenticationKeys;
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
-    @Getter(AccessLevel.PACKAGE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl();
+    @Getter(AccessLevel.PRIVATE)
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
     @Getter(AccessLevel.PACKAGE)
     private Set<File> updateKeys;
     /**
@@ -113,6 +124,14 @@ public class DidLogCreatorContext {
 
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
+
+    VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
 
     /**
      * Creates a valid DID log by taking into account other
