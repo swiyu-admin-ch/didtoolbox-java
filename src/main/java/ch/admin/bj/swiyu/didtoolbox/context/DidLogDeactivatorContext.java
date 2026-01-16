@@ -42,6 +42,7 @@ import java.time.ZonedDateTime;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+ *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
  *     import java.net.*;
  *
  *     public static void main(String... args) {
@@ -50,18 +51,18 @@ import java.time.ZonedDateTime;
  *         String deactivatedDidLogEntry = null;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *             var verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"));
+ *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem"));
  *
  *             // NOTE that all verification material will be generated here as well
  *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider)
+ *                 .cryptographicSuite(cryptographicSuite)
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
  *             // Now deactivate the previously generated initial single-entry DID log
  *             deactivatedDidLogEntry = DidLogDeactivatorContext.builder()
  *                      .didMethod(DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys))
- *                      .verificationMethodKeyProvider(verificationMethodKeyProvider) // the same used during creation
+ *                      .cryptographicSuite(cryptographicSuite) // the same used during creation
  *                      .build()
  *                      .deactivate(initialDidLogEntryWithGeneratedKeys);
  *

@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 public class PrimusCredentialsFileParameterValidator implements IParameterValidator {
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     @Override
     public void validate(String name, String value) { // throws ParameterException {
         var file = new File(value);

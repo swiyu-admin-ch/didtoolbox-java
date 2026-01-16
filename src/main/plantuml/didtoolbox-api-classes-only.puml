@@ -118,15 +118,52 @@ class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMet
 }
 
 
+class ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite {
+	{field} #cryptoSuite : ch.admin.eid.did_sidekicks.EddsaJcs2022Cryptosuite
+	{field} #signingKey : ch.admin.eid.did_sidekicks.Ed25519SigningKey
+	{method} +addProof ( paramString1 : String , paramString2 : String , paramString3 : String , paramZonedDateTime4 : java.time.ZonedDateTime ) : String
+	{method} +generateSignature ( param[B1 : [B ) : [B <<deprecated>> 
+	{method} +getVerificationKeyMultibase () : String
+	{method} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
+	{method} +verifyStrict ( param[B1 : [B , param[B2 : [B ) : boolean
+	{method} +writePkcs8PemFile ( paramFile1 : java.io.File ) : void
+	{method} +writePublicKeyPemFile ( paramFile1 : java.io.File ) : void
+}
 
 
+interface ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite {
+	{method}  {abstract} +addProof ( paramString1 : String , paramString2 : String , paramString3 : String , paramZonedDateTime4 : java.time.ZonedDateTime ) : String
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException {
+}
+
+
+
+
+ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite$value
+ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl --|>  ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl
+ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
+ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider
 
 hide fields
 hide methods

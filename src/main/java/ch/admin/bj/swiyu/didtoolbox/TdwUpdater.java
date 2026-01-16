@@ -353,7 +353,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         return didLogEntryWithProof.toString();
     }
 
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.EmptyCatchBlock"})
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
 
         var updateKeysJsonArray = new JsonArray();

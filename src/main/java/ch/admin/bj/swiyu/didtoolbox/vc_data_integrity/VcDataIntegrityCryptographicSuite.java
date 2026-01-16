@@ -10,6 +10,7 @@ import java.time.ZonedDateTime;
  *
  * @since 1.8.0
  */
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface VcDataIntegrityCryptographicSuite extends VerificationMethodKeyProvider {
 
     /**

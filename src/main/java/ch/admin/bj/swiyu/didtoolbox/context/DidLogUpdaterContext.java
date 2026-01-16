@@ -28,7 +28,7 @@ import java.util.Set;
  * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#assertionMethodKeys(Map)} for setting/assertion
@@ -49,6 +49,7 @@ import java.util.Set;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+ *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
  *     import java.net.*;
  *
  *     public static void main(String... args) {
@@ -57,18 +58,18 @@ import java.util.Set;
  *         String updatedDidLogEntryWithReplacedVerificationMaterial = null;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *             var verificationMethodKeyProvider = new DalekEd25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"));
+ *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem"));
  *
  *             // NOTE that all verification material will be generated here as well
  *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider)
+ *                 .cryptographicSuite(cryptographicSuite)
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
  *             // Now update the previously generated initial single-entry DID log
  *             updatedDidLogEntryWithReplacedVerificationMaterial = DidLogUpdaterContext.builder()
  *                 .didMethod(DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys))
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider) // the same used during creation
+ *                 .cryptographicSuite(cryptographicSuite) // the same used during creation
  *                 .assertionMethodKeys(Map.of(
  *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
  *                 ))

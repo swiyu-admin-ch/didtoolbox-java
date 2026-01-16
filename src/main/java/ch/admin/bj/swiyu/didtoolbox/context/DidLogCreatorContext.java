@@ -47,6 +47,7 @@ import java.util.Set;
  *     import ch.admin.bj.swiyu.didtoolbox.*;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+ *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
  *     import java.net.*;
  *
  *     public static void main(String... args) {
@@ -56,14 +57,14 @@ import java.util.Set;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
  *
- *             // NOTE that all required keys will be generated here as well, as no explicit verificationMethodKeyProvider is set
+ *             // NOTE that all required keys will be generated here as well, as no explicit cryptographic suite is set
  *             didLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
  *             // Using already existing key material
  *             didLogEntryWithExternalKeys = DidLogCreatorContext.builder()
- *                 .verificationMethodKeyProvider(new DalekEd25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem")))
+ *                 .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem")))
  *                 .assertionMethodKeys(Map.of(
  *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
  *                 ))
