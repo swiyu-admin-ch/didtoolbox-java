@@ -2,11 +2,16 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import io.ipfs.multibase.Base58;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HexFormat;
@@ -111,6 +116,27 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
             Ed25519Utils.toPublicKey(ByteBuffer.allocate(31)
                     .put(Arrays.copyOfRange(pk, 0, pk.length - 1)) // a bit shorter canonical key
                     .array()); // MUT
+        });
+    }
+
+    @Test
+    void testToMultibase() {
+
+        assertDoesNotThrow(() -> {
+            // Use JwkUtils to create some proper PEM-encoded ECDSA public key
+            var tempFile = File.createTempFile("myprivatekey", "");
+            // Exists at the moment of key generation, and should therefore be overwritten if forceOverwritten == true
+            tempFile.deleteOnExit();
+            JwkUtils.generatePublicEC256("auth-key-01", tempFile, true);
+
+            var key = PemUtils.parsePemPublicKey(Files.newBufferedReader(Path.of(tempFile.toPath() + ".pub")));
+
+            assertInstanceOf(ECPublicKey.class, key);
+
+            var actual = Ed25519Utils.toMultibase(key); // MUT
+
+            assertNotNull(actual);
+            assertEquals(48, actual.length());
         });
     }
 }

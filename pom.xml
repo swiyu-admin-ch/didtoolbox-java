@@ -63,7 +63,7 @@
         <!--project.dependencies.directory>lib/</project.dependencies.directory-->
 
         <didresolver.version>2.6.0</didresolver.version>
-        <jna.version>5.17.0</jna.version>
+        <jna.version>5.18.1</jna.version>
         <gson.version>2.13.2</gson.version>
         <java-multibase.version>v1.2.1</java-multibase.version>
         <lombok.version>1.18.42</lombok.version>
@@ -80,7 +80,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>3.5.4</version>
                 <configuration>
                     <!-- Equiv. to JAVA_TOOL_OPTIONS=-enable-preview mvn ... -->
                     <!-- See also https://junit-pioneer.org/docs/environment-variables/#warnings-for-reflective-access -->

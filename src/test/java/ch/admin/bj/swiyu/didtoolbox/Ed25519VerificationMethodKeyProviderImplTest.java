@@ -73,7 +73,7 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
 
         assertNotEquals(0, Files.size(tempFile.toPath())); // must not be empty, at least
         assertDoesNotThrow(() -> {
-            PemUtils.parsePEMFile(tempFile); // and must be a regular PEM file (content-wise), of course
+            PemUtils.readPEMFile(tempFile); // and must be a regular PEM file (content-wise), of course
         });
         assertEquals(3, Files.lines(tempFile.toPath(), StandardCharsets.UTF_8).count());
     }
@@ -88,7 +88,7 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
 
         assertNotEquals(0, Files.size(tempFile.toPath())); // must not be empty, at least
         assertDoesNotThrow(() -> {
-            PemUtils.parsePEMFile(tempFile); // and must be a regular PEM file (content-wise), of course
+            PemUtils.readPEMFile(tempFile); // and must be a regular PEM file (content-wise), of course
         });
         assertEquals(3, Files.lines(tempFile.toPath(), StandardCharsets.UTF_8).count());
     }
@@ -183,17 +183,17 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
     }
 
     @Test
-    public void testThrowsInvalidKeySpecException() {
+    public void testThrowsIllegalArgumentException() {
 
-        assertThrowsExactly(InvalidKeySpecException.class, () -> {
+        assertThrowsExactly(IllegalArgumentException.class, () -> {
             new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(Path.of("src/test/data/public.pem")), Files.newBufferedReader(Path.of("src/test/data/private.pem"))); // keys swapped, both wrong
         });
 
-        assertThrowsExactly(InvalidKeySpecException.class, () -> {
+        assertThrowsExactly(IllegalArgumentException.class, () -> {
             new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(Path.of("src/test/data/private.pem")), Files.newBufferedReader(Path.of("src/test/data/private.pem"))); // wrong public key PEM file
         });
 
-        assertThrowsExactly(InvalidKeySpecException.class, () -> {
+        assertThrowsExactly(IllegalArgumentException.class, () -> {
             new Ed25519VerificationMethodKeyProviderImpl(Files.newBufferedReader(Path.of("src/test/data/public.pem")), Files.newBufferedReader(Path.of("src/test/data/public.pem"))); // wrong private key PEM file
         });
     }

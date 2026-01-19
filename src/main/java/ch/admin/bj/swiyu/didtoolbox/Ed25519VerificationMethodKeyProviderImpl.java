@@ -215,13 +215,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VcDataIntegrity
      * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
      */
     public Ed25519VerificationMethodKeyProviderImpl(Reader privateKeyReader, Reader publicKeyReader) throws IOException, InvalidKeySpecException {
-        byte[] privatePemBytes = PemUtils.readPemObject(privateKeyReader);
-        PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
 
-        byte[] publicPemBytes = PemUtils.readPemObject(publicKeyReader);
-        PublicKey pubKey = PemUtils.getPublicKeyEd25519(publicPemBytes);
-
-        this.keyPair = new KeyPair(pubKey, privKey);
+        this.keyPair = new KeyPair(PemUtils.parsePemPublicKey(publicKeyReader), PemUtils.parsePemPrivateKey(privateKeyReader));
 
         sanityCheck(this);
     }
@@ -257,7 +252,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VcDataIntegrity
     public Ed25519VerificationMethodKeyProviderImpl(Reader privateKeyReader, String publicKeyMultibase)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
-        PrivateKey privKey = PemUtils.getPrivateKeyEd25519(PemUtils.readPemObject(privateKeyReader));
+        final PrivateKey privKey = PemUtils.parsePemPrivateKey(privateKeyReader);
 
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
         ByteBuffer buff = ByteBuffer.allocate(32);
