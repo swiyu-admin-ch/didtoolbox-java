@@ -428,7 +428,9 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VcDataIntegrity
      * <a href="https://www.w3.org/TR/controller-document/#multibase-0">Multibase</a> section of
      * <a href="https://www.w3.org/TR/controller-document/">Controlled Identifier Document</a>.
      *
-     * @param unsecuredDocument to create a proof for
+     * @param unsecuredDocument to make "secure" in terms of adding a data integrity proof to it,
+     *                          as <a href="https://www.w3.org/TR/vc-data-integrity/#dfn-unsecured-data-document">specified</a>
+     *                          ("unsecured data document is a map (JSON object) that contains no proof values")
      * @param challenge         self-explanatory
      * @param proofPurpose      typically "assertionMethod" or "authentication"
      * @param dateTime          of the proof creation (in <a href="https://www.rfc-editor.org/rfc/rfc3339.html">RFC3339</a> format)

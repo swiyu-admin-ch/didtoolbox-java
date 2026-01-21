@@ -120,9 +120,7 @@ class JwkUtilsTest {
     @Test
     void testGeneratePublicEC256WithOutputOverwriteNonExisting() {
         assertDoesNotThrow(() -> {
-            File tempFile;
-            File pubTempFile;
-            tempFile = File.createTempFile("myprivatekey", "");
+            var tempFile = File.createTempFile("myprivatekey", "");
             // Delete it immediately, so it will NOT exist at the moment of key generation and should therefore be created regardless of forceOverwritten flag
             tempFile.deleteOnExit();
 
@@ -131,7 +129,7 @@ class JwkUtilsTest {
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
-            pubTempFile = new File(tempFile.getPath() + ".pub");
+            var pubTempFile = new File(tempFile.getPath() + ".pub");
             assertNotEquals(0, Files.size(pubTempFile.toPath()));
             ecPemSanityCheck(tempFile, pubTempFile);
             pubTempFile.deleteOnExit(); // clean it up

@@ -35,7 +35,7 @@ public final class PemUtils {
      */
     public static byte[] readPEMFile(File pemFile) throws IOException {
 
-        if (!pemFile.isFile() || !pemFile.exists()) {
+        if (!pemFile.isFile()) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", pemFile.getAbsolutePath()));
         }
 
@@ -44,7 +44,7 @@ public final class PemUtils {
 
     static KeyPair parsePemKeyPairFile(File pemFile) throws IOException {
 
-        if (!pemFile.isFile() || !pemFile.exists()) {
+        if (!pemFile.isFile()) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", pemFile.getAbsolutePath()));
         }
 

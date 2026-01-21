@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
@@ -11,7 +12,6 @@ import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrit
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -303,17 +303,17 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash;
-        try (var hasher = JcsSha256Hasher.Companion.build()) {
-            entryHash = hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
-        } catch (DidSidekicksException e) {
+        String scid;
+        try {
+            scid = buildSCID(didLogEntryWithoutProofAndSignature);
+        } catch (DidLogCreatorStrategyException e) {
             throw new DidLogUpdaterStrategyException(e);
         }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
         var didLogEntryWithoutProof = new JsonObject();
 
-        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + entryHash; // versionId as the proof challenge
+        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
         didLogEntryWithoutProof.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
         didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
                 didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME));

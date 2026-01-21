@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
@@ -9,7 +10,6 @@ import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -250,15 +250,15 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash;
-        try (var hasher = JcsSha256Hasher.Companion.build()) {
-            entryHash = hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
-        } catch (DidSidekicksException e) {
+        String scid;
+        try {
+            scid = buildSCID(didLogEntryWithoutProofAndSignature);
+        } catch (DidLogCreatorStrategyException e) {
             throw new DidLogDeactivatorStrategyException(e);
         }
 
         JsonArray didLogEntryWithProof = new JsonArray();
-        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + entryHash; // versionId as the proof challenge
+        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
         didLogEntryWithProof.add(challenge);
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(2));

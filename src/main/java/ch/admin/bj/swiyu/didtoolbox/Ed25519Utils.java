@@ -86,12 +86,15 @@ public final class Ed25519Utils {
             throw new IllegalArgumentException("The supplied Ed25519 key must be at least of length 32 (bytes), but got " + len);
 
         var buff = ByteBuffer.allocate(ED25519_KEY_LENGTH + 2);
-        if (key instanceof PublicKey) {
-            buff.put((byte) 0xed).put((byte) 0x01);
-        } else if (key instanceof PrivateKey) {
-            buff.put((byte) 0x80).put((byte) 0x26);
-        } else {
-            throw new IllegalArgumentException("The supplied Ed25519 must be either private or public");
+        switch (key) {
+            case PublicKey ignored:
+                buff.put((byte) 0xed).put((byte) 0x01);
+                break;
+            case PrivateKey ignored:
+                buff.put((byte) 0x80).put((byte) 0x26);
+                break;
+            default:
+                throw new IllegalArgumentException("The supplied Ed25519 must be either private or public");
         }
 
         buff.put(Arrays.copyOfRange(keyEncoded, keyEncoded.length - 32, keyEncoded.length));
