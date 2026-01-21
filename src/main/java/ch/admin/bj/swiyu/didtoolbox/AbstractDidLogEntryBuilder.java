@@ -1,6 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSource;
+import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSourceException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonArray;
@@ -123,7 +125,8 @@ public abstract class AbstractDidLogEntryBuilder {
     @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
                                          Set<File> updateKeys,
-                                         Set<File> nextKeys) throws DidLogCreatorStrategyException {
+                                         Set<File> nextKeys,
+                                         Set<NextKeyHashSource> nextKeyHashSources) throws DidLogCreatorStrategyException {
 
         // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didtdw-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
@@ -182,16 +185,14 @@ public abstract class AbstractDidLogEntryBuilder {
         - The value of 'nextKeyHashes' MAY be set to an empty array ([]) to deactivate pre-rotation.
           For additional details about turning off pre-rotation, see the Pre-Rotation Key Hash Generation and Verification section of this specification.
          */
+        var nextKeyHashesJsonArray = new JsonArray();
         if (nextKeys != null) { // Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
-
-            var nextKeyHashesJsonArray = new JsonArray();
             for (var pemFile : nextKeys) {
 
                 String nextKeyHash;
                 try {
-                    nextKeyHash = JCSHasher.buildNextKeyHash(
-                            PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile));
-                } catch (DidSidekicksException e) {
+                    nextKeyHash = NextKeyHashSource.of(pemFile).getHash();
+                } catch (NextKeyHashSourceException e) {
                     throw new DidLogCreatorStrategyException(e);
                 }
 
@@ -199,7 +200,20 @@ public abstract class AbstractDidLogEntryBuilder {
                     nextKeyHashesJsonArray.add(nextKeyHash);
                 }
             }
+        }
 
+        if (nextKeyHashSources != null) { // Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+            for (var src : nextKeyHashSources) {
+
+                String nextKeyHash = src.getHash();
+
+                if (!nextKeyHashesJsonArray.contains(new JsonPrimitive(nextKeyHash))) { // it is a distinct list of keys, after all
+                    nextKeyHashesJsonArray.add(nextKeyHash);
+                }
+            }
+        }
+
+        if (!nextKeyHashesJsonArray.isEmpty()) {
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
         }
 

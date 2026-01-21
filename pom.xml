@@ -439,7 +439,7 @@
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
                             <blacklistRegexp>.*Util*.*|.*Command.*|.*Validator.*|.*Converter*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*VcDataIntegrityCryptographicSuite.*|.*Enum*.*|.*Context*.*|.*Strategy*.*</whitelistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*Enum*.*|.*.context.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->
@@ -476,7 +476,7 @@
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
                             <blacklistRegexp>.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*VcDataIntegrityCryptographicSuite.*|.*Enum*.*|.*Context*.*|.*Strategy*.*</whitelistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*Enum*.*|.*.context.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->

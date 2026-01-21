@@ -60,6 +60,10 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getNextKeyHashes
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory --> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy
 		deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
 		ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy : updateDidLog

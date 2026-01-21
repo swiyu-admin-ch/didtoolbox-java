@@ -5,6 +5,7 @@ import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSource;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import com.google.gson.JsonParser;
@@ -149,7 +150,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()),
+        assertEquals(NextKeyHashSource.of(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()).getHash(),
                 params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST match the last added updateKey
     }
 
@@ -180,7 +181,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertNotEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()),
+        assertNotEquals(NextKeyHashSource.of(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()).getHash(),
                 params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST NOT match the last added updateKey
     }
 
@@ -211,7 +212,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(1, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is one single keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(0).getAsString()),
+        assertEquals(NextKeyHashSource.of(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(0).getAsString()).getHash(),
                 params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST match the last added (in this case, the only) updateKey
     }
 

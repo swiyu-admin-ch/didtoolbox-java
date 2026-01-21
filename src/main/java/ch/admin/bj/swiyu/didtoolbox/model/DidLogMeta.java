@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
-import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.PemUtils;
+import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSource;
 import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidMethodParameter;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
@@ -89,7 +89,7 @@ public class DidLogMeta {
     public boolean isPreRotatedUpdateKey(String multikey) {
 
         if (this.isKeyPreRotationActivated() && multikey != null) {
-            return this.getParams().getNextKeyHashes().contains(JCSHasher.buildNextKeyHash(multikey));
+            return this.getParams().getNextKeyHashes().contains(NextKeyHashSource.of(multikey).getHash());
         }
 
         return false;

@@ -34,6 +34,7 @@ final class DidLogStrategyFactory {
                         .authenticationKeys(ctx.getAuthenticationKeys())
                         .updateKeys(ctx.getUpdateKeys())
                         .nextKeys(ctx.getNextKeys())
+                        .nextKeyHashes(ctx.getNextKeyHashes())
                         .forceOverwrite(ctx.isForceOverwrite())
                         .build();
             }
@@ -60,6 +61,7 @@ final class DidLogStrategyFactory {
                         .authenticationKeys(ctx.getAuthenticationKeys())
                         .updateKeys(ctx.getUpdateKeys())
                         .nextUpdateKeys(ctx.getNextKeys())
+                        .nextKeyHashes(ctx.getNextKeyHashes())
                         .build();
             }
             default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");

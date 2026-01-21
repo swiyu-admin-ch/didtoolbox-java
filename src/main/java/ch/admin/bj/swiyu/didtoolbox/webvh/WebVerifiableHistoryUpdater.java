@@ -1,9 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
@@ -96,10 +94,25 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
      * </pre></li>
      * </ul>
+     *
+     * @deprecated
      */
+    @Deprecated
     @Getter(AccessLevel.PRIVATE)
     private Set<File> nextUpdateKeys;
-    // TODO private File dirToStoreKeyPair;
+    /**
+     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private Set<NextKeyHashSource> nextKeyHashes;
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -361,8 +374,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var keys = new HashSet<String>();
         for (var pemFile : this.nextUpdateKeys) {
             try {
-                keys.add(JCSHasher.buildNextKeyHash(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile)));
-            } catch (DidSidekicksException ex) {
+                keys.add(NextKeyHashSource.of(pemFile).getHash());
+            } catch (NextKeyHashSourceException ex) {
                 throw new DidLogUpdaterStrategyException(ex);
             }
         }

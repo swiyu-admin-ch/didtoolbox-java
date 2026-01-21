@@ -7,6 +7,7 @@ import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSource;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
@@ -95,9 +96,25 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
      * </pre></li>
      * </ul>
+     *
+     * @deprecated
      */
+    @Deprecated
     @Getter(AccessLevel.PRIVATE)
     private Set<File> nextKeys;
+    /**
+     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     */
+    @Getter(AccessLevel.PACKAGE)
+    private Set<NextKeyHashSource> nextKeyHashes;
     // TODO private File dirToStoreKeyPair;
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
@@ -171,7 +188,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
-                createDidParams(this.getCryptoSuite(), this.updateKeys, this.nextKeys));
+                createDidParams(this.getCryptoSuite(), this.updateKeys, this.nextKeys, this.getNextKeyHashes()));
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);

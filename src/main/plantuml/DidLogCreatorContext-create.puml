@@ -64,6 +64,10 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getNextKeyHashes
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : isForceOverwrite
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : boolean

@@ -174,7 +174,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
         // CAUTION nextKeyHashes parameter (pre-rotation keys) not (yet) implemented for the class
-        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptoSuite(), this.updateKeys, null));
+        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptoSuite(), this.updateKeys, null, null));
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
