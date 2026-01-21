@@ -13,8 +13,6 @@ import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrit
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.did_sidekicks.DidDoc;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import ch.admin.eid.did_sidekicks.VerificationMethod;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -194,12 +192,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);
 
         // Generate SCID and replace placeholder in did doc
-        String scid;
-        try (var hasher = JcsSha256Hasher.Companion.build()) {
-            scid = hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
-        } catch (DidSidekicksException e) {
-            throw new DidLogCreatorStrategyException(e);
-        }
+        String scid = buildSCID(didLogEntryWithoutProofAndSignature);
 
         /* https://identity.foundation/didwebvh/v1.0/#output-of-the-scid-generation-process:
         After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
@@ -217,12 +210,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash;
-        try (var hasher = JcsSha256Hasher.Companion.build()) {
-            entryHash = hasher.base58btcEncodeMultihash(didLogEntryWithSCIDWithoutProofAndSignature.toString());
-        } catch (DidSidekicksException e) {
-            throw new DidLogCreatorStrategyException(e);
-        }
+        String entryHash = buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
         var didLogEntryWithoutProof = new JsonObject();

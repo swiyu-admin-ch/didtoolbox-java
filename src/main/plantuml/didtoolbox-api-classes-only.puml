@@ -144,6 +144,7 @@ class ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrity
 
 interface ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite {
 	{method}  {abstract} +addProof ( paramString1 : String , paramString2 : String , paramString3 : String , paramZonedDateTime4 : java.time.ZonedDateTime ) : String
+	{method} +verifyProof ( paramString1 : String , paramString2 : String ) : boolean
 }
 
 

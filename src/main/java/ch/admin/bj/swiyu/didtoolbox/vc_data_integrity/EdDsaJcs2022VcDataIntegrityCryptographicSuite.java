@@ -26,11 +26,17 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The {@link EdDsaJcs2022VcDataIntegrityCryptographicSuite} class is a {@link VcDataIntegrityCryptographicSuite} implementation
- * used to generate Ed25519 key pairs (or loading them from the file system).
- * Such key pair is then used for the purpose of DID (<a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a>
+ * The {@link EdDsaJcs2022VcDataIntegrityCryptographicSuite} class is a
+ * (<a href="https://www.w3.org/TR/vc-di-eddsa/#eddsa-jcs-2022">eddsa-jcs-2022</a>)
+ * {@link VcDataIntegrityCryptographicSuite} implementation.
+ * <p>
+ * It is also capable of either generating an Ed25519 key pair or loading it from the file system.
+ * Such key pair might be then used for the purpose of DID (<a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a>
  * or <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>) log creation.
- * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
+ * <p>
+ * <b>CAUTION</b> Beware, the class does not (yet) implement
+ * {@link VcDataIntegrityCryptographicSuite#verifyProof(String, String)} method,
+ * thus remaining exclusively capable of data integrity proof creation.
  * <p>
  * Instead of relying on standard {@link java.security} package (in conjunction with some JCE provider like Bouncy Castle),
  * this particular implementation is built on top of
@@ -65,8 +71,8 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      * as well as a suitable <a href="https://w3c.github.io/vc-di-eddsa/#eddsa-jcs-2022">eddsa-jcs-2022</a> cryptographic suite will be generated as well.
      */
     public EdDsaJcs2022VcDataIntegrityCryptographicSuite() {
-        signingKey = Ed25519SigningKey.Companion.generate();
-        cryptoSuite = EddsaJcs2022Cryptosuite.Companion.fromSigningKey(signingKey);
+        this.signingKey = Ed25519SigningKey.Companion.generate();
+        this.cryptoSuite = EddsaJcs2022Cryptosuite.Companion.fromSigningKey(signingKey);
     }
 
     /**
@@ -78,11 +84,11 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      */
     public EdDsaJcs2022VcDataIntegrityCryptographicSuite(File pkcs8PemFile) throws VcDataIntegrityCryptographicSuiteException {
         try {
-            signingKey = Ed25519SigningKey.Companion.readPkcs8PemFile(pkcs8PemFile.getPath());
+            this.signingKey = Ed25519SigningKey.Companion.readPkcs8PemFile(pkcs8PemFile.getPath());
         } catch (DidSidekicksException e) {
             throw new VcDataIntegrityCryptographicSuiteException(e);
         }
-        cryptoSuite = EddsaJcs2022Cryptosuite.Companion.fromSigningKey(signingKey);
+        this.cryptoSuite = EddsaJcs2022Cryptosuite.Companion.fromSigningKey(signingKey);
     }
 
     /**
@@ -138,7 +144,7 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
         }
 
         try {
-            this.signingKey = Ed25519SigningKey.Companion.fromMultibase(createFromKeyStore(keyStore, alias, keyPassword));
+            this.signingKey = Ed25519SigningKey.Companion.fromMultibase(getSecretKeyMultibaseFromKeyStore(keyStore, alias, keyPassword));
         } catch (DidSidekicksException e) {
             throw new VcDataIntegrityCryptographicSuiteException(e);
         }
@@ -156,7 +162,7 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
     public EdDsaJcs2022VcDataIntegrityCryptographicSuite(KeyStore keyStore, String alias, String password)
             throws VcDataIntegrityCryptographicSuiteException {
 
-        this(createFromKeyStore(keyStore, alias, password));
+        this(getSecretKeyMultibaseFromKeyStore(keyStore, alias, password));
     }
 
     /**
@@ -168,7 +174,7 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      * @throws VcDataIntegrityCryptographicSuiteException ...
      */
     @SuppressWarnings("PMD.CyclomaticComplexity")
-    private static String createFromKeyStore(KeyStore keyStore, String alias, String password)
+    private static String getSecretKeyMultibaseFromKeyStore(KeyStore keyStore, String alias, String password)
             throws VcDataIntegrityCryptographicSuiteException {
 
         boolean isKeyEntry;
@@ -319,7 +325,9 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      * <a href="https://www.w3.org/TR/controller-document/#multibase-0">Multibase</a> section of
      * <a href="https://www.w3.org/TR/controller-document/">Controlled Identifier Document</a>.
      *
-     * @param unsecuredDocument to create a proof for
+     * @param unsecuredDocument to make "secure" in terms of adding a data integrity proof to it,
+     *                          as <a href="https://www.w3.org/TR/vc-data-integrity/#dfn-unsecured-data-document">specified</a>
+     *                          ("unsecured data document is a map (JSON object) that contains no proof values")
      * @param challenge         self-explanatory
      * @param proofPurpose      typically "assertionMethod" or "authentication"
      * @param dateTime          of the proof creation (in <a href="https://www.rfc-editor.org/rfc/rfc3339.html">RFC3339</a> format)

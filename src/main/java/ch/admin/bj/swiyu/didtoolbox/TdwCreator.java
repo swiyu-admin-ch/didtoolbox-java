@@ -9,7 +9,6 @@ import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -183,12 +182,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         didLogEntryWithoutProofAndSignature.add(initialDidDoc);
 
         // Generate SCID and replace placeholder in did doc
-        String scid;
-        try (var hasher = JcsSha256Hasher.Companion.build()) {
-            scid = hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
-        } catch (DidSidekicksException e) {
-            throw new DidLogCreatorStrategyException(e);
-        }
+        String scid = buildSCID(didLogEntryWithoutProofAndSignature);
 
         /* https://identity.foundation/didwebvh/v0.3/#output-of-the-scid-generation-process:
         After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
@@ -210,12 +204,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash;
-        try (var hasher = JcsSha256Hasher.Companion.build()) {
-            entryHash = hasher.base58btcEncodeMultihash(didLogEntryWithSCIDWithoutProofAndSignature.toString());
-        } catch (DidSidekicksException e) {
-            throw new DidLogCreatorStrategyException(e);
-        }
+        String entryHash = buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
 
         JsonArray didLogEntryWithProof = new JsonArray();
         var challenge = "1-" + entryHash; // versionId as the proof challenge

@@ -5,10 +5,8 @@ import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSource;
 import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSourceException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
+import com.google.gson.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,6 +73,26 @@ public abstract class AbstractDidLogEntryBuilder {
         }
 
         return outputDir;
+    }
+
+    /**
+     * Build self-certifying identifier (SCID) - an object identifier derived from initial data such that an attacker could not
+     * create a new object with the same identifier. The input for a did:webvh SCID is the initial DIDDoc with the placeholder
+     * {SCID} wherever the SCID is to be placed.
+     * <p>
+     * Also see <a href="https://identity.foundation/didwebvh/v0.3/#generate-entry-hash">generate-entry-hash (did:tdw)</a> or
+     * <a href="https://identity.foundation/didwebvh/v1.0/#generate-entry-hash">generate-entry-hash (did:tdw)</a>.
+     *
+     * @param didLogEntryWithoutProofAndSignature
+     * @return
+     * @throws DidLogCreatorStrategyException
+     */
+    protected static String buildSCID(JsonElement didLogEntryWithoutProofAndSignature) throws DidLogCreatorStrategyException {
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            return hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
+        } catch (DidSidekicksException e) {
+            throw new DidLogCreatorStrategyException(e);
+        }
     }
 
     /**
