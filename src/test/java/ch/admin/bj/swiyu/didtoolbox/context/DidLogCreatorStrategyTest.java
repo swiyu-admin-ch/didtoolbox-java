@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+@SuppressWarnings("PMD")
 class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
 
     @DisplayName("Building DID log entry for various identifierRegistryUrl variants")

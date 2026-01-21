@@ -4,11 +4,10 @@ import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.PemUtils;
 import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidMethodParameter;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import lombok.Getter;
 
 import java.io.File;
-import java.io.IOException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -102,14 +101,14 @@ public class DidLogMeta {
      *
      * @param pemFiles to check
      * @return {@code true} if and only if at least one of the supplied {@code pemFiles} is legal w.r.t. key pre-rotation. Otherwise, {@code false}.
-     * @throws IOException             in case at least one of the supplied {@code pemFiles} features no PEM content
-     * @throws InvalidKeySpecException in case at least one of the supplied {@code pemFiles} contains no valid Ed25519 public key
+     * @throws DidSidekicksException in case at least one of the supplied {@code pemFiles} features no PEM content or
+     *                               at least one of the supplied {@code pemFiles} contains no valid Ed25519 public key
      */
-    public boolean arePreRotatedUpdateKeys(Set<File> pemFiles) throws InvalidKeySpecException, IOException {
+    public boolean arePreRotatedUpdateKeys(Set<File> pemFiles) throws DidSidekicksException {
 
         if (pemFiles != null && !pemFiles.isEmpty()) {
             for (var pemFile : pemFiles) {
-                if (!this.isPreRotatedUpdateKey(PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile))) {
+                if (!this.isPreRotatedUpdateKey(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile))) {
                     return false;
                 }
             }

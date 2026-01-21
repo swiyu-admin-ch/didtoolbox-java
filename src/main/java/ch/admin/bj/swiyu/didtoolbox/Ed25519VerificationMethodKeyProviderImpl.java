@@ -1,5 +1,13 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import io.ipfs.multibase.Base58;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
@@ -17,7 +25,11 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.NamedParameterSpec;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.Random;
 import java.util.Set;
 
@@ -30,9 +42,9 @@ import java.util.Set;
  * <p>
  * It is predominantly intended to be used within a:
  * <ul>
- * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext.DidLogCreatorContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext.DidLogCreatorContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} method
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#create(URL)} call)</li>
- * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} method
+ * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext.DidLogUpdaterContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} method
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext#update(String)} call).</li>
  * </ul>
  * <p>
@@ -42,8 +54,12 @@ import java.util.Set;
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
  * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
  * </ul>
+ *
+ * @deprecated Use {@link ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite} instead, whenever possible. Since 1.8.0
  */
-public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMethodKeyProvider {
+@Deprecated
+@SuppressWarnings({"PMD.GodClass", "PMD.ExcessiveImports"})
+public class Ed25519VerificationMethodKeyProviderImpl implements VcDataIntegrityCryptographicSuite {
 
     final private static String DEFAULT_JCE_PROVIDER_NAME = BouncyCastleProvider.PROVIDER_NAME;
 
@@ -199,13 +215,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
      */
     public Ed25519VerificationMethodKeyProviderImpl(Reader privateKeyReader, Reader publicKeyReader) throws IOException, InvalidKeySpecException {
-        byte[] privatePemBytes = PemUtils.readPemObject(privateKeyReader);
-        PrivateKey privKey = PemUtils.getPrivateKeyEd25519(privatePemBytes);
 
-        byte[] publicPemBytes = PemUtils.readPemObject(publicKeyReader);
-        PublicKey pubKey = PemUtils.getPublicKeyEd25519(publicPemBytes);
-
-        this.keyPair = new KeyPair(pubKey, privKey);
+        this.keyPair = new KeyPair(PemUtils.parsePemPublicKey(publicKeyReader), PemUtils.parsePemPrivateKey(privateKeyReader));
 
         sanityCheck(this);
     }
@@ -241,7 +252,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     public Ed25519VerificationMethodKeyProviderImpl(Reader privateKeyReader, String publicKeyMultibase)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
-        PrivateKey privKey = PemUtils.getPrivateKeyEd25519(PemUtils.readPemObject(privateKeyReader));
+        final PrivateKey privKey = PemUtils.parsePemPrivateKey(privateKeyReader);
 
         var verifyingKey = Base58.decode(publicKeyMultibase.substring(1));
         ByteBuffer buff = ByteBuffer.allocate(32);
@@ -328,11 +339,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (privateKeyEncoded == null) {
             throw new IllegalArgumentException("The key pair features a private key that does not support encoding");
         }
-        PemWriter pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()));
-        try {
+        try (var pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()))) {
             pemWriter.writeObject(new PemObject("PRIVATE KEY", privateKeyEncoded));
-        } finally {
-            pemWriter.close();
         }
     }
 
@@ -346,11 +354,8 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         if (publicKeyEncoded == null) {
             throw new IllegalArgumentException("The key pair features a public key that does not support encoding");
         }
-        PemWriter pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()));
-        try {
+        try (var pemWriter = new PemWriter(Files.newBufferedWriter(file.toPath()))) {
             pemWriter.writeObject(new PemObject("PUBLIC KEY", publicKeyEncoded));
-        } finally {
-            pemWriter.close();
         }
     }
 
@@ -366,17 +371,21 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      */
     @Override
     public String getVerificationKeyMultibase() {
-        // may throw IllegalArgumentException if the supplied public key does not support encoding
-        return Ed25519Utils.encodeMultibase(this.keyPair.getPublic());
+        return Ed25519Utils.toMultibase(this.keyPair.getPublic());
     }
 
     /**
-     * The {@link VerificationMethodKeyProvider} interface method implementation using Ed25519 algorithm.
+     * Generate a (detached) <a href="https://www.rfc-editor.org/rfc/rfc8032">Edwards-Curve Digital Signature Algorithm (EdDSA) RFC8032</a>
+     * signature for the (hashed) verification proof,
+     * <a href="https://www.w3.org/TR/controller-document/#multibase-0">multibase-encoded using the base-58-btc (multibase) header and alphabet</a>.
      *
      * @param message to sign
      * @return signed message
+     * @deprecated As the method {@link #addProof(String, String, String, ZonedDateTime)}
+     * makes it redundant. Since 1.8.0
      */
     @Override
+    @Deprecated
     public byte[] generateSignature(byte[] message) {
         try {
             var signer = Signature.getInstance("EdDSA", this.provider);
@@ -404,5 +413,94 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
             // the JCE provider should be already properly initialized in the constructor
             throw new IllegalArgumentException(e);
         }
+    }
+
+    /**
+     * Add a data integrity proof to a supplied <b>unsecured data document</b> ("a map that contains no proof values"), thus producing
+     * a <b>secured data document</b> ("a map that contains one or more proof values"),
+     * as specified by <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">Data Integrity EdDSA Cryptosuites v1.0</a>.
+     * <p>
+     * See <a href="https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022">example</a>
+     * <p>
+     * The {@code proofValue} property of the {@code proof} MUST be a detached EdDSA signature produced according to
+     * <a href="https://www.rfc-editor.org/rfc/rfc8032">RFC8032</a>,
+     * encoded using the base-58-btc header and alphabet as described in the
+     * <a href="https://www.w3.org/TR/controller-document/#multibase-0">Multibase</a> section of
+     * <a href="https://www.w3.org/TR/controller-document/">Controlled Identifier Document</a>.
+     *
+     * @param unsecuredDocument to make "secure" in terms of adding a data integrity proof to it,
+     *                          as <a href="https://www.w3.org/TR/vc-data-integrity/#dfn-unsecured-data-document">specified</a>
+     *                          ("unsecured data document is a map (JSON object) that contains no proof values")
+     * @param challenge         self-explanatory
+     * @param proofPurpose      typically "assertionMethod" or "authentication"
+     * @param dateTime          of the proof creation (in <a href="https://www.rfc-editor.org/rfc/rfc3339.html">RFC3339</a> format)
+     * @return String representing a "secured" document i.e. the supplied {@code unsecuredDocument} featuring a data integrity proof
+     * @throws VcDataIntegrityCryptographicSuiteException if operation fails for any reason
+     */
+    @Override
+    public String addProof(String unsecuredDocument,
+                           String challenge,
+                           String proofPurpose,
+                           ZonedDateTime dateTime)
+            throws VcDataIntegrityCryptographicSuiteException {
+
+        JsonObject unsecuredDocumentJsonObject;
+        try {
+            unsecuredDocumentJsonObject = JsonParser.parseString(unsecuredDocument).getAsJsonObject();
+        } catch (JsonSyntaxException | IllegalStateException ex) {
+            throw new VcDataIntegrityCryptographicSuiteException(ex);
+        }
+
+        /*
+        https://identity.foundation/didwebvh/v0.3/#data-integrity-proof-generation-and-first-log-entry:
+        The last step in the creation of the first log entry is the generation of the data integrity proof.
+        One of the keys in the updateKeys parameter MUST be used (in the form of a did:key) to generate the signature in the proof,
+        with the versionId value (item 1 of the did log) used as the challenge item.
+        The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
+         */
+
+        var proof = new JsonObject();
+
+        // According to https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022:
+        // 2) If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context.
+        var ctx = unsecuredDocumentJsonObject.get("@context");
+        if (ctx != null) {
+            proof.add("@context", ctx);
+        }
+
+        proof.addProperty("type", DATA_INTEGRITY_PROOF);
+        // According to https://www.w3.org/TR/vc-di-eddsa/#proof-configuration-eddsa-jcs-2022
+        proof.addProperty("cryptosuite", EDDSA_JCS_2022);
+        proof.addProperty("created", DateTimeFormatter.ISO_INSTANT.format(dateTime.truncatedTo(ChronoUnit.SECONDS)));
+
+        /*
+        The data integrity proof verificationMethod is the did:key from the first log entry, and the challenge is the versionId from this log entry.
+         */
+        proof.addProperty("verificationMethod", DID_KEY + this.getVerificationKeyMultibase() + '#' + this.getVerificationKeyMultibase());
+        proof.addProperty("proofPurpose", proofPurpose);
+        if (challenge != null) {
+            proof.addProperty("challenge", challenge);
+        }
+
+        String docHashHex;
+        String proofHashHex;
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            docHashHex = hasher.encodeHex(unsecuredDocumentJsonObject.toString());
+            proofHashHex = hasher.encodeHex(proof.toString());
+        } catch (DidSidekicksException e) {
+            throw new VcDataIntegrityCryptographicSuiteException(e);
+        }
+
+        var signature = this.generateSignature(HexFormat.of().parseHex(proofHashHex + docHashHex));
+
+        // See https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022
+        //     https://www.w3.org/TR/controller-document/#multibase-0
+        proof.addProperty("proofValue", 'z' + Base58.encode(signature));
+
+        var proofs = new JsonArray();
+        proofs.add(proof);
+        unsecuredDocumentJsonObject.add("proof", proofs);
+
+        return unsecuredDocumentJsonObject.toString();
     }
 }

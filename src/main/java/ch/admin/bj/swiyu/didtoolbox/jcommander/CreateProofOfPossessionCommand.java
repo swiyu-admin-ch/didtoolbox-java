@@ -19,7 +19,6 @@ import java.io.File;
                 "Alternatively, you may also use -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose",
         parametersValidators = {CommandParametersValidator.class}
 )
-@SuppressWarnings({"PMD.LawOfDemeter"})
 public class CreateProofOfPossessionCommand extends AbstractDidLogCommandBase {
 
     @Override

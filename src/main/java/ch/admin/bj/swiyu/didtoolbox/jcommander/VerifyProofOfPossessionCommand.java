@@ -9,7 +9,6 @@ import com.nimbusds.jwt.SignedJWT;
 
 import java.io.File;
 
-@SuppressWarnings({"PMD.LawOfDemeter"})
 @Parameters(
         commandNames = {VerifyProofOfPossessionCommand.COMMAND_NAME},
         commandDescription = "Verifies the validity of the provided proof of possession JWT.",

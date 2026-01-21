@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("PMD")
 class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
     private static final Duration ONE_DAY_LONG = Duration.ofDays(1);
 
@@ -28,7 +29,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)))
         );
 
         assertTrue(verifier.get().isValid(proof.get(), nonce));
@@ -53,7 +54,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER_ANOTHER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER))) // CAUTION: Using a whole other key
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_ANOTHER))) // CAUTION: Using a whole other key
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();
@@ -67,7 +68,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
     void testVerifyKeyIdMismatch() {
         var nonce = "my_nonce";
 
-        var publicKeyMultibase = Ed25519Utils.encodeMultibase(TEST_PUBLIC_KEY_ANOTHER); // CAUTION: Using a whole other key
+        var publicKeyMultibase = TEST_POP_JWS_SIGNER_ANOTHER.getVerificationKeyMultibase(); // CAUTION: Using a whole another key
         var signedJWT = new com.nimbusds.jwt.SignedJWT(
                 new com.nimbusds.jose.JWSHeader.Builder(com.nimbusds.jose.JWSAlgorithm.Ed25519)
                         .keyID("did:key:" + publicKeyMultibase + "#" + publicKeyMultibase)
@@ -87,7 +88,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)))
         );
 
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.get().verify(signedJWT, nonce));
@@ -104,7 +105,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
 
         try {
             // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
-            var verifier = new ProofOfPossessionVerifier(buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER));
+            var verifier = new ProofOfPossessionVerifier(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE));
             verifier.verify(expiredJWT.get(), "foo");
             fail();
         } catch (ProofOfPossessionVerifierException e) {
@@ -127,7 +128,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)))
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();
@@ -149,7 +150,7 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() ->
                 // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER here, instead
                 verifier.set(new ProofOfPossessionVerifier(
-                        buildInitialTdwDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER)))
+                        buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)))
         );
 
         ProofOfPossessionVerifier finalVerifier = verifier.get();

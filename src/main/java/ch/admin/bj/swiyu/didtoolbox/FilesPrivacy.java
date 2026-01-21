@@ -82,7 +82,6 @@ final class FilesPrivacy {
             // AclEntryFlag.INHERIT_ONLY,
     );
 
-    @SuppressWarnings({"PMD.LawOfDemeter"})
     private static UserPrincipal getCurrentUserPrincipal(Path path) {
 
         try {

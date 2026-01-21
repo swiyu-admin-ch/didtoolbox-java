@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
-import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
@@ -18,7 +18,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,17 +34,16 @@ abstract class AbstractCommandParametersValidatorTest {
     protected static final File somePublicPEMFile = new File("src/test/data/public.pem");
 
     // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-    final private static VerificationMethodKeyProvider VERIFICATION_METHOD_KEY_PROVIDER_JKS;
-    final private static Map<String, String> ASSERTION_METHOD_KEYS;
-    final private static Map<String, String> AUTHENTICATION_METHOD_KEYS;
+    final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE;
+    final protected static Map<String, String> TEST_ASSERTION_METHOD_KEYS;
+    final protected static Map<String, String> TEST_AUTHENTICATION_METHOD_KEYS;
 
     static {
         try {
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            VERIFICATION_METHOD_KEY_PROVIDER_JKS = new Ed25519VerificationMethodKeyProviderImpl(
-                    Files.newInputStream(Path.of("src/test/data/mykeystore.jks")), "changeit", "myalias", "changeit");
-            ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"));
-            AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"));
+            TEST_CRYPTO_SUITE = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem"));
+            TEST_ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"));
+            TEST_AUTHENTICATION_METHOD_KEYS = Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"));
         } catch (Exception intolerable) {
             throw new IllegalArgumentException(intolerable);
         }
@@ -56,9 +54,9 @@ abstract class AbstractCommandParametersValidatorTest {
             dummyDidLogFile = File.createTempFile("my-did", ".jsonl");
 
             var initialDidLogEntry = DidLogCreatorContext.builder()
-                    .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
-                    .assertionMethodKeys(ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     //.updateKeys(Set.of(new File("src/test/data/public.pem")))
                     .forceOverwrite(true)
                     .build()
@@ -67,9 +65,9 @@ abstract class AbstractCommandParametersValidatorTest {
             var updatedDidLog = new StringBuilder(initialDidLogEntry)
                     .append(System.lineSeparator())
                     .append(DidLogUpdaterContext.builder()
-                            .verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS)
-                            .assertionMethodKeys(ASSERTION_METHOD_KEYS)
-                            .authenticationKeys(AUTHENTICATION_METHOD_KEYS)
+                            .cryptographicSuite(TEST_CRYPTO_SUITE)
+                            .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                            .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                             //.updateKeys(Set.of(new File("src/test/data/public.pem")))
                             .build()
                             .update(initialDidLogEntry));

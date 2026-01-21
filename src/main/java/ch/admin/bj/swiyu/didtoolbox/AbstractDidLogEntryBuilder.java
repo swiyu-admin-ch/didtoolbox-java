@@ -1,10 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
+import com.google.gson.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,21 +12,30 @@ import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractDidLogEntryBuilder {
 
     protected final static String SCID_PLACEHOLDER = "{SCID}";
+
+    protected final static String DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID = "versionId";
+    protected final static String DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME = "versionTime";
+    protected final static String DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS = "parameters";
+    protected final static String DID_LOG_ENTRY_JSON_PROPERTY_STATE = "state";
+
     protected DidLogMeta didLogMeta;
 
     protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile,
-                                                                        boolean forceOverwrite) throws IOException {
+                                                                        boolean forceOverwrite) throws DidLogCreatorStrategyException {
 
         String publicKeyJwk = jwk;
         if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile, forceOverwrite);
+            try {
+                publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile, forceOverwrite);
+            } catch (IOException e) {
+                throw new DidLogCreatorStrategyException(e);
+            }
         }
 
         return buildVerificationMethodWithPublicKeyJwk(didTDW, keyID, publicKeyJwk);
@@ -46,7 +55,7 @@ public abstract class AbstractDidLogEntryBuilder {
         return verificationMethodObj;
     }
 
-    protected static File createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws IOException {
+    protected static File createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws DidLogCreatorStrategyException {
         var outputDir = new File(pathname);
         if (!outputDir.exists()) {
             try {
@@ -57,11 +66,31 @@ public abstract class AbstractDidLogEntryBuilder {
                 //} catch (AccessDeniedException ex) {
                 //    throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
             } catch (Throwable thr) {
-                throw new IOException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
+                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
             }
         }
 
         return outputDir;
+    }
+
+    /**
+     * Build self-certifying identifier (SCID) - an object identifier derived from initial data such that an attacker could not
+     * create a new object with the same identifier. The input for a did:webvh SCID is the initial DIDDoc with the placeholder
+     * {SCID} wherever the SCID is to be placed.
+     * <p>
+     * Also see <a href="https://identity.foundation/didwebvh/v0.3/#generate-entry-hash">generate-entry-hash (did:tdw)</a> or
+     * <a href="https://identity.foundation/didwebvh/v1.0/#generate-entry-hash">generate-entry-hash (did:tdw)</a>.
+     *
+     * @param didLogEntryWithoutProofAndSignature
+     * @return
+     * @throws DidLogCreatorStrategyException
+     */
+    protected static String buildSCID(JsonElement didLogEntryWithoutProofAndSignature) throws DidLogCreatorStrategyException {
+        try (var hasher = JcsSha256Hasher.Companion.build()) {
+            return hasher.base58btcEncodeMultihash(didLogEntryWithoutProofAndSignature.toString());
+        } catch (DidSidekicksException e) {
+            throw new DidLogCreatorStrategyException(e);
+        }
     }
 
     /**
@@ -107,13 +136,12 @@ public abstract class AbstractDidLogEntryBuilder {
      * @param nextKeys                      optional set of PEM files, each featuring a public key to be used for the {@code nextKeyHashes} parameter,
      *                                      as specified by <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">pre-rotation-key-hash-generation-and-verification</a>
      * @return a JSON object representing DID method parameters
-     * @throws InvalidKeySpecException if parsing any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
-     * @throws IOException             if loading any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
+     * @throws DidLogCreatorStrategyException if parsing any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
      */
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
                                          Set<File> updateKeys,
-                                         Set<File> nextKeys) throws InvalidKeySpecException, IOException {
+                                         Set<File> nextKeys) throws DidLogCreatorStrategyException {
 
         // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didtdw-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
@@ -139,7 +167,12 @@ public abstract class AbstractDidLogEntryBuilder {
         updateKeysJsonArray.add(verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
         if (updateKeys != null) {
             for (var pemFile : updateKeys) { // ...and then add the rest, if any
-                String updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
+                String updateKey;
+                try {
+                    updateKey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
+                } catch (DidSidekicksException e) {
+                    throw new DidLogCreatorStrategyException(e);
+                }
 
                 if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) { // it is a distinct list of keys, after all
                     updateKeysJsonArray.add(updateKey);
@@ -172,8 +205,13 @@ public abstract class AbstractDidLogEntryBuilder {
             var nextKeyHashesJsonArray = new JsonArray();
             for (var pemFile : nextKeys) {
 
-                String nextKeyHash = JCSHasher.buildNextKeyHash(
-                        PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile));
+                String nextKeyHash;
+                try {
+                    nextKeyHash = JCSHasher.buildNextKeyHash(
+                            PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile));
+                } catch (DidSidekicksException e) {
+                    throw new DidLogCreatorStrategyException(e);
+                }
 
                 if (!nextKeyHashesJsonArray.contains(new JsonPrimitive(nextKeyHash))) { // it is a distinct list of keys, after all
                     nextKeyHashesJsonArray.add(nextKeyHash);
@@ -224,7 +262,7 @@ public abstract class AbstractDidLogEntryBuilder {
     protected JsonObject createDidDoc(URL identifierRegistryUrl,
                                       Map<String, String> authenticationKeys,
                                       Map<String, String> assertionMethodKeys,
-                                      boolean forceOverwrite) throws IOException {
+                                      boolean forceOverwrite) throws DidLogCreatorStrategyException {
 
         var did = buildDid(identifierRegistryUrl);
 
@@ -290,7 +328,6 @@ public abstract class AbstractDidLogEntryBuilder {
         return didDoc;
     }
 
-    @SuppressWarnings({"PMD.LawOfDemeter"})
     protected boolean isVerificationMethodKeyProviderLegal(VerificationMethodKeyProvider verificationMethodKeyProvider) {
         if (this.didLogMeta.isKeyPreRotationActivated()) {
             return this.didLogMeta.isPreRotatedUpdateKey(verificationMethodKeyProvider.getVerificationKeyMultibase());

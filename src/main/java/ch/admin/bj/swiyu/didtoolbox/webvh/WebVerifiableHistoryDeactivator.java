@@ -1,22 +1,27 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
+import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.eid.didresolver.Did;
-import ch.admin.eid.didresolver.DidResolveException;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,17 +39,13 @@ import java.time.temporal.ChronoUnit;
  * log goes simply by calling {@link #deactivateDidLog(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link WebVerifiableHistoryDeactivator.WebVerifiableHistoryDeactivatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting a signing (Ed25519) key</li>
+ * <li>{@link WebVerifiableHistoryDeactivator.WebVerifiableHistoryDeactivatorBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * </ul>
- * To load keys from the file system, the following helpers are available:
- * <ul>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} for loading a signing (Ed25519) key from
- * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading a signing (Ed25519) key from Java KeyStore (JKS) files</li>
- * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion public
- * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
- * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
- * </ul>
+ * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
+ * feel free to explore all available {@link VerificationMethodKeyProvider} implementations.
+ * <p>
+ * To load authentication/assertion public EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link JwkUtils}.
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
@@ -53,16 +54,34 @@ import java.time.temporal.ChronoUnit;
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-@SuppressWarnings({"PMD.LawOfDemeter"})
 @Builder
 public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    @Getter(AccessLevel.PRIVATE)
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
 
     @Override
     protected DidMethodEnum getDidMethod() {
         return DidMethodEnum.WEBVH_1_0;
+    }
+
+    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
     }
 
     /**
@@ -121,7 +140,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
             throw new DidLogDeactivatorStrategyException("DID already deactivated");
         }
 
-        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogDeactivatorStrategyException("Deactivation key mismatch");
         }
 
@@ -165,14 +184,14 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         // https://identity.foundation/didwebvh/v1.0/#entry-hash-generation-and-verification:
         // For the first log entry, the predecessor versionId is the SCID (itself a hash),
         // while for all other entries it is the versionId item from the previous log entry.
-        didLogEntryWithoutProofAndSignature.addProperty("versionId", didLogMeta.getLastVersionId());
+        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, didLogMeta.getLastVersionId());
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
         //
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
         // The versionTime of the last entry MUST be earlier than the current time.
-        didLogEntryWithoutProofAndSignature.addProperty("versionTime", DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
+        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
 
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
@@ -186,30 +205,33 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         // ("updateKeys": []) in the parameters, preventing further versions of the DID.
         didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, new JsonArray());
 
-        didLogEntryWithoutProofAndSignature.add("parameters", didMethodParameters);
+        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, didMethodParameters);
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
-        didLogEntryWithoutProofAndSignature.add("state", didDoc);
+        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);
 
         // See https://identity.foundation/didwebvh/v1.0/#generate-entry-hash
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash;
+        String scid;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (IOException e) {
+            scid = buildSCID(didLogEntryWithoutProofAndSignature);
+        } catch (DidLogCreatorStrategyException e) {
             throw new DidLogDeactivatorStrategyException(e);
         }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
-        var didLogEntryWithProof = new JsonObject();
+        var didLogEntryWithoutProof = new JsonObject();
 
-        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + entryHash; // versionId as the proof challenge
-        didLogEntryWithProof.addProperty("versionId", challenge);
-        didLogEntryWithProof.add("versionTime", didLogEntryWithoutProofAndSignature.get("versionTime"));
-        didLogEntryWithProof.add("parameters", didLogEntryWithoutProofAndSignature.get("parameters"));
-        didLogEntryWithProof.add("state", didLogEntryWithoutProofAndSignature.get("state"));
+        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
+        didLogEntryWithoutProof.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
+                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME));
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
+                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS));
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE,
+                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE));
 
         /*
         https://identity.foundation/didwebvh/v1.0/#update-rotate:
@@ -219,30 +241,12 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
-        var proofs = new JsonArray();
-        JsonObject proof;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(
-                    didLogEntryWithProof, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-        } catch (IOException e) {
+            return this.getCryptoSuite().addProof(
+                    didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
+
+        } catch (VcDataIntegrityCryptographicSuiteException e) {
             throw new DidLogDeactivatorStrategyException("Fail to build DID doc data integrity proof", e);
         }
-        // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());
-        proofs.add(proof);
-        didLogEntryWithProof.add("proof", proofs);
-
-        Did did = new Did(didLogMeta.getDidDoc().getId());
-        try {
-            // NOTE Enforcing DID log conformity is already part of the `resolve` method.
-            // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolveAll(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
-        } catch (DidResolveException e) {
-            throw new InvalidDidLogException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
-        } finally {
-            did.close();
-        }
-
-        return didLogEntryWithProof.toString();
     }
 }

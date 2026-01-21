@@ -1,14 +1,17 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.eid.didresolver.Did;
-import ch.admin.eid.didresolver.DidResolveException;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -18,10 +21,7 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.nio.file.Files;
-import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -41,21 +41,17 @@ import java.util.Set;
  * log goes simply by calling {@link #updateDidLog(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * <li>{@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
- * To load keys from the file system, the following helpers are available:
- * <ul>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} for loading the update (Ed25519) key from
- * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
- * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion public
- * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
- * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
- * </ul>
+ * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
+ * feel free to explore all available {@link VerificationMethodKeyProvider} implementations.
+ * <p>
+ * To load authentication/assertion public EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link JwkUtils}.
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
@@ -75,9 +71,19 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
     /**
@@ -98,6 +104,14 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
     @Override
     protected DidMethodEnum getDidMethod() {
         return DidMethodEnum.WEBVH_1_0;
+    }
+
+    VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
     }
 
     /**
@@ -143,7 +157,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
@@ -158,7 +172,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
-        if (!super.isVerificationMethodKeyProviderLegal(this.verificationMethodKeyProvider)) {
+        if (!super.isVerificationMethodKeyProviderLegal(this.getCryptoSuite())) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
@@ -168,7 +182,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             boolean arePreRotatedUpdateKeys;
             try {
                 arePreRotatedUpdateKeys = super.didLogMeta.arePreRotatedUpdateKeys(this.updateKeys);
-            } catch (InvalidKeySpecException | IOException e) {
+            } catch (DidSidekicksException e) {
                 throw new DidLogUpdaterStrategyException(e);
             }
 
@@ -181,12 +195,12 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             for (var key : this.updateKeys) {
                 String multikey;
                 try {
-                    multikey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(key);
-                } catch (InvalidKeySpecException | IOException e) {
+                    multikey = PemUtils.readEd25519PublicKeyPemFileToMultibase(key);
+                } catch (DidSidekicksException e) {
                     throw new DidLogUpdaterStrategyException("Invalid verifying (public) ed25519 key supplied", e);
                 }
 
-                if (!this.verificationMethodKeyProvider.getVerificationKeyMultibase().equals(multikey)) {
+                if (!this.getCryptoSuite().getVerificationKeyMultibase().equals(multikey)) {
                     throw new DidLogUpdaterStrategyException("No matching verifying (public) ed25519 key supplied");
                 }
             }
@@ -268,42 +282,45 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // https://identity.foundation/didwebvh/v1.0/#entry-hash-generation-and-verification:
         // For the first log entry, the predecessor versionId is the SCID (itself a hash),
         // while for all other entries it is the versionId item from the previous log entry.
-        didLogEntryWithoutProofAndSignature.addProperty("versionId", super.didLogMeta.getLastVersionId());
+        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, super.didLogMeta.getLastVersionId());
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
         //
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
         // The versionTime of the last entry MUST be earlier than the current time.
-        didLogEntryWithoutProofAndSignature.addProperty("versionTime", DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
+        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
 
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        didLogEntryWithoutProofAndSignature.add("parameters", this.buildDidMethodParameters());
+        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, this.buildDidMethodParameters());
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
-        didLogEntryWithoutProofAndSignature.add("state", didDoc);
+        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);
 
         // See https://identity.foundation/didwebvh/v1.0/#generate-entry-hash
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash;
+        String scid;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (IOException e) {
+            scid = buildSCID(didLogEntryWithoutProofAndSignature);
+        } catch (DidLogCreatorStrategyException e) {
             throw new DidLogUpdaterStrategyException(e);
         }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
-        var didLogEntryWithProof = new JsonObject();
+        var didLogEntryWithoutProof = new JsonObject();
 
-        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + entryHash; // versionId as the proof challenge
-        didLogEntryWithProof.addProperty("versionId", challenge);
-        didLogEntryWithProof.add("versionTime", didLogEntryWithoutProofAndSignature.get("versionTime"));
-        didLogEntryWithProof.add("parameters", didLogEntryWithoutProofAndSignature.get("parameters"));
-        didLogEntryWithProof.add("state", didLogEntryWithoutProofAndSignature.get("state"));
+        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
+        didLogEntryWithoutProof.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
+                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME));
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
+                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS));
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE,
+                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE));
 
         /*
         https://identity.foundation/didwebvh/v1.0/#update-rotate:
@@ -313,31 +330,12 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
-        var proofs = new JsonArray();
-        JsonObject proof;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(
-                    didLogEntryWithProof, this.verificationMethodKeyProvider, null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-        } catch (IOException e) {
+            return this.getCryptoSuite().addProof(
+                    didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
+        } catch (VcDataIntegrityCryptographicSuiteException e) {
             throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
-        // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());
-        proofs.add(proof);
-        didLogEntryWithProof.add("proof", proofs);
-
-        var did = new Did(super.didLogMeta.getDidDoc().getId());
-        try {
-            // NOTE Enforcing DID log conformity is already part of the `resolve` method.
-            // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
-        } catch (DidResolveException e) {
-            throw new InvalidDidLogException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
-        } finally {
-            did.close();
-        }
-
-        return didLogEntryWithProof.toString();
     }
 
     /**
@@ -347,8 +345,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var keys = new HashSet<String>();
         for (var pemFile : this.updateKeys) {
             try {
-                keys.add(PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile));
-            } catch (IOException | InvalidKeySpecException ex) {
+                keys.add(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile));
+            } catch (DidSidekicksException ex) {
                 throw new DidLogUpdaterStrategyException(ex);
             }
         }
@@ -363,8 +361,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var keys = new HashSet<String>();
         for (var pemFile : this.nextUpdateKeys) {
             try {
-                keys.add(JCSHasher.buildNextKeyHash(PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile)));
-            } catch (IOException | InvalidKeySpecException ex) {
+                keys.add(JCSHasher.buildNextKeyHash(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile)));
+            } catch (DidSidekicksException ex) {
                 throw new DidLogUpdaterStrategyException(ex);
             }
         }
@@ -411,7 +409,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
                 && super.didLogMeta.isKeyPreRotationActivated()) {
 
-            updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+            updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
 
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, new JsonArray()); // key pre-rotation MUST be deactivated
 
@@ -425,7 +423,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
                 && super.didLogMeta.isKeyPreRotationActivated()) {
 
-            updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+            updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
 
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
@@ -442,8 +440,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 && super.didLogMeta.isKeyPreRotationActivated()) {
 
             loadUpdateKeys().forEach(updateKeysJsonArray::add);
-            if (!updateKeysJsonArray.contains(new JsonPrimitive(this.verificationMethodKeyProvider.getVerificationKeyMultibase()))) {
-                updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+            if (!updateKeysJsonArray.contains(new JsonPrimitive(this.getCryptoSuite().getVerificationKeyMultibase()))) {
+                updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
             }
 
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, new JsonArray()); // key pre-rotation MUST be deactivated
@@ -459,7 +457,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
                 && super.didLogMeta.isKeyPreRotationActivated()) {
 
-            updateKeysJsonArray.add(this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+            updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
 
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);

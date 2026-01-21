@@ -88,7 +88,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
         var command = new UpdateDidLogCommand();
 
-        command.didLogFile = writeStringToTempFile(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS));
+        command.didLogFile = writeStringToTempFile(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS));
 
         command.signingKeyPemFile = new File(TEST_DATA_PATH_PREFIX + "private.pem"); // must match the updateKey set by the initial entry
         // TODO Is setting command.verifyingKeyPemFiles irrelevant here?
@@ -143,7 +143,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         var command = new UpdateDidLogCommand();
 
         command.didLogFile = writeStringToTempFile(
-                buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // matches "myalias" key from "mykeystore.jks"
+                buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS) // matches "myalias" key from "mykeystore.jks"
         );
 
         command.jksFile = new File(TEST_DATA_PATH_PREFIX + "mykeystore.jks");

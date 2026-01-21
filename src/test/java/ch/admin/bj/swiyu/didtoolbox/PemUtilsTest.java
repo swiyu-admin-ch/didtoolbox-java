@@ -9,10 +9,11 @@ import java.nio.file.Files;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@SuppressWarnings("PMD")
 class PemUtilsTest {
 
     @Test
-    void testParsePEMFilePublicKeyEd25519Multibase() throws IOException {
+    void testReadEd25519PublicKeyPemFileToMultibase() throws IOException {
 
         File tempFile = File.createTempFile("mypublickey", ".pem");
         tempFile.deleteOnExit();
@@ -28,13 +29,13 @@ class PemUtilsTest {
         w.close();
 
         var publicKeyEd25519Multibase = assertDoesNotThrow(() -> {
-            return PemUtils.parsePEMFilePublicKeyEd25519Multibase(tempFile); // MUT
+            return PemUtils.readEd25519PublicKeyPemFileToMultibase(tempFile); // MUT
         });
 
         assertEquals("z6MkjusMNSk78CNDvFkBsovC71MsB3KRmus572CeZCjRaCgp", publicKeyEd25519Multibase);
 
         publicKeyEd25519Multibase = assertDoesNotThrow(() -> {
-            return PemUtils.parsePEMFilePublicKeyEd25519Multibase(new File("src/test/data/public.pem")); // MUT
+            return PemUtils.readEd25519PublicKeyPemFileToMultibase(new File("src/test/data/public.pem")); // MUT
         });
 
         assertEquals("z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP", publicKeyEd25519Multibase);

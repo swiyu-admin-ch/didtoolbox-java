@@ -10,8 +10,6 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,32 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 // This will suppress PMD warnings in this (test) class
 @SuppressWarnings({"PMD"})
 class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
-
-    private static Collection<Object[]> keys() {
-        return Arrays.asList(new String[][]{
-                /*
-                All lines in the private/public matrix were generated using openssl command by running the following script:
-
-                openssl genpkey -algorithm ed25519 -out private.pem
-                openssl pkey -inform pem -in private.pem -outform der -out private.der
-                cat private.pem | openssl pkey -pubout -outform der -out public.der
-                cat private.pem | openssl pkey -pubout -out public.pem
-                secret_key_multibase=z$(echo 8026$(xxd -plain -cols 32 -s -32 private.der) | xxd -r -p | bs58)
-                public_key_multibase=z$(echo ed01$(xxd -plain -cols 32 -s -32 public.der)  | xxd -r -p | bs58)
-                echo "{\"${secret_key_multibase}\", \"${public_key_multibase}\", \"\"\"\n$(cat public.pem)\n\"\"\"}"
-                 */
-                {"z6MkmwdD6L2F3nZPFDmE5VwfBctqz3iRK3sufLQD7KeqeRmn", "z6Mkk3HuYK5Vah4BjBgHYZtbFzGHufw9TWDgBcXeEtjJEesW", """
------BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAUwJJXsOciz7/TGdT2Osy0nOCqEL0oO67m0P3elFU9D0=
------END PUBLIC KEY-----
-"""},
-                {"z6Mks1E1R9Ec3sQpFAe848dHuniKvgVRibSUoBGgk8QFgdeK", "z6MkfsYSSNJ3vWFceenzLfASHMcYk7e3dEza6vz1RZcyRfcR", """
------BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
------END PUBLIC KEY-----
-"""},
-        });
-    }
 
     private static void assertDeactivatedDidLogEntry(String didLogEntry) {
 
@@ -84,15 +56,15 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             WebVerifiableHistoryDeactivator.builder()
                     // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
                     .build()
-                    .deactivateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .deactivateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
         assertEquals("Deactivation key mismatch", exc.getMessage());
 
         exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             WebVerifiableHistoryDeactivator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER) // using another verification key provider...
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE) // using another verification key provider...
                     .build()
-                    .deactivateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)); // MUT
+                    .deactivateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
         assertEquals("Deactivation key mismatch", exc.getMessage());
     }
@@ -102,10 +74,10 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
             WebVerifiableHistoryDeactivator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
                     .build()
                     .deactivateDidLog( // MUT
-                            buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS),
+                            buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS),
                             ZonedDateTime.parse(ISO_DATE_TIME).minusMinutes(1)); // In the past!
         });
         assertEquals("The versionTime of the last entry MUST be earlier than the current time", exc.getMessage());
@@ -115,7 +87,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testDeactivateWithKeyChangeUsingExistingUpdateKey() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
@@ -124,7 +96,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertDoesNotThrow(() -> {
             nextLogEntry.set(WebVerifiableHistoryDeactivator.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -154,7 +126,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testUpdateAlreadyDeactivatedThrowsWebVerifiableHistoryUpdaterException() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
@@ -162,7 +134,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             nextLogEntry.set(WebVerifiableHistoryDeactivator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE)
                     //.verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -175,7 +147,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // Try updating the DID log
         var updaterExc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE)
                     .build()
                     .updateDidLog(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString(),
                             // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -189,7 +161,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testDeactivateAlreadyDeactivatedThrowsWebVerifiableHistoryDeactivatorException() {
 
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
-        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_VERIFICATION_METHOD_KEY_PROVIDER);
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
@@ -197,7 +169,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             nextLogEntry.set(WebVerifiableHistoryDeactivator.builder()
-                    .verificationMethodKeyProvider(TEST_VERIFICATION_METHOD_KEY_PROVIDER)
+                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE)
                     //.verificationMethodKeyProvider(VERIFICATION_METHOD_KEY_PROVIDER_JKS) // using a whole another verification key provider
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.

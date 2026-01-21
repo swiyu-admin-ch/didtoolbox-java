@@ -1,17 +1,16 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
-import ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -29,21 +28,18 @@ import java.util.Set;
  * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
- * To load keys from the file system, the following helpers are available:
- * <ul>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} for loading the update (Ed25519) key from
- * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
- * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion public
- * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
- * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
- * </ul>
+ * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
+ * feel free to explore all available {@link VerificationMethodKeyProvider} implementations.
+ * <p>
+ * To load authentication/assertion public EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link JwkUtils}.
+ * <p>
  * For instance:
  * <pre>
  * {@code
@@ -53,6 +49,7 @@ import java.util.Set;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+ *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
  *     import java.net.*;
  *
  *     public static void main(String... args) {
@@ -61,18 +58,18 @@ import java.util.Set;
  *         String updatedDidLogEntryWithReplacedVerificationMaterial = null;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *             var verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl(new File("src/test/data/private.pem"), new File("src/test/data/public.pem"));
+ *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem"));
  *
  *             // NOTE that all verification material will be generated here as well
  *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider)
+ *                 .cryptographicSuite(cryptographicSuite)
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *
  *             // Now update the previously generated initial single-entry DID log
  *             updatedDidLogEntryWithReplacedVerificationMaterial = DidLogUpdaterContext.builder()
  *                 .didMethod(DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys))
- *                 .verificationMethodKeyProvider(verificationMethodKeyProvider) // the same used during creation
+ *                 .cryptographicSuite(cryptographicSuite) // the same used during creation
  *                 .assertionMethodKeys(Map.of(
  *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
  *                 ))
@@ -102,9 +99,19 @@ public class DidLogUpdaterContext {
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> authenticationKeys;
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
-    @Getter(AccessLevel.PACKAGE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    @Getter(AccessLevel.PRIVATE)
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
     @Getter(AccessLevel.PACKAGE)
     private Set<File> updateKeys;
     /**
@@ -123,6 +130,14 @@ public class DidLogUpdaterContext {
 
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
+
+    VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
 
     /**
      * Updates a valid DID log by taking into account other

@@ -1,11 +1,16 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -30,19 +35,43 @@ class JwkUtilsTest {
         assertFalse(publicJwkJsonObject.has("d")); // what makes it public and not private
     }
 
-    @Test
-    void testGeneratePublicEC256() {
-        try {
-            // No PEM files are exported here
-            assertGeneratePublicEC256(JwkUtils.generatePublicEC256("auth-key-01", null, false), null); // MUT
-        } catch (Exception e) {
-            fail(e);
+    /**
+     * Helper for the PEM export.
+     *
+     * @param privatePemFile to read the private key from
+     * @param publicPemFile  to read the public key from
+     * @throws IOException   if an I/O error occurs reading from the file or a malformed or unmappable byte sequence is read
+     * @throws JOSEException If EC JWK key parsing failed or if the JWS object couldn't be signed/verified
+     */
+    private static void ecPemSanityCheck(File privatePemFile, File publicPemFile)
+            throws IOException, JOSEException {
+
+        final ECPrivateKey privKey = (ECPrivateKey) PemUtils.parsePemKeyPairFile(privatePemFile).getPrivate();
+        final ECPublicKey publicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(publicPemFile.toPath()));
+
+        JWSObject jwsObject = new JWSObject(
+                new JWSHeader.Builder(JWSAlgorithm.ES256).build(),
+                new Payload("hello world"));
+        jwsObject.sign(new ECDSASigner(privKey));
+
+        //String s = jwsObject.serialize(); // compact form
+
+        if (!jwsObject.verify(new ECDSAVerifier(publicKey)) || (!"hello world".equals(jwsObject.getPayload().toString()))) {
+            throw new IllegalArgumentException("exported key do not match");
         }
     }
 
     @Test
+    void testGeneratePublicEC256() {
+        assertDoesNotThrow(() -> {
+            // No PEM files are exported here
+            assertGeneratePublicEC256(JwkUtils.generatePublicEC256("auth-key-01", null, false), null); // MUT
+        });
+    }
+
+    @Test
     void testGeneratePublicEC256WithOutputOverwriteExisting() {
-        try {
+        assertDoesNotThrow(() -> {
             var tempFile = File.createTempFile("myprivatekey", "");
             // Exists at the moment of key generation, and should therefore be overwritten if forceOverwritten == true
             tempFile.deleteOnExit();
@@ -54,12 +83,9 @@ class JwkUtilsTest {
             assertNotEquals(0, Files.size(tempFile.toPath()));
             var pubTempFile = new File(tempFile.getPath() + ".pub");
             assertNotEquals(0, Files.size(pubTempFile.toPath()));
-            JwkUtils.ecPemSanityCheck(tempFile, pubTempFile);
+            ecPemSanityCheck(tempFile, pubTempFile);
             pubTempFile.deleteOnExit(); // clean it up
-
-        } catch (Exception e) {
-            fail(e);
-        }
+        });
     }
 
     @Test
@@ -93,10 +119,8 @@ class JwkUtilsTest {
 
     @Test
     void testGeneratePublicEC256WithOutputOverwriteNonExisting() {
-        File tempFile;
-        File pubTempFile;
-        try {
-            tempFile = File.createTempFile("myprivatekey", "");
+        assertDoesNotThrow(() -> {
+            var tempFile = File.createTempFile("myprivatekey", "");
             // Delete it immediately, so it will NOT exist at the moment of key generation and should therefore be created regardless of forceOverwritten flag
             tempFile.deleteOnExit();
 
@@ -105,26 +129,21 @@ class JwkUtilsTest {
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
-            pubTempFile = new File(tempFile.getPath() + ".pub");
+            var pubTempFile = new File(tempFile.getPath() + ".pub");
             assertNotEquals(0, Files.size(pubTempFile.toPath()));
-            JwkUtils.ecPemSanityCheck(tempFile, pubTempFile);
+            ecPemSanityCheck(tempFile, pubTempFile);
             pubTempFile.deleteOnExit(); // clean it up
-
-        } catch (Exception e) {
-            fail(e);
-        }
+        });
     }
 
     @Test
     void testLoadECPublicJWKasJSON() {
-        try {
+        assertDoesNotThrow(() -> {
             var jwk = JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"); // MUT
             assertNotNull(jwk);
             jwk = JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"); // MUT
             assertNotNull(jwk);
-        } catch (Exception e) {
-            fail(e);
-        }
+        });
     }
 
     @Test

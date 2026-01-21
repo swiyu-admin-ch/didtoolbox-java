@@ -27,6 +27,10 @@ public class ProofOfPossessionVerifierException extends Exception {
         return new ProofOfPossessionVerifierException(String.format("The JWT cannot be parsed due to: %s", cause.getLocalizedMessage()), ErrorCause.UNPARSABLE);
     }
 
+    static ProofOfPossessionVerifierException malformedClaimKid(Exception cause) {
+        return new ProofOfPossessionVerifierException(String.format("The JWT claim 'kid' features no multibase-encoded Ed25519 public key: %s", cause.getLocalizedMessage()), ErrorCause.MALFORMED_CLAIM_KID);
+    }
+
     static ProofOfPossessionVerifierException expired() {
         return new ProofOfPossessionVerifierException("The JWT has expired", ErrorCause.EXPIRED);
     }
@@ -55,6 +59,7 @@ public class ProofOfPossessionVerifierException extends Exception {
         UNSUPPORTED_ALGORITHM,
         INVALID_NONCE,
         UNPARSABLE,
+        MALFORMED_CLAIM_KID,
         EXPIRED,
         KEY_MISMATCH,
         INVALID_SIGNATURE,

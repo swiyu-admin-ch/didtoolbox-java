@@ -6,6 +6,9 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -15,10 +18,7 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.net.URL;
-import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -37,21 +37,17 @@ import java.util.Set;
  * log goes simply by calling {@link #createDidLog(URL)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwCreator.TdwCreatorBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwCreator.TdwCreatorBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * <li>{@link TdwCreator.TdwCreatorBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link TdwCreator.TdwCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
- * To load keys from the file system, the following helpers are available:
- * <ul>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} for loading the update (Ed25519) key from
- * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
- * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion public
- * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
- * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
- * </ul>
+ * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
+ * feel free to explore all available {@link VerificationMethodKeyProvider} implementations.
+ * <p>
+ * To load authentication/assertion public EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link JwkUtils}.
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
@@ -67,13 +63,30 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
+
+    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -142,12 +155,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         // Create initial did doc with placeholder
-        JsonObject didDoc;
-        try {
-            didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
-        } catch (IOException e) {
-            throw new DidLogCreatorStrategyException(e);
-        }
+        var didDoc = createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite);
 
         var didLogEntryWithoutProofAndSignature = new JsonArray();
 
@@ -164,12 +172,8 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
-        try {
-            // CAUTION nextKeyHashes parameter (pre-rotation keys) not (yet) implemented for the class
-            didLogEntryWithoutProofAndSignature.add(createDidParams(this.verificationMethodKeyProvider, this.updateKeys, null));
-        } catch (InvalidKeySpecException | IOException ex) {
-            throw new DidLogCreatorStrategyException(ex);
-        }
+        // CAUTION nextKeyHashes parameter (pre-rotation keys) not (yet) implemented for the class
+        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptoSuite(), this.updateKeys, null));
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
@@ -178,12 +182,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         didLogEntryWithoutProofAndSignature.add(initialDidDoc);
 
         // Generate SCID and replace placeholder in did doc
-        String scid;
-        try {
-            scid = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (IOException e) {
-            throw new DidLogCreatorStrategyException(e);
-        }
+        String scid = buildSCID(didLogEntryWithoutProofAndSignature);
 
         /* https://identity.foundation/didwebvh/v0.3/#output-of-the-scid-generation-process:
         After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
@@ -205,12 +204,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash;
-        try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
-        } catch (IOException e) {
-            throw new DidLogCreatorStrategyException(e);
-        }
+        String entryHash = buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
 
         JsonArray didLogEntryWithProof = new JsonArray();
         var challenge = "1-" + entryHash; // versionId as the proof challenge
@@ -229,9 +223,9 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         JsonArray proofs = new JsonArray();
         try {
             proofs.add(JCSHasher.buildDataIntegrityProof(
-                    didDoc, false, this.verificationMethodKeyProvider, challenge, JCSHasher.PROOF_PURPOSE_AUTHENTICATION, zdt
+                    didDoc, false, this.getCryptoSuite(), challenge, JCSHasher.PROOF_PURPOSE_AUTHENTICATION, zdt
             ));
-        } catch (IOException e) {
+        } catch (DidSidekicksException e) {
             throw new DidLogCreatorStrategyException(e);
         }
         didLogEntryWithProof.add(proofs);

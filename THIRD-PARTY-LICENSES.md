@@ -9,11 +9,10 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 * **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
 * **Gson** (com.google.code.gson:gson:2.13.2 - https://github.com/google/gson)
-* **Tink Cryptography API** (com.google.crypto.tink:tink:1.19.0 - http://github.com/tink-crypto/tink-java)
+* **Tink Cryptography API** (com.google.crypto.tink:tink:1.20.0 - http://github.com/tink-crypto/tink-java)
 * **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.41.0 - https://errorprone.info/error_prone_annotations)
-* **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.6 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
-* **java-json-canonicalization** (io.github.erdtman:java-json-canonicalization:1.1 - https://github.com/erdtman/java-json-canonicalization)
-* **Java Native Access** (net.java.dev.jna:jna:5.17.0 - https://github.com/java-native-access/jna)
+* **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.7 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
+* **Java Native Access** (net.java.dev.jna:jna:5.18.1 - https://github.com/java-native-access/jna)
 * **org.apiguardian:apiguardian-api** (org.apiguardian:apiguardian-api:1.1.2 - https://github.com/apiguardian-team/apiguardian)
 * **jcommander** (org.jcommander:jcommander:3.0 - https://jcommander.org)
 * **IntelliJ IDEA Annotations** (org.jetbrains:annotations:13.0 - http://www.jetbrains.org)
@@ -22,7 +21,7 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## BSD-3-Clause:
 
-* **Protocol Buffers [Core]** (com.google.protobuf:protobuf-java:4.32.1 - https://developers.google.com/protocol-buffers/protobuf-java/)
+* **Protocol Buffers [Core]** (com.google.protobuf:protobuf-java:4.33.0 - https://developers.google.com/protocol-buffers/protobuf-java/)
 
 ## Bouncy Castle Licence:
 
@@ -42,10 +41,10 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## LGPL-2.1-or-later:
 
-* **Java Native Access** (net.java.dev.jna:jna:5.17.0 - https://github.com/java-native-access/jna)
+* **Java Native Access** (net.java.dev.jna:jna:5.18.1 - https://github.com/java-native-access/jna)
 
 ## MIT License:
 
 * **multibase** (com.github.multiformats:java-multibase:v1.2.1 - https://github.com/multiformats/java-multibase)
-* **DID Resolver** (io.github.swiyu-admin-ch:didresolver:2.4.0 - https://github.com/swiyu-admin-ch/didresolver-kotlin)
+* **DID Resolver** (io.github.swiyu-admin-ch:didresolver:2.6.0 - https://github.com/swiyu-admin-ch/didresolver-kotlin)
 * **Project Lombok** (org.projectlombok:lombok:1.18.42 - https://projectlombok.org)

@@ -1,11 +1,15 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -17,10 +21,7 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.nio.file.Files;
-import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -39,21 +40,17 @@ import java.util.Set;
  * log goes simply by calling {@link #updateDidLog(String)} method. Optionally, but most likely, an already existing key material will
  * be also used in the process, so for the purpose there are further fluent methods available:
  * <ul>
- * <li>{@link TdwUpdaterBuilder#verificationMethodKeyProvider(VerificationMethodKeyProvider)} for setting the update (Ed25519) key</li>
+ * <li>{@link TdwUpdaterBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
  * <li>{@link TdwUpdaterBuilder#authenticationKeys(Map)} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * <li>{@link TdwUpdaterBuilder#assertionMethodKeys(Map)} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
- * To load keys from the file system, the following helpers are available:
- * <ul>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(Reader, Reader)} for loading the update (Ed25519) key from
- * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(InputStream, String, String, String)} for loading the update (Ed25519) key from Java KeyStore (JKS) files</li>
- * <li>{@link JwkUtils#loadECPublicJWKasJSON(File, String)} for loading authentication/assertion public
- * EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
- * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files</li>
- * </ul>
+ * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
+ * feel free to explore all available {@link VerificationMethodKeyProvider} implementations.
+ * <p>
+ * To load authentication/assertion public EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link JwkUtils}.
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
@@ -73,12 +70,30 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+    /**
+     * Replaces the depr. {@link #verificationMethodKeyProvider},
+     * but gets no precedence over it (if both called against the same object).
+     */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VerificationMethodKeyProvider verificationMethodKeyProvider = new Ed25519VerificationMethodKeyProviderImpl();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    /**
+     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated
+    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
     @Getter(AccessLevel.PRIVATE)
     private Set<File> updateKeys;
     // TODO private File dirToStoreKeyPair;
+
+    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -170,7 +185,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
@@ -185,7 +200,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
-        if (!this.verificationMethodKeyProvider.isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
@@ -286,15 +301,15 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
         // Once the process has run, the version number of this first version of the DID (1),
         // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash;
+        String scid;
         try {
-            entryHash = JCSHasher.buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (IOException e) {
+            scid = buildSCID(didLogEntryWithoutProofAndSignature);
+        } catch (DidLogCreatorStrategyException e) {
             throw new DidLogUpdaterStrategyException(e);
         }
 
         JsonArray didLogEntryWithProof = new JsonArray();
-        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + entryHash; // versionId as the proof challenge
+        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
         didLogEntryWithProof.add(challenge);
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(2));
@@ -311,12 +326,12 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         JsonObject proof;
         try {
             proof = JCSHasher.buildDataIntegrityProof(
-                    didDoc, false, this.verificationMethodKeyProvider, challenge, "authentication", zdt);
-        } catch (IOException e) {
+                    didDoc, false, this.getCryptoSuite(), challenge, "authentication", zdt);
+        } catch (DidSidekicksException e) {
             throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
         // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + this.verificationMethodKeyProvider.getVerificationKeyMultibase() + '#' + this.verificationMethodKeyProvider.getVerificationKeyMultibase());
+        proof.addProperty("verificationMethod", "did:key:" + this.getCryptoSuite().getVerificationKeyMultibase() + '#' + this.getCryptoSuite().getVerificationKeyMultibase());
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
@@ -338,15 +353,15 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         return didLogEntryWithProof.toString();
     }
 
-    @SuppressWarnings({"PMD.LawOfDemeter", "PMD.AvoidInstantiatingObjectsInLoops"})
+    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.EmptyCatchBlock"})
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
 
         var updateKeysJsonArray = new JsonArray();
 
         var newUpdateKeys = Set.of(this.updateKeys.stream().map(file -> {
             try {
-                return PemUtils.parsePEMFilePublicKeyEd25519Multibase(file);
-            } catch (Throwable ignore) {
+                return PemUtils.readEd25519PublicKeyPemFileToMultibase(file);
+            } catch (DidSidekicksException ignore) {
             }
             return null;
         }).toArray(String[]::new));
@@ -356,8 +371,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             String updateKey;
             for (var pemFile : this.updateKeys) {
                 try {
-                    updateKey = PemUtils.parsePEMFilePublicKeyEd25519Multibase(pemFile);
-                } catch (IOException | InvalidKeySpecException e) {
+                    updateKey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
+                } catch (DidSidekicksException e) {
                     throw new DidLogUpdaterStrategyException(e);
                 }
 

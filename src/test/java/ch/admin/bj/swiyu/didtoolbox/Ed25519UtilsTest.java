@@ -1,20 +1,24 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import com.nimbusds.jose.util.Base64;
 import io.ipfs.multibase.Base58;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("PMD")
 class Ed25519UtilsTest extends AbstractUtilTestBase {
 
     private static Collection<Object[]> publicKeyMultibase() {
@@ -69,7 +73,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         assertEquals("EdDSA", actual.getAlgorithm());
         assertEquals("X.509", actual.getFormat());
         assertEquals(44, actual.getEncoded().length);
-        assertEquals(publicKeyMultibase, Ed25519Utils.encodeMultibase(actual));
+        assertEquals(publicKeyMultibase, Ed25519Utils.toMultibase(actual));
     }
 
     @DisplayName("Converting various test vector public keys")
@@ -115,41 +119,24 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
         });
     }
 
-    @DisplayName("Decode and encode again various multibase encoded public keys")
-    @ParameterizedTest(name = "Converting key: {0}")
-    @MethodSource("publicKeyMultibase")
-    void testFromMultibase(String publicKeyMultibase) {
-        var decoded = Ed25519Utils.decodeMultibase(publicKeyMultibase);
-        var encoded = Ed25519Utils.encodeMultibase(decoded);
-        assertEquals(publicKeyMultibase, encoded);
-    }
-
-    @DisplayName("Attempt to decode various invalid Multibase")
     @Test
-    void testFromMultibaseWithInvalidValues() {
-        var nonMultibaseValue = "just some random string";
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(nonMultibaseValue));
+    void testToMultibase() {
 
-        var emptyMultibaseValue = "";
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(emptyMultibaseValue));
+        assertDoesNotThrow(() -> {
+            // Use JwkUtils to create some proper PEM-encoded ECDSA public key
+            var tempFile = File.createTempFile("myprivatekey", "");
+            // Exists at the moment of key generation, and should therefore be overwritten if forceOverwritten == true
+            tempFile.deleteOnExit();
+            JwkUtils.generatePublicEC256("auth-key-01", tempFile, true);
 
-        var missingPrefixMultibaseValue = "6MkrBQ9BhY6odonjhdwpkZ5eD7BawVXiyR1S24wsD7xXvPS";
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(missingPrefixMultibaseValue));
+            var key = PemUtils.parsePemPublicKey(Files.newBufferedReader(Path.of(tempFile.toPath() + ".pub")));
 
-        var buff = ByteBuffer.allocate(34);
-        buff.put((byte) 0xed);
-        buff.put((byte) 0x01);
-        buff.put(Arrays.copyOfRange(TEST_PUBLIC_KEY_ANOTHER, 0, TEST_PUBLIC_KEY_ANOTHER.length));
-        // base64, see https://github.com/multiformats/multibase/blob/master/multibase.csv#L23
-        var base64MultibaseValue = "m" + Base64.encode(buff.array());
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(base64MultibaseValue));
+            assertInstanceOf(ECPublicKey.class, key);
 
-        buff = ByteBuffer.allocate(34);
-        // private key Ed25519, see https://github.com/multiformats/multicodec/blob/master/table.csv#L182
-        buff.put((byte) 0x13);
-        buff.put((byte) 0x00);
-        buff.put(Arrays.copyOfRange(TEST_PRIVATE_KEY_ANOTHER, 0, TEST_PRIVATE_KEY_ANOTHER.length));
-        var unsupportedTypeMultibaseValue = "z" + Base58.encode(buff.array());
-        assertThrowsExactly(IllegalArgumentException.class, () -> Ed25519Utils.decodeMultibase(unsupportedTypeMultibaseValue));
+            var actual = Ed25519Utils.toMultibase(key); // MUT
+
+            assertNotNull(actual);
+            assertEquals(48, actual.length());
+        });
     }
 }

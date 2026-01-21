@@ -20,7 +20,6 @@ import java.io.File;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
-@SuppressWarnings({"PMD.LawOfDemeter"})
 public class UpdateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
 
     @Override

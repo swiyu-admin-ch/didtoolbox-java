@@ -66,7 +66,6 @@
         <jna.version>5.18.1</jna.version>
         <gson.version>2.13.2</gson.version>
         <java-multibase.version>v1.2.1</java-multibase.version>
-        <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
         <lombok.version>1.18.42</lombok.version>
         <jcommander.version>3.0</jcommander.version>
         <bouncycastle.version>1.83</bouncycastle.version>
@@ -440,7 +439,7 @@
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
                             <blacklistRegexp>.*Util*.*|.*Command.*|.*Validator.*|.*Converter*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*Enum*.*|.*Context*.*|.*Strategy*.*</whitelistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*VcDataIntegrityCryptographicSuite.*|.*Enum*.*|.*Context*.*|.*Strategy*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->
@@ -477,7 +476,7 @@
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
                             <blacklistRegexp>.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*Enum*.*|.*Context*.*|.*Strategy*.*</whitelistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*VcDataIntegrityCryptographicSuite.*|.*Enum*.*|.*Context*.*|.*Strategy*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->
@@ -557,12 +556,6 @@
             <groupId>com.github.multiformats</groupId>
             <artifactId>java-multibase</artifactId>
             <version>${java-multibase.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/io.github.erdtman/java-json-canonicalization -->
-        <dependency>
-            <groupId>io.github.erdtman</groupId>
-            <artifactId>java-json-canonicalization</artifactId>
-            <version>${java-json-canonicalization.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on -->
         <!-- https://www.bouncycastle.org/download/bouncy-castle-java/?filter=java%3Drelease-1-81 -->

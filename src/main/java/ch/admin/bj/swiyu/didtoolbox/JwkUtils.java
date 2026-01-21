@@ -1,9 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import com.google.gson.JsonParser;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
@@ -13,8 +11,9 @@ import org.bouncycastle.util.io.pem.PemObject;
 
 import java.io.*;
 import java.nio.file.*;
-import java.security.*;
-import java.security.interfaces.ECPrivateKey;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 
@@ -43,27 +42,11 @@ public final class JwkUtils {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", ecPublicPemFile.getAbsolutePath()));
         }
 
-        // see https://connect2id.com/products/nimbus-jose-jwt/examples/pem-encoded-objects
-
-        ECPublicKey publicKey;
-        try {
-            publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(ecPublicPemFile), "EC");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException(e);
-        }
-
         if (!kid.matches("[a-zA-Z0-9~._-]+")) {
             throw new IllegalArgumentException(String.format("The supplied key ID (kid) of the JWK '%s' must be a regular case-sensitive string featuring no URIs reserved characters", kid));
         }
 
-        return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
-    }
-
-    public static String loadECPublicJWKasJSON(KeyStore keyStore, String alias, String kid) throws KeyStoreException {
-
-        // see https://connect2id.com/products/nimbus-jose-jwt/examples/pem-encoded-objects
-
-        ECPublicKey publicKey = (ECPublicKey) keyStore.getCertificate(alias).getPublicKey();
+        ECPublicKey publicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicPemFile.toPath()));
 
         return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
     }
@@ -107,7 +90,7 @@ public final class JwkUtils {
         }
         String publicKeyPem = stringWriter.toString();
 
-        ECKey publicJwk;
+        JWK publicJwk;
         try {
             // CAUTION By using com.nimbusds.jose.jwk.gen.ECKeyGenerator (see https://connect2id.com/products/nimbus-jose-jwt/examples/jws-with-ec-signature)
             //         to create a com.nimbusds.jose.jwk.JWK object you may end up having incomplete EC PRIVATE KEY export later on.
@@ -168,47 +151,13 @@ public final class JwkUtils {
     /**
      * PEM export helper.
      */
-    private static void exportEcPublicKeyToPem(ECKey jwk, File keyPairPemFile) throws IOException {
-        JcaPEMWriter pemWriterPub = new JcaPEMWriter(Files.newBufferedWriter(Path.of(keyPairPemFile.getPath() + ".pub")));
-        try {
+    private static void exportEcPublicKeyToPem(JWK jwk, File keyPairPemFile) throws IOException {
+        try (var pemWriterPub = new JcaPEMWriter(Files.newBufferedWriter(Path.of(keyPairPemFile.getPath() + ".pub")))) {
             // as specified by https://www.rfc-editor.org/rfc/rfc5208
-            pemWriterPub.writeObject(new PemObject("PUBLIC KEY", jwk.toPublicKey().getEncoded()));
+            pemWriterPub.writeObject(new PemObject("PUBLIC KEY", jwk.toECKey().toPublicKey().getEncoded()));
             pemWriterPub.flush();
-
-            ecPemSanityCheck(new File(keyPairPemFile.getPath()), new File(keyPairPemFile.getPath() + ".pub"));
-
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | JOSEException e) {
+        } catch (JOSEException e) {
             throw new IllegalArgumentException(e);
-        } finally {
-            pemWriterPub.close();
-        }
-    }
-
-    /**
-     * Helper for the PEM export.
-     *
-     * @param privatePemFile to read the private key from
-     * @param publicPemFile  to read the public key from
-     * @throws IOException              if an I/O error occurs reading from the file or a malformed or unmappable byte sequence is read
-     * @throws JOSEException            If EC JWK key parsing failed or if the JWS object couldn't be signed/verified
-     * @throws NoSuchAlgorithmException if no {@code Provider} supports a {@code KeyFactorySpi} implementation for the specified algorithm
-     * @throws InvalidKeySpecException  if the given key specification is inappropriate for this key factory to produce a public key
-     */
-    static void ecPemSanityCheck(File privatePemFile, File publicPemFile)
-            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, JOSEException {
-
-        ECPrivateKey privKey = (ECPrivateKey) JWK.parseFromPEMEncodedObjects(Files.readString(privatePemFile.toPath())).toECKey().toPrivateKey();
-        ECPublicKey publicKey = (ECPublicKey) PemUtils.getPublicKey(PemUtils.parsePEMFile(publicPemFile), "EC");
-
-        JWSObject jwsObject = new JWSObject(
-                new JWSHeader.Builder(JWSAlgorithm.ES256).build(),
-                new Payload("hello world"));
-        jwsObject.sign(new ECDSASigner(privKey));
-
-        //String s = jwsObject.serialize(); // compact form
-
-        if (!jwsObject.verify(new ECDSAVerifier(publicKey)) || (!"hello world".equals(jwsObject.getPayload().toString()))) {
-            throw new IllegalArgumentException("exported key do not match");
         }
     }
 }
