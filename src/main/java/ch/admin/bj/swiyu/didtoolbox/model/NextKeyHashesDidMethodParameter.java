@@ -123,6 +123,11 @@ public interface NextKeyHashesDidMethodParameter {
             public boolean equals(Object obj) {
                 return this.defaultEquals(obj);
             }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(this.getNextKeyHash());
+            }
         };
     }
 

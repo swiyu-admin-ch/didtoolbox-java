@@ -276,7 +276,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
             var didLogEntry = this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
 
-            WebVerifiableHistoryDidLogMetaPeeker.peek(didLogEntry.toString()).getDidDoc().getId(); // sanity check
+            WebVerifiableHistoryDidLogMetaPeeker.peek(didLogEntry).getDidDoc().getId(); // sanity check
 
             return didLogEntry;
         } catch (VcDataIntegrityCryptographicSuiteException exc) {
