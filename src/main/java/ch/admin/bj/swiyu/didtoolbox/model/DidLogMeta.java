@@ -1,10 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
-import ch.admin.bj.swiyu.didtoolbox.PemUtils;
-import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSource;
 import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidMethodParameter;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import lombok.Getter;
 
 import java.io.File;
@@ -89,26 +86,36 @@ public class DidLogMeta {
     public boolean isPreRotatedUpdateKey(String multikey) {
 
         if (this.isKeyPreRotationActivated() && multikey != null) {
-            return this.getParams().getNextKeyHashes().contains(NextKeyHashSource.of(multikey).getHash());
+            return this.getParams().getNextKeyHashes().contains(
+                    NextKeyHashesDidMethodParameter.of(multikey).getNextKeyHash());
         }
 
         return false;
     }
 
     /**
-     * In case of activated key pre-rotation, the method proves whether the supplied {@code pemFiles} feature public keys
-     * that are among those defined by the key pre-rotation, or not.
+     * In case of activated key pre-rotation, the method proves whether the supplied {@code pemFiles} and {@code params}
+     * feature public keys that are among those defined by the key pre-rotation, or not.
      *
      * @param pemFiles to check
+     * @param params   to check
      * @return {@code true} if and only if at least one of the supplied {@code pemFiles} is legal w.r.t. key pre-rotation. Otherwise, {@code false}.
-     * @throws DidSidekicksException in case at least one of the supplied {@code pemFiles} features no PEM content or
-     *                               at least one of the supplied {@code pemFiles} contains no valid Ed25519 public key
+     * @throws UpdateKeysDidMethodParameterException in case at least one of the supplied {@code pemFiles} features no PEM content or
+     *                                               at least one of the supplied {@code pemFiles} contains no valid Ed25519 public key
      */
-    public boolean arePreRotatedUpdateKeys(Set<File> pemFiles) throws DidSidekicksException {
+    public boolean arePreRotatedUpdateKeys(Set<File> pemFiles, Set<UpdateKeysDidMethodParameter> params) throws UpdateKeysDidMethodParameterException {
 
         if (pemFiles != null && !pemFiles.isEmpty()) {
             for (var pemFile : pemFiles) {
-                if (!this.isPreRotatedUpdateKey(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile))) {
+                if (!this.isPreRotatedUpdateKey(UpdateKeysDidMethodParameter.of(pemFile.toPath()).getUpdateKey())) {
+                    return false;
+                }
+            }
+        }
+
+        if (params != null && !params.isEmpty()) {
+            for (var param : params) {
+                if (!this.isPreRotatedUpdateKey(param.getUpdateKey())) {
                     return false;
                 }
             }

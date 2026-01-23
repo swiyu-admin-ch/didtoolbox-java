@@ -1,6 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSource;
+import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
@@ -138,18 +138,18 @@ class JCSHasherTest {
     public void testBuildNextKeyHash() {
 
         // See https://identity.foundation/didwebvh/v0.3/#log-file-for-version-2
-        assertEquals("QmcbM5bppyT4yyaL35TQQJ2XdSrSNAhH5t6f4ZcuyR4VSv", NextKeyHashSource.of("z82Lkvgj5NKYhoFh4hWzax9WicQaVDphN8MMzR3JZhontVfHaoGd9JbC4QRpDvmjQH3BLeQ").getHash());
+        assertEquals("QmcbM5bppyT4yyaL35TQQJ2XdSrSNAhH5t6f4ZcuyR4VSv", NextKeyHashesDidMethodParameter.of("z82Lkvgj5NKYhoFh4hWzax9WicQaVDphN8MMzR3JZhontVfHaoGd9JbC4QRpDvmjQH3BLeQ").getNextKeyHash());
 
         // See https://github.com/affinidi/affinidi-tdk-rs/blob/main/crates/affinidi-tdk/common/affinidi-secrets-resolver/src/secrets.rs#L456
-        assertEquals("QmY1kaguPMgjndEh1sdDZ8kdjX4Uc1SW4vziMfgWC6ndnJ", NextKeyHashSource.of("z6MkgfFvvWA7sw8WkNWyK3y74kwNVvWc7Qrs5tWnsnqMfLD3").getHash());
+        assertEquals("QmY1kaguPMgjndEh1sdDZ8kdjX4Uc1SW4vziMfgWC6ndnJ", NextKeyHashesDidMethodParameter.of("z6MkgfFvvWA7sw8WkNWyK3y74kwNVvWc7Qrs5tWnsnqMfLD3").getNextKeyHash());
 
         // See https://raw.githubusercontent.com/decentralized-identity/didwebvh-rs/refs/heads/main/tests/test_vectors/pre-1_0-spec.jsonl
-        assertEquals("QmPyrGjbkwKPbDE33StNmA6v9uwNWB9NWgmxMiQ7tV1uJx", NextKeyHashSource.of("z6Mkk7qfjoovyci2wpD1GZPvkngtWBjLr4bVdYeZfdWHDkEu").getHash());
-        assertEquals("QmWZg7NR5vyjxHFjNLzyUdpHKXFr6MWM7pQJE8wdKrDZwV", NextKeyHashSource.of("z6MkmpTLDBwKi8qWC6J8jz4sGR9zn1oLTizNt6XbYxDEkFQS").getHash());
+        assertEquals("QmPyrGjbkwKPbDE33StNmA6v9uwNWB9NWgmxMiQ7tV1uJx", NextKeyHashesDidMethodParameter.of("z6Mkk7qfjoovyci2wpD1GZPvkngtWBjLr4bVdYeZfdWHDkEu").getNextKeyHash());
+        assertEquals("QmWZg7NR5vyjxHFjNLzyUdpHKXFr6MWM7pQJE8wdKrDZwV", NextKeyHashesDidMethodParameter.of("z6MkmpTLDBwKi8qWC6J8jz4sGR9zn1oLTizNt6XbYxDEkFQS").getNextKeyHash());
 
         // See https://raw.githubusercontent.com/decentralized-identity/didwebvh-rs/refs/heads/main/tests/test_vectors/revoked-did.jsonl
-        assertEquals("QmeLTcLUJ9A2TTHeWdo2xx6yd52E4aPrLoEDnmCbUEhYUi", NextKeyHashSource.of("z6Mkr7XVfuk77YmHG9WWX3rxhLRzK2z7oEia7D75fpZC6dzG").getHash());
-        assertEquals("QmejLZab9j1DuA8fD5593XXGS2WXUgKsh3jYGY8ctaSdyC", NextKeyHashSource.of("z6MkiwKu88uSsuNP5tYVvcaQSc7ZVpe1248zefnQXtbeHcxE").getHash());
+        assertEquals("QmeLTcLUJ9A2TTHeWdo2xx6yd52E4aPrLoEDnmCbUEhYUi", NextKeyHashesDidMethodParameter.of("z6Mkr7XVfuk77YmHG9WWX3rxhLRzK2z7oEia7D75fpZC6dzG").getNextKeyHash());
+        assertEquals("QmejLZab9j1DuA8fD5593XXGS2WXUgKsh3jYGY8ctaSdyC", NextKeyHashesDidMethodParameter.of("z6MkiwKu88uSsuNP5tYVvcaQSc7ZVpe1248zefnQXtbeHcxE").getNextKeyHash());
     }
 
     @Test

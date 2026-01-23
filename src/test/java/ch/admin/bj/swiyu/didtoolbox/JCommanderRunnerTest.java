@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Set;
 
@@ -44,9 +45,9 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
     private static void setKeyMaterial(AbstractKeyMaterialDidLogCommand command) throws IOException, InvalidKeySpecException {
         command.assertionMethodKeys = Set.of(new VerificationMethodParameters("my-assert-key-01",
-                JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")));
+                JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01")));
         command.authenticationKeys = Set.of(new VerificationMethodParameters("my-auth-key-01",
-                JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")));
+                JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-01")));
     }
 
     @BeforeEach

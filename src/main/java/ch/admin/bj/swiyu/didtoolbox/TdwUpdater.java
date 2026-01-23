@@ -4,9 +4,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
@@ -25,8 +23,11 @@ import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * {@link TdwUpdater} is a {@link DidLogUpdaterStrategy} implementation in charge of
@@ -68,24 +69,54 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
+
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets no precedence over it (if both called against the same object).
+     *
+     * @since 1.8.0
      */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+
     /**
-     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     * @deprecated Use {@link #cryptographicSuite} instead
      */
     @Getter(AccessLevel.PRIVATE)
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use the {@link #updateKeysDidMethodParameter} method instead
+     */
     @Getter(AccessLevel.PRIVATE)
+    @Deprecated(since = "1.8.0")
     private Set<File> updateKeys;
-    // TODO private File dirToStoreKeyPair;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     * <p>
+     * This is an alternative and more potent method to supply the parameter.
+     * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     *
+     * @since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
 
     private VcDataIntegrityCryptographicSuite getCryptoSuite() {
         if (this.verificationMethodKeyProvider != null) {
@@ -196,11 +227,11 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         }
 
         // CAUTION Only activated DIDs can be updated
-        if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
+        if (this.didLogMeta.getParams().getDeactivated() != null && this.didLogMeta.getParams().getDeactivated()) {
             throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
-        if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        if (!this.getCryptoSuite().isKeyMultibaseInSet(this.didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
@@ -209,7 +240,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         //
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
         // The versionTime of the last entry MUST be earlier than the current time.
-        var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.getDateTime());
+        var lastEntryDateTime = ZonedDateTime.parse(this.didLogMeta.getDateTime());
         if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
             throw new DidLogUpdaterStrategyException("The versionTime of the last entry MUST be earlier than the current time");
         }
@@ -219,7 +250,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
 
         // take over context
         var context = new JsonArray();
-        for (var ctx : didLogMeta.getDidDoc().getContext()) {
+        for (var ctx : this.didLogMeta.getDidDoc().getContext()) {
             context.add(ctx);
         }
         didDoc.add("@context", context);
@@ -274,7 +305,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // https://identity.foundation/didwebvh/v0.3/#entry-hash-generation-and-verification:
         // For the first log entry, the predecessor versionId is the SCID (itself a hash),
         // while for all other entries it is the versionId item from the previous log entry.
-        didLogEntryWithoutProofAndSignature.add(didLogMeta.getLastVersionId());
+        didLogEntryWithoutProofAndSignature.add(this.didLogMeta.getLastVersionId());
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
         // and that the represented time MUST be before or equal to the current time.
@@ -286,7 +317,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        if (this.updateKeys != null) {
+        if (this.updateKeys != null // deprecated, but still relevant in this case
+                || this.updateKeysDidMethodParameter != null) {
             didLogEntryWithoutProofAndSignature.add(buildDidMethodParameters());
         } else {
             didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same
@@ -309,7 +341,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         }
 
         JsonArray didLogEntryWithProof = new JsonArray();
-        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
+        var challenge = this.didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
         didLogEntryWithProof.add(challenge);
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(1));
         didLogEntryWithProof.add(didLogEntryWithoutProofAndSignature.get(2));
@@ -358,27 +390,51 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
 
         var updateKeysJsonArray = new JsonArray();
 
-        var newUpdateKeys = Set.of(this.updateKeys.stream().map(file -> {
-            try {
-                return PemUtils.readEd25519PublicKeyPemFileToMultibase(file);
-            } catch (DidSidekicksException ignore) {
-            }
-            return null;
-        }).toArray(String[]::new));
+        Set<String> newUpdateKeys = new HashSet<>();
+        if (this.updateKeys != null) { // deprecated, but still relevant in this case
+            newUpdateKeys = Arrays.stream(this.updateKeys.stream().map(file -> { // deprecated, but still relevant in this case
+                        try {
+                            return UpdateKeysDidMethodParameter.of(file.toPath()).getUpdateKey();
+                        } catch (UpdateKeysDidMethodParameterException ignore) {
+                        }
+                        return null;
+                    }).toArray(String[]::new))
+                    .collect(Collectors.toCollection(HashSet::new)); // modifiable set
+        }
+
+        if (this.updateKeysDidMethodParameter != null) {
+            newUpdateKeys.addAll(
+                    Set.of(this.updateKeysDidMethodParameter.stream().map(UpdateKeysDidMethodParameter::getUpdateKey).toArray(String[]::new))
+            );
+        }
 
         if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)) { // need for change?
 
-            String updateKey;
-            for (var pemFile : this.updateKeys) {
-                try {
-                    updateKey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
-                } catch (DidSidekicksException e) {
-                    throw new DidLogUpdaterStrategyException(e);
-                }
+            if (this.updateKeys != null) { // deprecated, but still relevant in this case
+                for (var pemFile : this.updateKeys) { // deprecated, but still relevant in this case
+                    String updateKey;
+                    try {
+                        updateKey = UpdateKeysDidMethodParameter.of(pemFile.toPath()).getUpdateKey();
+                    } catch (UpdateKeysDidMethodParameterException e) {
+                        throw new DidLogUpdaterStrategyException(e);
+                    }
 
-                // it is a distinct list of keys, after all
-                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
-                    updateKeysJsonArray.add(updateKey);
+                    // it is a distinct list of keys, after all
+                    if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
+                        updateKeysJsonArray.add(updateKey);
+                    }
+                }
+            }
+
+            if (this.updateKeysDidMethodParameter != null) {
+                for (var param : this.updateKeysDidMethodParameter) {
+
+                    var updateKey = param.getUpdateKey();
+
+                    // it is a distinct list of keys, after all
+                    if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
+                        updateKeysJsonArray.add(updateKey);
+                    }
                 }
             }
         }

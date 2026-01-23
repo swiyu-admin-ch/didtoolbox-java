@@ -7,8 +7,7 @@ import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.NextKeyHashSource;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
@@ -70,20 +69,50 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     private Map<String, String> assertionMethodKeys;
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},
-     * but gets no precedence over it (if both called against the same object).
+     * but gets NO precedence over it (if both called against the same object).
      */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+
     /**
      * @deprecated Use {@link #cryptographicSuite} instead
      */
     @Getter(AccessLevel.PRIVATE)
+    @Deprecated(since = "1.8.0")
     private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use the {@link #updateKeysDidMethodParameter} method instead
+     */
     @Getter(AccessLevel.PRIVATE)
+    @Deprecated(since = "1.8.0")
     private Set<File> updateKeys;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     * <p>
+     * This is an alternative and more potent method to supply the parameter.
+     * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     *
+     * @since 1.8.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
+
     /**
      * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
      * <ul>
@@ -95,11 +124,12 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      * </pre></li>
      * </ul>
      *
-     * @deprecated
+     * @deprecated Use the {@link #nextKeyHashesDidMethodParameter} method instead
      */
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     @Getter(AccessLevel.PRIVATE)
     private Set<File> nextKeys;
+
     /**
      * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
      * <ul>
@@ -110,10 +140,15 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
      * </pre></li>
      * </ul>
+     * <p>
+     * This is an alternative and more potent method to supply the parameter.
+     * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     *
+     * @since 1.8.0
      */
     @Getter(AccessLevel.PACKAGE)
-    private Set<NextKeyHashSource> nextKeyHashes;
-    // TODO private File dirToStoreKeyPair;
+    private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter;
+
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
 
@@ -186,7 +221,11 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
-                createDidParams(this.getCryptoSuite(), this.updateKeys, this.nextKeys, this.getNextKeyHashes()));
+                createDidParams(this.getCryptoSuite(),
+                        this.updateKeys, // deprecated, but still relevant in this case
+                        this.updateKeysDidMethodParameter,
+                        this.nextKeys, // deprecated, but still relevant in this case
+                        this.nextKeyHashesDidMethodParameter));
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);
@@ -234,10 +273,16 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
             Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
         try {
-            return this.getCryptoSuite().addProof(
+            var didLogEntry = this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-        } catch (VcDataIntegrityCryptographicSuiteException e) {
-            throw new DidLogCreatorStrategyException(e);
+
+            WebVerifiableHistoryDidLogMetaPeeker.peek(didLogEntry.toString()).getDidDoc().getId(); // sanity check
+
+            return didLogEntry;
+        } catch (VcDataIntegrityCryptographicSuiteException exc) {
+            throw new DidLogCreatorStrategyException(exc);
+        } catch (DidLogMetaPeekerException exc) {
+            throw new DidLogCreatorStrategyException("Creating a DID log resulted in unresolvable/unverifiable DID log", exc);
         }
     }
 

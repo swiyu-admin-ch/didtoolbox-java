@@ -1,10 +1,12 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,7 +50,10 @@ import java.util.Set;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
  *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *
  *     import java.net.*;
+ *     import java.nio.file.Path;
+ *     import java.util.Set;
  *
  *     public static void main(String... args) {
  *
@@ -64,12 +69,12 @@ import java.util.Set;
  *
  *             // Using already existing key material
  *             didLogEntryWithExternalKeys = DidLogCreatorContext.builder()
- *                 .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem")))
+ *                 .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem")))
  *                 .assertionMethodKeys(Map.of(
- *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
+ *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01")
  *                 ))
  *                 .authenticationKeys(Map.of(
- *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")
+ *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-01")
  *                 ))
  *                 .build()
  *                 .create(identifierRegistryUrl);
@@ -90,23 +95,50 @@ public class DidLogCreatorContext {
 
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> assertionMethodKeys;
+
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> authenticationKeys;
+
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets no precedence over it (if both called against the same object).
+     *
+     * @since 1.8.0
      */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+
     /**
-     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     * @deprecated Use {@link #cryptographicSuite} instead
      */
     @Getter(AccessLevel.PRIVATE)
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use {@link #updateKeysDidMethodParameter} instead
+     */
     @Getter(AccessLevel.PACKAGE)
+    @Deprecated(since = "1.8.0")
     private Set<File> updateKeys;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     */
+    @Getter(AccessLevel.PACKAGE)
+    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
+
     /**
      * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
      * <ul>
@@ -118,11 +150,12 @@ public class DidLogCreatorContext {
      * </pre></li>
      * </ul>
      *
-     * @deprecated Use {@link #nextKeyHashes} instead
+     * @deprecated Use {@link #nextKeyHashesDidMethodParameter} instead
      */
     @Getter(AccessLevel.PACKAGE)
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     private Set<File> nextKeys;
+
     /**
      * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
      * <ul>
@@ -133,12 +166,18 @@ public class DidLogCreatorContext {
      * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
      * </pre></li>
      * </ul>
+     *
+     * @since 1.8.0
      */
     @Getter(AccessLevel.PACKAGE)
-    private Set<NextKeyHashSource> nextKeyHashes;
+    private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter;
+
     @Getter(AccessLevel.PACKAGE)
     private boolean forceOverwrite;
 
+    /**
+     * Default = {@link DidMethodEnum#WEBVH_1_0}
+     */
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
 

@@ -438,8 +438,8 @@
                             <hideMethods>true</hideMethods>
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
-                            <blacklistRegexp>.*Util*.*|.*Command.*|.*Validator.*|.*Converter*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*Enum*.*|.*.context.*</whitelistRegexp>
+                            <blacklistRegexp>.*.jcommander.*|.*Util*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*|*.*ContextBuilder.*</blacklistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*.context.*|.*Enum*.*|.*.model.*DidMethodParameter*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->
@@ -475,8 +475,8 @@
                             <hideMethods>true</hideMethods-->
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
-                            <blacklistRegexp>.*Util*.*|.*Command*.*|.*Validator*.*|.*Converter*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*Enum*.*|.*.context.*</whitelistRegexp>
+                            <blacklistRegexp>.*.jcommander.*|.*Util*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*|*.*ContextBuilder.*</blacklistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*.context.*|.*Enum*.*|.*.model.*DidMethodParameter*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->

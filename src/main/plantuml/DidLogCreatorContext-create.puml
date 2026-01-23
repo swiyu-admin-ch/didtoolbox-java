@@ -16,6 +16,18 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getNextKeyHashesDidMethodParameter
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getNextKeyHashesDidMethodParameter
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getDidMethod
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.TdwCreator : builder
 			activate ch.admin.bj.swiyu.didtoolbox.TdwCreator
 				ch.admin.bj.swiyu.didtoolbox.TdwCreator --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.TdwCreator$TdwCreatorBuilder
@@ -33,6 +45,10 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getUpdateKeys
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getUpdateKeysDidMethodParameter
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
@@ -60,11 +76,15 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getUpdateKeysDidMethodParameter
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getNextKeys
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getNextKeyHashes
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getNextKeyHashesDidMethodParameter
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
