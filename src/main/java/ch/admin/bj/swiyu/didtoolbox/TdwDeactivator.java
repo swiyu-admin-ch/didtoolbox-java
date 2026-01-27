@@ -291,7 +291,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
             //          .validate(didLogEntryWithProof.toString());
             //      would not be necessary here, as it is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolveAll(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
+            did.resolveAll(didLog.trim() + System.lineSeparator() + didLogEntryWithProof); // sanity check
         } catch (DidResolveException e) {
             throw new InvalidDidLogException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
         } finally {

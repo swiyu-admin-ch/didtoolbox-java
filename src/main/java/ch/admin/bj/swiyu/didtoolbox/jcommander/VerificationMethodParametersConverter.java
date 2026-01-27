@@ -3,8 +3,8 @@ package ch.admin.bj.swiyu.didtoolbox.jcommander;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import com.beust.jcommander.IStringConverter;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class VerificationMethodParametersConverter implements IStringConverter<L
             String jwk;
             try {
 
-                jwk = JwkUtils.loadECPublicJWKasJSON(new File(splitted[1]), kid);
+                jwk = JwkUtils.loadECPublicJWKasJSON(Path.of(splitted[1]), kid);
 
             } catch (IOException | InvalidKeySpecException e) {
                 throw new IllegalArgumentException(e);

@@ -19,11 +19,18 @@ final class DidLogStrategyFactory {
 
         switch (ctx.getDidMethod()) {
             case TDW_0_3 -> {
+
+                if (ctx.getNextKeyHashesDidMethodParameter() != null && !ctx.getNextKeyHashesDidMethodParameter().isEmpty()) {
+                    throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
+                }
+
                 return TdwCreator.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
-                        .updateKeys(ctx.getUpdateKeys())
+                        // Using alternative and more potent method to supply the parameter.
+                        // Eventually, all supplied keys are combined and their distinct values are taken.
+                        .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
                         .forceOverwrite(ctx.isForceOverwrite())
                         .build();
             }
@@ -32,8 +39,12 @@ final class DidLogStrategyFactory {
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
-                        .updateKeys(ctx.getUpdateKeys())
-                        .nextKeys(ctx.getNextKeys())
+                        // Using alternative and more potent method to supply the parameter.
+                        // Eventually, all supplied keys are combined and their distinct values are taken.
+                        .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
+                        // Using alternative and more potent method to supply the parameter.
+                        // Eventually, all supplied keys are combined and their distinct values are taken.
+                        .nextKeyHashesDidMethodParameter(ctx.getNextKeyHashesDidMethodParameter())
                         .forceOverwrite(ctx.isForceOverwrite())
                         .build();
             }
@@ -44,11 +55,18 @@ final class DidLogStrategyFactory {
     static DidLogUpdaterStrategy getUpdaterStrategy(DidLogUpdaterContext ctx) {
         switch (ctx.getDidMethod()) {
             case TDW_0_3 -> {
+
+                if (ctx.getNextKeyHashesDidMethodParameter() != null && !ctx.getNextKeyHashesDidMethodParameter().isEmpty()) {
+                    throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
+                }
+
                 return TdwUpdater.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
-                        .updateKeys(ctx.getUpdateKeys())
+                        // Using alternative and more potent method to supply the parameter.
+                        // Eventually, all supplied keys are combined and their distinct values are taken.
+                        .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
                         // CAUTION Not implemented yet:
                         // .nextKeys(ctx.getNextKeys())
                         .build();
@@ -58,8 +76,12 @@ final class DidLogStrategyFactory {
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
-                        .updateKeys(ctx.getUpdateKeys())
-                        .nextUpdateKeys(ctx.getNextKeys())
+                        // Using alternative and more potent method to supply the parameter.
+                        // Eventually, all supplied keys are combined and their distinct values are taken.
+                        .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
+                        // Using alternative and more potent method to supply the parameter.
+                        // Eventually, all supplied keys are combined and their distinct values are taken.
+                        .nextKeyHashesDidMethodParameter(ctx.getNextKeyHashesDidMethodParameter())
                         .build();
             }
             default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");

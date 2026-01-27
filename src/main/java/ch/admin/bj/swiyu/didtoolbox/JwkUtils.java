@@ -36,17 +36,34 @@ public final class JwkUtils {
      * @return JSON object string representation of the public JWK
      * @throws IOException             if the file couldn't be read
      * @throws InvalidKeySpecException if the given key specification is inappropriate for the EC key factory to produce a public key
+     * @deprecated Use {@link #loadECPublicJWKasJSON(Path, String)} instead
      */
+    @Deprecated(since = "1.8.0")
     public static String loadECPublicJWKasJSON(File ecPublicPemFile, String kid) throws IOException, InvalidKeySpecException {
-        if (!ecPublicPemFile.isFile() || !ecPublicPemFile.exists()) {
-            throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", ecPublicPemFile.getAbsolutePath()));
+        return loadECPublicJWKasJSON(ecPublicPemFile.toPath(), kid);
+    }
+
+    /**
+     * Loads a public EC P-256 key from the specified PEM file and returns its JWK JSON representation
+     *
+     * @param ecPublicPemPath to file featuring an EC P-256 public key in PEM format
+     * @param kid             the ID (kid) of the JWK that can be used to match this key.
+     *                        A regular case-sensitive string featuring no URIs reserved characters is expected.
+     *                        Otherwise, {@link IllegalArgumentException} is thrown
+     * @return JSON object string representation of the public JWK
+     * @throws IOException             if the file couldn't be read
+     * @throws InvalidKeySpecException if the given key specification is inappropriate for the EC key factory to produce a public key
+     */
+    public static String loadECPublicJWKasJSON(Path ecPublicPemPath, String kid) throws IOException, InvalidKeySpecException {
+        if (!Files.isReadable(ecPublicPemPath)) {
+            throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", ecPublicPemPath));
         }
 
         if (!kid.matches("[a-zA-Z0-9~._-]+")) {
             throw new IllegalArgumentException(String.format("The supplied key ID (kid) of the JWK '%s' must be a regular case-sensitive string featuring no URIs reserved characters", kid));
         }
 
-        ECPublicKey publicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicPemFile.toPath()));
+        ECPublicKey publicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicPemPath));
 
         return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
     }
@@ -116,6 +133,7 @@ public final class JwkUtils {
                     w.close();
                 }
 
+                // Creates (keyPairPemFile || ".pub") file
                 exportEcPublicKeyToPem(publicJwk, keyPairPemFile);
 
             } else {

@@ -28,29 +28,6 @@ public final class JCSHasher {
     private JCSHasher() {
     }
 
-
-    /**
-     * This helper calculates the hash string as {@code base58btc(multihash(multikey))}, where:
-     * <ol>
-     *      <li>{@code multikey} is the multikey representation of a public key</li>
-     *      <li>{@code multihash} is an implementation of the <a href="https://www.w3.org/TR/controller-document/#multihash">multihash</a> specification.
-     *      Its output is a hash of the input using the associated {@code <hash algorithm>},
-     *      prefixed with a hash algorithm identifier and the hash size.</li>
-     *      <li>{@code <hash algorithm>} is the hash algorithm used by the DID Controller.
-     *      The hash algorithm MUST be one listed in the parameters defined by the version of a {@code did:*} (e.g. {@code did:webvh})
-     *      specification being used by the DID Controller.</li>
-     *      <li>{@code base58btc} is an implementation of the base58btc function (converts data to a {@code base58} encoding).
-     *      Its output is the base58 encoded string of its input.</li>
-     * </ol>
-     * As such, the helper can be used out-of-the-box for the purpose of <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">pre-rotation-key-hash-generation-and-verification</a>.
-     *
-     * @param key multikey to build hash for
-     * @return hash string for the supplied multikey
-     */
-    public static String buildNextKeyHash(String key) {
-        return Base58.encode(multihash(key.getBytes(StandardCharsets.UTF_8)));
-    }
-
     /**
      * multihash is an implementation of the <a href="https://www.w3.org/TR/controller-document/#multihash">multihash</a> specification.
      * Its output is a hash of the input using the associated <hash algorithm>, prefixed with a hash algorithm identifier and the hash size.
@@ -58,7 +35,7 @@ public final class JCSHasher {
      * @param input string to be hashed
      * @return {@code input} string hashed accordingly
      */
-    static byte[] multihash(String input) {
+    public static byte[] multihash(String input) {
         return multihash(input.getBytes(StandardCharsets.UTF_8));
     }
 

@@ -1,14 +1,15 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Set;
@@ -95,7 +96,7 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(TdwCreator.builder()
                     // the default signer (verificationMethodKeyProvider) is used
-                    .updateKeys(Set.of(new File("src/test/data/public.pem")))
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
                     .forceOverwrite(true)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
@@ -157,10 +158,10 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
             didLogEntry = TdwCreator.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of(
-                            "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
+                            "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01")
                     ))
                     .authenticationKeys(Map.of(
-                            "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")
+                            "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-01")
                     ))
                     .build()
                     // CAUTION datetime is set explicitly here just to be able to run assertTrue("...".contains(didLogEntry));

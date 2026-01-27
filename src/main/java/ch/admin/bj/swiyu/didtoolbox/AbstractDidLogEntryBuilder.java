@@ -130,18 +130,22 @@ public abstract class AbstractDidLogEntryBuilder {
      * as specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">did:webvh</a>
      * and taking into account all the supplied PEM files.
      *
-     * @param verificationMethodKeyProvider an implementation of {@link VerificationMethodKeyProvider} providing
-     *                                      one of {@code updateKey} DID method parameter values.
-     * @param updateKeys                    optional set of PEM files, each featuring a public key to be used for the {@code updateKeys} parameter
-     * @param nextKeys                      optional set of PEM files, each featuring a public key to be used for the {@code nextKeyHashes} parameter,
-     *                                      as specified by <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">pre-rotation-key-hash-generation-and-verification</a>
+     * @param verificationMethodKeyProvider    an implementation of {@link VerificationMethodKeyProvider} providing
+     *                                         one of {@code updateKey} DID method parameter values.
+     * @param updateKeysParameter              optional set of {@link NextKeyHashesDidMethodParameter} objects (supplied complementary to {@code updateKeys}),
+     *                                         each featuring a multibase-encoded public key to be used for the {@code updateKeys} DID method parameter.
+     *                                         Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     * @param nextKeyHashesDidMethodParameters optional set of {@link NextKeyHashesDidMethodParameter} objects (supplied complementary to {@code nextKeys}),
+     *                                         each delivering a hash (of a public key) to be used for the {@code nextKeyHashes} DID method parameter,
+     *                                         as specified by <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">pre-rotation-key-hash-generation-and-verification</a>.
+     *                                         Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
      * @return a JSON object representing DID method parameters
      * @throws DidLogCreatorStrategyException if parsing any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
      */
     @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
-                                         Set<File> updateKeys,
-                                         Set<File> nextKeys) throws DidLogCreatorStrategyException {
+                                         Set<UpdateKeysDidMethodParameter> updateKeysParameter,
+                                         Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameters) throws DidLogCreatorStrategyException {
 
         // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didtdw-did-method-parameters)
         // The third item in the input JSON array MUST be the parameters JSON object.
@@ -164,21 +168,20 @@ public abstract class AbstractDidLogEntryBuilder {
         the currently active list continues to apply.
          */
         var updateKeysJsonArray = new JsonArray();
+
         updateKeysJsonArray.add(verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
-        if (updateKeys != null) {
-            for (var pemFile : updateKeys) { // ...and then add the rest, if any
-                String updateKey;
-                try {
-                    updateKey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
-                } catch (DidSidekicksException e) {
-                    throw new DidLogCreatorStrategyException(e);
-                }
+
+        if (updateKeysParameter != null) {
+            for (var param : updateKeysParameter) { // ...and then add the rest, if any
+
+                var updateKey = param.getUpdateKey();
 
                 if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) { // it is a distinct list of keys, after all
                     updateKeysJsonArray.add(updateKey);
                 }
             }
         }
+
         didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
 
         /*
@@ -200,24 +203,15 @@ public abstract class AbstractDidLogEntryBuilder {
         - The value of 'nextKeyHashes' MAY be set to an empty array ([]) to deactivate pre-rotation.
           For additional details about turning off pre-rotation, see the Pre-Rotation Key Hash Generation and Verification section of this specification.
          */
-        if (nextKeys != null) { // Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+        var nextKeyHashesJsonArray = new JsonArray();
+        // Once the nextKeys/nextKeyHashes parameters has been set to a non-empty array, Key Pre-Rotation is active.
+        try {
+            nextKeyHashesJsonArray.addAll(NextKeyHashesDidMethodParameter.collectHashesIntoJsonArray(nextKeyHashesDidMethodParameters));
+        } catch (NextKeyHashesDidMethodParameterException e) {
+            throw new DidLogCreatorStrategyException(e);
+        }
 
-            var nextKeyHashesJsonArray = new JsonArray();
-            for (var pemFile : nextKeys) {
-
-                String nextKeyHash;
-                try {
-                    nextKeyHash = JCSHasher.buildNextKeyHash(
-                            PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile));
-                } catch (DidSidekicksException e) {
-                    throw new DidLogCreatorStrategyException(e);
-                }
-
-                if (!nextKeyHashesJsonArray.contains(new JsonPrimitive(nextKeyHash))) { // it is a distinct list of keys, after all
-                    nextKeyHashesJsonArray.add(nextKeyHash);
-                }
-            }
-
+        if (!nextKeyHashesJsonArray.isEmpty()) {
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
         }
 

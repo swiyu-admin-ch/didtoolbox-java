@@ -4,8 +4,9 @@ import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.spec.InvalidKeySpecException;
 
 public class VerificationMethodKeyParametersValidator implements IParameterValidator {
@@ -30,8 +31,8 @@ public class VerificationMethodKeyParametersValidator implements IParameterValid
         }
 
         String jwkFile = splitted[1];
-        File f = new File(jwkFile);
-        if (!f.exists() || !f.isFile()) {
+        var f = Path.of(jwkFile);
+        if (!Files.isReadable(f)) {
             throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing EC P-256 public/verifying key in PEM format (found " + jwkFile + ")");
         }
 
