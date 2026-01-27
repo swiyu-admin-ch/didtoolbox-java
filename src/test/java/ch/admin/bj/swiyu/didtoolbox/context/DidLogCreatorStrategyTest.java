@@ -54,7 +54,7 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
                         .build()
                         .create(identifierRegistryUrl); // MUT
             });
-            assertTrue(exc.getMessage().contains("not (yet) implemented"));
+            assertTrue(exc.getMessage().contains("currently not supported"));
         });
 
         // did:webvh

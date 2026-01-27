@@ -4,7 +4,6 @@ import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidMethodParameter;
 import lombok.Getter;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -97,21 +96,12 @@ public class DidLogMeta {
      * In case of activated key pre-rotation, the method proves whether the supplied {@code pemFiles} and {@code params}
      * feature public keys that are among those defined by the key pre-rotation, or not.
      *
-     * @param pemFiles to check
-     * @param params   to check
+     * @param params to check
      * @return {@code true} if and only if at least one of the supplied {@code pemFiles} is legal w.r.t. key pre-rotation. Otherwise, {@code false}.
      * @throws UpdateKeysDidMethodParameterException in case at least one of the supplied {@code pemFiles} features no PEM content or
      *                                               at least one of the supplied {@code pemFiles} contains no valid Ed25519 public key
      */
-    public boolean arePreRotatedUpdateKeys(Set<File> pemFiles, Set<UpdateKeysDidMethodParameter> params) throws UpdateKeysDidMethodParameterException {
-
-        if (pemFiles != null && !pemFiles.isEmpty()) {
-            for (var pemFile : pemFiles) {
-                if (!this.isPreRotatedUpdateKey(UpdateKeysDidMethodParameter.of(pemFile.toPath()).getUpdateKey())) {
-                    return false;
-                }
-            }
-        }
+    public boolean arePreRotatedUpdateKeys(Set<UpdateKeysDidMethodParameter> params) throws UpdateKeysDidMethodParameterException {
 
         if (params != null && !params.isEmpty()) {
             for (var param : params) {

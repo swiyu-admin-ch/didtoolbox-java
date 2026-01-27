@@ -21,15 +21,13 @@ final class DidLogStrategyFactory {
             case TDW_0_3 -> {
 
                 if (ctx.getNextKeyHashesDidMethodParameter() != null && !ctx.getNextKeyHashesDidMethodParameter().isEmpty()) {
-                    throw new IllegalArgumentException(String.format("The key pre-rotation is not (yet) implemented for %s DID logs", ctx.getDidMethod()));
+                    throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
                 }
 
                 return TdwCreator.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
-                        // CAUTION Despite its deprecation, it still has to be used here
-                        .updateKeys(ctx.getUpdateKeys())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
                         .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
@@ -41,13 +39,9 @@ final class DidLogStrategyFactory {
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
-                        // CAUTION Despite its deprecation, it still has to be used here
-                        .updateKeys(ctx.getUpdateKeys())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
                         .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
-                        // CAUTION Despite its deprecation, it still has to be used here
-                        .nextKeys(ctx.getNextKeys())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
                         .nextKeyHashesDidMethodParameter(ctx.getNextKeyHashesDidMethodParameter())
@@ -63,15 +57,13 @@ final class DidLogStrategyFactory {
             case TDW_0_3 -> {
 
                 if (ctx.getNextKeyHashesDidMethodParameter() != null && !ctx.getNextKeyHashesDidMethodParameter().isEmpty()) {
-                    throw new IllegalArgumentException(String.format("The key pre-rotation is not (yet) implemented for %s DID logs", ctx.getDidMethod()));
+                    throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
                 }
 
                 return TdwUpdater.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
-                        // CAUTION Despite its deprecation, it still has to be used here
-                        .updateKeys(ctx.getUpdateKeys())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
                         .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
@@ -84,13 +76,9 @@ final class DidLogStrategyFactory {
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .assertionMethodKeys(ctx.getAssertionMethodKeys())
                         .authenticationKeys(ctx.getAuthenticationKeys())
-                        // CAUTION Despite its deprecation, it still has to be used here
-                        .updateKeys(ctx.getUpdateKeys())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
                         .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
-                        // CAUTION Despite its deprecation, it still has to be used here
-                        .nextUpdateKeys(ctx.getNextKeys())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
                         .nextKeyHashesDidMethodParameter(ctx.getNextKeyHashesDidMethodParameter())

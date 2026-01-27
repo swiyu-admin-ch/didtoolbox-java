@@ -244,7 +244,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
             var didLogEntry = this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
 
-            did.resolveAll(new StringBuilder(didLog.trim()).append(System.lineSeparator()).append(didLogEntry).toString()); // sanity check
+            did.resolveAll(didLog.trim() + System.lineSeparator() + didLogEntry); // sanity check
 
             return didLogEntry;
         } catch (VcDataIntegrityCryptographicSuiteException exc) {

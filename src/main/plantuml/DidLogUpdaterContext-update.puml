@@ -44,10 +44,6 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getUpdateKeys
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getUpdateKeysDidMethodParameter
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
@@ -68,15 +64,7 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getUpdateKeys
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getUpdateKeysDidMethodParameter
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getNextKeys
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext

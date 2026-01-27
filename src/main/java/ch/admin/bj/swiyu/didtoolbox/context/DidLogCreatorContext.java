@@ -2,9 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.context;
 
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import lombok.AccessLevel;
@@ -122,19 +120,6 @@ public class DidLogCreatorContext {
      * <pre>
      * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
      * </pre>
-     *
-     * @deprecated Use {@link #updateKeysDidMethodParameter} instead
-     */
-    @Getter(AccessLevel.PACKAGE)
-    @Deprecated(since = "1.8.0")
-    private Set<File> updateKeys;
-
-    /**
-     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
-     * DID method parameter:
-     * <pre>
-     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
-     * </pre>
      */
     @Getter(AccessLevel.PACKAGE)
     private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
@@ -152,9 +137,10 @@ public class DidLogCreatorContext {
      *
      * @deprecated Use {@link #nextKeyHashesDidMethodParameter} instead
      */
-    @Getter(AccessLevel.PACKAGE)
     @Deprecated(since = "1.8.0")
-    private Set<File> nextKeys;
+    void nextKeys(Set<File> pemFiles) throws NextKeyHashesDidMethodParameterException {
+        nextKeyHashesDidMethodParameter.addAll(NextKeyHashesDidMethodParameter.of(pemFiles));
+    }
 
     /**
      * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
@@ -180,6 +166,20 @@ public class DidLogCreatorContext {
      */
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use {@link #updateKeysDidMethodParameter} instead
+     */
+    @Deprecated(since = "1.8.0")
+    void updateKeys(Set<File> pemFiles) throws UpdateKeysDidMethodParameterException {
+        updateKeysDidMethodParameter.addAll(UpdateKeysDidMethodParameter.of(pemFiles));
+    }
 
     VcDataIntegrityCryptographicSuite getCryptoSuite() {
         if (this.verificationMethodKeyProvider != null) {

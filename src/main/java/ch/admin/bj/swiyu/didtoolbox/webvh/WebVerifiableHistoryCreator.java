@@ -91,19 +91,6 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      * <pre>
      * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
      * </pre>
-     *
-     * @deprecated Use the {@link #updateKeysDidMethodParameter} method instead
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.8.0")
-    private Set<File> updateKeys;
-
-    /**
-     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
-     * DID method parameter:
-     * <pre>
-     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
-     * </pre>
      * <p>
      * This is an alternative and more potent method to supply the parameter.
      * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
@@ -112,23 +99,6 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      */
     @Getter(AccessLevel.PRIVATE)
     private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
-
-    /**
-     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
-     * <ul>
-     * <li><pre>
-     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
-     * </pre></li>
-     * <li><pre>
-     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
-     * </pre></li>
-     * </ul>
-     *
-     * @deprecated Use the {@link #nextKeyHashesDidMethodParameter} method instead
-     */
-    @Deprecated(since = "1.8.0")
-    @Getter(AccessLevel.PRIVATE)
-    private Set<File> nextKeys;
 
     /**
      * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
@@ -151,140 +121,6 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
 
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
-
-    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
-        if (this.verificationMethodKeyProvider != null) {
-            return this.verificationMethodKeyProvider;
-        }
-
-        return this.cryptographicSuite;
-    }
-
-    @Override
-    protected DidMethodEnum getDidMethod() {
-        return DidMethodEnum.WEBVH_1_0;
-    }
-
-    /**
-     * Creates a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log by taking into account other
-     * features of this {@link WebVerifiableHistoryCreator} object, optionally customized by previously calling fluent methods like
-     * {@link WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider}, {@link WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} or
-     * {@link WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)}.
-     *
-     * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
-     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
-     * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
-     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
-     * @see #createDidLog(URL, ZonedDateTime)
-     */
-    @Override
-    public String createDidLog(URL identifierRegistryUrl) throws DidLogCreatorStrategyException {
-        return createDidLog(identifierRegistryUrl, ZonedDateTime.now());
-    }
-
-    /**
-     * Creates a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log for a supplied datetime.
-     * <p>
-     * This package-scope method is certainly more potent than the public one.
-     * <p>
-     * <b>However, it is introduced for the sake of testability only.</b>
-     *
-     * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t.
-     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
-     * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
-     * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
-     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
-     */
-    @Override
-    public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
-
-        // Create initial did doc with placeholder
-        return createDidLog(createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite), zdt);
-    }
-
-    //@SuppressWarnings({"PMD.CyclomaticComplexity"})
-    private String createDidLog(JsonObject didDoc, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
-
-        // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
-        var didLogEntryWithoutProofAndSignature = new JsonObject();
-
-        // Add a preliminary versionId value
-        // The first item in the input JSON array MUST be the placeholder string {SCID}.
-        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, SCID_PLACEHOLDER);
-        // Add the versionTime value
-        // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
-        // and that the represented time MUST be before or equal to the current time.
-        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
-
-        // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters)
-        // The third item in the input JSON array MUST be the parameters JSON object.
-        // The parameters are used to configure the DID generation and verification processes.
-        // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
-                createDidParams(this.getCryptoSuite(),
-                        this.updateKeys, // deprecated, but still relevant in this case
-                        this.updateKeysDidMethodParameter,
-                        this.nextKeys, // deprecated, but still relevant in this case
-                        this.nextKeyHashesDidMethodParameter));
-
-        // The JSON object "state" contains the DIDDoc for this version of the DID.
-        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);
-
-        // Generate SCID and replace placeholder in did doc
-        String scid = buildSCID(didLogEntryWithoutProofAndSignature);
-
-        /* https://identity.foundation/didwebvh/v1.0/#output-of-the-scid-generation-process:
-        After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
-        This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
-        Once the process has run, the version number of this first version of the DID (1),
-        a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-         */
-
-        var didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(
-                didLogEntryWithoutProofAndSignature.toString().replace(SCID_PLACEHOLDER, scid)
-        ).getAsJsonObject();
-
-        // See https://identity.foundation/didwebvh/v1.0/#generate-entry-hash
-        // After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
-        // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
-        // Once the process has run, the version number of this first version of the DID (1),
-        // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String entryHash = buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
-
-        // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
-        var didLogEntryWithoutProof = new JsonObject();
-
-        var challenge = "1-" + entryHash; // versionId as the proof challenge
-        didLogEntryWithoutProof.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
-        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
-                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME));
-        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
-                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS));
-        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE,
-                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE));
-
-        /*
-        https://identity.foundation/didwebvh/v1.0/#create-register:
-        "5.5. Generate the Data Integrity proof: A Data Integrity proof on the preliminary JSON object as updated in the
-        previous step MUST be generated using an authorized key in the required updateKeys property in the parameters
-        object and the proofPurpose set to assertionMethod."
-        Since did.tdw:0.4 ->
-            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
-            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
-         */
-        try {
-            var didLogEntry = this.getCryptoSuite().addProof(
-                    didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-
-            WebVerifiableHistoryDidLogMetaPeeker.peek(didLogEntry).getDidDoc().getId(); // sanity check
-
-            return didLogEntry;
-        } catch (VcDataIntegrityCryptographicSuiteException exc) {
-            throw new DidLogCreatorStrategyException(exc);
-        } catch (DidLogMetaPeekerException exc) {
-            throw new DidLogCreatorStrategyException("Creating a DID log resulted in unresolvable/unverifiable DID log", exc);
-        }
-    }
 
     /**
      * A static helper aiming at creation of a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
@@ -376,5 +212,169 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         newDidDoc.add("verificationMethod", verificationMethod);
 
         return creator.createDidLog(newDidDoc, zdt); // may throw DidLogCreatorStrategyException
+    }
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use the {@link #updateKeysDidMethodParameter} method instead
+     */
+    @Deprecated(since = "1.8.0")
+    public void updateKeys(Set<File> pemFiles) throws UpdateKeysDidMethodParameterException {
+        updateKeysDidMethodParameter.addAll(UpdateKeysDidMethodParameter.of(pemFiles));
+    }
+
+    /**
+     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     *
+     * @deprecated Use the {@link #nextKeyHashesDidMethodParameter} method instead
+     */
+    @Deprecated(since = "1.8.0")
+    public void nextKeys(Set<File> pemFiles) throws NextKeyHashesDidMethodParameterException {
+        nextKeyHashesDidMethodParameter.addAll(NextKeyHashesDidMethodParameter.of(pemFiles));
+    }
+
+    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
+        if (this.verificationMethodKeyProvider != null) {
+            return this.verificationMethodKeyProvider;
+        }
+
+        return this.cryptographicSuite;
+    }
+
+    @Override
+    protected DidMethodEnum getDidMethod() {
+        return DidMethodEnum.WEBVH_1_0;
+    }
+
+    /**
+     * Creates a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log by taking into account other
+     * features of this {@link WebVerifiableHistoryCreator} object, optionally customized by previously calling fluent methods like
+     * {@link WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider}, {@link WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} or
+     * {@link WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)}.
+     *
+     * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
+     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
+     * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
+     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
+     * @see #createDidLog(URL, ZonedDateTime)
+     */
+    @Override
+    public String createDidLog(URL identifierRegistryUrl) throws DidLogCreatorStrategyException {
+        return createDidLog(identifierRegistryUrl, ZonedDateTime.now());
+    }
+
+    /**
+     * Creates a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log for a supplied datetime.
+     * <p>
+     * This package-scope method is certainly more potent than the public one.
+     * <p>
+     * <b>However, it is introduced for the sake of testability only.</b>
+     *
+     * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t.
+     *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
+     * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
+     * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
+     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
+     */
+    @Override
+    public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
+
+        // Create initial did doc with placeholder
+        return createDidLog(createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite), zdt);
+    }
+
+    //@SuppressWarnings({"PMD.CyclomaticComplexity"})
+    private String createDidLog(JsonObject didDoc, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
+
+        // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
+        var didLogEntryWithoutProofAndSignature = new JsonObject();
+
+        // Add a preliminary versionId value
+        // The first item in the input JSON array MUST be the placeholder string {SCID}.
+        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, SCID_PLACEHOLDER);
+        // Add the versionTime value
+        // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
+        // and that the represented time MUST be before or equal to the current time.
+        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
+
+        // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters)
+        // The third item in the input JSON array MUST be the parameters JSON object.
+        // The parameters are used to configure the DID generation and verification processes.
+        // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
+        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
+                createDidParams(this.getCryptoSuite(),
+                        this.updateKeysDidMethodParameter,
+                        this.nextKeyHashesDidMethodParameter));
+
+        // The JSON object "state" contains the DIDDoc for this version of the DID.
+        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);
+
+        // Generate SCID and replace placeholder in did doc
+        String scid = buildSCID(didLogEntryWithoutProofAndSignature);
+
+        /* https://identity.foundation/didwebvh/v1.0/#output-of-the-scid-generation-process:
+        After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
+        This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
+        Once the process has run, the version number of this first version of the DID (1),
+        a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
+         */
+
+        var didLogEntryWithSCIDWithoutProofAndSignature = JsonParser.parseString(
+                didLogEntryWithoutProofAndSignature.toString().replace(SCID_PLACEHOLDER, scid)
+        ).getAsJsonObject();
+
+        // See https://identity.foundation/didwebvh/v1.0/#generate-entry-hash
+        // After the SCID is generated, the literal {SCID} placeholders are replaced by the generated SCID value (below).
+        // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
+        // Once the process has run, the version number of this first version of the DID (1),
+        // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
+        String entryHash = buildSCID(didLogEntryWithSCIDWithoutProofAndSignature);
+
+        // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
+        var didLogEntryWithoutProof = new JsonObject();
+
+        var challenge = "1-" + entryHash; // versionId as the proof challenge
+        didLogEntryWithoutProof.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
+                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME));
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
+                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS));
+        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE,
+                didLogEntryWithSCIDWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE));
+
+        /*
+        https://identity.foundation/didwebvh/v1.0/#create-register:
+        "5.5. Generate the Data Integrity proof: A Data Integrity proof on the preliminary JSON object as updated in the
+        previous step MUST be generated using an authorized key in the required updateKeys property in the parameters
+        object and the proofPurpose set to assertionMethod."
+        Since did.tdw:0.4 ->
+            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
+            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
+         */
+        try {
+            var didLogEntry = this.getCryptoSuite().addProof(
+                    didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
+
+            WebVerifiableHistoryDidLogMetaPeeker.peek(didLogEntry).getDidDoc().getId(); // sanity check
+
+            return didLogEntry;
+        } catch (VcDataIntegrityCryptographicSuiteException exc) {
+            throw new DidLogCreatorStrategyException(exc);
+        } catch (DidLogMetaPeekerException exc) {
+            throw new DidLogCreatorStrategyException("Creating a DID log resulted in unresolvable/unverifiable DID log", exc);
+        }
     }
 }

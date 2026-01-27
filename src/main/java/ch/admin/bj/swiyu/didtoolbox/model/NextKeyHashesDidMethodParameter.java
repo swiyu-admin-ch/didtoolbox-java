@@ -154,31 +154,6 @@ public interface NextKeyHashesDidMethodParameter {
 
     /**
      *
-     * @param pemFiles
-     * @return a valid {@link JsonArray} object featuring distinct {@code nextKeyHash} values, never {@code null}
-     * @throws NextKeyHashesDidMethodParameterException
-     */
-    static JsonArray getHashesAsJsonArray(Set<File> pemFiles) throws NextKeyHashesDidMethodParameterException {
-        var nextKeyHashesJsonArray = new JsonArray();
-
-        if (pemFiles == null || pemFiles.isEmpty()) {
-            return nextKeyHashesJsonArray;
-        }
-
-        for (var pemFile : pemFiles) {
-
-            var nextKeyHash = of(pemFile.toPath()).getNextKeyHash(); // may throw NextKeyHashesDidMethodParameterException
-
-            if (!nextKeyHashesJsonArray.contains(new JsonPrimitive(nextKeyHash))) {
-                nextKeyHashesJsonArray.add(nextKeyHash);
-            }
-        }
-
-        return nextKeyHashesJsonArray;
-    }
-
-    /**
-     *
      * @param params
      * @return a valid JsonArray featuring distinct {@code nextKeyHash} values
      * @throws NextKeyHashesDidMethodParameterException

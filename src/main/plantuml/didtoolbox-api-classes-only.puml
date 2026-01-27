@@ -35,9 +35,7 @@ class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorCon
 	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
 	{method} +forceOverwrite ( paramboolean1 : boolean ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
 	{method} +nextKeyHashesDidMethodParameter ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
-	{method} +nextKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder <<deprecated>> 
 	{method} +toString () : String
-	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder <<deprecated>> 
 	{method} +updateKeysDidMethodParameter ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
 	{method} +verificationMethodKeyProvider ( paramVcDataIntegrityCryptographicSuite1 : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder <<deprecated>> 
 }
@@ -92,9 +90,7 @@ class ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterCon
 	{method} +cryptographicSuite ( paramVcDataIntegrityCryptographicSuite1 : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
 	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
 	{method} +nextKeyHashesDidMethodParameter ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
-	{method} +nextKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder <<deprecated>> 
 	{method} +toString () : String
-	{method} +updateKeys ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder <<deprecated>> 
 	{method} +updateKeysDidMethodParameter ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
 	{method} +verificationMethodKeyProvider ( paramVcDataIntegrityCryptographicSuite1 : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder <<deprecated>> 
 }

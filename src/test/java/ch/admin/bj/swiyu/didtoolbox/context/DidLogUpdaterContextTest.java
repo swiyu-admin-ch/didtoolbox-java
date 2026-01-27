@@ -33,7 +33,7 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
                     .build()
                     .update(finalDidLog1); // MUT
         });
-        assertTrue(illegalArgExc.getMessage().contains("not (yet) implemented"));
+        assertTrue(illegalArgExc.getMessage().contains("currently not supported"));
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 

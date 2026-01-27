@@ -23,11 +23,9 @@ import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * {@link TdwUpdater} is a {@link DidLogUpdaterStrategy} implementation in charge of
@@ -96,19 +94,6 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * <pre>
      * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
      * </pre>
-     *
-     * @deprecated Use the {@link #updateKeysDidMethodParameter} method instead
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.8.0")
-    private Set<File> updateKeys;
-
-    /**
-     * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
-     * DID method parameter:
-     * <pre>
-     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
-     * </pre>
      * <p>
      * This is an alternative and more potent method to supply the parameter.
      * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
@@ -117,6 +102,20 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      */
     @Getter(AccessLevel.PRIVATE)
     private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use the {@link #updateKeysDidMethodParameter} method instead
+     */
+    @Deprecated(since = "1.8.0")
+    public void updateKeys(Set<File> pemFiles) throws UpdateKeysDidMethodParameterException {
+        updateKeysDidMethodParameter.addAll(UpdateKeysDidMethodParameter.of(pemFiles));
+    }
 
     private VcDataIntegrityCryptographicSuite getCryptoSuite() {
         if (this.verificationMethodKeyProvider != null) {
@@ -317,8 +316,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        if (this.updateKeys != null // deprecated, but still relevant in this case
-                || this.updateKeysDidMethodParameter != null) {
+        if (this.updateKeysDidMethodParameter != null) {
             didLogEntryWithoutProofAndSignature.add(buildDidMethodParameters());
         } else {
             didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same
@@ -391,17 +389,6 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         var updateKeysJsonArray = new JsonArray();
 
         Set<String> newUpdateKeys = new HashSet<>();
-        if (this.updateKeys != null) { // deprecated, but still relevant in this case
-            newUpdateKeys = Arrays.stream(this.updateKeys.stream().map(file -> { // deprecated, but still relevant in this case
-                        try {
-                            return UpdateKeysDidMethodParameter.of(file.toPath()).getUpdateKey();
-                        } catch (UpdateKeysDidMethodParameterException ignore) {
-                        }
-                        return null;
-                    }).toArray(String[]::new))
-                    .collect(Collectors.toCollection(HashSet::new)); // modifiable set
-        }
-
         if (this.updateKeysDidMethodParameter != null) {
             newUpdateKeys.addAll(
                     Set.of(this.updateKeysDidMethodParameter.stream().map(UpdateKeysDidMethodParameter::getUpdateKey).toArray(String[]::new))
@@ -409,22 +396,6 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         }
 
         if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)) { // need for change?
-
-            if (this.updateKeys != null) { // deprecated, but still relevant in this case
-                for (var pemFile : this.updateKeys) { // deprecated, but still relevant in this case
-                    String updateKey;
-                    try {
-                        updateKey = UpdateKeysDidMethodParameter.of(pemFile.toPath()).getUpdateKey();
-                    } catch (UpdateKeysDidMethodParameterException e) {
-                        throw new DidLogUpdaterStrategyException(e);
-                    }
-
-                    // it is a distinct list of keys, after all
-                    if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
-                        updateKeysJsonArray.add(updateKey);
-                    }
-                }
-            }
 
             if (this.updateKeysDidMethodParameter != null) {
                 for (var param : this.updateKeysDidMethodParameter) {
