@@ -195,7 +195,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Set.of(Path.of("src/test/data/public.pem").toFile(), finalPublicKeyPemFile.toFile())))
+                    .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"), finalPublicKeyPemFile))
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -255,7 +255,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                         .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using another verification key provider
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
-                        .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Set.of(Path.of("src/test/data/public.pem").toFile(), finalPublicKeyPemFile.toFile())))
+                        .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"), finalPublicKeyPemFile))
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.

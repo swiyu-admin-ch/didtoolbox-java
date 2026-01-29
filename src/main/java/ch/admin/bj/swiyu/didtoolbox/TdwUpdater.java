@@ -97,6 +97,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * <p>
      * This is an alternative and more potent method to supply the parameter.
      * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     * <p>
+     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
      *
      * @since 1.8.0
      */

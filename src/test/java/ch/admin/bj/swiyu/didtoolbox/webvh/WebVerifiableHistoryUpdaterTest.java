@@ -190,9 +190,9 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     // 2nd updateKey supplied explicitly (from file)
-                    .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Set.of(
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(
                             //new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
-                            new File(TEST_DATA_PATH_PREFIX + "public01.pem") // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER
+                            Path.of(TEST_DATA_PATH_PREFIX + "public01.pem") // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER
                     )))
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -406,9 +406,13 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                         //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
                         // Using alternative and more potent method to supply pre-rotation keys.
                         // BTW Adding the same key (via another method) has no effect as eventually distinct key values are taken.
-                        .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(
-                                TEST_KEY_FILES[i - 1].toPath() // get a whole another (single) pre-rotation key to be used when building the next DID log entry
-                        )))
+                        .nextKeyHashesDidMethodParameter(Set.of(
+                                NextKeyHashesDidMethodParameter.of(
+                                        TEST_KEY_FILES[i - 1].toPath() // get a whole another (single) pre-rotation key to be used when building the next DID log entry
+                                        // CAUTION Adding the same key causes "duplicate element" IllegalArgumentException
+                                        //), NextKeyHashesDidMethodParameter.of(
+                                        //        TEST_KEYS[i - 1][1] // get a whole another (single) pre-rotation key to be used when building the next DID log entry
+                                )))
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.

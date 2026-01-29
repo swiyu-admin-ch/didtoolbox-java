@@ -134,7 +134,7 @@ public interface NextKeyHashesDidMethodParameter {
     /**
      * Yet another static factory method of the interface.
      *
-     * @param pemFiles
+     * @param pemFiles featuring Ed25519 public keys
      * @return a set of {@link NextKeyHashesDidMethodParameter} objects, for each member of the supplied {@link File} set, never {@code null}
      * @throws NextKeyHashesDidMethodParameterException
      */
@@ -147,6 +147,48 @@ public interface NextKeyHashesDidMethodParameter {
 
         for (var pemFile : pemFiles) {
             set.add(of(pemFile.toPath())); // may throw NextKeyHashesDidMethodParameterException
+        }
+
+        return set;
+    }
+
+    /**
+     * Yet another static factory method of the interface.
+     *
+     * @param pemPaths featuring Ed25519 public keys
+     * @return a set of {@link NextKeyHashesDidMethodParameter} objects, for each member of the supplied {@link Path} objects, never {@code null}
+     * @throws NextKeyHashesDidMethodParameterException
+     */
+    static Set<NextKeyHashesDidMethodParameter> of(Path... pemPaths) throws NextKeyHashesDidMethodParameterException {
+
+        var set = new HashSet<NextKeyHashesDidMethodParameter>();
+        if (pemPaths == null) {
+            return set;
+        }
+
+        for (var pemPath : pemPaths) {
+            set.add(of(pemPath)); // may throw NextKeyHashesDidMethodParameterException
+        }
+
+        return set;
+    }
+
+    /**
+     * Yet another static factory method of the interface.
+     *
+     * @param publicKeys featuring Ed25519 public keys
+     * @return a set of {@link NextKeyHashesDidMethodParameter} objects, for each member of the supplied {@link PublicKey} objects, never {@code null}
+     * @throws NextKeyHashesDidMethodParameterException
+     */
+    static Set<NextKeyHashesDidMethodParameter> of(PublicKey... publicKeys) throws NextKeyHashesDidMethodParameterException {
+
+        var set = new HashSet<NextKeyHashesDidMethodParameter>();
+        if (publicKeys == null) {
+            return set;
+        }
+
+        for (var publicKey : publicKeys) {
+            set.add(of(publicKey)); // may throw NextKeyHashesDidMethodParameterException
         }
 
         return set;

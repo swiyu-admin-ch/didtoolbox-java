@@ -120,7 +120,7 @@ public interface UpdateKeysDidMethodParameter {
     /**
      * Yet another static factory method of the interface.
      *
-     * @param pemFiles
+     * @param pemFiles featuring Ed25519 public keys in PEM format
      * @return a set of {@link UpdateKeysDidMethodParameter} objects, for each member of the supplied {@link File} set, never {@code null}
      * @throws UpdateKeysDidMethodParameterException
      */
@@ -133,6 +133,48 @@ public interface UpdateKeysDidMethodParameter {
 
         for (var pemFile : pemFiles) {
             set.add(of(pemFile.toPath())); // may throw UpdateKeysDidMethodParameterException
+        }
+
+        return set;
+    }
+
+    /**
+     * Yet another static factory method of the interface.
+     *
+     * @param pemPaths featuring Ed25519 public keys in PEM format
+     * @return a set of {@link UpdateKeysDidMethodParameter} objects, for each member of the supplied {@link Path} object, never {@code null}
+     * @throws UpdateKeysDidMethodParameterException
+     */
+    static Set<UpdateKeysDidMethodParameter> of(Path... pemPaths) throws UpdateKeysDidMethodParameterException {
+
+        var set = new HashSet<UpdateKeysDidMethodParameter>();
+        if (pemPaths == null) {
+            return set;
+        }
+
+        for (var pemPath : pemPaths) {
+            set.add(of(pemPath)); // may throw UpdateKeysDidMethodParameterException
+        }
+
+        return set;
+    }
+
+    /**
+     * Yet another static factory method of the interface.
+     *
+     * @param publicKeys featuring Ed25519 public keys
+     * @return a set of {@link UpdateKeysDidMethodParameter} objects, for each member of the supplied {@link PublicKey} object, never {@code null}
+     * @throws UpdateKeysDidMethodParameterException
+     */
+    static Set<UpdateKeysDidMethodParameter> of(PublicKey... publicKeys) throws UpdateKeysDidMethodParameterException {
+
+        var set = new HashSet<UpdateKeysDidMethodParameter>();
+        if (publicKeys == null) {
+            return set;
+        }
+
+        for (var publicKey : publicKeys) {
+            set.add(of(publicKey)); // may throw UpdateKeysDidMethodParameterException
         }
 
         return set;

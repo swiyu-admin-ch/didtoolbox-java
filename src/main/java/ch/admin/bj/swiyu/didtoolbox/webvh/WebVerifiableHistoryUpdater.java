@@ -93,6 +93,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * <pre>
      * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
      * </pre>
+     * <p>
+     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
      */
     @Getter(AccessLevel.PRIVATE)
     private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
@@ -111,6 +113,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * <p>
      * This is an alternative and more potent method to supply the parameter.
      * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     * <p>
+     * HINT: Use available {@link NextKeyHashesDidMethodParameter} static factory methods to supply public keys.
      *
      * @since 1.8.0
      */

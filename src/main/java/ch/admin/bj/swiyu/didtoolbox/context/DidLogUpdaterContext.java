@@ -125,6 +125,10 @@ public class DidLogUpdaterContext {
      * <pre>
      * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
      * </pre>
+     * <p>
+     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
+     *
+     * @since 1.8.0
      */
     @Getter(AccessLevel.PACKAGE)
     private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
@@ -139,6 +143,10 @@ public class DidLogUpdaterContext {
      * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
      * </pre></li>
      * </ul>
+     * <p>
+     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
+     *
+     * @since 1.8.0
      */
     @Getter(AccessLevel.PACKAGE)
     private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter;
