@@ -5,13 +5,12 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.didresolver.Did;
+import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -69,25 +68,40 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
+
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},
-     * but gets no precedence over it (if both called against the same object).
+     * but gets NO precedence over it (if both called against the same object).
      */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+
     /**
-     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     * @deprecated Use {@link #cryptographicSuite} instead
      */
     @Getter(AccessLevel.PRIVATE)
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
-    @Getter(AccessLevel.PRIVATE)
-    private Set<File> updateKeys;
+
     /**
-     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     * <p>
+     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">nextKeyHashes</a>
+     * DID method parameter, that is:
      * <ul>
      * <li><pre>
      * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
@@ -96,10 +110,49 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
      * </pre></li>
      * </ul>
+     * <p>
+     * This is an alternative and more potent method to supply the parameter.
+     * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     * <p>
+     * HINT: Use available {@link NextKeyHashesDidMethodParameter} static factory methods to supply public keys.
+     *
+     * @since 1.8.0
      */
     @Getter(AccessLevel.PRIVATE)
-    private Set<File> nextUpdateKeys;
-    // TODO private File dirToStoreKeyPair;
+    private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">nextKeyHashes</a>
+     * DID method parameter, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     *
+     * @deprecated Use {@link #nextKeyHashesDidMethodParameter} method instead
+     */
+    @Deprecated(since = "1.8.0")
+    public void nextUpdateKeys(Set<File> pemFiles) throws NextKeyHashesDidMethodParameterException {
+        nextKeyHashesDidMethodParameter.addAll(NextKeyHashesDidMethodParameter.of(pemFiles));
+    }
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use {@link #updateKeysDidMethodParameter} instead
+     */
+    @Deprecated(since = "1.8.0")
+    public void updateKeys(Set<File> pemFiles) throws UpdateKeysDidMethodParameterException {
+        updateKeysDidMethodParameter.addAll(UpdateKeysDidMethodParameter.of(pemFiles));
+    }
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -181,8 +234,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         if (super.didLogMeta.isKeyPreRotationActivated()) {
             boolean arePreRotatedUpdateKeys;
             try {
-                arePreRotatedUpdateKeys = super.didLogMeta.arePreRotatedUpdateKeys(this.updateKeys);
-            } catch (DidSidekicksException e) {
+                arePreRotatedUpdateKeys = super.didLogMeta.arePreRotatedUpdateKeys(this.updateKeysDidMethodParameter);
+            } catch (UpdateKeysDidMethodParameterException e) {
                 throw new DidLogUpdaterStrategyException(e);
             }
 
@@ -190,17 +243,10 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 throw new DidLogUpdaterStrategyException("Illegal updateKey detected");
             }
 
-        } else if (this.updateKeys != null) {
+        } else if (this.updateKeysDidMethodParameter != null) {
 
-            for (var key : this.updateKeys) {
-                String multikey;
-                try {
-                    multikey = PemUtils.readEd25519PublicKeyPemFileToMultibase(key);
-                } catch (DidSidekicksException e) {
-                    throw new DidLogUpdaterStrategyException("Invalid verifying (public) ed25519 key supplied", e);
-                }
-
-                if (!this.getCryptoSuite().getVerificationKeyMultibase().equals(multikey)) {
+            for (var param : this.updateKeysDidMethodParameter) {
+                if (!this.getCryptoSuite().getVerificationKeyMultibase().equals(param.getUpdateKey())) {
                     throw new DidLogUpdaterStrategyException("No matching verifying (public) ed25519 key supplied");
                 }
             }
@@ -245,7 +291,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             for (var key : this.authenticationKeys.entrySet()) {
 
                 authentication.add(super.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(super.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
+                        super.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("authentication", authentication);
@@ -257,7 +304,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             for (var key : this.assertionMethodKeys.entrySet()) {
 
                 assertionMethod.add(super.didLogMeta.getDidDoc().getId() + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(super.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
+                        super.didLogMeta.getDidDoc().getId(), key.getKey(), key.getValue()));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
@@ -330,25 +378,31 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
-        try {
-            return this.getCryptoSuite().addProof(
+        try (var did = new Did(super.didLogMeta.getDidDoc().getId())) {
+            var didLogEntry = this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-        } catch (VcDataIntegrityCryptographicSuiteException e) {
-            throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
+
+            did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntry).toString()); // sanity check
+
+            return didLogEntry;
+        } catch (VcDataIntegrityCryptographicSuiteException exc) {
+            throw new DidLogUpdaterStrategyException(exc);
+        } catch (DidResolveException exc) {
+            throw new InvalidDidLogException("Updating the DID log resulted in unresolvable/unverifiable DID log", exc);
         }
     }
 
     /**
      * Simple type converter
      */
-    private Set<String> loadUpdateKeys() throws DidLogUpdaterStrategyException {
+    private Set<String> loadUpdateKeys() {
+
         var keys = new HashSet<String>();
-        for (var pemFile : this.updateKeys) {
-            try {
-                keys.add(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile));
-            } catch (DidSidekicksException ex) {
-                throw new DidLogUpdaterStrategyException(ex);
-            }
+
+        if (this.updateKeysDidMethodParameter != null) {
+            this.updateKeysDidMethodParameter.forEach(param -> {
+                keys.add(param.getUpdateKey());
+            });
         }
 
         return keys;
@@ -359,15 +413,35 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      */
     private Set<String> loadNextUpdateKeys() throws DidLogUpdaterStrategyException {
         var keys = new HashSet<String>();
-        for (var pemFile : this.nextUpdateKeys) {
-            try {
-                keys.add(JCSHasher.buildNextKeyHash(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile)));
-            } catch (DidSidekicksException ex) {
-                throw new DidLogUpdaterStrategyException(ex);
-            }
+
+        if (this.nextKeyHashesDidMethodParameter != null) {
+            this.nextKeyHashesDidMethodParameter.forEach(nextKeyHashSource -> {
+                keys.add(nextKeyHashSource.getNextKeyHash());
+            });
         }
 
         return keys;
+    }
+
+    /**
+     * Proves if no single value for the {@code updateKeys} DID method parameter was supplied, or not. One why or another.
+     */
+    private boolean noneUpdateKeys() {
+        return this.updateKeysDidMethodParameter == null || this.updateKeysDidMethodParameter.isEmpty();
+    }
+
+    /**
+     * Proves if at least one single value for the {@code updateKeys} DID method parameter was supplied, or not. One why or another.
+     */
+    private boolean someUpdateKeys() {
+        return this.updateKeysDidMethodParameter != null && !this.updateKeysDidMethodParameter.isEmpty();
+    }
+
+    /**
+     * Effectively, proves if at least one single value for the {@code nextKeyHashes} DID method parameter was supplied, or not. One why or another.
+     */
+    private boolean shouldActivateKeyPreRotation() {
+        return this.nextKeyHashesDidMethodParameter != null && !this.nextKeyHashesDidMethodParameter.isEmpty();
     }
 
     /**
@@ -394,7 +468,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      *
      * @return a JSON object populated accordingly
      * @throws DidLogUpdaterStrategyException if any of files supplied via this class members
-     *                                        (e.g. {@link #updateKeys} or {@link #nextUpdateKeys}) cannot be loaded
+     *                                        (e.g. {@link #updateKeysDidMethodParameter} or {@link #nextKeyHashesDidMethodParameter}) cannot be loaded
      *                                        or contain no valid public PEM keys
      */
     @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
@@ -405,22 +479,22 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var updateKeysJsonArray = new JsonArray();
         var nextKeyHashesJsonArray = new JsonArray();
 
-        if ((this.updateKeys == null || this.updateKeys.isEmpty())
-                && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
+        if (noneUpdateKeys()
+                && !this.shouldActivateKeyPreRotation()
                 && super.didLogMeta.isKeyPreRotationActivated()) {
 
             updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
 
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, new JsonArray()); // key pre-rotation MUST be deactivated
 
-        } else if ((this.updateKeys == null || this.updateKeys.isEmpty())
-                && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
+        } else if (noneUpdateKeys()
+                && !this.shouldActivateKeyPreRotation()
                 && !super.didLogMeta.isKeyPreRotationActivated()) {
 
             // all parameters remain the same
 
-        } else if ((this.updateKeys == null || this.updateKeys.isEmpty())
-                && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
+        } else if (noneUpdateKeys()
+                && this.shouldActivateKeyPreRotation()
                 && super.didLogMeta.isKeyPreRotationActivated()) {
 
             updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
@@ -428,15 +502,15 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
 
-        } else if ((this.updateKeys == null || this.updateKeys.isEmpty())
-                && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
+        } else if (noneUpdateKeys()
+                && this.shouldActivateKeyPreRotation()
                 && !super.didLogMeta.isKeyPreRotationActivated()) {
 
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
 
-        } else if ((this.updateKeys != null && !this.updateKeys.isEmpty())
-                && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
+        } else if (someUpdateKeys()
+                && !this.shouldActivateKeyPreRotation()
                 && super.didLogMeta.isKeyPreRotationActivated()) {
 
             loadUpdateKeys().forEach(updateKeysJsonArray::add);
@@ -446,15 +520,15 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
 
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, new JsonArray()); // key pre-rotation MUST be deactivated
 
-        } else if ((this.updateKeys != null && !this.updateKeys.isEmpty())
-                && (this.nextUpdateKeys == null || this.nextUpdateKeys.isEmpty())
+        } else if (someUpdateKeys()
+                && !this.shouldActivateKeyPreRotation()
                 && !super.didLogMeta.isKeyPreRotationActivated()) {
 
             // CAUTION No "updateKeys" can be set here. Otherwise, thrown is: "Invalid update key found. UpdateKey may only be set during key pre-rotation.".
             //         Hence, all parameters remain the same.
 
-        } else if ((this.updateKeys != null && !this.updateKeys.isEmpty())
-                && (this.nextUpdateKeys != null && !this.nextUpdateKeys.isEmpty())
+        } else if (someUpdateKeys()
+                && this.shouldActivateKeyPreRotation()
                 && super.didLogMeta.isKeyPreRotationActivated()) {
 
             updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());

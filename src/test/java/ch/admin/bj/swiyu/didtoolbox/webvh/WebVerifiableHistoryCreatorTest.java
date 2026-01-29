@@ -7,6 +7,8 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -14,8 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Set;
@@ -111,7 +113,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     // the default signer (verificationMethodKeyProvider) is used
-                    .updateKeys(Set.of(new File("src/test/data/public.pem")))
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
                     .forceOverwrite(true)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
@@ -121,7 +123,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
 
         var params = JsonParser.parseString(didLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
         assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
-        assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size());// Effectively, it is only 2 distinct keys
+        assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys
     }
 
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
@@ -135,8 +137,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     // the default signer (verificationMethodKeyProvider) is used
-                    .updateKeys(Set.of(new File("src/test/data/public.pem")))
-                    .nextKeys(Set.of(new File("src/test/data/public.pem"))) // activate prerotation by adding one of the 'updateKeys'
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
+                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // activate prerotation by adding one of the 'updateKeys'
                     .forceOverwrite(true)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
@@ -149,7 +151,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()),
+        assertEquals(NextKeyHashesDidMethodParameter.of(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()).getNextKeyHash(),
                 params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST match the last added updateKey
     }
 
@@ -166,8 +168,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     // the default signer (verificationMethodKeyProvider) is used
-                    .updateKeys(Set.of(new File("src/test/data/public.pem")))
-                    .nextKeys(Set.of(new File("src/test/data/public01.pem"))) // activate prerotation by adding another key for the future
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
+                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
                     .forceOverwrite(true)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
@@ -180,7 +182,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertNotEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()),
+        assertNotEquals(NextKeyHashesDidMethodParameter.of(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()).getNextKeyHash(),
                 params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST NOT match the last added updateKey
     }
 
@@ -196,9 +198,9 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
-                    .updateKeys(Set.of(new File("src/test/data/public.pem"))) // it matches the signing key, thus it should not be added to 'updateKeys'
-                    .nextKeys(Set.of(new File("src/test/data/public.pem"))) // activate prerotation by adding one of the 'updateKeys'
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // it matches the signing key, thus it should not be added to 'updateKeys'
+                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // activate prerotation by adding one of the 'updateKeys'
                     .forceOverwrite(true)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
@@ -211,7 +213,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(1, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is one single keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertEquals(JCSHasher.buildNextKeyHash(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(0).getAsString()),
+        assertEquals(NextKeyHashesDidMethodParameter.of(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(0).getAsString()).getNextKeyHash(),
                 params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST match the last added (in this case, the only) updateKey
     }
 
@@ -224,7 +226,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .forceOverwrite(true)
                     .build()
                     .createDidLog(identifierRegistryUrl); // MUT
@@ -262,12 +264,12 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of(
-                            "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
+                            "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01")
                     ))
                     .authenticationKeys(Map.of(
-                            "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")
+                            "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-01")
                     ))
                     .build()
                     // CAUTION datetime is set explicitly here just to be able to run assertTrue("...".contains(didLogEntry));
@@ -307,7 +309,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .build()
@@ -341,7 +343,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     // CAUTION An "authentication" key will be added by default, so need to call method: .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)
@@ -377,7 +379,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         try {
 
             didLogEntry = WebVerifiableHistoryCreator.builder()
-                    .verificationMethodKeyProvider(TEST_CRYPTO_SUITE_JKS)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     // CAUTION An "assertionMethod" key will be added by default, so need to call method: .assertionMethodKeys(Map.of("my-assert-key-01", ""))
                     .authenticationKeys(Map.of("my-auth-key-01", ""))
                     .forceOverwrite(true)

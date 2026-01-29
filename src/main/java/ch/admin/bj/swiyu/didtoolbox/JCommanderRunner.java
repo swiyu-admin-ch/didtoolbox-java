@@ -2,10 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMeta;
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
@@ -47,7 +44,7 @@ final class JCommanderRunner {
     @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     void runCreateDidLogCommand(CreateDidLogCommand command)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException,
-            VcDataIntegrityCryptographicSuiteException, DidLogCreatorStrategyException {
+            VcDataIntegrityCryptographicSuiteException, DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException, UpdateKeysDidMethodParameterException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -101,7 +98,7 @@ final class JCommanderRunner {
             File verifyingKeyPemFile = null;
             for (var pemFile : verifyingKeyPemFiles) {
                 try {
-                    cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile); // supplied external key (pair)
+                    cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath()); // supplied external key (pair)
                     if (Ed25519VerifyingKey.Companion.readPublicKeyPemFile(pemFile.getPath()).toMultibase()
                             .equals(cryptoSuite.getVerificationKeyMultibase())) {
                         // At this point, the matching verifying key is detected, so we are free to break from the loop
@@ -173,8 +170,8 @@ final class JCommanderRunner {
                 }
 
                 try {
-                    dalekSigner.writePkcs8PemFile(privateKeyFile);
-                    dalekSigner.writePublicKeyPemFile(new File(outputDir, privateKeyFile.getName() + ".pub"));
+                    dalekSigner.writePkcs8PemFile(privateKeyFile.toPath());
+                    dalekSigner.writePublicKeyPemFile(new File(outputDir, privateKeyFile.getName() + ".pub").toPath());
                 } catch (VcDataIntegrityCryptographicSuiteException ex) {
                     overAndOut(jc, parsedCommandName, "Failed to persist PEM file(s) due to: " + ex.getMessage());
                 }
@@ -190,8 +187,10 @@ final class JCommanderRunner {
                 .cryptographicSuite(cryptoSuite)
                 .assertionMethodKeys(assertionMethodKeysMap)
                 .authenticationKeys(authenticationKeysMap)
-                .updateKeys(verifyingKeyPemFiles)
-                .nextKeys(nextKeyPemFiles)
+                // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
+                .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
+                // Instead of calling deprecated .nextKeys(nextKeyPemFiles)
+                .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeyPemFiles))
                 .forceOverwrite(forceOverwrite)
                 .build()
                 .create(identifierRegistryUrl));
@@ -200,7 +199,7 @@ final class JCommanderRunner {
     @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     void runUpdateDidLogCommand(UpdateDidLogCommand command)
             throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException {
+            NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException, UpdateKeysDidMethodParameterException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -254,11 +253,11 @@ final class JCommanderRunner {
 
                 for (var pemFile : verifyingKeyPemFiles) {
                     try {
-                        var multikey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
+                        var multikey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile.toPath());
                         // Only pre-rotation keys are relevant here
                         if (didLogMeta.isPreRotatedUpdateKey(multikey)) {
                             // the signing key is supplied externally, but verifying key should be already among updateKeys
-                            cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile);
+                            cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
                             if (multikey.equals(cryptoSuite.getVerificationKeyMultibase())) {
                                 // At this point, the matching verifying key is detected, so we are free to break from the loop
                                 matchingUpdateKey = multikey;
@@ -274,9 +273,9 @@ final class JCommanderRunner {
 
                 for (var pemFile : verifyingKeyPemFiles) {
                     try {
-                        var publicKeyEd25519Multibase = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile);
+                        var publicKeyEd25519Multibase = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile.toPath());
                         // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile);
+                        cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
                         if (publicKeyEd25519Multibase.equals(cryptoSuite.getVerificationKeyMultibase())) {
                             // At this point, the matching verifying key is detected, so we are free to break from the loop
                             matchingUpdateKey = publicKeyEd25519Multibase;
@@ -294,7 +293,7 @@ final class JCommanderRunner {
                 for (var publicKeyEd25519Multibase : didLogMeta.getParams().getUpdateKeys()) {
                     try {
                         // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile);
+                        cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
                         if (publicKeyEd25519Multibase.equals(cryptoSuite.getVerificationKeyMultibase())) {
                             // At this point, the matching verifying key is detected, so we are free to break from the loop
                             matchingUpdateKey = publicKeyEd25519Multibase;
@@ -337,8 +336,10 @@ final class JCommanderRunner {
                         .cryptographicSuite(cryptoSuite)
                         .assertionMethodKeys(assertionMethodKeysMap)
                         .authenticationKeys(authenticationKeysMap)
-                        .updateKeys(verifyingKeyPemFiles)
-                        .nextKeys(nextVerifyingKeyPemFiles)
+                        // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
+                        .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
+                        // Instead of calling deprecated .nextKeys(nextVerifyingKeyPemFiles)
+                        .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextVerifyingKeyPemFiles))
                         .build()
                         .update(didLogFile));
     }
@@ -377,7 +378,7 @@ final class JCommanderRunner {
                 for (var publicKeyEd25519Multibase : didLogMeta.getParams().getUpdateKeys()) {
                     try {
                         // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile);
+                        cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
                         if (publicKeyEd25519Multibase.equals(cryptoSuite.getVerificationKeyMultibase())) {
                             // At this point, the matching verifying key is detected, so we are free to break from the loop
                             matchingUpdateKey = publicKeyEd25519Multibase;
@@ -447,7 +448,7 @@ final class JCommanderRunner {
         } else if (signingKeyPemFile != null) {
 
             try {
-                signer = new EdDsaJcs2022ProofOfPossessionJWSSigner(signingKeyPemFile); // supplied external key pair
+                signer = new EdDsaJcs2022ProofOfPossessionJWSSigner(signingKeyPemFile.toPath()); // supplied external key pair
             } catch (VcDataIntegrityCryptographicSuiteException ex) {
                 overAndOut(jc, parsedCommandName, "Failed to load the supplied ed25519 key (pair): " + ex.getLocalizedMessage());
             }

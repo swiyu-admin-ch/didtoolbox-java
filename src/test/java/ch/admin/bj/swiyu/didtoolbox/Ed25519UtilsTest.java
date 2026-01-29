@@ -124,12 +124,17 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
 
         assertDoesNotThrow(() -> {
             // Use JwkUtils to create some proper PEM-encoded ECDSA public key
-            var tempFile = File.createTempFile("myprivatekey", "");
+            var tempFile = File.createTempFile("myjwk", "");
             // Exists at the moment of key generation, and should therefore be overwritten if forceOverwritten == true
             tempFile.deleteOnExit();
-            JwkUtils.generatePublicEC256("auth-key-01", tempFile, true);
 
-            var key = PemUtils.parsePemPublicKey(Files.newBufferedReader(Path.of(tempFile.toPath() + ".pub")));
+            // Create JWK file
+            JwkUtils.generatePublicEC256("auth-key-01", tempFile, true);
+            // At this point, the following file should exist:
+            var jwkFile = Path.of(tempFile.toPath() + ".pub");
+
+            var key = PemUtils.parsePemPublicKey(Files.newBufferedReader(jwkFile));
+            Files.deleteIfExists(jwkFile); // not needed anymore
 
             assertInstanceOf(ECPublicKey.class, key);
 

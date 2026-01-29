@@ -1,9 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
-import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
-import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
+import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
@@ -14,6 +11,8 @@ import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.eid.didresolver.Did;
+import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
@@ -241,12 +240,17 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
-        try {
-            return this.getCryptoSuite().addProof(
+        try (var did = new Did(super.didLogMeta.getDidDoc().getId())) {
+            var didLogEntry = this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
 
-        } catch (VcDataIntegrityCryptographicSuiteException e) {
-            throw new DidLogDeactivatorStrategyException("Fail to build DID doc data integrity proof", e);
+            did.resolveAll(didLog.trim() + System.lineSeparator() + didLogEntry); // sanity check
+
+            return didLogEntry;
+        } catch (VcDataIntegrityCryptographicSuiteException exc) {
+            throw new DidLogDeactivatorStrategyException(exc);
+        } catch (DidResolveException exc) {
+            throw new InvalidDidLogException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", exc);
         }
     }
 }

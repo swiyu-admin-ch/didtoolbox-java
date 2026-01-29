@@ -2,7 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.context;
 
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import lombok.AccessLevel;
@@ -50,7 +50,10 @@ import java.util.Set;
  *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
  *     import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
  *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *
  *     import java.net.*;
+ *     import java.nio.file.Path;
+ *     import java.util.Set;
  *
  *     public static void main(String... args) {
  *
@@ -58,7 +61,7 @@ import java.util.Set;
  *         String updatedDidLogEntryWithReplacedVerificationMaterial = null;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem"));
+ *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem"));
  *
  *             // NOTE that all verification material will be generated here as well
  *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
@@ -71,10 +74,10 @@ import java.util.Set;
  *                 .didMethod(DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys))
  *                 .cryptographicSuite(cryptographicSuite) // the same used during creation
  *                 .assertionMethodKeys(Map.of(
- *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01")
+ *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01")
  *                 ))
  *                 .authenticationKeys(Map.of(
- *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01")
+ *                     "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-01")
  *                 ))
  *                 .build()
  *                 .update(initialDidLogEntryWithGeneratedKeys);
@@ -97,8 +100,10 @@ public class DidLogUpdaterContext {
 
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> assertionMethodKeys;
+
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> authenticationKeys;
+
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets no precedence over it (if both called against the same object).
@@ -106,14 +111,28 @@ public class DidLogUpdaterContext {
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+
     /**
      * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
      */
     @Getter(AccessLevel.PRIVATE)
     @Deprecated
     private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     * <p>
+     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
+     *
+     * @since 1.8.0
+     */
     @Getter(AccessLevel.PACKAGE)
-    private Set<File> updateKeys;
+    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
+
     /**
      * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
      * <ul>
@@ -124,12 +143,51 @@ public class DidLogUpdaterContext {
      * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
      * </pre></li>
      * </ul>
+     * <p>
+     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
+     *
+     * @since 1.8.0
      */
     @Getter(AccessLevel.PACKAGE)
-    private Set<File> nextKeys;
+    private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter;
 
+    /**
+     * Default = {@link DidMethodEnum#WEBVH_1_0}
+     */
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
+
+    /**
+     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     *
+     * @deprecated
+     */
+    @Deprecated(since = "1.8.0")
+    void nextKeys(Set<File> pemFiles) throws NextKeyHashesDidMethodParameterException {
+        nextKeyHashesDidMethodParameter.addAll(NextKeyHashesDidMethodParameter.of(pemFiles));
+    }
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use {@link #updateKeysDidMethodParameter} instead
+     */
+    @Deprecated(since = "1.8.0")
+    void updateKeys(Set<File> pemFiles) throws UpdateKeysDidMethodParameterException {
+        updateKeysDidMethodParameter.addAll(UpdateKeysDidMethodParameter.of(pemFiles));
+    }
 
     VcDataIntegrityCryptographicSuite getCryptoSuite() {
         if (this.verificationMethodKeyProvider != null) {

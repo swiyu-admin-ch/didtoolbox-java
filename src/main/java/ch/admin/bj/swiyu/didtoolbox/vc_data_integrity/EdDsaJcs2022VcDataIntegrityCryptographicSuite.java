@@ -10,11 +10,11 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import io.ipfs.multibase.Base58;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.time.ZonedDateTime;
@@ -53,7 +53,7 @@ import java.util.Set;
  * <p>
  * Thanks to the following constructor(s), it is also capable of loading an already existing key material from the file system:
  * <ul>
- * <li>{@link EdDsaJcs2022VcDataIntegrityCryptographicSuite#EdDsaJcs2022VcDataIntegrityCryptographicSuite(File)} for loading the update (Ed25519) key from
+ * <li>{@link EdDsaJcs2022VcDataIntegrityCryptographicSuite#EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path)} for loading the update (Ed25519) key from
  * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> files</li>
  * </ul>
  *
@@ -79,12 +79,12 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      * The <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> file based {@link EdDsaJcs2022VcDataIntegrityCryptographicSuite} constructor.
      * <p>
      *
-     * @param pkcs8PemFile file to load a private Ed25519 key from. It is assumed to be encoded according to the PKCS #8 standard.
+     * @param pkcs8PemPath to PEM-encoded file to load an Ed25519 private key from. It is assumed to be encoded according to the PKCS #8 standard.
      * @throws VcDataIntegrityCryptographicSuiteException if any of the given key specifications is inappropriate for its key factory to produce a key.
      */
-    public EdDsaJcs2022VcDataIntegrityCryptographicSuite(File pkcs8PemFile) throws VcDataIntegrityCryptographicSuiteException {
+    public EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path pkcs8PemPath) throws VcDataIntegrityCryptographicSuiteException {
         try {
-            this.signingKey = Ed25519SigningKey.Companion.readPkcs8PemFile(pkcs8PemFile.getPath());
+            this.signingKey = Ed25519SigningKey.Companion.readPkcs8PemFile(pkcs8PemPath.toString());
         } catch (DidSidekicksException e) {
             throw new VcDataIntegrityCryptographicSuiteException(e);
         }
@@ -216,12 +216,12 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      * <p>
      * CAUTION The method does not ensure that the private key file access is restricted to the current user only.
      *
-     * @param pkcs8PemFile to store the key into
+     * @param pkcs8PemPath to file store the key into
      * @throws VcDataIntegrityCryptographicSuiteException if the writing operation fails
      */
-    public void writePkcs8PemFile(File pkcs8PemFile) throws VcDataIntegrityCryptographicSuiteException {
+    public void writePkcs8PemFile(Path pkcs8PemPath) throws VcDataIntegrityCryptographicSuiteException {
         try {
-            signingKey.writePkcs8PemFile(pkcs8PemFile.getPath());
+            signingKey.writePkcs8PemFile(pkcs8PemPath.toString());
         } catch (DidSidekicksException e) {
             throw new VcDataIntegrityCryptographicSuiteException(e);
         }
@@ -230,12 +230,12 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
     /**
      * Write ASN.1 DER-encoded public key to the given file.
      *
-     * @param publicKeyPemFile to store the key into
+     * @param publicKeyPemPath to file to store the key into
      * @throws VcDataIntegrityCryptographicSuiteException if the writing operation fails
      */
-    public void writePublicKeyPemFile(File publicKeyPemFile) throws VcDataIntegrityCryptographicSuiteException {
+    public void writePublicKeyPemFile(Path publicKeyPemPath) throws VcDataIntegrityCryptographicSuiteException {
         try {
-            signingKey.getVerifyingKey().writePublicKeyPemFile(publicKeyPemFile.getPath());
+            signingKey.getVerifyingKey().writePublicKeyPemFile(publicKeyPemPath.toString());
         } catch (DidSidekicksException e) {
             throw new VcDataIntegrityCryptographicSuiteException(e);
         }

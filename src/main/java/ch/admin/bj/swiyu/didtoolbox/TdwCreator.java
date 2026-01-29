@@ -3,9 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
@@ -61,24 +59,59 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
+
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
+
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets no precedence over it (if both called against the same object).
+     *
+     * @since 1.8.0
      */
     @Builder.Default
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+
     /**
-     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
+     * @deprecated Use {@link #cryptographicSuite} instead
      */
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     * <p>
+     * This is an alternative and more potent method to supply the parameter.
+     * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     * <p>
+     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
+     *
+     * @since 1.8.0
+     */
     @Getter(AccessLevel.PRIVATE)
-    private Set<File> updateKeys;
+    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
+
     @Getter(AccessLevel.PRIVATE)
     private boolean forceOverwrite;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use the {@link #updateKeysDidMethodParameter} method instead
+     */
+    @Deprecated(since = "1.8.0")
+    public void updateKeys(Set<File> pemFiles) throws UpdateKeysDidMethodParameterException {
+        updateKeysDidMethodParameter.addAll(UpdateKeysDidMethodParameter.of(pemFiles));
+    }
 
     private VcDataIntegrityCryptographicSuite getCryptoSuite() {
         if (this.verificationMethodKeyProvider != null) {
@@ -173,7 +206,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
         // CAUTION nextKeyHashes parameter (pre-rotation keys) not (yet) implemented for the class
-        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptoSuite(), this.updateKeys, null));
+        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptoSuite(), this.updateKeysDidMethodParameter, null));
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.

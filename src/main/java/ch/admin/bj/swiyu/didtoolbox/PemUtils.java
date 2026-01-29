@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -93,9 +94,9 @@ public final class PemUtils {
         throw new IllegalArgumentException("The supplied reader features no PEM-encoded public key");
     }
 
-    public static String readEd25519PublicKeyPemFileToMultibase(File publicKeyPemFile) throws DidSidekicksException {
+    public static String readEd25519PublicKeyPemFileToMultibase(Path publicKeyPemFile) throws DidSidekicksException {
 
-        try (var publicKey = Ed25519VerifyingKey.Companion.readPublicKeyPemFile(publicKeyPemFile.getPath())) {
+        try (var publicKey = Ed25519VerifyingKey.Companion.readPublicKeyPemFile(publicKeyPemFile.toString())) {
             return publicKey.toMultibase();
         }
     }

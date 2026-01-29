@@ -4,8 +4,8 @@ import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrit
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.nimbusds.jose.JWSAlgorithm;
 
-import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Set;
 
 /**
@@ -19,10 +19,10 @@ import java.util.Set;
 public class EdDsaJcs2022ProofOfPossessionJWSSigner extends EdDsaJcs2022VcDataIntegrityCryptographicSuite implements ProofOfPossessionJWSSigner {
 
     /**
-     * @see EdDsaJcs2022VcDataIntegrityCryptographicSuite#EdDsaJcs2022VcDataIntegrityCryptographicSuite(File)
+     * @see EdDsaJcs2022VcDataIntegrityCryptographicSuite#EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path)
      */
-    public EdDsaJcs2022ProofOfPossessionJWSSigner(File pkcs8PemFile) throws VcDataIntegrityCryptographicSuiteException {
-        super(pkcs8PemFile);
+    public EdDsaJcs2022ProofOfPossessionJWSSigner(Path pkcs8PemPath) throws VcDataIntegrityCryptographicSuiteException {
+        super(pkcs8PemPath);
     }
 
     /**

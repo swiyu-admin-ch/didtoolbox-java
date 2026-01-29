@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.util.Arrays;
@@ -72,7 +73,7 @@ class JwkUtilsTest {
     @Test
     void testGeneratePublicEC256WithOutputOverwriteExisting() {
         assertDoesNotThrow(() -> {
-            var tempFile = File.createTempFile("myprivatekey", "");
+            var tempFile = File.createTempFile("mypublic", "");
             // Exists at the moment of key generation, and should therefore be overwritten if forceOverwritten == true
             tempFile.deleteOnExit();
 
@@ -81,10 +82,12 @@ class JwkUtilsTest {
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
+
             var pubTempFile = new File(tempFile.getPath() + ".pub");
+            pubTempFile.deleteOnExit();
+
             assertNotEquals(0, Files.size(pubTempFile.toPath()));
             ecPemSanityCheck(tempFile, pubTempFile);
-            pubTempFile.deleteOnExit(); // clean it up
         });
     }
 
@@ -92,7 +95,7 @@ class JwkUtilsTest {
     void testGeneratePublicEC256WithOutputNoOverwriteExistingThrowsException() {
         File tempFile = null;
         try {
-            tempFile = File.createTempFile("myprivatekey", "");
+            tempFile = File.createTempFile("mypublic", "");
             // Exists at the moment of key generation, and should NOT be overwritten if forceOverwritten == false
             tempFile.deleteOnExit();
         } catch (Exception e) {
@@ -111,6 +114,7 @@ class JwkUtilsTest {
             assertEquals(0, Files.size(tempFile.toPath()));
             // And NO matching .pub file should be created
             var pubTempFile = new File(tempFile.getPath() + ".pub");
+            pubTempFile.deleteOnExit();
             assertFalse((pubTempFile.exists()));
         } catch (Exception e) {
             fail(e);
@@ -120,7 +124,7 @@ class JwkUtilsTest {
     @Test
     void testGeneratePublicEC256WithOutputOverwriteNonExisting() {
         assertDoesNotThrow(() -> {
-            var tempFile = File.createTempFile("myprivatekey", "");
+            var tempFile = File.createTempFile("mypublic", "");
             // Delete it immediately, so it will NOT exist at the moment of key generation and should therefore be created regardless of forceOverwritten flag
             tempFile.deleteOnExit();
 
@@ -130,18 +134,18 @@ class JwkUtilsTest {
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
             var pubTempFile = new File(tempFile.getPath() + ".pub");
+            pubTempFile.deleteOnExit(); // clean it up
             assertNotEquals(0, Files.size(pubTempFile.toPath()));
             ecPemSanityCheck(tempFile, pubTempFile);
-            pubTempFile.deleteOnExit(); // clean it up
         });
     }
 
     @Test
     void testLoadECPublicJWKasJSON() {
         assertDoesNotThrow(() -> {
-            var jwk = JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-01"); // MUT
+            var jwk = JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-01"); // MUT
             assertNotNull(jwk);
-            jwk = JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-01"); // MUT
+            jwk = JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01"); // MUT
             assertNotNull(jwk);
         });
     }
@@ -181,7 +185,7 @@ class JwkUtilsTest {
 
         for (var kid : kids) {
             var ex = assertThrowsExactly(IllegalArgumentException.class, () -> {
-                JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), kid); // MUT
+                JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), kid); // MUT
             });
             assertTrue(ex.getMessage().contains("must be a regular case-sensitive string featuring no URIs reserved characters"));
         }

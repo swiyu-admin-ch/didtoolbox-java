@@ -3,8 +3,8 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
@@ -106,7 +106,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             TdwUpdater.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
-                    .updateKeys(Set.of(new File("src/test/data/public.pem"))) // ...with NO matching key supplied!
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // ...with NO matching key supplied!
                     .build()
                     .updateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
@@ -172,14 +172,11 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     @MethodSource("keys")
     void testUpdateWithKeyChange(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) {
 
-        File publicKeyPemFile = null;
-        try {
-            publicKeyPemFile = File.createTempFile("mypublickey", "");
-            new EdDsaJcs2022VcDataIntegrityCryptographicSuite().writePublicKeyPemFile(publicKeyPemFile);
-        } catch (IOException | VcDataIntegrityCryptographicSuiteException e) {
-            fail(e);
-        }
-        publicKeyPemFile.deleteOnExit();
+        AtomicReference<Path> publicKeyPemFile = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            publicKeyPemFile.set(Files.createTempFile("mypublickey", ""));
+            new EdDsaJcs2022VcDataIntegrityCryptographicSuite().writePublicKeyPemFile(publicKeyPemFile.get());
+        });
 
         AtomicReference<String> initialDidLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -191,18 +188,20 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry.get()).append(System.lineSeparator());
 
-        File finalPublicKeyPemFile = publicKeyPemFile;
+        var finalPublicKeyPemFile = publicKeyPemFile.get();
         assertDoesNotThrow(() -> {
             nextLogEntry.set(TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using a whole another verification key provider
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .updateKeys(Set.of(new File("src/test/data/public.pem"), finalPublicKeyPemFile))
+                    .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"), finalPublicKeyPemFile))
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
                     .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+
+            Files.deleteIfExists(finalPublicKeyPemFile);
         });
 
         assertDidLogEntry(nextLogEntry.get());
@@ -229,14 +228,11 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     @MethodSource("keys")
     void testMultipleUpdates(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) {
 
-        File publicKeyPemFile = null;
-        try {
-            publicKeyPemFile = File.createTempFile("mypublickey", "");
-            new EdDsaJcs2022VcDataIntegrityCryptographicSuite().writePublicKeyPemFile(publicKeyPemFile);
-        } catch (IOException | VcDataIntegrityCryptographicSuiteException e) {
-            fail(e);
-        }
-        publicKeyPemFile.deleteOnExit();
+        AtomicReference<Path> publicKeyPemFile = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            publicKeyPemFile.set(Files.createTempFile("mypublickey", ""));
+            new EdDsaJcs2022VcDataIntegrityCryptographicSuite().writePublicKeyPemFile(publicKeyPemFile.get());
+        });
 
         AtomicReference<String> initialDidLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -248,7 +244,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         AtomicReference<StringBuilder> updatedDidLog = new AtomicReference<>();
         int totalEntriesCount = 5;
 
-        File finalPublicKeyPemFile = publicKeyPemFile;
+        Path finalPublicKeyPemFile = publicKeyPemFile.get();
         assertDoesNotThrow(() -> {
 
             // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
@@ -257,9 +253,9 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
                 nextLogEntry.set(TdwUpdater.builder()
                         .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using another verification key provider
-                        .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
-                        .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(new File("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
-                        .updateKeys(Set.of(new File("src/test/data/public.pem"), finalPublicKeyPemFile))
+                        .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
+                        .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                        .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"), finalPublicKeyPemFile))
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.
                         // The versionTime of the last entry MUST be earlier than the current time.
@@ -269,6 +265,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
                 updatedDidLog.get().append(nextLogEntry.get()).append(System.lineSeparator());
             }
+
+            Files.deleteIfExists(finalPublicKeyPemFile);
         });
 
         var finalUpdatedDidLog = updatedDidLog.get().toString().trim(); // trimming due to a closing line separator
