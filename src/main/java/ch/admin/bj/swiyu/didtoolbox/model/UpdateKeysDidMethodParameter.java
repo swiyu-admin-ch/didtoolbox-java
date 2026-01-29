@@ -201,9 +201,7 @@ public interface UpdateKeysDidMethodParameter {
      */
     default boolean defaultEquals(Object obj) {
 
-        if (!(obj instanceof UpdateKeysDidMethodParameter other))
-            return false;
-
-        return this.getUpdateKey().equals(other.getUpdateKey());
+        return (obj instanceof UpdateKeysDidMethodParameter other) &&
+                this.getUpdateKey().equals(other.getUpdateKey());
     }
 }

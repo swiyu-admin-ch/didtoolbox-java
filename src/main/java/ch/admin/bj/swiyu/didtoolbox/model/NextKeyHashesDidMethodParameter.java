@@ -241,8 +241,7 @@ public interface NextKeyHashesDidMethodParameter {
      */
     default boolean defaultEquals(Object obj) {
 
-        if (!(obj instanceof NextKeyHashesDidMethodParameter other)) return false;
-
-        return this.getNextKeyHash().equals(other.getNextKeyHash());
+        return (obj instanceof NextKeyHashesDidMethodParameter other) &&
+                this.getNextKeyHash().equals(other.getNextKeyHash());
     }
 }

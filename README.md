@@ -713,6 +713,26 @@ via their static `builder()` methods. The relevant Java documentation also featu
 
 For further details, please see the relevant [PlantUML diagrams](src/main/plantuml/README.md).
 
+To [configure Apache Maven](https://central.sonatype.org/consume/consume-apache-maven/) to consume a published package from
+[Maven Central Repository](https://repo1.maven.org/maven2/ch/admin/swiyu/didtoolbox),
+edit your `pom.xml` file to include the following entry to `dependencies` section:
+
+```xml
+<dependency>
+    <groupId>ch.admin.swiyu</groupId>
+    <artifactId>didtoolbox</artifactId>
+    <!--version>[ANY_AVAILABLE_VERSION]</version-->
+</dependency>
+```
+
+To [configure Gradle](https://central.sonatype.org/consume/consume-gradle/) to consume a published package from
+[Maven Central Repository](https://repo1.maven.org/maven2/ch/admin/swiyu/didtoolbox),
+add the following entry to `dependencies` section in your `build.gradle.kts` (Kotlin DSL) file:
+
+```kotlin
+implementation("ch.admin.swiyu:didtoolbox:[ANY_AVAILABLE_VERSION]")
+```
+
 ## Additional Information
 - **Output Directory**: When creating new DIDs, the `.didtoolbox` directory is automatically created in the current working directory. Ensure you have the necessary permissions to create and write to this directory.
 - **Multiple DIDs**: If you create multiple DIDs, please make sure to rename the `.didtoolbox` directory (or move/rename the files) after each creation run. The DID-Toolbox will prevent you from overwriting existing key pairs by accident and abort with an error.
