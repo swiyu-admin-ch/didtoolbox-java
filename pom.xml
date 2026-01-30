@@ -70,7 +70,7 @@
         <bouncycastle.version>1.83</bouncycastle.version>
         <nimbus-jose-jwt.version>10.7</nimbus-jose-jwt.version>
         <tink.version>1.20.0</tink.version>
-        <junit-jupiter.version>5.11.4</junit-jupiter.version>
+        <junit-jupiter.version>6.0.2</junit-jupiter.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
     </properties>
 
@@ -528,6 +528,19 @@
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- https://mvnrepository.com/artifact/org.junit/sbom -->
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit-jupiter.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
