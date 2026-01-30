@@ -337,7 +337,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(verificationMethodKeyProvider);
 
         // Available key providers to use when updating
-        var keyProviders = new VcDataIntegrityCryptographicSuite[]{
+        var cryptoSuites = new VcDataIntegrityCryptographicSuite[]{
                 verificationMethodKeyProvider,
                 TEST_CRYPTO_SUITE_JKS,
         };
@@ -352,10 +352,10 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             for (int i = 2; i < totalEntriesCount + 1; i++) { // update DID log by adding several new entries
 
                 // Alternate between available key providers
-                var keyProvider = keyProviders[i % 2];
+                var cryptoSuite = cryptoSuites[i % 2];
 
                 var nextLogEntry = WebVerifiableHistoryUpdater.builder()
-                        .cryptographicSuite(keyProvider) // different for odd and even entries (key alternation)
+                        .cryptographicSuite(cryptoSuite) // different for odd and even entries (key alternation)
                         .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
                         .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                         // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:

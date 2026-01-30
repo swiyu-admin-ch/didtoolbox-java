@@ -733,6 +733,8 @@ add the following entry to `dependencies` section in your `build.gradle.kts` (Ko
 implementation("ch.admin.swiyu:didtoolbox:[ANY_AVAILABLE_VERSION]")
 ```
 
+Various indicative code examples of using the (Java) API are available in the [examples](examples) directory.
+
 ## Additional Information
 - **Output Directory**: When creating new DIDs, the `.didtoolbox` directory is automatically created in the current working directory. Ensure you have the necessary permissions to create and write to this directory.
 - **Multiple DIDs**: If you create multiple DIDs, please make sure to rename the `.didtoolbox` directory (or move/rename the files) after each creation run. The DID-Toolbox will prevent you from overwriting existing key pairs by accident and abort with an error.
