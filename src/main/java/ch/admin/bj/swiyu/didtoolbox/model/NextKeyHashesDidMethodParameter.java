@@ -83,9 +83,8 @@ public interface NextKeyHashesDidMethodParameter {
      *                  Otherwise, {@link IllegalArgumentException} is thrown
      * @return a valid {@link NextKeyHashesDidMethodParameter} object whose {@link #getNextKeyHash()} method
      * delivers hash of the Ed25519 public key stored in the supplied {@link PublicKey} object
-     * @throws NextKeyHashesDidMethodParameterException
      */
-    static NextKeyHashesDidMethodParameter of(PublicKey publicKey) throws NextKeyHashesDidMethodParameterException {
+    static NextKeyHashesDidMethodParameter of(PublicKey publicKey) {
 
         return new NextKeyHashesDidMethodParameter() {
             @Override
@@ -178,9 +177,8 @@ public interface NextKeyHashesDidMethodParameter {
      *
      * @param publicKeys featuring Ed25519 public keys
      * @return a set of {@link NextKeyHashesDidMethodParameter} objects, for each member of the supplied {@link PublicKey} objects, never {@code null}
-     * @throws NextKeyHashesDidMethodParameterException
      */
-    static Set<NextKeyHashesDidMethodParameter> of(PublicKey... publicKeys) throws NextKeyHashesDidMethodParameterException {
+    static Set<NextKeyHashesDidMethodParameter> of(PublicKey... publicKeys) {
 
         var set = new HashSet<NextKeyHashesDidMethodParameter>();
         if (publicKeys == null) {
@@ -188,7 +186,7 @@ public interface NextKeyHashesDidMethodParameter {
         }
 
         for (var publicKey : publicKeys) {
-            set.add(of(publicKey)); // may throw NextKeyHashesDidMethodParameterException
+            set.add(of(publicKey));
         }
 
         return set;

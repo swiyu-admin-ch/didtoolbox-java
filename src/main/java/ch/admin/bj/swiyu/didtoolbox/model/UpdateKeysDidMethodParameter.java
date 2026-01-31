@@ -68,9 +68,8 @@ public interface UpdateKeysDidMethodParameter {
      *            Otherwise, {@link IllegalArgumentException} is thrown
      * @return a valid {@link UpdateKeysDidMethodParameter} object whose {@link #getUpdateKey()} method
      * delivers hash of the public key stored in the supplied {@link PublicKey} object
-     * @throws UpdateKeysDidMethodParameterException
      */
-    static UpdateKeysDidMethodParameter of(PublicKey key) throws UpdateKeysDidMethodParameterException {
+    static UpdateKeysDidMethodParameter of(PublicKey key) {
 
         return new UpdateKeysDidMethodParameter() {
             @Override
@@ -164,9 +163,8 @@ public interface UpdateKeysDidMethodParameter {
      *
      * @param publicKeys featuring Ed25519 public keys
      * @return a set of {@link UpdateKeysDidMethodParameter} objects, for each member of the supplied {@link PublicKey} object, never {@code null}
-     * @throws UpdateKeysDidMethodParameterException
      */
-    static Set<UpdateKeysDidMethodParameter> of(PublicKey... publicKeys) throws UpdateKeysDidMethodParameterException {
+    static Set<UpdateKeysDidMethodParameter> of(PublicKey... publicKeys) {
 
         var set = new HashSet<UpdateKeysDidMethodParameter>();
         if (publicKeys == null) {
@@ -174,7 +172,7 @@ public interface UpdateKeysDidMethodParameter {
         }
 
         for (var publicKey : publicKeys) {
-            set.add(of(publicKey)); // may throw UpdateKeysDidMethodParameterException
+            set.add(of(publicKey));
         }
 
         return set;
