@@ -33,12 +33,12 @@ This is the list of all third-party dependencies grouped by their license type. 
 ## Eclipse Public License v2.0:
 
 * **junit-pioneer** (org.junit-pioneer:junit-pioneer:2.3.0 - https://junit-pioneer.org/)
+* **JUnit Jupiter (Aggregator)** (org.junit.jupiter:junit-jupiter:6.0.2 - https://junit.org/)
 * **JUnit Jupiter API** (org.junit.jupiter:junit-jupiter-api:6.0.2 - https://junit.org/)
 * **JUnit Jupiter Engine** (org.junit.jupiter:junit-jupiter-engine:6.0.2 - https://junit.org/)
 * **JUnit Jupiter Params** (org.junit.jupiter:junit-jupiter-params:6.0.2 - https://junit.org/)
 * **JUnit Platform Commons** (org.junit.platform:junit-platform-commons:6.0.2 - https://junit.org/)
 * **JUnit Platform Engine API** (org.junit.platform:junit-platform-engine:6.0.2 - https://junit.org/)
-* **JUnit Platform Launcher** (org.junit.platform:junit-platform-launcher:6.0.2 - https://junit.org/)
 
 ## LGPL-2.1-or-later:
 

@@ -60,6 +60,7 @@
 
         <project.main.class>ch.admin.bj.swiyu.didtoolbox.Main</project.main.class>
         <!--project.dependencies.directory>lib/</project.dependencies.directory-->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <didresolver.version>2.6.0</didresolver.version>
         <jna.version>5.18.1</jna.version>
@@ -529,19 +530,6 @@
         </repository>
     </repositories>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- https://mvnrepository.com/artifact/org.junit/sbom -->
-            <dependency>
-                <groupId>org.junit</groupId>
-                <artifactId>junit-bom</artifactId>
-                <version>${junit-jupiter.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <!-- CAUTION Until 2.0.1 (GitHub packages), the "groupId" was set to "ch.admin.eid".
@@ -630,24 +618,10 @@
             <version>${tink.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit-jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit-jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-params -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
@@ -657,7 +631,13 @@
             <artifactId>junit-pioneer</artifactId>
             <version>${junit-pioneer.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <!-- includes a junit-platform-launcher that's too old for junit6 -->
+                <exclusion>
+                    <groupId>org.junit.platform</groupId>
+                    <artifactId>junit-platform-launcher</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
-
 </project>
