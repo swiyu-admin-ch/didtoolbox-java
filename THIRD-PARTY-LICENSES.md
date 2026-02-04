@@ -17,6 +17,7 @@ This is the list of all third-party dependencies grouped by their license type. 
 * **jcommander** (org.jcommander:jcommander:3.0 - https://jcommander.org)
 * **IntelliJ IDEA Annotations** (org.jetbrains:annotations:13.0 - http://www.jetbrains.org)
 * **Kotlin Stdlib** (org.jetbrains.kotlin:kotlin-stdlib:1.9.23 - https://kotlinlang.org/)
+* **JSpecify annotations** (org.jspecify:jspecify:1.0.0 - http://jspecify.org/)
 * **org.opentest4j:opentest4j** (org.opentest4j:opentest4j:1.3.0 - https://github.com/ota4j-team/opentest4j)
 
 ## BSD-3-Clause:
@@ -32,12 +33,12 @@ This is the list of all third-party dependencies grouped by their license type. 
 ## Eclipse Public License v2.0:
 
 * **junit-pioneer** (org.junit-pioneer:junit-pioneer:2.3.0 - https://junit-pioneer.org/)
-* **JUnit Jupiter API** (org.junit.jupiter:junit-jupiter-api:5.11.4 - https://junit.org/junit5/)
-* **JUnit Jupiter Engine** (org.junit.jupiter:junit-jupiter-engine:5.11.4 - https://junit.org/junit5/)
-* **JUnit Jupiter Params** (org.junit.jupiter:junit-jupiter-params:5.11.4 - https://junit.org/junit5/)
-* **JUnit Platform Commons** (org.junit.platform:junit-platform-commons:1.11.4 - https://junit.org/junit5/)
-* **JUnit Platform Engine API** (org.junit.platform:junit-platform-engine:1.11.4 - https://junit.org/junit5/)
-* **JUnit Platform Launcher** (org.junit.platform:junit-platform-launcher:1.11.2 - https://junit.org/junit5/)
+* **JUnit Jupiter (Aggregator)** (org.junit.jupiter:junit-jupiter:6.0.2 - https://junit.org/)
+* **JUnit Jupiter API** (org.junit.jupiter:junit-jupiter-api:6.0.2 - https://junit.org/)
+* **JUnit Jupiter Engine** (org.junit.jupiter:junit-jupiter-engine:6.0.2 - https://junit.org/)
+* **JUnit Jupiter Params** (org.junit.jupiter:junit-jupiter-params:6.0.2 - https://junit.org/)
+* **JUnit Platform Commons** (org.junit.platform:junit-platform-commons:6.0.2 - https://junit.org/)
+* **JUnit Platform Engine API** (org.junit.platform:junit-platform-engine:6.0.2 - https://junit.org/)
 
 ## LGPL-2.1-or-later:
 
