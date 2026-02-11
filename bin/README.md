@@ -9,9 +9,9 @@ Assuming the `mvn package` has already been executed, to create a Podman image f
 
 So, running the `podman image ls` command right after should result in at least two entries:
 ```text
-REPOSITORY                                TAG                IMAGE ID      CREATED         SIZE
-localhost/swiyu-admin-ch/didtoolbox-java  latest             3cd22c82b319  17 minutes ago  540 MB
-docker.io/library/openjdk                 26-slim            5e18f6a9a13d  6 days ago      510 MB
+REPOSITORY                                TAG                   IMAGE ID      CREATED        SIZE
+localhost/swiyu-admin-ch/didtoolbox-java  latest                ac0e22cd6037  9 minutes ago  433 MB
+docker.io/library/eclipse-temurin         25-jre-ubi10-minimal  df9bb383d79d  5 days ago     400 MB
 ```
 
 Finally, once you manage to build a Podman image in your local repo, to run the DID toolbox (as Podman image), please use the `didtoolbox.sh` script, e.g.:
@@ -23,13 +23,13 @@ $ ./bin/didtoolbox.sh -h
 
 $ ./bin/didtoolbox.sh -V
 
-didtoolbox 1.4.1
+[the actual version should be displayed here]
 ```
 
 Probably the simplest way to use the generator would be to let it generate as much on its own as possible:
 
 ```shell
-./bin/didtoolbox.sh create -u https://domain.com/path1/path2/did.jsonl
+./bin/didtoolbox.sh create -u https://domain.com/path1/path2/did.jsonl -f
 ```
 
 The command would create a valid DID log entry also featuring some assertion/verification keys in various format such as [JWKS](https://datatracker.ietf.org/doc/html/rfc7517) and PEM.
@@ -38,15 +38,13 @@ the generator will take care of that, too. Hence, all required key pairs will al
 
 ```shell
 # ll .didtoolbox
-total 64
--rw-------@ 1 u80850818  staff   154B Jan 15 15:14 assert-key-01
--rw-------@ 1 u80850818  staff   209B Jan 15 15:14 assert-key-01.json
--rw-r--r--@ 1 u80850818  staff   178B Jan 15 15:14 assert-key-01.pub
--rw-------@ 1 u80850818  staff   154B Jan 15 15:14 auth-key-01
--rw-------@ 1 u80850818  staff   207B Jan 15 15:14 auth-key-01.json
--rw-r--r--@ 1 u80850818  staff   178B Jan 15 15:14 auth-key-01.pub
--rw-------@ 1 u80850818  staff   119B Jan 15 13:29 id_ed25519
--rw-r--r--@ 1 u80850818  staff   113B Jan 15 13:29 id_ed25519.pub
+total 48
+-rw-------  1 vladica.stojic  staff   227B Feb 11 13:53 assert-key-01
+-rw-r--r--  1 vladica.stojic  staff   178B Feb 11 13:53 assert-key-01.pub
+-rw-------  1 vladica.stojic  staff   227B Feb 11 13:53 auth-key-01
+-rw-r--r--  1 vladica.stojic  staff   178B Feb 11 13:53 auth-key-01.pub
+-rw-------  1 vladica.stojic  staff   168B Feb 11 13:53 id_ed25519
+-rw-r--r--  1 vladica.stojic  staff   113B Feb 11 13:53 id_ed25519.pub
 ```
 
 This implies that you may now also try running the command in a usual/recommended way:
@@ -88,74 +86,71 @@ or supplied manually via `-a`/`-t` CLI options, a generated DID log entry will a
 should produce a following output (_prettified_/_pretty-printed_ version):
 
 ```json
-[
-  "1-QmTZGzit7hSYSXVmuZy8QFaPStCJQG15wWn53SgyXxCSzK",
-  "2025-06-04T21:06:36Z",
-  {
-    "method": "did:tdw:0.3",
-    "scid": "QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn",
+{
+  "versionId": "1-QmVNnbsLiQ9FR3xLDeDTucTwg9ZwXrF6jvE2jHFA88x1jY",
+  "versionTime": "2026-02-11T13:02:04Z",
+  "parameters": {
+    "method": "did:webvh:1.0",
+    "scid": "QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD",
     "updateKeys": [
       "z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"
     ],
     "portable": false
   },
-  {
-    "value": {
-      "@context": [
-        "https://www.w3.org/ns/did/v1",
-        "https://w3id.org/security/jwk/v1"
-      ],
-      "id": "did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2",
-      "authentication": [
-        "did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01"
-      ],
-      "assertionMethod": [
-        "did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01"
-      ],
-      "verificationMethod": [
-        {
-          "id": "did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01",
-          "type": "JsonWebKey2020",
-          "publicKeyJwk": {
-            "kty": "EC",
-            "crv": "P-256",
-            "kid": "my-auth-key-01",
-            "x": "-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg",
-            "y": "Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"
-          }
-        },
-        {
-          "id": "did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01",
-          "type": "JsonWebKey2020",
-          "publicKeyJwk": {
-            "kty": "EC",
-            "crv": "P-256",
-            "kid": "my-assert-key-01",
-            "x": "wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y",
-            "y": "eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"
-          }
+  "state": {
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      "https://w3id.org/security/jwk/v1"
+    ],
+    "id": "did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2",
+    "authentication": [
+      "did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01"
+    ],
+    "assertionMethod": [
+      "did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01"
+    ],
+    "verificationMethod": [
+      {
+        "id": "did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01",
+        "type": "JsonWebKey2020",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "P-256",
+          "kid": "my-auth-key-01",
+          "x": "-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg",
+          "y": "Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"
         }
-      ]
-    }
+      },
+      {
+        "id": "did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01",
+        "type": "JsonWebKey2020",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "P-256",
+          "kid": "my-assert-key-01",
+          "x": "wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y",
+          "y": "eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"
+        }
+      }
+    ]
   },
-  [
+  "proof": [
     {
       "type": "DataIntegrityProof",
       "cryptosuite": "eddsa-jcs-2022",
-      "created": "2025-06-04T21:06:36Z",
+      "created": "2026-02-11T13:02:04Z",
       "verificationMethod": "did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP",
-      "proofPurpose": "authentication",
-      "challenge": "1-QmTZGzit7hSYSXVmuZy8QFaPStCJQG15wWn53SgyXxCSzK",
-      "proofValue": "z2j8SuRZUw1LLaXsW8D7oBtckovZoaMxH5VhD8gmSjHUyZuauWZvA2uvm5whWvZXoLTnQjsRxdN9qN1K9BZd6vqrR"
+      "proofPurpose": "assertionMethod",
+      "proofValue": "z4z8eeSqiGp9MG2MWwwFqNs3GN5m2XbMPxedYWd3s9yXopnM6oAgAVPS8dMyijDnaMik1Ym7gnD2CWd2mTx685dEV"
     }
   ]
-]
+}
 ```
 
 The same content _un-prettified_, as it should be found in the `did.jsonl` file:
 
 ```json
-["1-QmTZGzit7hSYSXVmuZy8QFaPStCJQG15wWn53SgyXxCSzK","2025-06-04T21:06:36Z",{"method":"did:tdw:0.3","scid":"QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2","authentication":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-06-04T21:06:36Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-QmTZGzit7hSYSXVmuZy8QFaPStCJQG15wWn53SgyXxCSzK","proofValue":"z2j8SuRZUw1LLaXsW8D7oBtckovZoaMxH5VhD8gmSjHUyZuauWZvA2uvm5whWvZXoLTnQjsRxdN9qN1K9BZd6vqrR"}]]
+{"versionId":"1-QmVNnbsLiQ9FR3xLDeDTucTwg9ZwXrF6jvE2jHFA88x1jY","versionTime":"2026-02-11T13:02:04Z","parameters":{"method":"did:webvh:1.0","scid":"QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},"state":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2","authentication":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2026-02-11T13:02:04Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z4z8eeSqiGp9MG2MWwwFqNs3GN5m2XbMPxedYWd3s9yXopnM6oAgAVPS8dMyijDnaMik1Ym7gnD2CWd2mTx685dEV"}]}
 ```
 
 Once a newly created `did.jsonl` file is available, you may use the `update` subcommand at any point to **completely**
@@ -173,8 +168,8 @@ replace the existing [verification material](https://www.w3.org/TR/did-core/#ver
 The command above should produce the following DID log featuring a whole new DID log entry:
 
 ```json lines
-["1-QmTZGzit7hSYSXVmuZy8QFaPStCJQG15wWn53SgyXxCSzK","2025-06-04T21:06:36Z",{"method":"did:tdw:0.3","scid":"QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2","authentication":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-06-04T21:06:36Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-QmTZGzit7hSYSXVmuZy8QFaPStCJQG15wWn53SgyXxCSzK","proofValue":"z2j8SuRZUw1LLaXsW8D7oBtckovZoaMxH5VhD8gmSjHUyZuauWZvA2uvm5whWvZXoLTnQjsRxdN9qN1K9BZd6vqrR"}]]
-["2-QmdKRknBB6t68f35MZccFvMWzAArWNWUz44XhcGgeHJ5xg","2025-06-16T14:58:31Z",{},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2","authentication":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:tdw:QmR7TbG5KdECpqKv6uJPJ9z7p4ey7nVYMjdsoQL6aBpKSn:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-06-16T14:58:31Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"2-QmdKRknBB6t68f35MZccFvMWzAArWNWUz44XhcGgeHJ5xg","proofValue":"z5r1JC6PuD1ErAKjgCTCaBtauAmdepVB8NbPSWxop1fWNoQpZHUmkELrQR2dFN71Hzsh7U1dLEQ5UpmRfvPG9VVkW"}]]
+{"versionId":"1-QmVNnbsLiQ9FR3xLDeDTucTwg9ZwXrF6jvE2jHFA88x1jY","versionTime":"2026-02-11T13:02:04Z","parameters":{"method":"did:webvh:1.0","scid":"QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},"state":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2","authentication":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2026-02-11T13:02:04Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z4z8eeSqiGp9MG2MWwwFqNs3GN5m2XbMPxedYWd3s9yXopnM6oAgAVPS8dMyijDnaMik1Ym7gnD2CWd2mTx685dEV"}]}
+{"versionId":"2-QmUznSmYWCL1qE1c6tvkkQUsoV6drWcYC9yLc2V3fAGLiZ","versionTime":"2026-02-11T13:02:49Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2","authentication":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2026-02-11T13:02:49Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z3hoSFSc3PmtApvFti3GaJ3Yg8f5rxHHtdEyEtqCd3CEL87mBtioo2a94NzQXwtXbrMf2wyRHMfTesugJ41txzKpg"}]}
 ```
 
 To be able to use HSM keys, the relevant [Securosys Primus libraries](https://docs.securosys.com/jce/Downloads/) are required.
