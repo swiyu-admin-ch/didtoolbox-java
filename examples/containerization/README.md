@@ -1,27 +1,30 @@
-# bin scripts
+# Containerization
 
-This directory contains [`podman`](https://docs.podman.io/en/latest/)-based Shell scripts required when running the DID toolbox as Podman image.
-
-Assuming the `mvn package` has already been executed, to create a Podman image featuring the DID toolbox, if not created already, please run: 
+To create a [Podman]((https://docs.podman.io/en/latest/)) image featuring the DID toolbox, if not created already, please run:
 ```shell
-./bin/podman-build.sh
+# Optionally, use --build-arg VERSION=<ANY_VALID_VERSION> option to install any other particular version
+$ podman build -t didtoolbox:latest .
 ```
 
 So, running the `podman image ls` command right after should result in at least two entries:
 ```text
-REPOSITORY                                TAG                   IMAGE ID      CREATED        SIZE
-localhost/swiyu-admin-ch/didtoolbox-java  latest                ac0e22cd6037  9 minutes ago  433 MB
-docker.io/library/eclipse-temurin         25-jre-ubi10-minimal  df9bb383d79d  5 days ago     400 MB
+REPOSITORY                         TAG                   IMAGE ID      CREATED             SIZE
+localhost/didtoolbox               latest                cca764c73f4a  About a minute ago  237 MB
+gcr.io/distroless/java21-debian12  latest                3c56da19216a  About an hour ago   204 MB
 ```
 
-Finally, once you manage to build a Podman image in your local repo, to run the DID toolbox (as Podman image), please use the `didtoolbox.sh` script, e.g.:
+Finally, once you manage to build a Podman image in your local repo, to run the DID toolbox (as Podman image),
+please use an appropriate `podman run ...` command, e.g.:
 
-```text
-$ ./bin/didtoolbox.sh -h
+```shell
+# On Linux/macOS, using an alias (for the podman run command) always comes in handy
+$ alias didtoolbox='podman run -v $(pwd):$(pwd):z,exec -w $(pwd) didtoolbox'
+
+$ didtoolbox -h
 
 [the entire help page should be displayed here]
 
-$ ./bin/didtoolbox.sh -V
+$ didtoolbox -V
 
 [the actual version should be displayed here]
 ```
@@ -29,7 +32,7 @@ $ ./bin/didtoolbox.sh -V
 Probably the simplest way to use the generator would be to let it generate as much on its own as possible:
 
 ```shell
-./bin/didtoolbox.sh create -u https://domain.com/path1/path2/did.jsonl -f
+didtoolbox create -u https://domain.com/path1/path2/did.jsonl -f
 ```
 
 The command would create a valid DID log entry also featuring some assertion/verification keys in various format such as [JWKS](https://datatracker.ietf.org/doc/html/rfc7517) and PEM.
@@ -50,7 +53,7 @@ total 48
 This implies that you may now also try running the command in a usual/recommended way:
 
 ```shell
-./bin/didtoolbox.sh create \
+didtoolbox create \
     -a my-assert-key-01,.didtoolbox/assert-key-01.pub \
     -t my-auth-key-01,.didtoolbox/auth-key-01.pub \
     -u https://domain.com/path1/path2/did.jsonl \
@@ -61,7 +64,7 @@ This implies that you may now also try running the command in a usual/recommende
 As this repo already contains some keys intended for testing purposes, feel free to also try out the following example: 
 
 ```shell
-./bin/didtoolbox.sh create \
+didtoolbox create \
     -a my-assert-key-01,src/test/data/assert-key-01.pub \
     -t my-auth-key-01,src/test/data/auth-key-01.pub \
     -u https://domain.com/path1/path2/did.jsonl \
@@ -73,7 +76,7 @@ As this repo already contains some keys intended for testing purposes, feel free
  Alternatively, besides Java KeyStore (PKCS12) also PEM format of signing/verifying key is supported:
 
 ```shell
-./bin/didtoolbox.sh create \
+didtoolbox create \
     -a my-assert-key-01,src/test/data/assert-key-01.pub \
     -t my-auth-key-01,src/test/data/auth-key-01.pub \
     -u https://domain.com/path1/path2/did.jsonl \
@@ -157,7 +160,7 @@ Once a newly created `did.jsonl` file is available, you may use the `update` sub
 replace the existing [verification material](https://www.w3.org/TR/did-core/#verification-material) in DID document:
 
 ```shell
-./bin/didtoolbox.sh update \
+didtoolbox update \
     -d did.jsonl \
     -a my-assert-key-01,src/test/data/assert-key-01.pub \
     -t my-auth-key-01,src/test/data/auth-key-01.pub \
@@ -171,26 +174,3 @@ The command above should produce the following DID log featuring a whole new DID
 {"versionId":"1-QmVNnbsLiQ9FR3xLDeDTucTwg9ZwXrF6jvE2jHFA88x1jY","versionTime":"2026-02-11T13:02:04Z","parameters":{"method":"did:webvh:1.0","scid":"QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},"state":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2","authentication":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2026-02-11T13:02:04Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z4z8eeSqiGp9MG2MWwwFqNs3GN5m2XbMPxedYWd3s9yXopnM6oAgAVPS8dMyijDnaMik1Ym7gnD2CWd2mTx685dEV"}]}
 {"versionId":"2-QmUznSmYWCL1qE1c6tvkkQUsoV6drWcYC9yLc2V3fAGLiZ","versionTime":"2026-02-11T13:02:49Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2","authentication":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01"],"assertionMethod":["did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmXKFnvqd29GfKgvoGDP7RRyLhiQVWJagFDu6qYghqWBdD:domain.com:path1:path2#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2026-02-11T13:02:49Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z3hoSFSc3PmtApvFti3GaJ3Yg8f5rxHHtdEyEtqCd3CEL87mBtioo2a94NzQXwtXbrMf2wyRHMfTesugJ41txzKpg"}]}
 ```
-
-To be able to use HSM keys, the relevant [Securosys Primus libraries](https://docs.securosys.com/jce/Downloads/) are required.
-For the purpose of referencing them on the file system, the `DIDTOOLBOX_BOOTCLASSPATH` envvar is available e.g.
-
-```shell
-# Set the correct envvar value before running the script
-DIDTOOLBOX_BOOTCLASSPATH=$(pwd)/securosys/lib \
-./bin/didtoolbox.sh create \
-    -u https://asd.asd \
-    -p src/test/data/com.securosys.primus.jce.credentials.properties \
-    -q primus \
-    --primus-keystore-password pass
-```
-
-All image-specific envvars can easily be printed out using the [`podman inspect`](https://docs.podman.io/en/stable/markdown/podman-inspect.1.html) command: 
-
-```
-podman inspect localhost/swiyu-admin-ch/didtoolbox-java --format='{{json .Config.Env}}' | jq -r '.[]|select(startswith("DIDTOOLBOX_"))'
-```
-
-| Image EnvVar             | Description                                                                                                                                                      | Purpose                                                                                                                                                                                   |
-|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| DIDTOOLBOX_BOOTCLASSPATH | Shell interface to the [`-Xbootclasspath/a`](https://docs.oracle.com/en/java/javase/24/docs/specs/man/java.html#extra-options-for-java) option of `java` command | Specifies a directory featuring JAR files to append to the end of the default bootstrap class path.<br><br>Typically used to reference Securosys Primus libs (when working with HSM keys) |
