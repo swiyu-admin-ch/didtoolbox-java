@@ -50,8 +50,8 @@ The DID-Toolbox forces generated DIDs to have at least one key for each verifica
 
 Before using the DID-Toolbox, ensure your system meets the following requirements:
 
-- **Operating System:** Compatible with the following operating systems: Linux (x86-64 & AArch64), macOS (x86-64 & AArch64) and Windows (x86-64). Ensure your OS is up to date to avoid compatibility issues.
-- **Java Runtime Environment (JRE) 21 or Higher:** The DID-Toolbox requires Java JRE version 21 or above. Verify that Java is installed on your machine. JNA support is required, since the DID-Toolbox depends on another, platform dependent library, used to verify the generated DID log outputs.
+- **Target Operating System:** Compatible with the following operating systems: Linux (x86-64 & aarch64), macOS (x86-64 & aarch64) and Windows (x86-64). Ensure your OS is up to date to avoid compatibility issues. <br>⚠️ **CAUTION** Beware of the target OS support when running the DID-Toolbox from within a Docker/Podman container. Due to [functional differences between musl and glibc](https://wiki.musl-libc.org/functional-differences-from-glibc.html), it is a known issue that [Alpine](https://hub.docker.com/_/alpine) images require workarounds. Luckily, ["Distroless"](https://github.com/GoogleContainerTools/distroless/tree/main/java) images offer pretty useful and viable alternative, as illustrated [here](examples/containerization/README.md).
+- **Java Runtime Environment (JRE) 21 or Higher:** The DID-Toolbox requires Java JRE version 21 or above. Verify that Java is installed on your machine. [JNA](https://javadoc.io/doc/net.java.dev.jna/jna/latest/index.html) support is required, since the DID-Toolbox depends on another, platform dependent library, used to verify the generated DID log outputs.
 - **Internet Connection:** Required for downloading the tool.
 - **Sufficient Disk Space:** Allocate enough disk space for the tool and the generated key materials. 100 MB should suffice, depending on the number of DIDs you intend to generate.
 - **Third-party JCE provider library (OPTIONAL, only in case of Securosys Primus HSM as the source of signing/verifying key pair):** 
