@@ -1,6 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
+import ch.admin.bj.swiyu.didtoolbox.InvalidDidLogException;
+import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
@@ -47,19 +49,19 @@ import java.util.Set;
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
- * feel free to explore all available {@link VerificationMethodKeyProvider} implementations.
+ * feel free to explore all available {@link ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider} implementations.
  * <p>
  * To load authentication/assertion public EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
- * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link JwkUtils}.
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link ch.admin.bj.swiyu.didtoolbox.JwkUtils}.
  * <p>
  * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
  * Instead, rather rely on the designated {@link DidLogUpdaterContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
- * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
+ * {@link ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum#detectDidMethod(String)} or {@link ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum#detectDidMethod(File)}.
  * <p>
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity"})
+@SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods"})
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -94,7 +96,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
      * </pre>
      * <p>
-     * HINT: Use available {@link UpdateKeysDidMethodParameter} static factory methods to supply public keys.
+     * HINT: Use available {@link ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter} static factory methods to supply public keys.
      */
     @Getter(AccessLevel.PRIVATE)
     private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
@@ -114,7 +116,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * This is an alternative and more potent method to supply the parameter.
      * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
      * <p>
-     * HINT: Use available {@link NextKeyHashesDidMethodParameter} static factory methods to supply public keys.
+     * HINT: Use available {@link ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter} static factory methods to supply public keys.
      *
      * @since 1.8.0
      */

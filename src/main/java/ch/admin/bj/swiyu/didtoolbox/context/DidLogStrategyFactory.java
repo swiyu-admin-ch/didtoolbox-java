@@ -48,8 +48,9 @@ final class DidLogStrategyFactory {
                         .forceOverwrite(ctx.isForceOverwrite())
                         .build();
             }
-            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
+
+        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 
     static DidLogUpdaterStrategy getUpdaterStrategy(DidLogUpdaterContext ctx) {
@@ -84,8 +85,9 @@ final class DidLogStrategyFactory {
                         .nextKeyHashesDidMethodParameter(ctx.getNextKeyHashesDidMethodParameter())
                         .build();
             }
-            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
+
+        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 
     static DidLogDeactivatorStrategy getDeactivatorStrategy(DidLogDeactivatorContext ctx) {
@@ -100,7 +102,8 @@ final class DidLogStrategyFactory {
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .build();
             }
-            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
+
+        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 }

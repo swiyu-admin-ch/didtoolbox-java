@@ -63,9 +63,11 @@ import java.util.Set;
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
  *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem"));
  *
- *             // NOTE that all verification material will be generated here as well
  *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
  *                 .cryptographicSuite(cryptographicSuite)
+ *                 .assertionMethodKeys(Map.of(
+ *                     "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01")
+ *                 ))
  *                 .build()
  *                 .create(identifierRegistryUrl);
  *

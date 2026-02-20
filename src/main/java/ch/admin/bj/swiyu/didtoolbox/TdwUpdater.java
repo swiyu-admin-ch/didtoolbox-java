@@ -367,8 +367,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
-        var did = new Did(this.didLogMeta.getDidDoc().getId());
-        try {
+        try (var did = new Did(this.didLogMeta.getDidDoc().getId())) {
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
             //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
@@ -378,8 +377,6 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
         } catch (DidResolveException e) {
             throw new InvalidDidLogException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
-        } finally {
-            did.close();
         }
 
         return didLogEntryWithProof.toString();
@@ -397,17 +394,16 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             );
         }
 
-        if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)) { // need for change?
+        if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)
+                && this.updateKeysDidMethodParameter != null) { // need for change?
 
-            if (this.updateKeysDidMethodParameter != null) {
-                for (var param : this.updateKeysDidMethodParameter) {
+            for (var param : this.updateKeysDidMethodParameter) {
 
-                    var updateKey = param.getUpdateKey();
+                var updateKey = param.getUpdateKey();
 
-                    // it is a distinct list of keys, after all
-                    if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
-                        updateKeysJsonArray.add(updateKey);
-                    }
+                // it is a distinct list of keys, after all
+                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
+                    updateKeysJsonArray.add(updateKey);
                 }
             }
         }

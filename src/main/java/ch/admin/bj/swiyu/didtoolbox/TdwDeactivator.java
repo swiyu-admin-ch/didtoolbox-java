@@ -283,8 +283,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
-        Did did = new Did(didLogMeta.getDidDoc().getId());
-        try {
+        try (var did = new Did(didLogMeta.getDidDoc().getId())) {
             // NOTE Enforcing DID log conformity by calling:
             //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
             //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
@@ -294,8 +293,6 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
             did.resolveAll(didLog.trim() + System.lineSeparator() + didLogEntryWithProof); // sanity check
         } catch (DidResolveException e) {
             throw new InvalidDidLogException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
-        } finally {
-            did.close();
         }
 
         return didLogEntryWithProof.toString();

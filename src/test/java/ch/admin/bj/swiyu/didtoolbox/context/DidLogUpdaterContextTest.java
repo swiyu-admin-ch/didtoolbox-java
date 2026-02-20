@@ -152,8 +152,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                             ))
-                            // Forced to avoid error: "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: .didtoolbox/auth-key-01"
-                            .forceOverwrite(true)
+                            .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                            .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                             .build()
                             .create(URL.of(new URI(TEST_DID_URL), null)) // should not throw DidLogCreatorStrategyException
             ).append(System.lineSeparator());

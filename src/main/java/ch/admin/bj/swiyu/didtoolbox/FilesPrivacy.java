@@ -107,7 +107,6 @@ final class FilesPrivacy {
      * @param path  the directory to create
      * @param force to denote enforcement of the directory creation, hance that the directory deletion takes place prior to creation.
      *              Regardless of its value, it will always be taken into account whether the parent (directory) is "writable" or not
-     * @return the directory
      * @throws DirectoryNotEmptyException    (in case {@code force} is engaged) if the file is a directory and could not otherwise be deleted
      *                                       because the directory is not empty <i>(optional specific
      *                                       exception)</i>
@@ -123,7 +122,7 @@ final class FilesPrivacy {
      * @see Files#createDirectory(Path, FileAttribute[])
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity"})
-    static Path createPrivateDirectory(Path path, boolean force) throws IOException {
+    static void createPrivateDirectory(Path path, boolean force) throws IOException {
 
         // Regardless of force flag, always take into account whether the parent directory is "writable" or not
         if (null != path.getParent() && !Files.isWritable(path.getParent())) { // may throw SecurityException
@@ -138,7 +137,7 @@ final class FilesPrivacy {
         var os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win") || null != Files.getFileAttributeView(path, AclFileAttributeView.class)) {
 
-            return Files.createDirectory(path, new FileAttribute<List<AclEntry>>() {
+            Files.createDirectory(path, new FileAttribute<List<AclEntry>>() {
 
                 @Override
                 public List<AclEntry> value() {
@@ -162,15 +161,16 @@ final class FilesPrivacy {
                     return "acl:acl";
                 }
             });
+            return;
 
         } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")
                 || os.contains("mac") || os.contains("darwin")) {
 
-            return Files.createDirectory(path, PosixFilePermissions.asFileAttribute(POSIX_FILE_PERM_OWNER_READ_WRITE_EXEC));
-
+            Files.createDirectory(path, PosixFilePermissions.asFileAttribute(POSIX_FILE_PERM_OWNER_READ_WRITE_EXEC));
+            return;
         }
 
-        throw new IllegalArgumentException("Unsupported operating system" + os);
+        throw new IllegalArgumentException("Unsupported operating system: " + os);
     }
 
     /**

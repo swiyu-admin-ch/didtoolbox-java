@@ -15,10 +15,7 @@ import com.beust.jcommander.JCommander;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
+import java.nio.file.*;
 import java.security.KeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -39,6 +36,66 @@ final class JCommanderRunner {
     JCommanderRunner(JCommander jc, String parsedCommandName) {
         this.jc = jc;
         this.parsedCommandName = parsedCommandName;
+    }
+
+    private static void overAndOut(JCommander jc, String commandName, String message) {
+        jc.getConsole().println(message);
+        jc.getConsole().println("");
+        if (commandName != null) {
+            jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " " + commandName + " -h");
+        } else {
+            jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
+        }
+        System.exit(1);
+    }
+
+    /**
+     * Simple helper for extracting DID method parameters in a specification-agnostic fashion.
+     *
+     * @param jc                {@code JCommander} object to use to display appropriate message in case of error
+     * @param parsedCommandName name of the existing command to display in case of err
+     * @param didLogFile        {@code File} object containing a valid DID log
+     * @return a {@code DidLogMeta} object, never {@code null}
+     */
+    private static DidLogMeta fetchDidLogMeta(JCommander jc,
+                                              String parsedCommandName,
+                                              File didLogFile) {
+        DidLogMeta didLogMeta = null;
+        try {
+            didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:tdw log
+        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+            try {
+                didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:webvh log
+            } catch (DidLogMetaPeekerException | IOException exc1) { // not a did:webvh log
+                overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
+            }
+        } catch (IOException exc) { // not a did:tdw log
+            overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
+        }
+
+        if (didLogMeta == null ||
+                didLogMeta.getParams() == null ||
+                didLogMeta.getParams().getDidMethodEnum() == null) {
+            throw new IllegalArgumentException("Incomplete metadata");
+        }
+
+        return didLogMeta;
+    }
+
+    private static void createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws DidLogCreatorStrategyException {
+        var outputDir = Path.of(pathname);
+        if (!outputDir.toFile().exists()) {
+            try {
+                FilesPrivacy.createPrivateDirectory(outputDir, false); // may throw DirectoryNotEmptyException, SecurityException etc.
+            } catch (DirectoryNotEmptyException | FileAlreadyExistsException | AccessDeniedException ex) {
+                // the directory (if exists) must be empty with write access granted
+                throw new IllegalArgumentException(ex);
+                //} catch (AccessDeniedException ex) {
+                //    throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
+            } catch (Throwable thr) {
+                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
+            }
+        }
     }
 
     @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
@@ -63,6 +120,10 @@ final class JCommanderRunner {
             for (VerificationMethodParameters param : assertionMethodKeys) {
                 assertionMethodKeysMap.put(param.key, param.jwk);
             }
+        } else {
+            createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
+            assertionMethodKeysMap.put("assert-key-01",
+                    JwkUtils.generatePublicEC256("assert-key-01", Path.of(".didtoolbox/assert-key-01").toFile(), command.forceOverwrite));
         }
 
         Map<String, String> authenticationKeysMap = new HashMap<>();
@@ -71,6 +132,10 @@ final class JCommanderRunner {
             for (VerificationMethodParameters param : authenticationKeys) {
                 authenticationKeysMap.put(param.key, param.jwk);
             }
+        } else {
+            createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
+            authenticationKeysMap.put("auth-key-01",
+                    JwkUtils.generatePublicEC256("auth-key-01", Path.of(".didtoolbox/auth-key-01").toFile(), command.forceOverwrite));
         }
 
         var signingKeyPemFile = command.signingKeyPemFile;
@@ -127,12 +192,6 @@ final class JCommanderRunner {
             var dalekSigner = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
             cryptoSuite = dalekSigner;
 
-                    /*
-                    File outputDir = createCommand.outputDir;
-                    if (outputDir == null) {
-                        overAndOut(jc, "As the key pair will be generated, an output directory (to store the key pair) is required to be supplied as well. Alternatively, use one of the relevant options to supply keys");
-                    }
-                     */
             var outputDir = new File(".didtoolbox");
             if (!outputDir.exists() || forceOverwrite) {
 
@@ -487,49 +546,5 @@ final class JCommanderRunner {
         } catch (ProofOfPossessionVerifierException e) {
             overAndOut(jc, parsedCommandName, "Provided JWT is invalid: " + e.getLocalizedMessage());
         }
-    }
-
-    private static void overAndOut(JCommander jc, String commandName, String message) {
-        jc.getConsole().println(message);
-        jc.getConsole().println("");
-        if (commandName != null) {
-            jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " " + commandName + " -h");
-        } else {
-            jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
-        }
-        System.exit(1);
-    }
-
-    /**
-     * Simple helper for extracting DID method parameters in a specification-agnostic fashion.
-     *
-     * @param jc                {@code JCommander} object to use to display appropriate message in case of error
-     * @param parsedCommandName name of the existing command to display in case of err
-     * @param didLogFile        {@code File} object containing a valid DID log
-     * @return a {@code DidLogMeta} object, never {@code null}
-     */
-    private static DidLogMeta fetchDidLogMeta(JCommander jc,
-                                              String parsedCommandName,
-                                              File didLogFile) {
-        DidLogMeta didLogMeta = null;
-        try {
-            didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:tdw log
-        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
-            try {
-                didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:webvh log
-            } catch (DidLogMetaPeekerException | IOException exc1) { // not a did:webvh log
-                overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
-            }
-        } catch (IOException exc) { // not a did:tdw log
-            overAndOut(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
-        }
-
-        if (didLogMeta == null ||
-                didLogMeta.getParams() == null ||
-                didLogMeta.getParams().getDidMethodEnum() == null) {
-            throw new IllegalArgumentException("Incomplete metadata");
-        }
-
-        return didLogMeta;
     }
 }

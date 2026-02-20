@@ -38,6 +38,8 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
                     .didMethod(DidMethodEnum.TDW_0_3) // must be set explicitly for did:tdw logs
                     // the default cryptographicSuite is used, with generated key pair
                     .forceOverwrite(true)
+                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))); // add another value "updateKeys" param
 
             didLogEntry.set(ctxBuilder.build().create(identifierRegistryUrl)); // MUT
@@ -67,6 +69,8 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // add another value "updateKeys" param
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
                     .forceOverwrite(true)
+                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()
                     .create(identifierRegistryUrl)); // MUT
         });

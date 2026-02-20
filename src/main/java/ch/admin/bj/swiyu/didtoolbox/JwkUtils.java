@@ -125,12 +125,9 @@ public final class JwkUtils {
 
                 createPrivateFile(keyPairPemFile, forceOverwrite);
 
-                Writer w = Files.newBufferedWriter(keyPairPemFile.toPath());
-                try {
+                try (Writer w = Files.newBufferedWriter(keyPairPemFile.toPath())) {
                     w.write(keyPairPem);
                     w.flush();
-                } finally {
-                    w.close();
                 }
 
                 // Creates (keyPairPemFile || ".pub") file

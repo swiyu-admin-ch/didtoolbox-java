@@ -60,11 +60,6 @@ import java.util.Set;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
  *
- *             // NOTE that all required keys will be generated here as well, as no explicit cryptographic suite is set
- *             didLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
- *                 .build()
- *                 .create(identifierRegistryUrl);
- *
  *             // Using already existing key material
  *             didLogEntryWithExternalKeys = DidLogCreatorContext.builder()
  *                 .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem")))

@@ -67,6 +67,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
 
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
+
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
 
