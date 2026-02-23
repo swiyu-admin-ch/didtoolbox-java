@@ -448,16 +448,16 @@ final class JCommanderRunner {
         } else if (signingKeyPemFile != null) {
 
             try {
-                signer = new EdDsaJcs2022ProofOfPossessionJWSSigner(signingKeyPemFile.toPath()); // supplied external key pair
+                signer = new EdDsaJcs2022ProofOfPossessionJWSSigner(signingKeyPemFile.toPath(), null); // supplied external key pair // TODO@MP replace null with value
             } catch (VcDataIntegrityCryptographicSuiteException ex) {
                 overAndOut(jc, parsedCommandName, "Failed to load the supplied ed25519 key (pair): " + ex.getLocalizedMessage());
             }
 
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new EdDsaJcs2022ProofOfPossessionJWSSigner(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
+            signer = new EdDsaJcs2022ProofOfPossessionJWSSigner(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword, null); // supplied external key pair // TODO@MP replace null with value
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
-            signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
+            signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, primusKeyAlias, primusKeyPassword,null); // supplied external key pair // TODO@MP replace null with value
         } else {
             overAndOut(jc, parsedCommandName, "No source for the (signing) ed25519 key supplied. Use one of the relevant options to supply keys");
         }

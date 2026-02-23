@@ -27,16 +27,16 @@ public class ProofOfPossessionVerifierException extends Exception {
         return new ProofOfPossessionVerifierException(String.format("The JWT cannot be parsed due to: %s", cause.getLocalizedMessage()), ErrorCause.UNPARSABLE);
     }
 
-    static ProofOfPossessionVerifierException malformedClaimKid(Exception cause) {
-        return new ProofOfPossessionVerifierException(String.format("The JWT claim 'kid' features no multibase-encoded Ed25519 public key: %s", cause.getLocalizedMessage()), ErrorCause.MALFORMED_CLAIM_KID);
+    static ProofOfPossessionVerifierException malformedClaimKid(String message) {
+        return new ProofOfPossessionVerifierException(String.format("The JWT claim 'kid' is invalid: %s", message), ErrorCause.MALFORMED_CLAIM_KID);
     }
 
     static ProofOfPossessionVerifierException expired() {
         return new ProofOfPossessionVerifierException("The JWT has expired", ErrorCause.EXPIRED);
     }
 
-    static ProofOfPossessionVerifierException unsupportedAlgorithm(String expected, String got) {
-        return new ProofOfPossessionVerifierException(String.format("The JWT uses an unsupported signing algorithm, expected '%s' but got '%s' instead.", expected, got), ErrorCause.UNSUPPORTED_ALGORITHM);
+    static ProofOfPossessionVerifierException unsupportedAlgorithm(String algorithm) {
+        return new ProofOfPossessionVerifierException(String.format("The JWT uses an unsupported signing algorithm: '%s'", algorithm), ErrorCause.UNSUPPORTED_ALGORITHM);
     }
 
     static ProofOfPossessionVerifierException keyMismatch(String key) {

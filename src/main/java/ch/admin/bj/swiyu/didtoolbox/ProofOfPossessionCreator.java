@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jwt.SignedJWT;
 
 import java.time.Duration;
@@ -34,7 +33,7 @@ import java.util.Date;
  *         SignedJWT jwt;
  *
  *         try {
- *             var signer = new Ed25519ProofOfPossessionJWSSignerImpl(new FileReader("src/test/data/private.pem"), new FileReader("src/test/data/public.pem"));
+ *             var signer = new EcP256ProofOfPossessionJWSSigner(Path.of("src/test/data/assert-key-01"), "did:webvh:exmalpe.com#my-assert-key-01");
  *             var creator = new ProofOfPossessionCreator(signer);
  *             // may throw ProofOfPossessionCreatorException
  *             jwt = creator.create("Foo", Duration.ofDays(1));
@@ -73,8 +72,8 @@ public class ProofOfPossessionCreator {
 
         // Prepare header and claims set of the JWT
         var signedJWT = new com.nimbusds.jwt.SignedJWT(
-                new com.nimbusds.jose.JWSHeader.Builder(JWSAlgorithm.Ed25519)
-                        .keyID("did:key:" + signer.getVerificationKeyMultibase() + '#' + signer.getVerificationKeyMultibase())
+                new com.nimbusds.jose.JWSHeader.Builder(signer.getAlgorithm())
+                        .keyID(this.signer.getKid())
                         .build(),
                 new com.nimbusds.jwt.JWTClaimsSet.Builder()
                         .claim("nonce", nonce)

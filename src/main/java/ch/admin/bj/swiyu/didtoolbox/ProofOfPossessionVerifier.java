@@ -3,20 +3,19 @@ package ch.admin.bj.swiyu.didtoolbox;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import ch.admin.eid.did_sidekicks.Ed25519VerifyingKey;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.crypto.Ed25519Verifier;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.OctetKeyPair;
-import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.SignedJWT;
-import io.ipfs.multibase.Base58;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 
@@ -35,7 +34,6 @@ import java.util.Set;
  *     import java.nio.file.*;
  *
  *     public static void main(String... args) {
- *
  *         boolean isValid;
  *
  *         try {
@@ -43,7 +41,7 @@ import java.util.Set;
  *             // may throw ProofOfPossessionVerifierException
  *             var verifier = new ProofOfPossessionVerifier(didLog);
  *             var jwt = SignedJWT.parse(args[0]);
- *             isValid = verifier.isValid(jwt, "Foo");
+ *             isValid = verifier.isValid(jwt, "my nonce");
  *         } catch (Exception e) {
  *             // some exc. handling goes here
  *             System.exit(1);
@@ -56,14 +54,18 @@ import java.util.Set;
  */
 public class ProofOfPossessionVerifier {
 
-    private Set<String> updateKeys;
+    private DidDoc didDoc;
+
+    public ProofOfPossessionVerifier(DidDoc didDoc) {
+        this.didDoc = didDoc;
+    }
 
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
         try {
-            this.updateKeys = TdwDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys(); // assume a did:tdw log
+            this.didDoc = TdwDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:tdw log
         } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
             try {
-                this.updateKeys = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getParams().getUpdateKeys(); // assume a did:webvh log
+                this.didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:webvh log
             } catch (DidLogMetaPeekerException exc1) { // not a did:webvh log
                 throw new ProofOfPossessionVerifierException(exc1);
             }
@@ -99,8 +101,8 @@ public class ProofOfPossessionVerifier {
     @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
         var algorithm = signedJWT.getHeader().getAlgorithm();
-        if (!JWSAlgorithm.Ed25519.equals(algorithm)) {
-            throw ProofOfPossessionVerifierException.unsupportedAlgorithm(JWSAlgorithm.Ed25519.toString(), algorithm.toString());
+        if (!Set.of(JWSAlgorithm.Ed25519, JWSAlgorithm.ES256).contains(algorithm)) {
+            throw ProofOfPossessionVerifierException.unsupportedAlgorithm(algorithm.toString());
         }
 
         // check nonce
@@ -130,45 +132,33 @@ public class ProofOfPossessionVerifier {
             throw ProofOfPossessionVerifierException.expired();
         }
 
-        // check if the value of JWT claim 'kid' matches the DataIntegrityProof did:key:* value (in DID log)
+
+        // retrieve key
         var kid = signedJWT.getHeader().getKeyID();
-        var publicKeyMultibase = kid.split("#")[1];
-        byte[] publicKeyBytes;
-        // The fromMultibase constructor may denote (via MultibaseConversionFailed error code)
-        // that a supplied string value is not multibase-encoded as specified by
-        // The Multibase Data Format (https://www.ietf.org/archive/id/draft-multiformats-multibase-08.html)
-        try (var ignored = Ed25519VerifyingKey.Companion.fromMultibase(publicKeyMultibase)) {
-            var buf = Base58.decode(publicKeyMultibase.substring(1));
-            publicKeyBytes = Arrays.copyOfRange(buf, 2, buf.length);
+        var keyIdSplit = kid.split("#");
+        if (keyIdSplit.length != 2) {
+            throw ProofOfPossessionVerifierException.malformedClaimKid("provided kid does not have fragment");
+        }
+
+        // retrieve key
+        JWK jwk;
+        try {
+            var objectMapper = new ObjectMapper();
+            var jwkString = objectMapper.writeValueAsString(this.didDoc.getKey(keyIdSplit[1]));
+            jwk = JWK.parse(jwkString);
         } catch (DidSidekicksException e) {
-            throw ProofOfPossessionVerifierException.malformedClaimKid(e);
+            throw ProofOfPossessionVerifierException.keyMismatch("Did Doc does not contain specified key.");
+        } catch (ParseException | JsonProcessingException e) {
+            throw ProofOfPossessionVerifierException.unparsable(e);
         }
 
-        if (!this.updateKeys.contains(publicKeyMultibase)) {
-            throw ProofOfPossessionVerifierException.keyMismatch(publicKeyMultibase);
-        }
-
-        var jwk = new OctetKeyPair.Builder(
-                Curve.Ed25519,
-                Base64URL.encode(publicKeyBytes))
-                .build();
-
-        Ed25519Verifier verifier;
         try {
-            verifier = new Ed25519Verifier(jwk.toPublicJWK());
-        } catch (JOSEException ex) { // If the key subtype is not supported
-            throw ProofOfPossessionVerifierException.unsupportedKeySubtype();
-        }
-
-        boolean verified;
-        try {
-            verified = signedJWT.verify(verifier);
+            JWSVerifier jwsVerifier = new ECDSAVerifier(jwk.toECKey());
+            if (!signedJWT.verify(jwsVerifier)) {
+                throw ProofOfPossessionVerifierException.invalidSignature();
+            }
         } catch (JOSEException e) {
             throw ProofOfPossessionVerifierException.failedToVerify(e);
-        }
-
-        if (!verified) {
-            throw ProofOfPossessionVerifierException.invalidSignature();
         }
     }
 }

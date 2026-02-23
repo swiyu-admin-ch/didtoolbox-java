@@ -1,8 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import com.nimbusds.jose.JWSAlgorithm;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,26 +14,28 @@ class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
     private static final Duration ONE_DAY_LONG = Duration.ofDays(1);
 
     @Test
-    void testCreateValidJWT() throws Exception {
-        var nonce = "my_nonce";
+    void testCreateJWT_valid() throws Exception {
+        var nonce = "test_nonce";
 
-        var didLog = buildInitialTdwDidLogEntry(TEST_POP_JWS_SIGNER);
+        var didLog = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
+        var didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog);
 
-        // create proof
-        var proof = new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER)
-                .create(nonce, ONE_DAY_LONG);
+        var crypto = new EcP256ProofOfPossessionJWSSigner(Path.of("src/test/data/assert-key-01"), didLogMeta.getDidDoc().getId() + "#my-assert-key-01");
+        var proofCreator = new ProofOfPossessionCreator(crypto);
 
-        // verify JWT (head/payload) claims
-        var header = proof.getHeader();
-        assertEquals(JWSAlgorithm.Ed25519, header.getAlgorithm());
+        var pop = proofCreator.create(nonce, Duration.ofDays(90));
+
+        var header = pop.getHeader();
+        assertEquals(JWSAlgorithm.ES256, pop.getHeader().getAlgorithm());
         assertTrue(didLog.contains(header.getKeyID()));
-        var payload = proof.getPayload().toJSONObject();
+
+        var payload = pop.getPayload().toJSONObject();
         assertNotNull(payload.get("exp"));
         assertNotNull(payload.get("nonce"));
         assertEquals(nonce, payload.get("nonce").toString());
 
         // verify proof
-        assertTrue(new ProofOfPossessionVerifier(didLog).isValid(proof, nonce));
+        assertDoesNotThrow(() -> new ProofOfPossessionVerifier(didLog).isValid(pop, nonce));
     }
 
     @Test
@@ -62,6 +66,30 @@ class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
         assertEquals(nonce, payload.get("nonce").toString());
 
         // CAUTION: MUST be invalid
+        assertFalse(new ProofOfPossessionVerifier(didLog).isValid(proof, nonce));
+    }
+
+
+    @Test
+    void testCreateValidJWT_fail() throws Exception {
+        var nonce = "my_nonce";
+
+        var didLog = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE);
+
+        // create proof
+        var proof = new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER)
+                .create(nonce, ONE_DAY_LONG);
+
+        // verify JWT (head/payload) claims
+        var header = proof.getHeader();
+        assertEquals(JWSAlgorithm.Ed25519, header.getAlgorithm());
+        assertFalse(didLog.contains(header.getKeyID()));
+        var payload = proof.getPayload().toJSONObject();
+        assertNotNull(payload.get("exp"));
+        assertNotNull(payload.get("nonce"));
+        assertEquals(nonce, payload.get("nonce").toString());
+
+        // verify proof
         assertFalse(new ProofOfPossessionVerifier(didLog).isValid(proof, nonce));
     }
 }

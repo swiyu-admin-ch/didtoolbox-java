@@ -80,11 +80,13 @@ public abstract class AbstractUtilTestBase {
      * Sharing the very same keys ({@link #TEST_PRIVATE_KEY_MULTIBASE}, {@link #TEST_PUBLIC_KEY_MULTIBASE}) with {@link #TEST_CRYPTO_SUITE}
      */
     final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER;
+    final static String TEST_POP_JWS_KID = "did:webvh:SCID:example.com#key-1";
 
     /**
      * Sharing the very same keys with {@link #TEST_CRYPTO_SUITE_ANOTHER}
      */
     final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER_ANOTHER;
+    final static String TEST_POP_JWS_KID_ANOTHER = "did:webvh:SCID:example.com#key-2";
 
     /**
      * Collection of signing/verifying Ed25519 keys in various (appropriate) format intended for testing purposes only
@@ -167,13 +169,15 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
 
         try {
             // Using (example) keys from https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-            TEST_POP_JWS_SIGNER = new EdDsaJcs2022ProofOfPossessionJWSSignerImpl(TEST_PRIVATE_KEY_MULTIBASE);
-            TEST_CRYPTO_SUITE = TEST_POP_JWS_SIGNER;
+            var suite = new EdDsaJcs2022ProofOfPossessionJWSSignerImpl(TEST_PRIVATE_KEY_MULTIBASE, TEST_POP_JWS_KID);
+            TEST_POP_JWS_SIGNER = suite;
+            TEST_CRYPTO_SUITE = suite;
 
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            TEST_POP_JWS_SIGNER_JKS = new EdDsaJcs2022ProofOfPossessionJWSSigner(
-                    Files.newInputStream(Path.of(TEST_DATA_PATH_PREFIX + "mykeystore.jks")), "changeit", "myalias", "changeit");
-            TEST_CRYPTO_SUITE_JKS = TEST_POP_JWS_SIGNER_JKS;
+            var suiteJks = new EdDsaJcs2022ProofOfPossessionJWSSigner(
+                    Files.newInputStream(Path.of(TEST_DATA_PATH_PREFIX + "mykeystore.jks")), "changeit", "myalias", "changeit", TEST_POP_JWS_KID);
+            TEST_POP_JWS_SIGNER_JKS = suiteJks;
+            TEST_CRYPTO_SUITE_JKS = suiteJks;
 
             TEST_ASSERTION_METHOD_KEYS = Map.of("my-assert-key-01",
                     JwkUtils.loadECPublicJWKasJSON(Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"), "my-assert-key-01"));
@@ -184,8 +188,9 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
         }
 
         try {
-            TEST_POP_JWS_SIGNER_ANOTHER = new EdDsaJcs2022ProofOfPossessionJWSSigner(Path.of(TEST_DATA_PATH_PREFIX + "private01.pem")); // supplied external key pair
-            TEST_CRYPTO_SUITE_ANOTHER = TEST_POP_JWS_SIGNER_ANOTHER;
+            var suite_jws = new EdDsaJcs2022ProofOfPossessionJWSSigner(Path.of(TEST_DATA_PATH_PREFIX + "private01.pem"), TEST_POP_JWS_KID_ANOTHER); // supplied external key pair
+            TEST_POP_JWS_SIGNER_ANOTHER = suite_jws;
+            TEST_CRYPTO_SUITE_ANOTHER = suite_jws;
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
