@@ -31,7 +31,6 @@ final class DidLogStrategyFactory {
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
                         .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
-                        .forceOverwrite(ctx.isForceOverwrite())
                         .build();
             }
             case WEBVH_1_0 -> {
@@ -45,7 +44,6 @@ final class DidLogStrategyFactory {
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
                         .nextKeyHashesDidMethodParameter(ctx.getNextKeyHashesDidMethodParameter())
-                        .forceOverwrite(ctx.isForceOverwrite())
                         .build();
             }
         }

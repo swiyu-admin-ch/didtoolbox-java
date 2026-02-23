@@ -45,9 +45,9 @@ import java.util.Set;
  * <p>
  * As any other {@link VcDataIntegrityCryptographicSuite} implementation, it is predominantly intended to be used in conjunction with:
  * <ul>
- * <li> {@link DidLogCreatorContext.DidLogCreatorContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} method
+ * <li> {@link DidLogCreatorContext#cryptographicSuite} setter
  * (prior to a {@link DidLogCreatorContext#create(URL)} call)</li>
- * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} method
+ * <li>{@link DidLogUpdaterContext#cryptographicSuite} setter
  * (prior to a {@link DidLogUpdaterContext#update(String)} call).</li>
  * </ul>
  * <p>

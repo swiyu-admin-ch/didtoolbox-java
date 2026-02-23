@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox.context;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,16 +21,17 @@ import java.util.Set;
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
- * it is intended to be instantiated exclusively via its static {@link #builder()} method.
+ * it is intended to be instantiated exclusively via its static {@code builder()} method.
  * <p>
- * Once a {@link DidLogUpdaterContext} object is "built", creating a DID
- * log goes simply by calling {@link #update(String)} method. Optionally, but most likely, an already existing key material will
- * be also used in the process, so for the purpose there are further fluent methods available:
+ * Once a {@link DidLogUpdaterContext} object is properly "built"
+ * (i.e. with some proper cryptographic suite and verification material included),
+ * creating a DID log goes simply by calling {@link #update(String)} method.
+ * So, before calling the {@code build()} method there are also these fluent methods available:
  * <ul>
- * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
- * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link DidLogUpdaterContext#cryptographicSuite} for the purpose of adding data integrity proof</li>
+ * <li>{@link DidLogUpdaterContext#authenticationKeys} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link DidLogUpdaterContext#assertionMethodKeys} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
@@ -100,9 +100,39 @@ public class DidLogUpdaterContext {
 
     private static final String SCID_PLACEHOLDER = "{SCID}";
 
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
+     * verification relationships.
+     * <p>
+     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
+     * <p>
+     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
+     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
+     * <p>
+     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
+     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
+     */
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> assertionMethodKeys;
 
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
+     * verification relationships.
+     * <p>
+     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
+     * <p>
+     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
+     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
+     * <p>
+     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
+     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
+     */
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> authenticationKeys;
 
@@ -110,9 +140,8 @@ public class DidLogUpdaterContext {
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets no precedence over it (if both called against the same object).
      */
-    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
     /**
      * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
@@ -202,12 +231,13 @@ public class DidLogUpdaterContext {
     /**
      * Updates a valid DID log by taking into account other
      * features of this {@link DidLogUpdaterContext} object, optionally customized by previously calling fluent methods like
-     * {@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#verificationMethodKeyProvider}, {@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#authenticationKeys(Map)} or
-     * {@link DidLogUpdaterContext.DidLogUpdaterContextBuilder#assertionMethodKeys(Map)}.
+     * {@link DidLogUpdaterContext#verificationMethodKeyProvider}, {@link DidLogUpdaterContext#authenticationKeys} or
+     * {@link DidLogUpdaterContext#assertionMethodKeys}.
      *
      * @param didLog to update. Expected to be resolvable/verifiable already.
      * @return a whole new DID log entry to be appended to the existing {@code didLog}
-     * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
+     * @throws DidLogUpdaterStrategyException        if update fails for whatever reason.
+     * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      * @see #update(String, ZonedDateTime)
      */
     public String update(String didLog) throws DidLogUpdaterStrategyException {
@@ -218,7 +248,8 @@ public class DidLogUpdaterContext {
      * The file-system-as-input variation of {@link #update(String)}
      *
      * @return a whole new DID log entry to be appended to the supplied {@code didLogFile}
-     * @throws DidLogUpdaterStrategyException if update fails for whatever reason
+     * @throws DidLogUpdaterStrategyException        if update fails for whatever reason
+     * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      * @see #update(String, ZonedDateTime)
      */
     public String update(File didLogFile) throws DidLogUpdaterStrategyException {
@@ -239,7 +270,8 @@ public class DidLogUpdaterContext {
      * @param resolvableDidLog to update. Expected to be resolvable/verifiable already.
      * @param zdt              a date-time with a time-zone in the ISO-8601 calendar system
      * @return a whole new DID log entry to be appended to the existing {@code didLog}
-     * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
+     * @throws DidLogUpdaterStrategyException        if update fails for whatever reason.
+     * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      */
     String update(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
         // just use the strategy factory to get an adequate strategy

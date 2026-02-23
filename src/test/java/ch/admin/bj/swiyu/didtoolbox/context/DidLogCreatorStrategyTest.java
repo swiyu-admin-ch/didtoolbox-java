@@ -6,6 +6,7 @@ import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreatorTest;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
@@ -35,9 +36,8 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
 
             // NOTE that all keys will all be generated here as well, as the default cryptographicSuite is used
             var ctxBuilder = DidLogCreatorContext.builder()
-                    .didMethod(DidMethodEnum.TDW_0_3) // must be set explicitly for did:tdw logs
-                    // the default cryptographicSuite is used, with generated key pair
-                    .forceOverwrite(true)
+                    .didMethod(DidMethodEnum.TDW_0_3) // CAUTION must be set explicitly for did:tdw logs
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))); // add another value "updateKeys" param
@@ -65,10 +65,9 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(DidLogCreatorContext.builder()
                     //.didMethod(DidMethodEnum.WEBVH_1_0) // default
-                    // the default cryptographicSuite is used, with generated key pair
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // add another value "updateKeys" param
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
-                    .forceOverwrite(true)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()

@@ -11,7 +11,7 @@ This is the list of all third-party dependencies grouped by their license type. 
 * **Gson** (com.google.code.gson:gson:2.13.2 - https://github.com/google/gson)
 * **Tink Cryptography API** (com.google.crypto.tink:tink:1.20.0 - http://github.com/tink-crypto/tink-java)
 * **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.41.0 - https://errorprone.info/error_prone_annotations)
-* **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.7 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
+* **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.8 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
 * **Java Native Access** (net.java.dev.jna:jna:5.18.1 - https://github.com/java-native-access/jna)
 * **org.apiguardian:apiguardian-api** (org.apiguardian:apiguardian-api:1.1.2 - https://github.com/apiguardian-team/apiguardian)
 * **jcommander** (org.jcommander:jcommander:3.0 - https://jcommander.org)

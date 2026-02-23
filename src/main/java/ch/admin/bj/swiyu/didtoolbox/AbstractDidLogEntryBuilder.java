@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
@@ -216,19 +217,18 @@ public abstract class AbstractDidLogEntryBuilder {
     }
 
     /**
+     * Create a valid DID document w.r.t. supplied verification material.
      *
-     * @param identifierRegistryUrl
+     * @param identifierRegistryUrl to build a DID for
      * @param authenticationKeys
      * @param assertionMethodKeys
-     * @param forceOverwrite
      * @return JSON object representing a valid DID document w.r.t. to supplied verification material
-     * @throws DidLogCreatorStrategyException if no verification material is supplied
+     * @throws IncompleteDidLogEntryBuilderException if no proper verification material is supplied
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity"})
     protected JsonObject createDidDoc(URL identifierRegistryUrl,
                                       Map<String, String> authenticationKeys,
-                                      Map<String, String> assertionMethodKeys,
-                                      boolean forceOverwrite) throws DidLogCreatorStrategyException {
+                                      Map<String, String> assertionMethodKeys) {
 
         var did = buildDid(identifierRegistryUrl);
 
@@ -251,7 +251,7 @@ public abstract class AbstractDidLogEntryBuilder {
 
         if ((authenticationKeys == null || authenticationKeys.isEmpty())
                 && (assertionMethodKeys == null || assertionMethodKeys.isEmpty())) {
-            throw new DidLogCreatorStrategyException("No verification material (authentication or assertion) supplied");
+            throw new IncompleteDidLogEntryBuilderException("No verification material (authentication or assertion) supplied");
         }
 
         if (authenticationKeys != null && !authenticationKeys.isEmpty()) {

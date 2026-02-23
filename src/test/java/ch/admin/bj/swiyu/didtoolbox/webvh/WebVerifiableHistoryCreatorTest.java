@@ -4,10 +4,12 @@ import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -90,8 +93,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
 
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
-                    // the default signer (verificationMethodKeyProvider) is used
-                    .forceOverwrite(true)
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()
@@ -110,9 +112,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
-                    // the default signer (verificationMethodKeyProvider) is used
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
-                    .forceOverwrite(true)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()
@@ -136,10 +137,9 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
-                    // the default signer (verificationMethodKeyProvider) is used
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // activate prerotation by adding one of the 'updateKeys'
-                    .forceOverwrite(true)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()
@@ -169,10 +169,9 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
-                    // the default signer (verificationMethodKeyProvider) is used
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
-                    .forceOverwrite(true)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()
@@ -204,7 +203,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // it matches the signing key, thus it should not be added to 'updateKeys'
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // activate prerotation by adding one of the 'updateKeys'
-                    .forceOverwrite(true)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()
@@ -231,7 +229,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
-                    .forceOverwrite(true)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()
@@ -292,6 +289,31 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                 """.contains(didLogEntry.get()));
     }
 
+    @DisplayName("Building DID log entry without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
+    @Test
+    public void testCreateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+
+        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            WebVerifiableHistoryCreator.builder()
+                    // IMPORTANT A .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
+                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .build()
+                    .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
+
+        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            WebVerifiableHistoryCreator.builder()
+                    // the signing key are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
+                    .build()
+                    .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No verification material"));
+    }
+
     @DisplayName("Building did:webvh log entry from an existing DID document")
     @Test
     void testFromDidDoc() {
@@ -305,9 +327,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             var didDoc = ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker.peek(
                             DidLogCreatorContext.builder()
                                     .didMethod(DidMethodEnum.TDW_0_3)
-                                    // the default signer (verificationMethodKeyProvider) is used
+                                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                                     //.updateKeys(Set.of(new File("src/test/data/public.pem")))
-                                    .forceOverwrite(true)
                                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                                     .build()
@@ -317,7 +338,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
 
             assertDidLogEntry(
                     WebVerifiableHistoryCreator
-                            .createDidLogFromDidDoc(didDoc, webvhUrl, zdt) // MUT
+                            // Use a whole another cryptographic suite
+                            .createDidLogFromDidDoc(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(), didDoc, webvhUrl, zdt) // MUT
             );
         });
     }

@@ -1,17 +1,20 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -75,10 +78,9 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(TdwCreator.builder()
-                    // the default signer (verificationMethodKeyProvider) is used
-                    .forceOverwrite(true)
+                    // the signing key are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .build()
@@ -95,10 +97,9 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(TdwCreator.builder()
-                    // the default signer (verificationMethodKeyProvider) is used
-                    .forceOverwrite(true)
+                    // the signing key are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
@@ -183,5 +184,30 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         assertTrue("""
                 ["1-QmatgtdB7F3p81X4W3MGGs5EWHZATJkjbA2tji7tbjDpB2","2012-12-12T12:12:12Z",{"method":"did:tdw:0.3","scid":"QmYD2gdyU1opYus5bJSoJr4c78mgctJnGHRsgqPv9NoLBh","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},{"value":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:tdw:QmYD2gdyU1opYus5bJSoJr4c78mgctJnGHRsgqPv9NoLBh:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:QmYD2gdyU1opYus5bJSoJr4c78mgctJnGHRsgqPv9NoLBh:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01"],"assertionMethod":["did:tdw:QmYD2gdyU1opYus5bJSoJr4c78mgctJnGHRsgqPv9NoLBh:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmYD2gdyU1opYus5bJSoJr4c78mgctJnGHRsgqPv9NoLBh:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:tdw:QmYD2gdyU1opYus5bJSoJr4c78mgctJnGHRsgqPv9NoLBh:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:12Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-QmatgtdB7F3p81X4W3MGGs5EWHZATJkjbA2tji7tbjDpB2","proofValue":"z3ab9n5EmT3NTCHZis6Bfr3FbMoYGumYHUs29TsDg4548bSazcpekSpxNjTSYY9on9nPdUsbC8tuzCuuX17UTMT6Q"}]]
                 """.contains(didLogEntry.get()));
+    }
+
+    @DisplayName("Building DID log entry without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
+    @Test
+    public void testCreateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+
+        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            TdwCreator.builder()
+                    // IMPORTANT .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
+                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .build()
+                    .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
+
+        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            TdwCreator.builder()
+                    // the signing are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
+                    .build()
+                    .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No verification material"));
     }
 }

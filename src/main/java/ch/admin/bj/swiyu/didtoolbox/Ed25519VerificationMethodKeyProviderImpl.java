@@ -42,9 +42,9 @@ import java.util.Set;
  * <p>
  * It is predominantly intended to be used within a:
  * <ul>
- * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext.DidLogCreatorContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} method
+ * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#cryptographicSuite} setter
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#create(URL)} call)</li>
- * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext.DidLogUpdaterContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} method
+ * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext#cryptographicSuite} setter
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext#update(String)} call).</li>
  * </ul>
  * <p>

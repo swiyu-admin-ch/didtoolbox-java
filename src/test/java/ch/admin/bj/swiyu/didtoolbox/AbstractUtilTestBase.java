@@ -272,6 +272,7 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
         try {
             return WebVerifiableHistoryCreator.builder()
                     // CAUTION Calling .verificationMethodKeyProvider(...) is here irrelevant thus redundant
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeys)) // IMPORTANT denotes key pre-rotation

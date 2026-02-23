@@ -8,7 +8,6 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.didresolver.Did;
@@ -36,16 +35,16 @@ import java.util.Set;
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
- * it is intended to be instantiated exclusively via its static {@link #builder()} method.
+ * it is intended to be instantiated exclusively via its static {@code builder()} method.
  * <p>
  * Once a {@link WebVerifiableHistoryUpdater} object is "built", creating a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
  * log goes simply by calling {@link #updateDidLog(String)} method. Optionally, but most likely, an already existing key material will
- * be also used in the process, so for the purpose there are further fluent methods available:
+ * be also used in the process, so for the purpose there are further fluent methods (setters) available:
  * <ul>
- * <li>{@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
- * <li>{@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link WebVerifiableHistoryUpdater#cryptographicSuite} for the purpose of adding data integrity proof</li>
+ * <li>{@link WebVerifiableHistoryUpdater#authenticationKeys} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link WebVerifiableHistoryUpdater#assertionMethodKeys} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
@@ -54,12 +53,10 @@ import java.util.Set;
  * To load authentication/assertion public EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
  * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link ch.admin.bj.swiyu.didtoolbox.JwkUtils}.
  * <p>
- * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
  * Instead, rather rely on the designated {@link DidLogUpdaterContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
  * {@link ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum#detectDidMethod(String)} or {@link ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum#detectDidMethod(File)}.
- * <p>
  */
 @SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods"})
 @Builder
@@ -68,9 +65,39 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
 
     private static final String SCID_PLACEHOLDER = "{SCID}";
 
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
+     * verification relationships.
+     * <p>
+     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
+     * <p>
+     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
+     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
+     * <p>
+     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
+     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
+     */
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> assertionMethodKeys;
 
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
+     * verification relationships.
+     * <p>
+     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
+     * <p>
+     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
+     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
+     * <p>
+     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
+     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
+     */
     @Getter(AccessLevel.PRIVATE)
     private Map<String, String> authenticationKeys;
 
@@ -78,9 +105,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets NO precedence over it (if both called against the same object).
      */
-    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
     /**
      * @deprecated Use {@link #cryptographicSuite} instead
@@ -172,8 +198,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
     /**
      * Updates a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log by taking into account other
      * features of this {@link WebVerifiableHistoryUpdater} object, optionally customized by previously calling fluent methods like
-     * {@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#verificationMethodKeyProvider}, {@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#authenticationKeys(Map)} or
-     * {@link WebVerifiableHistoryUpdater.WebVerifiableHistoryUpdaterBuilder#assertionMethodKeys(Map)}.
+     * {@link WebVerifiableHistoryUpdater#verificationMethodKeyProvider}, {@link WebVerifiableHistoryUpdater#authenticationKeys} or
+     * {@link WebVerifiableHistoryUpdater#assertionMethodKeys}.
      *
      * @param didLog to update. Expected to be resolvable/verifiable already.
      * @return a whole new <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}

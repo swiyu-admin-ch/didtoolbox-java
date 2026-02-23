@@ -48,10 +48,6 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : isForceOverwrite
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : boolean
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator : builder
 			activate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator
 				ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator$WebVerifiableHistoryCreatorBuilder
@@ -75,10 +71,6 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : getNextKeyHashesDidMethodParameter
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : isForceOverwrite
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : boolean
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
 		deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory

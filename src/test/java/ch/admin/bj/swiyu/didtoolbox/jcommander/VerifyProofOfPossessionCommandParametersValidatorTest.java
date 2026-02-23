@@ -56,7 +56,6 @@ class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend Abs
                     .cryptographicSuite(TEST_CRYPTO_SUITE)
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .forceOverwrite(true)
                     .build()
                     .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null));
 

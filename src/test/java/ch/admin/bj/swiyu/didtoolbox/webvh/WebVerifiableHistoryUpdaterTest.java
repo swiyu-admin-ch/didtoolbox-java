@@ -88,7 +88,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
             WebVerifiableHistoryUpdater.builder()
-                    // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
+                    // anything but TEST_CRYPTO_SUITE
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .updateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
@@ -234,7 +235,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
-                    // IMPORTANT Let the builder set any VerificationMethodKeyProvider itself, as long as it delivers a key different than the one from initial entry
+                    // IMPORTANT Any cryptographic suite delivering keys different from those from the initial entry
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
                     .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
                     .build()

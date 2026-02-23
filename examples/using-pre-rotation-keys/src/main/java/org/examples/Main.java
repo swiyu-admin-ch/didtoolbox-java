@@ -62,8 +62,8 @@ public class Main {
                                 //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                                 //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                         ))
-                        // Forced to avoid error: "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: .didtoolbox/auth-key-01"
-                        .forceOverwrite(true)
+                        .assertionMethodKeys(Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("../../src/test/data/assert-key-01.pub"), "my-assert-key-01")))
+                        //.authenticationKeys(Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("../../src/test/data/auth-key-01.pub"), "my-auth-key-01")))
                         .build()
                         .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null))
         ).append(System.lineSeparator());
@@ -78,8 +78,6 @@ public class Main {
                     DidLogUpdaterContext.builder()
                             // switch to the key defined by the "nextKeyHashes" from the previous entry (the key store is already "rotated" earlier)
                             .cryptographicSuite(RandomEd25519KeyStore.cryptographicSuite())
-                            // REMINDER .didtoolbox directory was created previously while building the initial DID log entry (thanks to .forceOverwrite(true))
-                            .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of(".didtoolbox/assert-key-01.pub"), "my-assert-key-0" + i))).authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of(".didtoolbox/auth-key-01.pub"), "my-auth-key-0" + i)))
                             // Prepare ("rotate" to) another pre-rotation key to be used when building the next DID log entry
                             .nextKeyHashesDidMethodParameter(Set.of(
                                     // Bear in mind, after the key store "rotation", all its (static) helpers "point" to the next/another key in the store
@@ -89,6 +87,8 @@ public class Main {
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                             ))
+                            .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("../../src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
+                            .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("../../src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
                             .build()
                             .update(didLog.toString())
             ).append(System.lineSeparator());

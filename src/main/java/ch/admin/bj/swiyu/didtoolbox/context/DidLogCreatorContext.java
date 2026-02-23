@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox.context;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,16 +20,17 @@ import java.util.Set;
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
- * it is intended to be instantiated exclusively via its static {@link #builder()} method.
+ * it is intended to be instantiated exclusively via its static {@code builder()} method.
  * <p>
- * Once a {@link DidLogCreatorContext} object is "built", creating a DID
- * log goes simply by calling {@link #create(URL)} method. Optionally, but most likely, an already existing key material will
- * be also used in the process, so for the purpose there are further fluent methods available:
+ * Once a {@link DidLogCreatorContext} object is properly "built"
+ * (i.e. with some proper cryptographic suite and verification material included),
+ * creating a DID log goes simply by calling {@link #create(URL)} method.
+ * So, before calling the {@code build()} method there are also these fluent methods available:
  * <ul>
- * <li>{@link DidLogCreatorContext.DidLogCreatorContextBuilder#cryptographicSuite(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
- * <li>{@link DidLogCreatorContext.DidLogCreatorContextBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link DidLogCreatorContext#cryptographicSuite} for the purpose of adding data integrity proof</li>
+ * <li>{@link DidLogCreatorContext#authenticationKeys} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link DidLogCreatorContext.DidLogCreatorContextBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link DidLogCreatorContext#assertionMethodKeys} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
@@ -86,9 +86,39 @@ import java.util.Set;
 @Getter
 public class DidLogCreatorContext {
 
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
+     * verification relationships.
+     * <p>
+     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
+     * <p>
+     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
+     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
+     * <p>
+     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
+     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
+     */
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> assertionMethodKeys;
 
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
+     * verification relationships.
+     * <p>
+     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
+     * <p>
+     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
+     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
+     * <p>
+     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
+     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
+     */
     @Getter(AccessLevel.PACKAGE)
     private Map<String, String> authenticationKeys;
 
@@ -98,9 +128,8 @@ public class DidLogCreatorContext {
      *
      * @since 1.8.0
      */
-    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
     /**
      * @deprecated Use {@link #cryptographicSuite} instead
@@ -159,7 +188,11 @@ public class DidLogCreatorContext {
     @Getter(AccessLevel.PACKAGE)
     private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter;
 
+    /**
+     * @deprecated Removed as redundant
+     */
     @Getter(AccessLevel.PACKAGE)
+    @Deprecated(since = "1.9.0")
     private boolean forceOverwrite;
 
     /**
@@ -193,13 +226,14 @@ public class DidLogCreatorContext {
     /**
      * Creates a valid DID log by taking into account other
      * features of this {@link DidLogCreatorContext} object, optionally customized by previously calling fluent methods like
-     * {@link DidLogCreatorContext.DidLogCreatorContextBuilder#verificationMethodKeyProvider}, {@link DidLogCreatorContext.DidLogCreatorContextBuilder#authenticationKeys(Map)} or
-     * {@link DidLogCreatorContext.DidLogCreatorContextBuilder#assertionMethodKeys(Map)}.
+     * {@link DidLogCreatorContext#verificationMethodKeyProvider}, {@link DidLogCreatorContext#authenticationKeys} or
+     * {@link DidLogCreatorContext#assertionMethodKeys}.
      *
      * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
      *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
      * @return a valid DID log
-     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
+     * @throws DidLogCreatorStrategyException        if creation fails for whatever reason
+     * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      * @see #create(URL, ZonedDateTime)
      */
     public String create(URL identifierRegistryUrl) throws DidLogCreatorStrategyException {
@@ -217,7 +251,8 @@ public class DidLogCreatorContext {
      *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
      * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
      * @return a valid DID log
-     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
+     * @throws DidLogCreatorStrategyException        if creation fails for whatever reason
+     * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      */
     String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
         // just use the strategy factory to get an adequate strategy

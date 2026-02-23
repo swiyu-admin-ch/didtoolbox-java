@@ -19,9 +19,9 @@ import java.security.UnrecoverableEntryException;
  * <p>
  * It is predominantly intended to be used within a:
  * <ul>
- * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext.DidLogCreatorContextBuilder#cryptographicSuite(ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite)} method
+ * <li> {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#cryptographicSuite} method
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#create(URL)} call)</li>
- * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext.DidLogUpdaterContextBuilder#cryptographicSuite(ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite)} method
+ * <li>{@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext#cryptographicSuite} method
  * (prior to a {@link ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext#update(String)} call).</li>
  * </ul>
  * <p>

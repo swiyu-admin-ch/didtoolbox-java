@@ -107,12 +107,14 @@ final class JCommanderRunner {
             System.exit(0);
         }
 
-        URL identifierRegistryUrl = command.identifierRegistryUrl;
+        var identifierRegistryUrl = command.identifierRegistryUrl;
 
         var didMethod = command.methodVersion; // may return null
         if (didMethod == null) {
             didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
         }
+
+        var forceOverwrite = command.forceOverwrite;
 
         Map<String, String> assertionMethodKeysMap = new HashMap<>();
         var assertionMethodKeys = command.assertionMethodKeys;
@@ -123,7 +125,7 @@ final class JCommanderRunner {
         } else {
             createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
             assertionMethodKeysMap.put("assert-key-01",
-                    JwkUtils.generatePublicEC256("assert-key-01", Path.of(".didtoolbox/assert-key-01").toFile(), command.forceOverwrite));
+                    JwkUtils.generatePublicEC256("assert-key-01", Path.of(".didtoolbox/assert-key-01").toFile(), forceOverwrite));
         }
 
         Map<String, String> authenticationKeysMap = new HashMap<>();
@@ -135,7 +137,7 @@ final class JCommanderRunner {
         } else {
             createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
             authenticationKeysMap.put("auth-key-01",
-                    JwkUtils.generatePublicEC256("auth-key-01", Path.of(".didtoolbox/auth-key-01").toFile(), command.forceOverwrite));
+                    JwkUtils.generatePublicEC256("auth-key-01", Path.of(".didtoolbox/auth-key-01").toFile(), forceOverwrite));
         }
 
         var signingKeyPemFile = command.signingKeyPemFile;
@@ -149,8 +151,6 @@ final class JCommanderRunner {
         var primus = command.securosysPrimusKeyStoreLoader;
         var primusKeyAlias = command.primusKeyAlias;
         var primusKeyPassword = command.primusKeyPassword;
-
-        boolean forceOverwrite = command.forceOverwrite;
 
         VcDataIntegrityCryptographicSuite cryptoSuite = null;
 
@@ -250,7 +250,6 @@ final class JCommanderRunner {
                 .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
                 // Instead of calling deprecated .nextKeys(nextKeyPemFiles)
                 .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeyPemFiles))
-                .forceOverwrite(forceOverwrite)
                 .build()
                 .create(identifierRegistryUrl));
     }

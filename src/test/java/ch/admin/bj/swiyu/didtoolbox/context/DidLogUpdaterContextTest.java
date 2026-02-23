@@ -6,6 +6,7 @@ import ch.admin.bj.swiyu.didtoolbox.RandomEd25519KeyStore;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
             DidLogUpdaterContext.builder()
                     .didMethod(DidMethodEnum.TDW_0_3) // must be set explicitly for did:tdw logs
-                    // no explicit cryptographicSuite set, hence keys are generated on-the-fly
+                    // the signing keys are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     // CAUTION Key pre-rotation is not (yet) implemented for did:tdw
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
                     .build()
@@ -46,7 +48,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
             DidLogUpdaterContext.builder()
                     .didMethod(DidMethodEnum.TDW_0_3) // must be set explicitly for did:tdw logs
-                    // no explicit cryptographicSuite set, hence keys are generated on-the-fly
+                    // the signing keys are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .update(finalDidLog1); // MUT
         });
@@ -67,7 +70,9 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
             DidLogUpdaterContext.builder()
-                    .didMethod(DidMethodEnum.detectDidMethod(finalDidLog1)) // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
+                    .didMethod(DidMethodEnum.detectDidMethod(finalDidLog1))
+                    // the signing keys are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .update(finalDidLog1); // MUT
         });
@@ -92,7 +97,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
             DidLogUpdaterContext.builder()
                     //.didMethod(DidMethodEnum.WEBVH_1_0) // default
-                    // no explicit cryptographicSuite set, hence keys are generated on-the-fly
+                    // the signing keys are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .update(finalDidLog2); // MUT
         });
@@ -114,7 +120,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
             DidLogUpdaterContext.builder()
                     .didMethod(DidMethodEnum.detectDidMethod(finalDidLog2))
-                    // no explicit cryptographicSuite set, hence keys are generated on-the-fly
+                    // the signing keys are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .update(finalDidLog2); // MUT
         });
