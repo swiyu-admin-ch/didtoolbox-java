@@ -80,7 +80,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.4</version>
+                <version>3.5.5</version>
                 <configuration>
                     <!-- Equiv. to JAVA_TOOL_OPTIONS=-enable-preview mvn ... -->
                     <!-- See also https://junit-pioneer.org/docs/environment-variables/#warnings-for-reflective-access -->
