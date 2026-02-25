@@ -60,7 +60,7 @@ public final class PemUtils {
         return content;
     }
 
-    static KeyPair parsePemKeyPair(Reader pemKeyPairReader) throws IOException {
+    public static KeyPair parsePemKeyPair(Reader pemKeyPairReader) throws IOException {
         final PEMParser parser = new PEMParser(pemKeyPairReader);
         var pemObj = parser.readObject();
 

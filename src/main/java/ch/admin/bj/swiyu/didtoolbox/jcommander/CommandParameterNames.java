@@ -40,6 +40,9 @@ public interface CommandParameterNames {
     String PARAM_NAME_LONG_DID_LOG_FILE = "--did-log-file";
     String PARAM_NAME_SHORT_DID_LOG_FILE = "-d";
 
+    String PARAM_NAME_LONG_KID = "--kid";
+    String PARAM_NAME_SHORT_KID = "-k";
+
     String PARAM_NAME_LONG_NONCE = "--nonce";
     String PARAM_NAME_SHORT_NONCE = "-n";
 

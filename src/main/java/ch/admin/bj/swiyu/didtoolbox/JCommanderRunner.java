@@ -417,8 +417,7 @@ final class JCommanderRunner {
 
     @SuppressWarnings({"PMD.CyclomaticComplexity"})
     void runPoPCreateCommand(CreateProofOfPossessionCommand command)
-            throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            NoSuchAlgorithmException, KeyException, ProofOfPossessionCreatorException {
+            throws IOException, ProofOfPossessionCreatorException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -428,42 +427,21 @@ final class JCommanderRunner {
         Duration validDuration = Duration.ofDays(1);
 
         var nonce = command.nonce;
-        var signingKeyPemFile = command.signingKeyPemFile;
-        var verifyingKeyPemFile = command.verifyingKeyPemFile;
+        var didLogFile = command.didLog;
+        var privateKey = command.signingKeyPemFile;
+        var kid = command.kid;
 
-        var jksFile = command.jksFile;
-        var jksPassword = command.jksPassword;
-        var jksAlias = command.jksAlias;
+        var didLog = Files.readString(didLogFile.toPath());
 
-        var primus = command.securosysPrimusKeyStoreLoader;
-        var primusKeyAlias = command.primusKeyAlias;
-        var primusKeyPassword = command.primusKeyPassword;
+        ProofOfPossessionJWSSigner signer = new EcP256ProofOfPossessionJWSSigner(privateKey.toPath(), kid);
 
-        ProofOfPossessionJWSSigner signer = null;
-
-        if (signingKeyPemFile != null && verifyingKeyPemFile == null) {
-
-            overAndOut(jc, parsedCommandName, "No matching verifying (public) ed25519 key supplied");
-
-        } else if (signingKeyPemFile != null) {
-
-            try {
-                signer = new EdDsaJcs2022ProofOfPossessionJWSSigner(signingKeyPemFile.toPath()); // supplied external key pair
-            } catch (VcDataIntegrityCryptographicSuiteException ex) {
-                overAndOut(jc, parsedCommandName, "Failed to load the supplied ed25519 key (pair): " + ex.getLocalizedMessage());
-            }
-
-        } else if (jksFile != null && jksAlias != null) {
-            // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
-            signer = new EdDsaJcs2022ProofOfPossessionJWSSigner(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
-        } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
-            signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
-        } else {
-            overAndOut(jc, parsedCommandName, "No source for the (signing) ed25519 key supplied. Use one of the relevant options to supply keys");
+        var proof = new ProofOfPossessionCreator(signer).create(nonce, validDuration);
+        try {
+            var verifier = new ProofOfPossessionVerifier(didLog);
+            verifier.verify(proof, nonce);
+        } catch (ProofOfPossessionVerifierException e) {
+            overAndOut(jc, parsedCommandName, "Failed to verify generated proof: %s".formatted(e.getLocalizedMessage()));
         }
-
-        var proof = new ProofOfPossessionCreator(signer)
-                .create(nonce, validDuration);
 
         jc.getConsole().println(proof.serialize());
     }

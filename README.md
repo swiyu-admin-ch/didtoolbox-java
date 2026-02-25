@@ -68,6 +68,7 @@ Usage: didtoolbox [options] [command] [command options]
   Options:
     --help, -h    Display help for the DID toolbox
     --version, -V Display version (default: false)
+
   Commands:
     create      Create a DID and sign the initial DID log entry with the provided private key. To supply a signing/verifying key pair, always rely on 
             one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key material: PEM 
@@ -76,6 +77,7 @@ Usage: didtoolbox [options] [command] [command options]
             DID-Toolbox in the lib subdirectory (e.g. as lib/primusX-java11.jar). Alternatively, you may also use 
             -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose
       Usage: create [options]
+
         Options:
           --assert, -a
             One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC P-256 
@@ -132,6 +134,7 @@ Usage: didtoolbox [options] [command] [command options]
             DID-Toolbox in the lib subdirectory (e.g. as lib/primusX-java11.jar). Alternatively, you may also use 
             -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose
       Usage: update [options]
+
         Options:
           --assert, -a
             One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC P-256 
@@ -180,6 +183,7 @@ Usage: didtoolbox [options] [command] [command options]
             subdirectory (e.g. as lib/primusX-java11.jar). Alternatively, you may also use -Xbootclasspath/a:directories|zip|JAR-files option of the 
             java command for the purpose
       Usage: deactivate [options]
+
         Options:
         * --did-log-file, -d
             The file containing a valid DID log to deactivate
@@ -210,48 +214,24 @@ Usage: didtoolbox [options] [command] [command options]
             The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. This CLI parameter cannot be used in 
             conjunction with any of --jks-* or --primus-* CLI parameters
 
-    create-pop      Create a proof of possession JWT signed with the provided private key that expires after 24 hours. To supply a signing/verifying 
-            key pair, always rely on one of the three available command parameter sets exclusively, each of then denoting a whole another source of 
-            such key material: PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. In case of a Securosys Primus (HSM) 
-            connection, the required JCE provider (JAR) library (primusX-java8.jar or primusX-java11.jar) is by-convention expected to be stored on 
-            the system alongside the DID-Toolbox in the lib subdirectory (e.g. as lib/primusX-java11.jar). Alternatively, you may also use 
-            -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose
+    create-pop      Create a proof of possession JWT signed with the provided private key that expires after 24 hours.
       Usage: create-pop [options]
+
         Options:
+        * --did-log-file, -d
+            The file containing a valid DID log to update
           --help, -h
             Display help for the DID toolbox command
-          --jks-alias
-            Java KeyStore alias name of the entry to process. This CLI parameter should always be used exclusively alongside all the other --jks-* 
-            CLI parameters
-          --jks-file, -j
-            Java KeyStore (PKCS12) file to read the (signing/verifying) keys from. This CLI parameter should always be used exclusively alongside all 
-            the other --jks-* CLI parameters
-          --jks-password
-            Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore. This CLI parameter should 
-            always be used exclusively alongside all the other --jks-* CLI parameters
+        * --kid, -k
+            KID of the key within the DID log to use.
         * --nonce, -n
             Possession which will be proven by the JWT
-          --primus-credentials, -p
-            A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. It should 
-            feature a quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and 
-            securosys_primus_password. Any credential missing in this file will simply fallback to its system environment counterpart (if set) - the 
-            relevant envvars in this case are: SECUROSYS_PRIMUS_HOST, SECUROSYS_PRIMUS_PORT, SECUROSYS_PRIMUS_USER and SECUROSYS_PRIMUS_PASSWORD. 
-            This CLI parameter should always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
-          --primus-keystore-alias, -q
-            An alias the (signing/verifying) key pair (stored in the Securosys Primus (HSM) Keystore) is associated with. This CLI parameter should 
-            always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
-          --primus-keystore-password
-            An optional password required for recovering the (signing/verifying) key pair (stored in Securosys Primus (HSM) Keystore). This CLI 
-            parameter should always be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
-          --signing-key-file, -s
-            The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. This CLI parameter cannot be used in 
-            conjunction with any of --jks-* or --primus-* CLI parameters
-          --verifying-key-file, -v
-            An ed25519 public key file matching the supplied ed25519 private key file, required for signing the PoP JWT. In PEM format. This CLI 
-            parameter cannot be used in conjunction with any of --jks-* or --primus-* CLI parameters
+        * --signing-key-file, -s
+            An EC P-256 private key file matching the specified key within the DID log
 
     verify-pop      Verifies the validity of the provided proof of possession JWT.
       Usage: verify-pop [options]
+
         Options:
         * --did-log-file, -d
             The file containing a valid DID log of the owner.
@@ -264,7 +244,7 @@ Usage: didtoolbox [options] [command] [command options]
 
 $ java -jar didtoolbox.jar -V
 
-didtoolbox 1.7.0
+didtoolbox 1.9.0
 ```
 
 ## Quickstart – Create Your First DID
@@ -538,13 +518,14 @@ To create a PoP using the DID-Toolbox, the very same Ed25519 signing key used fo
 _possession_ ([nonce](https://datatracker.ietf.org/doc/html/rfc7800#section-3.6)), as illustrated by the following script:
 
 ```shell
-# Create quickstart to generate an initial DID log along the required signing/verifying key pair
-rm -fr .didtoolbox
+# Create quickstart to generate an initial DID log with an assertion key pair
 java -jar didtoolbox.jar create -u https://example.com -f > did.jsonl
-# The previous command should also generated a Ed25519 key pair: .didtoolbox/id_ed25519 (private) and .didtoolbox/id_ed25519.pub (public)
+
+# Export kid of the assertion key within the generated DID log.
+export KID=$(jq -r ".state.assertionMethod[0]" did.jsonl)
 
 # Create proof of possession JWT and store it for later
-java -jar didtoolbox.jar create-pop -s .didtoolbox/id_ed25519 -v .didtoolbox/id_ed25519.pub -n "Your Nonce" > jwt
+java -jar didtoolbox.jar create-pop -d did.jsonl -k ${KID} -s .didtoolbox/assert-key-01 -n "Your Nonce" > jwt
 ```
 
 The result is valid JWT token that looks like this:
@@ -557,12 +538,14 @@ To decode the information contained within such JWT, the [JWT.io](https://www.jw
 
 ```json lines
 {
-  "kid": "did:key:z6MktdAr3iUReU7HsCf7JnoCjQ5urpKTxZSC49KnjEVsA5CA#z6MktdAr3iUReU7HsCf7JnoCjQ5urpKTxZSC49KnjEVsA5CA",
-  "alg": "Ed25519"
+  "kid": "did:webvh:QmfNchmAvY4EJ7WrxaiWRyrspV9B8dSRzUgcs4CWUggiBD:example.com#assert-key-01",
+  "alg": "ES256"
 }
 {
-  "exp": 1753865267,
-  "nonce": "Your Nonce"
+  "iss": "did:webvh:QmfNchmAvY4EJ7WrxaiWRyrspV9B8dSRzUgcs4CWUggiBD:example.com",
+  "exp": 1772109310,
+  "nonce": "Your Nonce",
+  "iat": 1772022910
 }
 ```
 
@@ -573,17 +556,14 @@ Basically, any PoP JWT features quite a few (header/payload) claims, all of them
 A proof of possession can claim ownership over anything. For it to matter it first needs to be verified. 
 
 ```shell
-# Create quickstart to generate an initial DID log along the required signing/verifying key pair
-rm -fr .didtoolbox
+# Create quickstart to generate an initial DID log along the required signing/verifying key pair and jwt
 java -jar didtoolbox.jar create -u https://example.com -f > did.jsonl
-# The previous command should also generated a Ed25519 key pair: .didtoolbox/id_ed25519 (private) and .didtoolbox/id_ed25519.pub (public)
-
-# Create proof of possession JWT and store it for later
-java -jar didtoolbox.jar create-pop -s .didtoolbox/id_ed25519 -v .didtoolbox/id_ed25519.pub -n "Your Nonce" > jwt
+export KID=$(jq -r ".state.assertionMethod[0]" did.jsonl)
+java -jar didtoolbox.jar create-pop -d did.jsonl -k ${KID} -s .didtoolbox/assert-key-01 -n "Your Nonce" > jwt
 
 # verify created proof
 java -jar didtoolbox.jar verify-pop -d did.jsonl -n "Your Nonce" -j $(cat jwt)
-# the previous command should produce output like:
+# the previous command should produce an output like:
 # Provided JWT is valid.
 ```
 
