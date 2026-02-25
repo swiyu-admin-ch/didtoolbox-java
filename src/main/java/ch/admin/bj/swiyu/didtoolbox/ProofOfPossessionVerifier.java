@@ -62,11 +62,11 @@ public class ProofOfPossessionVerifier {
 
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
         try {
-            this.didDoc = TdwDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:tdw log
-        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+            this.didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:webvh log
+        } catch (DidLogMetaPeekerException exc1) { // not a did:webvh log
             try {
-                this.didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:webvh log
-            } catch (DidLogMetaPeekerException exc1) { // not a did:webvh log
+                this.didDoc = TdwDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:tdw log
+            } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
                 throw new ProofOfPossessionVerifierException(exc1);
             }
         }
@@ -147,7 +147,7 @@ public class ProofOfPossessionVerifier {
             var jwkString = objectMapper.writeValueAsString(this.didDoc.getKey(keyIdSplit[1]));
             jwk = JWK.parse(jwkString);
         } catch (DidSidekicksException e) {
-            throw ProofOfPossessionVerifierException.keyMismatch("Did Doc does not contain specified key.");
+            throw ProofOfPossessionVerifierException.keyMismatch(kid);
         } catch (ParseException | JsonProcessingException e) {
             throw ProofOfPossessionVerifierException.unparsable(e);
         }

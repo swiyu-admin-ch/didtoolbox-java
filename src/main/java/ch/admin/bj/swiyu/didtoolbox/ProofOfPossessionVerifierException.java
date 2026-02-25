@@ -20,7 +20,7 @@ public class ProofOfPossessionVerifierException extends Exception {
     }
 
     static ProofOfPossessionVerifierException invalidNonce(String expected, String got) {
-        return new ProofOfPossessionVerifierException(String.format("JWT is for nonce '%s', but got nonce '%s'", got, expected), ErrorCause.INVALID_NONCE);
+        return new ProofOfPossessionVerifierException(String.format("Proof of possession is for nonce '%s', but expected '%s' instead", got, expected), ErrorCause.INVALID_NONCE);
     }
 
     static ProofOfPossessionVerifierException unparsable(Exception cause) {
@@ -28,7 +28,7 @@ public class ProofOfPossessionVerifierException extends Exception {
     }
 
     static ProofOfPossessionVerifierException malformedClaimKid(String message) {
-        return new ProofOfPossessionVerifierException(String.format("The JWT claim 'kid' is invalid: %s", message), ErrorCause.MALFORMED_CLAIM_KID);
+        return new ProofOfPossessionVerifierException(String.format("The header claim kid is invalid: %s", message), ErrorCause.MALFORMED_CLAIM_KID);
     }
 
     static ProofOfPossessionVerifierException expired() {
@@ -40,15 +40,11 @@ public class ProofOfPossessionVerifierException extends Exception {
     }
 
     static ProofOfPossessionVerifierException keyMismatch(String key) {
-        return new ProofOfPossessionVerifierException(String.format("Key '%s' not found in DID log.", key), ErrorCause.KEY_MISMATCH);
+        return new ProofOfPossessionVerifierException(String.format("Key '%s' not found in the DID log.", key), ErrorCause.KEY_MISMATCH);
     }
 
     static ProofOfPossessionVerifierException invalidSignature() {
         return new ProofOfPossessionVerifierException("Signature of JWT is invalid", ErrorCause.INVALID_SIGNATURE);
-    }
-
-    static ProofOfPossessionVerifierException unsupportedKeySubtype() {
-        return new ProofOfPossessionVerifierException("The key subtype is not supported", ErrorCause.UNSUPPORTED_KEY_SUBTYPE);
     }
 
     static ProofOfPossessionVerifierException failedToVerify(Exception cause) {
@@ -63,7 +59,6 @@ public class ProofOfPossessionVerifierException extends Exception {
         EXPIRED,
         KEY_MISMATCH,
         INVALID_SIGNATURE,
-        UNSUPPORTED_KEY_SUBTYPE,
         FAILED_TO_VERIFY
     }
 }

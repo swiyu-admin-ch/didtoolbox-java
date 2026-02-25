@@ -69,7 +69,6 @@ class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
         assertFalse(new ProofOfPossessionVerifier(didLog).isValid(proof, nonce));
     }
 
-
     @Test
     void testCreateValidJWT_fail() throws Exception {
         var nonce = "my_nonce";
