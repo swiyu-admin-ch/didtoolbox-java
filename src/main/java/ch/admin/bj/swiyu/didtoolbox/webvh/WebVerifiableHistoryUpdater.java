@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
  * {@link ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum#detectDidMethod(String)} or {@link ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum#detectDidMethod(File)}.
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.ExcessiveImports", "PMD.AvoidFieldNameMatchingMethodName"})
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {

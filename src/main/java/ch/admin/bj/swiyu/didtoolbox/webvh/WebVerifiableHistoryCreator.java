@@ -61,9 +61,9 @@ import java.util.stream.Collectors;
  * Instead, rather rely on the designated {@link DidLogCreatorContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - in this case it should be {@link DidMethodEnum#WEBVH_1_0}.
  */
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.AvoidFieldNameMatchingMethodName"})
 @Builder
 @Getter
-@SuppressWarnings("PMD.ExcessiveImports")
 public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
 
     /**

@@ -54,6 +54,7 @@ import java.util.Set;
  * Instead, rather rely on the designated {@link DidLogCreatorContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - in this case it should be {@link DidMethodEnum#TDW_0_3}.
  */
+@SuppressWarnings({"PMD.AvoidFieldNameMatchingMethodName"})
 @Builder
 @Getter
 public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {

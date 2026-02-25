@@ -12,6 +12,7 @@ import java.security.interfaces.ECPublicKey;
  * The interface also features a several convenient static factory methods focusing on standard Java types typically used for the purpose
  * of holding EC/P-256 public keys e.g. {@link ECPublicKey}.
  */
+@SuppressWarnings({"PMD.ShortMethodName"})
 public interface VerificationMaterial {
 
     /**

@@ -91,7 +91,7 @@ final class JCommanderRunner {
                 //} catch (AccessDeniedException ex) {
                 //    throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
             } catch (Throwable thr) {
-                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
+                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathname + " due to: " + thr.getMessage(), thr);
             }
         }
     }

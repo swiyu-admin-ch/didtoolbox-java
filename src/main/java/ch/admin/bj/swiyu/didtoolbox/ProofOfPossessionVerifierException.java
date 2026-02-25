@@ -2,11 +2,17 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import lombok.Getter;
 
+import java.io.Serial;
+
 /**
  * The class {@code ProofOfPossessionVerificationException} contains information why a ProofOfPossession is invalid.
  */
 @Getter
 public class ProofOfPossessionVerifierException extends Exception {
+
+    @Serial
+    private static final long serialVersionUID = -3214408602387693957L;
+
     private final ErrorCause errorCause;
 
     ProofOfPossessionVerifierException(String message, ErrorCause errorCause) {

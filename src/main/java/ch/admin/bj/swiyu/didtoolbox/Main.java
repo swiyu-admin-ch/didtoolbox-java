@@ -1,10 +1,23 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
+import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameterException;
+import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameterException;
+import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethodException;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.UnixStyleUsageFormatter;
+
+import java.io.IOException;
+import java.security.KeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
 
 @SuppressWarnings({"PMD.DoNotTerminateVM", "PMD.CyclomaticComplexity"})
 public class Main {
@@ -75,7 +88,11 @@ public class Main {
                         commandRunner.runPoPVerifyCommand(verifyProofOfPossessionCommand);
                 default -> overAndOut(jc, null, "Invalid command: " + parsedCommandName);
             }
-        } catch (Throwable e) {
+        } catch (IOException | UnrecoverableEntryException | VcDataIntegrityCryptographicSuiteException |
+                 KeyStoreException | NoSuchAlgorithmException | KeyException | DidLogDeactivatorStrategyException |
+                 ProofOfPossessionCreatorException | DidLogCreatorStrategyException |
+                 NextKeyHashesDidMethodParameterException | UpdateKeysDidMethodParameterException |
+                 VerificationMethodException | DidLogUpdaterStrategyException e) {
             overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
         }
 

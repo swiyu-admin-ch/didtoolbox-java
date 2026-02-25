@@ -98,6 +98,7 @@ import java.util.Set;
  * }
  * </pre>
  */
+@SuppressWarnings({"PMD.AvoidFieldNameMatchingMethodName"})
 @Builder
 @Getter
 public class DidLogUpdaterContext {
