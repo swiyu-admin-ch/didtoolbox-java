@@ -98,7 +98,6 @@ import java.util.Set;
  * }
  * </pre>
  */
-@SuppressWarnings({"PMD.AvoidFieldNameMatchingMethodName"})
 @Builder
 @Getter
 public class DidLogUpdaterContext {
@@ -261,7 +260,7 @@ public class DidLogUpdaterContext {
      * @throws DidLogUpdaterStrategyException
      * @since 1.9.0
      */
-    Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> authentications() throws DidLogUpdaterStrategyException {
+    Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAuthentications() throws DidLogUpdaterStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
@@ -288,7 +287,7 @@ public class DidLogUpdaterContext {
      * @throws DidLogUpdaterStrategyException
      * @since 1.9.0
      */
-    Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> assertionMethods() throws DidLogUpdaterStrategyException {
+    Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAssertionMethods() throws DidLogUpdaterStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
@@ -316,7 +315,7 @@ public class DidLogUpdaterContext {
      * @throws DidLogUpdaterStrategyException see {@link PemUtils#readEd25519PublicKeyPemFileToMultibase(Path)}
      * @since 1.9.0
      */
-    Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter() throws DidLogUpdaterStrategyException {
+    Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogUpdaterStrategyException {
 
         var set = new HashSet<UpdateKeysDidMethodParameter>();
         if (this.updateKeys != null) { // collect all from deprecated class member
@@ -345,7 +344,7 @@ public class DidLogUpdaterContext {
      * @throws DidLogUpdaterStrategyException see {@link PemUtils#readEd25519PublicKeyPemFileToMultibase(Path)}
      * @since 1.9.0
      */
-    Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter() throws DidLogUpdaterStrategyException {
+    Set<NextKeyHashesDidMethodParameter> allNextKeyHashesDidMethodParameter() throws DidLogUpdaterStrategyException {
 
         var set = new HashSet<NextKeyHashesDidMethodParameter>();
         if (this.nextKeys != null) { // collect all from deprecated class member

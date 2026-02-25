@@ -56,7 +56,7 @@ import java.util.Set;
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods", "PMD.AvoidFieldNameMatchingMethodName"})
+@SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods"})
 @Builder
 @Getter
 public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -179,7 +179,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @return a set of {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} objects, never {@code null}
      * @since 1.9.0
      */
-    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> authentications() throws DidLogUpdaterStrategyException {
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAuthentications() throws DidLogUpdaterStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
@@ -205,7 +205,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @return a set of {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} objects, never {@code null}
      * @since 1.9.0
      */
-    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> assertionMethods() throws DidLogUpdaterStrategyException {
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAssertionMethods() throws DidLogUpdaterStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
@@ -233,7 +233,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @throws DidLogUpdaterStrategyException see {@link PemUtils#readEd25519PublicKeyPemFileToMultibase(Path)}
      * @since 1.9.0
      */
-    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter() throws DidLogUpdaterStrategyException {
+    private Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogUpdaterStrategyException {
 
         var set = new HashSet<UpdateKeysDidMethodParameter>();
         if (this.updateKeys != null) { // collect all from deprecated class member
@@ -403,16 +403,16 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
         //didDoc.addProperty("controller", didTDW);
 
-        if ((this.authentications().isEmpty() && this.assertionMethods().isEmpty())) {
+        if ((this.allAuthentications().isEmpty() && this.allAssertionMethods().isEmpty())) {
             throw new IncompleteDidLogEntryBuilderException("No verification material is supplied");
         }
 
         var verificationMethod = new JsonArray();
 
-        if (!this.authentications().isEmpty()) {
+        if (!this.allAuthentications().isEmpty()) {
 
             JsonArray authentication = new JsonArray();
-            for (var vm : this.authentications()) {
+            for (var vm : this.allAuthentications()) {
 
                 authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
@@ -422,10 +422,10 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             didDoc.add("authentication", authentication);
         }
 
-        if (!this.assertionMethods().isEmpty()) {
+        if (!this.allAssertionMethods().isEmpty()) {
 
             var assertionMethod = new JsonArray();
-            for (var vm : this.assertionMethods()) {
+            for (var vm : this.allAssertionMethods()) {
 
                 assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
@@ -460,7 +460,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        if (!this.updateKeysDidMethodParameter().isEmpty()) {
+        if (!this.allUpdateKeysDidMethodParameter().isEmpty()) {
             didLogEntryWithoutProofAndSignature.add(buildDidMethodParameters());
         } else {
             didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same
@@ -529,12 +529,12 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
 
         var updateKeysJsonArray = new JsonArray();
 
-        var newUpdateKeys = new HashSet<>(Set.of(this.updateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).toArray(String[]::new)));
+        var newUpdateKeys = new HashSet<>(Set.of(this.allUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).toArray(String[]::new)));
 
         if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)
-                && !this.updateKeysDidMethodParameter().isEmpty()) { // need for change?
+                && !this.allUpdateKeysDidMethodParameter().isEmpty()) { // need for change?
 
-            for (var param : this.updateKeysDidMethodParameter()) {
+            for (var param : this.allUpdateKeysDidMethodParameter()) {
 
                 var updateKey = param.getUpdateKey();
 

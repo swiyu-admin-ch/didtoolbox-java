@@ -20,30 +20,30 @@ final class DidLogStrategyFactory {
         switch (ctx.getDidMethod()) {
             case TDW_0_3 -> {
 
-                if (!ctx.nextKeyHashesDidMethodParameter().isEmpty()) {
+                if (!ctx.allNextKeyHashesDidMethodParameter().isEmpty()) {
                     throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
                 }
 
                 return TdwCreator.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
-                        .assertionMethods(ctx.assertionMethods())
-                        .authentications(ctx.authentications())
+                        .assertionMethods(ctx.allAssertionMethods())
+                        .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .updateKeysDidMethodParameter(ctx.updateKeysDidMethodParameter())
+                        .updateKeysDidMethodParameter(ctx.allUpdateKeysDidMethodParameter())
                         .build();
             }
             case WEBVH_1_0 -> {
                 return WebVerifiableHistoryCreator.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
-                        .assertionMethods(ctx.assertionMethods())
-                        .authentications(ctx.authentications())
+                        .assertionMethods(ctx.allAssertionMethods())
+                        .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .updateKeysDidMethodParameter(ctx.updateKeysDidMethodParameter())
+                        .updateKeysDidMethodParameter(ctx.allUpdateKeysDidMethodParameter())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .nextKeyHashesDidMethodParameter(ctx.nextKeyHashesDidMethodParameter())
+                        .nextKeyHashesDidMethodParameter(ctx.allNextKeyHashesDidMethodParameter())
                         .build();
             }
         }
@@ -55,17 +55,17 @@ final class DidLogStrategyFactory {
         switch (ctx.getDidMethod()) {
             case TDW_0_3 -> {
 
-                if (!ctx.nextKeyHashesDidMethodParameter().isEmpty()) {
+                if (!ctx.allNextKeyHashesDidMethodParameter().isEmpty()) {
                     throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
                 }
 
                 return TdwUpdater.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
-                        .assertionMethods(ctx.assertionMethods())
-                        .authentications(ctx.authentications())
+                        .assertionMethods(ctx.allAssertionMethods())
+                        .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .updateKeysDidMethodParameter(ctx.updateKeysDidMethodParameter())
+                        .updateKeysDidMethodParameter(ctx.allUpdateKeysDidMethodParameter())
                         // CAUTION Not implemented yet:
                         // .nextKeys(ctx.getNextKeys())
                         .build();
@@ -73,14 +73,14 @@ final class DidLogStrategyFactory {
             case WEBVH_1_0 -> {
                 return WebVerifiableHistoryUpdater.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
-                        .assertionMethods(ctx.assertionMethods())
-                        .authentications(ctx.authentications())
+                        .assertionMethods(ctx.allAssertionMethods())
+                        .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .updateKeysDidMethodParameter(ctx.updateKeysDidMethodParameter())
+                        .updateKeysDidMethodParameter(ctx.allUpdateKeysDidMethodParameter())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .nextKeyHashesDidMethodParameter(ctx.nextKeyHashesDidMethodParameter())
+                        .nextKeyHashesDidMethodParameter(ctx.allNextKeyHashesDidMethodParameter())
                         .build();
             }
         }

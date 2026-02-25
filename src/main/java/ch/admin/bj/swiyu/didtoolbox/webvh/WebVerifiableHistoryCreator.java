@@ -61,7 +61,6 @@ import java.util.stream.Collectors;
  * Instead, rather rely on the designated {@link DidLogCreatorContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - in this case it should be {@link DidMethodEnum#WEBVH_1_0}.
  */
-@SuppressWarnings({"PMD.ExcessiveImports", "PMD.AvoidFieldNameMatchingMethodName"})
 @Builder
 @Getter
 public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
@@ -327,7 +326,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      *
      * @since 1.9.0
      */
-    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> authentications() throws DidLogCreatorStrategyException {
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAuthentications() throws DidLogCreatorStrategyException {
         var set = new HashSet<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod>();
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
@@ -352,7 +351,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      *
      * @since 1.9.0
      */
-    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> assertionMethods() throws DidLogCreatorStrategyException {
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAssertionMethods() throws DidLogCreatorStrategyException {
         var set = new HashSet<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod>();
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
@@ -378,7 +377,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      *
      * @since 1.9.0
      */
-    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter() throws DidLogCreatorStrategyException {
+    private Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogCreatorStrategyException {
 
         var set = new HashSet<UpdateKeysDidMethodParameter>();
         if (this.updateKeys != null) { // collect all from deprecated class member
@@ -406,7 +405,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      * @return a set of {@link NextKeyHashesDidMethodParameter} objects, never {@code null}
      * @since 1.9.0
      */
-    private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter() throws DidLogCreatorStrategyException {
+    private Set<NextKeyHashesDidMethodParameter> allNextKeyHashesDidMethodParameter() throws DidLogCreatorStrategyException {
 
         var set = new HashSet<NextKeyHashesDidMethodParameter>();
         if (this.nextKeys != null) { // collect all from deprecated class member
@@ -475,7 +474,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         // Create initial did doc with placeholder
-        return createDidLog(createDidDoc(identifierRegistryUrl, this.authentications(), this.assertionMethods()), zdt);
+        return createDidLog(createDidDoc(identifierRegistryUrl, this.allAuthentications(), this.allAssertionMethods()), zdt);
     }
 
     //@SuppressWarnings({"PMD.CyclomaticComplexity"})
@@ -502,8 +501,8 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
                 createDidParams(this.getCryptoSuite(),
-                        this.updateKeysDidMethodParameter(),
-                        this.nextKeyHashesDidMethodParameter()));
+                        this.allUpdateKeysDidMethodParameter(),
+                        this.allNextKeyHashesDidMethodParameter()));
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);

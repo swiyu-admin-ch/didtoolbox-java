@@ -54,7 +54,6 @@ import java.util.Set;
  * Instead, rather rely on the designated {@link DidLogCreatorContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - in this case it should be {@link DidMethodEnum#TDW_0_3}.
  */
-@SuppressWarnings({"PMD.AvoidFieldNameMatchingMethodName"})
 @Builder
 @Getter
 public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
@@ -180,7 +179,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
      * @return a set of {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} objects, never {@code null}
      * @since 1.9.0
      */
-    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> authentications() throws DidLogCreatorStrategyException {
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAuthentications() throws DidLogCreatorStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
@@ -206,7 +205,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
      * @return a set of {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} objects, never {@code null}
      * @since 1.9.0
      */
-    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> assertionMethods() throws DidLogCreatorStrategyException {
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAssertionMethods() throws DidLogCreatorStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
@@ -233,7 +232,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
      * @return a set of {@link UpdateKeysDidMethodParameter} objects, never {@code null}
      * @since 1.9.0
      */
-    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter() throws DidLogCreatorStrategyException {
+    private Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogCreatorStrategyException {
 
         var set = new HashSet<UpdateKeysDidMethodParameter>();
         if (this.updateKeys != null) { // collect all from deprecated class member
@@ -334,7 +333,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         }
 
         // Create initial did doc with placeholder
-        var didDoc = createDidDoc(identifierRegistryUrl, this.authentications(), this.assertionMethods());
+        var didDoc = createDidDoc(identifierRegistryUrl, this.allAuthentications(), this.allAssertionMethods());
 
         var didLogEntryWithoutProofAndSignature = new JsonArray();
 
@@ -352,7 +351,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
         // CAUTION nextKeyHashes parameter (pre-rotation keys) not (yet) implemented for the class
-        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptoSuite(), this.updateKeysDidMethodParameter(), null));
+        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptoSuite(), this.allUpdateKeysDidMethodParameter(), null));
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.

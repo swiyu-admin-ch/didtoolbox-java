@@ -21,7 +21,7 @@ import java.util.Set;
  * The interface also features a several convenient static factory methods focusing on standard Java types typically used for the purpose
  * of holding Ed25519 public keys e.g. {@link PublicKey}, {@link Path} or {@link String}.
  */
-@SuppressWarnings({"PMD.ImplicitFunctionalInterface", "PMD.ShortMethodName"})
+@SuppressWarnings({"PMD.ImplicitFunctionalInterface"})
 public interface UpdateKeysDidMethodParameter {
 
     /**

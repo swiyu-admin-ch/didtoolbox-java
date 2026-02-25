@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
  * {@link ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum#detectDidMethod(String)} or {@link ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum#detectDidMethod(File)}.
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.ExcessiveImports", "PMD.AvoidFieldNameMatchingMethodName"})
+@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.TooManyMethods"})
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -220,7 +220,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @return a set of {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} objects, never {@code null}
      * @since 1.9.0
      */
-    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> authentications() throws DidLogUpdaterStrategyException {
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAuthentications() throws DidLogUpdaterStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
@@ -246,7 +246,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @return a set of {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} objects, never {@code null}
      * @since 1.9.0
      */
-    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> assertionMethods() throws DidLogUpdaterStrategyException {
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAssertionMethods() throws DidLogUpdaterStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
@@ -274,7 +274,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @throws DidLogUpdaterStrategyException see {@link PemUtils#readEd25519PublicKeyPemFileToMultibase(Path)}
      * @since 1.9.0
      */
-    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter() throws DidLogUpdaterStrategyException {
+    private Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogUpdaterStrategyException {
 
         var set = new HashSet<UpdateKeysDidMethodParameter>();
         if (this.updateKeys != null) { // collect all from deprecated class member
@@ -303,7 +303,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @throws DidLogUpdaterStrategyException see {@link PemUtils#readEd25519PublicKeyPemFileToMultibase(Path)}
      * @since 1.9.0
      */
-    private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter() throws DidLogUpdaterStrategyException {
+    private Set<NextKeyHashesDidMethodParameter> allNextKeyHashesDidMethodParameter() throws DidLogUpdaterStrategyException {
 
         var set = new HashSet<NextKeyHashesDidMethodParameter>();
         if (this.nextKeys != null) { // collect all from deprecated class member
@@ -403,7 +403,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         if (super.didLogMeta.isKeyPreRotationActivated()) {
             boolean arePreRotatedUpdateKeys;
             try {
-                arePreRotatedUpdateKeys = super.didLogMeta.arePreRotatedUpdateKeys(this.updateKeysDidMethodParameter());
+                arePreRotatedUpdateKeys = super.didLogMeta.arePreRotatedUpdateKeys(this.allUpdateKeysDidMethodParameter());
             } catch (UpdateKeysDidMethodParameterException e) {
                 throw new DidLogUpdaterStrategyException(e);
             }
@@ -412,9 +412,9 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 throw new DidLogUpdaterStrategyException("Illegal updateKey detected");
             }
 
-        } else if (!this.updateKeysDidMethodParameter().isEmpty()) {
+        } else if (!this.allUpdateKeysDidMethodParameter().isEmpty()) {
 
-            for (var param : this.updateKeysDidMethodParameter()) {
+            for (var param : this.allUpdateKeysDidMethodParameter()) {
                 if (!this.getCryptoSuite().getVerificationKeyMultibase().equals(param.getUpdateKey())) {
                     throw new DidLogUpdaterStrategyException("No matching verifying (public) ed25519 key supplied");
                 }
@@ -447,16 +447,16 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
         //didDoc.addProperty("controller", didTDW);
 
-        if (this.authentications().isEmpty() && this.assertionMethods().isEmpty()) {
+        if (this.allAuthentications().isEmpty() && this.allAssertionMethods().isEmpty()) {
             throw new DidLogUpdaterStrategyException("No update will take place as no verification material is supplied whatsoever");
         }
 
         var verificationMethod = new JsonArray();
 
-        if (!this.authentications().isEmpty()) {
+        if (!this.allAuthentications().isEmpty()) {
 
             JsonArray authentication = new JsonArray();
-            for (var vm : this.authentications()) {
+            for (var vm : this.allAuthentications()) {
 
                 authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
@@ -466,10 +466,10 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             didDoc.add("authentication", authentication);
         }
 
-        if (!this.assertionMethods().isEmpty()) {
+        if (!this.allAssertionMethods().isEmpty()) {
 
             var assertionMethod = new JsonArray();
-            for (var vm : this.assertionMethods()) {
+            for (var vm : this.allAssertionMethods()) {
 
                 assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
@@ -564,7 +564,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * Simple type converter
      */
     private Set<String> loadUpdateKeys() throws DidLogUpdaterStrategyException {
-        return this.updateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).collect(Collectors.toSet());
+        return this.allUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).collect(Collectors.toSet());
     }
 
     /**
@@ -573,7 +573,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
     private Set<String> loadNextUpdateKeys() throws DidLogUpdaterStrategyException {
         var keys = new HashSet<String>();
 
-        this.nextKeyHashesDidMethodParameter().forEach(nextKeyHashSource -> {
+        this.allNextKeyHashesDidMethodParameter().forEach(nextKeyHashSource -> {
             keys.add(nextKeyHashSource.getNextKeyHash());
         });
 
@@ -584,21 +584,21 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * Proves if no single value for the {@code updateKeys} DID method parameter was supplied, or not. One why or another.
      */
     private boolean noneUpdateKeys() throws DidLogUpdaterStrategyException {
-        return this.updateKeysDidMethodParameter().isEmpty();
+        return this.allUpdateKeysDidMethodParameter().isEmpty();
     }
 
     /**
      * Proves if at least one single value for the {@code updateKeys} DID method parameter was supplied, or not. One why or another.
      */
     private boolean someUpdateKeys() throws DidLogUpdaterStrategyException {
-        return !this.updateKeysDidMethodParameter().isEmpty();
+        return !this.allUpdateKeysDidMethodParameter().isEmpty();
     }
 
     /**
      * Effectively, proves if at least one single value for the {@code nextKeyHashes} DID method parameter was supplied, or not. One why or another.
      */
     private boolean shouldActivateKeyPreRotation() throws DidLogUpdaterStrategyException {
-        return !this.nextKeyHashesDidMethodParameter().isEmpty();
+        return !this.allNextKeyHashesDidMethodParameter().isEmpty();
     }
 
     /**

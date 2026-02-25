@@ -84,7 +84,6 @@ import java.util.Set;
  * }
  * </pre>
  */
-@SuppressWarnings({"PMD.AvoidFieldNameMatchingMethodName"})
 @Builder
 @Getter
 public class DidLogCreatorContext {
@@ -253,7 +252,7 @@ public class DidLogCreatorContext {
      * @return a set of {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} objects, never {@code null}
      * @since 1.9.0
      */
-    Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> authentications() throws DidLogCreatorStrategyException {
+    Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAuthentications() throws DidLogCreatorStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
@@ -279,7 +278,7 @@ public class DidLogCreatorContext {
      * @return a set of {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} objects, never {@code null}
      * @since 1.9.0
      */
-    Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> assertionMethods() throws DidLogCreatorStrategyException {
+    Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAssertionMethods() throws DidLogCreatorStrategyException {
         var set = new HashSet<VerificationMethod>();
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
@@ -306,7 +305,7 @@ public class DidLogCreatorContext {
      * @return a set of {@link UpdateKeysDidMethodParameter} objects, never {@code null}
      * @since 1.9.0
      */
-    Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter() throws DidLogCreatorStrategyException {
+    Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogCreatorStrategyException {
 
         var set = new HashSet<UpdateKeysDidMethodParameter>();
         if (this.updateKeys != null) { // collect all from deprecated class member
@@ -334,7 +333,7 @@ public class DidLogCreatorContext {
      * @return a set of {@link NextKeyHashesDidMethodParameter} objects, never {@code null}
      * @since 1.9.0
      */
-    Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter() throws DidLogCreatorStrategyException {
+    Set<NextKeyHashesDidMethodParameter> allNextKeyHashesDidMethodParameter() throws DidLogCreatorStrategyException {
 
         var set = new HashSet<NextKeyHashesDidMethodParameter>();
         if (this.nextKeys != null) { // collect all from deprecated class member
