@@ -433,13 +433,13 @@
                             <fieldClassifierListToIgnore>
                                 <fieldClassifierListToIgnore>STATIC</fieldClassifierListToIgnore>
                             </fieldClassifierListToIgnore>
-                            <methodClassifierListToIgnore>STATIC</methodClassifierListToIgnore>
+                            <!--methodClassifierListToIgnore>STATIC</methodClassifierListToIgnore-->
                             <hideFields>true</hideFields>
                             <hideMethods>true</hideMethods>
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
                             <blacklistRegexp>.*.jcommander.*|.*Util*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*|*.*ContextBuilder.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*.context.*|.*Enum*.*|.*.model.*DidMethodParameter*.*</whitelistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*.context.*|.*Enum*.*|.*.model.*DidMethodParameter*.*|.*.model.*Verification*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->
@@ -470,13 +470,13 @@
                             <fieldClassifierListToIgnore>
                                 <fieldClassifierListToIgnore>STATIC</fieldClassifierListToIgnore>
                             </fieldClassifierListToIgnore>
-                            <methodClassifierListToIgnore>STATIC</methodClassifierListToIgnore>
+                            <!--methodClassifierListToIgnore>STATIC</methodClassifierListToIgnore-->
                             <!--hideFields>true</hideFields>
                             <hideMethods>true</hideMethods-->
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
                             <blacklistRegexp>.*.jcommander.*|.*Util*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*|*.*ContextBuilder.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*.context.*|.*Enum*.*|.*.model.*DidMethodParameter*.*</whitelistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*.context.*|.*Enum*.*|.*.model.*DidMethodParameter*.*|.*.model.*Verification*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->

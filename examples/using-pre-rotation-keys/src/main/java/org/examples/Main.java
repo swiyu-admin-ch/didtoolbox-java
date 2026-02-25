@@ -1,13 +1,10 @@
 package org.examples;
 
-import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameterException;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
@@ -23,7 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Map;
 import java.util.Set;
 
 public class Main {
@@ -36,7 +32,7 @@ public class Main {
         try {
             System.out.println(build());
         } catch (URISyntaxException | IOException | DidLogCreatorStrategyException | DidLogUpdaterStrategyException |
-                 InvalidKeySpecException | NextKeyHashesDidMethodParameterException err) {
+                 InvalidKeySpecException | NextKeyHashesDidMethodParameterException | VerificationMethodException err) {
             System.err.println(err.getMessage());
             System.exit(1);
         }
@@ -45,7 +41,7 @@ public class Main {
     }
 
     static String build() throws URISyntaxException, IOException, DidLogCreatorStrategyException,
-            DidLogUpdaterStrategyException, InvalidKeySpecException, NextKeyHashesDidMethodParameterException {
+            DidLogUpdaterStrategyException, InvalidKeySpecException, NextKeyHashesDidMethodParameterException, VerificationMethodException {
 
         // initial DID log entry
         var didLog = new StringBuilder(
@@ -62,8 +58,8 @@ public class Main {
                                 //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                                 //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                         ))
-                        .assertionMethodKeys(Map.of("my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("../../src/test/data/assert-key-01.pub"), "my-assert-key-01")))
-                        //.authenticationKeys(Map.of("my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("../../src/test/data/auth-key-01.pub"), "my-auth-key-01")))
+                        .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-01", Path.of("../../src/test/data/assert-key-01.pub"))))
+                        //.authentications(Set.of(VerificationMethod.of("my-auth-key-01", Path.of("../../src/test/data/auth-key-01.pub"))))
                         .build()
                         .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null))
         ).append(System.lineSeparator());
@@ -87,8 +83,8 @@ public class Main {
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                             ))
-                            .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("../../src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
-                            .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("../../src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                            .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of("../../src/test/data/assert-key-01.pub"))))
+                            .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of("../../src/test/data/auth-key-01.pub"))))
                             .build()
                             .update(didLog.toString())
             ).append(System.lineSeparator());

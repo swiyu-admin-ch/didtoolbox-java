@@ -4,6 +4,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
@@ -18,7 +19,6 @@ import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -141,8 +141,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             nextLogEntry.set(TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     // CAUTION No need for explicit call of method: .updateKeys(Set.of(new File("src/test/data/public.pem")))
                     //         The updateKey matching VERIFICATION_METHOD_KEY_PROVIDER is already present in initialDidLogEntry.
                     .build()
@@ -193,8 +193,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             nextLogEntry.set(TdwUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using a whole another verification key provider
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"), finalPublicKeyPemFile))
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -253,8 +253,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
                 nextLogEntry.set(TdwUpdater.builder()
                         .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using another verification key provider
-                        .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
-                        .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                        .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                        .authentications(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"), finalPublicKeyPemFile))
                         .build()
                         // The versionTime for each log entry MUST be greater than the previous entry’s time.

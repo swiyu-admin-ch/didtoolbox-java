@@ -14,15 +14,13 @@ import com.beust.jcommander.JCommander;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.*;
 import java.security.KeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 
 /**
  * The class is introduced for the sake of being able to test the CLI with no hassle involved.
@@ -101,7 +99,8 @@ final class JCommanderRunner {
     @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     void runCreateDidLogCommand(CreateDidLogCommand command)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException,
-            VcDataIntegrityCryptographicSuiteException, DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException, UpdateKeysDidMethodParameterException {
+            VcDataIntegrityCryptographicSuiteException, DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException,
+            UpdateKeysDidMethodParameterException, VerificationMethodException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -116,28 +115,28 @@ final class JCommanderRunner {
 
         var forceOverwrite = command.forceOverwrite;
 
-        Map<String, String> assertionMethodKeysMap = new HashMap<>();
+        var assertionMethods = new HashSet<VerificationMethod>();
         var assertionMethodKeys = command.assertionMethodKeys;
         if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
             for (VerificationMethodParameters param : assertionMethodKeys) {
-                assertionMethodKeysMap.put(param.key, param.jwk);
+                assertionMethods.add(VerificationMethod.of(param.key, param.jwk));
             }
         } else {
             createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
-            assertionMethodKeysMap.put("assert-key-01",
-                    JwkUtils.generatePublicEC256("assert-key-01", Path.of(".didtoolbox/assert-key-01").toFile(), forceOverwrite));
+            assertionMethods.add(VerificationMethod.of("assert-key-01",
+                    JwkUtils.generatePublicEC256("assert-key-01", Path.of(".didtoolbox/assert-key-01").toFile(), forceOverwrite)));
         }
 
-        Map<String, String> authenticationKeysMap = new HashMap<>();
+        var authentications = new HashSet<VerificationMethod>();
         var authenticationKeys = command.authenticationKeys;
         if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
             for (VerificationMethodParameters param : authenticationKeys) {
-                authenticationKeysMap.put(param.key, param.jwk);
+                authentications.add(VerificationMethod.of(param.key, param.jwk));
             }
         } else {
             createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
-            authenticationKeysMap.put("auth-key-01",
-                    JwkUtils.generatePublicEC256("auth-key-01", Path.of(".didtoolbox/auth-key-01").toFile(), forceOverwrite));
+            authentications.add(VerificationMethod.of("auth-key-01",
+                    JwkUtils.generatePublicEC256("auth-key-01", Path.of(".didtoolbox/auth-key-01").toFile(), forceOverwrite)));
         }
 
         var signingKeyPemFile = command.signingKeyPemFile;
@@ -244,8 +243,8 @@ final class JCommanderRunner {
         jc.getConsole().println(DidLogCreatorContext.builder()
                 .didMethod(didMethod)
                 .cryptographicSuite(cryptoSuite)
-                .assertionMethodKeys(assertionMethodKeysMap)
-                .authenticationKeys(authenticationKeysMap)
+                .assertionMethods(assertionMethods)
+                .authentications(authentications)
                 // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
                 .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
                 // Instead of calling deprecated .nextKeys(nextKeyPemFiles)
@@ -257,7 +256,8 @@ final class JCommanderRunner {
     @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     void runUpdateDidLogCommand(UpdateDidLogCommand command)
             throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException, UpdateKeysDidMethodParameterException {
+            NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException,
+            UpdateKeysDidMethodParameterException, VerificationMethodException {
         if (command.help) {
             jc.usage(parsedCommandName);
             System.exit(0);
@@ -269,23 +269,23 @@ final class JCommanderRunner {
 
         // CAUTION At this point, it should be all in place to update to be able to update the supplied DID log
 
-        Map<String, String> assertionMethodKeysMap = new HashMap<>();
+        var assertionMethods = new HashSet<VerificationMethod>();
         var updateCommandAssertionMethodKeys = command.assertionMethodKeys;
         if (updateCommandAssertionMethodKeys != null && !updateCommandAssertionMethodKeys.isEmpty()) {
             for (VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
-                assertionMethodKeysMap.put(param.key, param.jwk);
+                assertionMethods.add(VerificationMethod.of(param.key, param.jwk));
             }
         }
 
-        Map<String, String> authenticationKeysMap = new HashMap<>();
+        var authentications = new HashSet<VerificationMethod>();
         var updateCommandAuthenticationKeys = command.authenticationKeys;
         if (updateCommandAuthenticationKeys != null && !updateCommandAuthenticationKeys.isEmpty()) {
             for (VerificationMethodParameters param : updateCommandAuthenticationKeys) {
-                authenticationKeysMap.put(param.key, param.jwk);
+                authentications.add(VerificationMethod.of(param.key, param.jwk));
             }
         }
 
-        if (authenticationKeysMap.isEmpty() && assertionMethodKeysMap.isEmpty()) {
+        if (authentications.isEmpty() && assertionMethods.isEmpty()) {
             overAndOut(jc, parsedCommandName, "No update will take place as no verification material is supplied whatsoever");
         }
 
@@ -392,8 +392,8 @@ final class JCommanderRunner {
                         .didMethod(didLogMeta.getParams().getDidMethodEnum())
                         //.didMethod(DidMethodEnum.detectDidMethod(didLogFile)) // No need to parse the DID log twice
                         .cryptographicSuite(cryptoSuite)
-                        .assertionMethodKeys(assertionMethodKeysMap)
-                        .authenticationKeys(authenticationKeysMap)
+                        .assertionMethods(assertionMethods)
+                        .authentications(authentications)
                         // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
                         .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
                         // Instead of calling deprecated .nextKeys(nextVerifyingKeyPemFiles)

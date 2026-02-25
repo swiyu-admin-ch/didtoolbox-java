@@ -81,8 +81,8 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
             didLogEntry.set(TdwCreator.builder()
                     // the signing key are generated on-the-fly
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -101,8 +101,8 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
                     // the signing key are generated on-the-fly
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -123,8 +123,8 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             didLogEntry.set(TdwCreator.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -158,8 +158,8 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             didLogEntry.set(TdwCreator.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     // CAUTION datetime is set explicitly here just to be able to run assertTrue("...".contains(didLogEntry));
                     .createDidLog(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z"))); // MUT
@@ -193,8 +193,8 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
             TdwCreator.builder()
                     // IMPORTANT .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
         });

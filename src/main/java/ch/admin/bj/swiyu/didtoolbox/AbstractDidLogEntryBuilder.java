@@ -8,7 +8,6 @@ import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.*;
 
 import java.net.URL;
-import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractDidLogEntryBuilder {
@@ -220,15 +219,15 @@ public abstract class AbstractDidLogEntryBuilder {
      * Create a valid DID document w.r.t. supplied verification material.
      *
      * @param identifierRegistryUrl to build a DID for
-     * @param authenticationKeys
-     * @param assertionMethodKeys
+     * @param authentications
+     * @param assertionMethods
      * @return JSON object representing a valid DID document w.r.t. to supplied verification material
      * @throws IncompleteDidLogEntryBuilderException if no proper verification material is supplied
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity"})
     protected JsonObject createDidDoc(URL identifierRegistryUrl,
-                                      Map<String, String> authenticationKeys,
-                                      Map<String, String> assertionMethodKeys) {
+                                      Set<VerificationMethod> authentications,
+                                      Set<VerificationMethod> assertionMethods) {
 
         var did = buildDid(identifierRegistryUrl);
 
@@ -249,28 +248,28 @@ public abstract class AbstractDidLogEntryBuilder {
 
         var verificationMethod = new JsonArray();
 
-        if ((authenticationKeys == null || authenticationKeys.isEmpty())
-                && (assertionMethodKeys == null || assertionMethodKeys.isEmpty())) {
+        if ((authentications == null || authentications.isEmpty())
+                && (assertionMethods == null || assertionMethods.isEmpty())) {
             throw new IncompleteDidLogEntryBuilderException("No verification material (authentication or assertion) supplied");
         }
 
-        if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
+        if (authentications != null && !authentications.isEmpty()) {
 
             var authentication = new JsonArray();
-            for (var key : authenticationKeys.entrySet()) {
-                authentication.add(did + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, key.getKey(), key.getValue()));
+            for (var vm : authentications) {
+                authentication.add(did + "#" + vm.getIdFragment());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
 
             didDoc.add("authentication", authentication);
         }
 
-        if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
+        if (assertionMethods != null && !assertionMethods.isEmpty()) {
 
             var assertionMethod = new JsonArray();
-            for (var key : assertionMethodKeys.entrySet()) {
-                assertionMethod.add(did + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, key.getKey(), key.getValue()));
+            for (var vm : assertionMethods) {
+                assertionMethod.add(did + "#" + vm.getIdFragment());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
 
             didDoc.add("assertionMethod", assertionMethod);

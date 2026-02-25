@@ -119,7 +119,7 @@ public interface UpdateKeysDidMethodParameter {
     /**
      * Yet another static factory method of the interface.
      *
-     * @param pemFiles featuring Ed25519 public keys in PEM format
+     * @param pemFiles set of files each featuring a different Ed25519 public key in PEM format
      * @return a set of {@link UpdateKeysDidMethodParameter} objects, for each member of the supplied {@link File} set, never {@code null}
      * @throws UpdateKeysDidMethodParameterException
      */
@@ -140,7 +140,7 @@ public interface UpdateKeysDidMethodParameter {
     /**
      * Yet another static factory method of the interface.
      *
-     * @param pemPaths featuring Ed25519 public keys in PEM format
+     * @param pemPaths one or more files each featuring a different Ed25519 public key in PEM format
      * @return a set of {@link UpdateKeysDidMethodParameter} objects, for each member of the supplied {@link Path} object, never {@code null}
      * @throws UpdateKeysDidMethodParameterException
      */
@@ -161,7 +161,7 @@ public interface UpdateKeysDidMethodParameter {
     /**
      * Yet another static factory method of the interface.
      *
-     * @param publicKeys featuring Ed25519 public keys
+     * @param publicKeys one or more {@link PublicKey} objects, each representing a different Ed25519 public key
      * @return a set of {@link UpdateKeysDidMethodParameter} objects, for each member of the supplied {@link PublicKey} object, never {@code null}
      */
     static Set<UpdateKeysDidMethodParameter> of(PublicKey... publicKeys) {

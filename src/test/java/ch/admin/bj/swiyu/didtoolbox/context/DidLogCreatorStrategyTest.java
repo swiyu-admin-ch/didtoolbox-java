@@ -38,9 +38,9 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
             var ctxBuilder = DidLogCreatorContext.builder()
                     .didMethod(DidMethodEnum.TDW_0_3) // CAUTION must be set explicitly for did:tdw logs
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
-                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))); // add another value "updateKeys" param
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public.pem")))); // add another value "updateKeys" param
 
             didLogEntry.set(ctxBuilder.build().create(identifierRegistryUrl)); // MUT
 
@@ -52,7 +52,7 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
 
             var exc = assertThrowsExactly(IllegalArgumentException.class, () -> {
                 // CAUTION Key pre-rotation is not (yet) implemented for did:tdw
-                ctxBuilder.nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
+                ctxBuilder.nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public01.pem")))) // activate prerotation by adding another key for the future
                         .build()
                         .create(identifierRegistryUrl); // MUT
             });
@@ -66,10 +66,10 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
             didLogEntry.set(DidLogCreatorContext.builder()
                     //.didMethod(DidMethodEnum.WEBVH_1_0) // default
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
-                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // add another value "updateKeys" param
-                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public.pem")))) // add another value "updateKeys" param
+                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public01.pem")))) // activate prerotation by adding another key for the future
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     .build()
                     .create(identifierRegistryUrl)); // MUT
         });

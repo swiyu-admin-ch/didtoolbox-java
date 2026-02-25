@@ -1,11 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.RandomEd25519KeyStore;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -159,8 +158,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                             ))
-                            .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                            .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                            .assertionMethods(TEST_ASSERTION_METHODS)
+                            .authentications(TEST_AUTHENTICATIONS)
                             .build()
                             .create(URL.of(new URI(TEST_DID_URL), null)) // should not throw DidLogCreatorStrategyException
             ).append(System.lineSeparator());
@@ -177,8 +176,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
                         DidLogUpdaterContext.builder()
                                 // switch to the key defined by the "nextKeyHashes" from the previous entry (the key store is already "rotated" earlier)
                                 .cryptographicSuite(RandomEd25519KeyStore.cryptographicSuite())
-                                // REMINDER .didtoolbox directory was created previously while building the initial DID log entry (thanks to .forceOverwrite(true))
-                                .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of(".didtoolbox/assert-key-01.pub"), "my-assert-key-0" + i))).authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of(".didtoolbox/auth-key-01.pub"), "my-auth-key-0" + i)))
+                                .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                                .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                                 // Prepare ("rotate" to) another pre-rotation key to be used when building the next DID log entry
                                 .nextKeyHashesDidMethodParameter(Set.of(
                                         // Bear in mind, after the key store "rotation", all its (static) helpers "point" to the next/another key in the store

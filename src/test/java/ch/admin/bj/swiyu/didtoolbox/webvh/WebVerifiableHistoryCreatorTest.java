@@ -2,7 +2,6 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
-import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
@@ -21,7 +20,6 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -94,8 +92,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -114,8 +112,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -140,8 +138,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // activate prerotation by adding one of the 'updateKeys'
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -172,8 +170,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -203,8 +201,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // it matches the signing key, thus it should not be added to 'updateKeys'
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // activate prerotation by adding one of the 'updateKeys'
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -229,8 +227,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(identifierRegistryUrl)); // MUT
         });
@@ -259,12 +257,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> {
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
-                    .assertionMethodKeys(Map.of(
-                            "my-assert-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01")
-                    ))
-                    .authenticationKeys(Map.of(
-                            "my-auth-key-01", JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-01")
-                    ))
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     .build()
                     // CAUTION datetime is set explicitly here just to be able to run assertTrue("...".contains(didLogEntry));
                     .createDidLog(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z"))); // MUT
@@ -296,8 +290,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
             WebVerifiableHistoryCreator.builder()
                     // IMPORTANT A .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
                     .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
         });
@@ -329,8 +323,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                                     .didMethod(DidMethodEnum.TDW_0_3)
                                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                                     //.updateKeys(Set.of(new File("src/test/data/public.pem")))
-                                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
-                                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
+                                    .assertionMethods(TEST_ASSERTION_METHODS)
+                                    .authentications(TEST_AUTHENTICATIONS)
                                     .build()
                                     .create(tdwUrl)
                     )
