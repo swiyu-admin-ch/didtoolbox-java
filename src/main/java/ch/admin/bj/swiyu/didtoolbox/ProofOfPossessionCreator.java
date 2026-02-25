@@ -69,7 +69,6 @@ public class ProofOfPossessionCreator {
      *
      */
     public SignedJWT create(String nonce, Duration expiresIn) throws ProofOfPossessionCreatorException {
-
         // Prepare header and claims set of the JWT
         var signedJWT = new com.nimbusds.jwt.SignedJWT(
                 new com.nimbusds.jose.JWSHeader.Builder(signer.getAlgorithm())
@@ -77,6 +76,8 @@ public class ProofOfPossessionCreator {
                         .build(),
                 new com.nimbusds.jwt.JWTClaimsSet.Builder()
                         .claim("nonce", nonce)
+                        .issuer(signer.getKid().split("#")[0])
+                        .issueTime(new Date())
                         .expirationTime(Date.from(ZonedDateTime.now().plus(expiresIn).toInstant()))
                         .build());
 

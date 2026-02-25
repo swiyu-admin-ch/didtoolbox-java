@@ -31,6 +31,9 @@ class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
 
         var payload = pop.getPayload().toJSONObject();
         assertNotNull(payload.get("exp"));
+        assertNotNull(payload.get("iat"));
+        assertNotNull(payload.get("iss"));
+        assertEquals(payload.get("iss"), didLogMeta.getDidDoc().getId());
         assertNotNull(payload.get("nonce"));
         assertEquals(nonce, payload.get("nonce").toString());
 

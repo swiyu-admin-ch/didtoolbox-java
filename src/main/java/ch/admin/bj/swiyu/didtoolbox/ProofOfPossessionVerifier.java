@@ -10,6 +10,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -118,12 +119,14 @@ public class ProofOfPossessionVerifier {
 
         // check timestamp
         // ParseException is thrown here, if something's wrong with the provided JWT
-        Date expirationTime;
+        JWTClaimsSet claimset;
         try {
-            expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+            claimset = signedJWT.getJWTClaimsSet();
         } catch (ParseException e) {
             throw ProofOfPossessionVerifierException.unparsable(e);
         }
+
+        var expirationTime = claimset.getExpirationTime();
         if (expirationTime == null) {
             throw ProofOfPossessionVerifierException.expired();
         }
@@ -132,12 +135,15 @@ public class ProofOfPossessionVerifier {
             throw ProofOfPossessionVerifierException.expired();
         }
 
-
         // retrieve key
         var kid = signedJWT.getHeader().getKeyID();
         var keyIdSplit = kid.split("#");
         if (keyIdSplit.length != 2) {
             throw ProofOfPossessionVerifierException.malformedClaimKid("provided kid does not have fragment");
+        }
+
+        if (!keyIdSplit[0].equals(claimset.getIssuer())) {
+            throw ProofOfPossessionVerifierException.malformedClaimKid("provided kid is not of issuer");
         }
 
         // retrieve key

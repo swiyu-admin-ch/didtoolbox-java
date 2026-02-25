@@ -525,7 +525,7 @@ java -jar didtoolbox.jar create -u https://example.com -f > did.jsonl
 export KID=$(jq -r ".state.assertionMethod[0]" did.jsonl)
 
 # Create proof of possession JWT and store it for later
-java -jar didtoolbox.jar create-pop -s .didtoolbox/id_ed25519 -v .didtoolbox/id_ed25519.pub -n "Your Nonce" > jwt
+java -jar didtoolbox.jar create-pop -d did.jsonl -k ${KID} -s .didtoolbox/assert-key-01 -n "Your Nonce" > jwt
 ```
 
 The result is valid JWT token that looks like this:
@@ -542,8 +542,10 @@ To decode the information contained within such JWT, the [JWT.io](https://www.jw
   "alg": "ES256"
 }
 {
-  "exp": 1772100234,
-  "nonce": "Your Nonce"
+  "iss": "did:webvh:QmfNchmAvY4EJ7WrxaiWRyrspV9B8dSRzUgcs4CWUggiBD:example.com",
+  "exp": 1772109310,
+  "nonce": "Your Nonce",
+  "iat": 1772022910
 }
 ```
 
@@ -557,7 +559,7 @@ A proof of possession can claim ownership over anything. For it to matter it fir
 # Create quickstart to generate an initial DID log along the required signing/verifying key pair and jwt
 java -jar didtoolbox.jar create -u https://example.com -f > did.jsonl
 export KID=$(jq -r ".state.assertionMethod[0]" did.jsonl)
-java -jar didtoolbox.jar create-pop -s .didtoolbox/id_ed25519 -v .didtoolbox/id_ed25519.pub -n "Your Nonce" > jwt
+java -jar didtoolbox.jar create-pop -d did.jsonl -k ${KID} -s .didtoolbox/assert-key-01 -n "Your Nonce" > jwt
 
 # verify created proof
 java -jar didtoolbox.jar verify-pop -d did.jsonl -n "Your Nonce" -j $(cat jwt)
