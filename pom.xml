@@ -349,7 +349,7 @@
                             <outputFilename>DidLogCreatorContext-create.puml</outputFilename>
                             <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext</startClass>
                             <startMethod>create</startMethod>
-                            <classBlacklistRegexp>.*Builder*.*</classBlacklistRegexp>
+                            <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*</classBlacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <!--ignoreStandardClasses>true</ignoreStandardClasses-->
                             <showReturnTypes>true</showReturnTypes>
@@ -369,7 +369,7 @@
                             <outputFilename>DidLogUpdaterContext-update.puml</outputFilename>
                             <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext</startClass>
                             <startMethod>update</startMethod>
-                            <classBlacklistRegexp>.*Builder*.*</classBlacklistRegexp>
+                            <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*</classBlacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <!--ignoreStandardClasses>true</ignoreStandardClasses-->
                             <showReturnTypes>true</showReturnTypes>
@@ -389,7 +389,7 @@
                             <outputFilename>DidLogDeactivatorContext-deactivate.puml</outputFilename>
                             <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext</startClass>
                             <startMethod>deactivate</startMethod>
-                            <classBlacklistRegexp>.*Builder*.*</classBlacklistRegexp>
+                            <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*</classBlacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <!--ignoreStandardClasses>true</ignoreStandardClasses-->
                             <showReturnTypes>true</showReturnTypes>
@@ -398,22 +398,6 @@
                             <useShortClassNames>false</useShortClassNames>
                         </configuration>
                     </execution>
-                    <!--execution>
-                        <id>generate-simple-diagram-WebVerifiableHistoryCreator-createDidLog</id>
-                        <goals>
-                            <goal>generateSequenceDiagram</goal>
-                        </goals>
-                        <phase>generate-test-sources</phase>
-                        <configuration>
-                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
-                            <outputFilename>WebVerifiableHistoryCreator-createDidLog.puml</outputFilename>
-                            <startClass>ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator</startClass>
-                            <startMethod>createDidLog</startMethod>
-                            <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*</classBlacklistRegexp>
-                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
-                            <showReturnTypes>true</showReturnTypes>
-                        </configuration>
-                    </execution-->
                     <!-- class diagrams -->
                     <execution>
                         <id>generate-diagram-didtoolbox-api-classes-only</id>

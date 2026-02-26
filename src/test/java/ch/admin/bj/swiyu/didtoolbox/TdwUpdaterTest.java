@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
@@ -97,7 +98,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
             TdwUpdater.builder()
-                    // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite()) // any suite
                     .build()
                     .updateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
@@ -105,7 +106,8 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             TdwUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
+                    // IMPORTANT Use a whole another cryptographic suite (to provoke the exception)
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // ...with NO matching key supplied!
                     .build()
                     .updateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
@@ -275,5 +277,31 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             assertEquals(totalEntriesCount, TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
             new Did(TdwDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
+    }
+
+    @DisplayName("Updating DID log without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
+    @Test
+    public void testUpdateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+
+        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE);
+
+        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            TdwUpdater.builder()
+                    // IMPORTANT .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .build()
+                    .updateDidLog(initialDidLogEntry); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
+
+        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            TdwUpdater.builder()
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
+                    .build()
+                    .updateDidLog(initialDidLogEntry); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No update will take place as no verification material is supplied whatsoever"));
     }
 }

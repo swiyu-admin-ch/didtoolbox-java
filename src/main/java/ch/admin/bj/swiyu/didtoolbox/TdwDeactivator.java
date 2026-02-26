@@ -1,9 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
@@ -177,7 +174,9 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
             throw new DidLogDeactivatorStrategyException("DID already deactivated");
         }
 
-        if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        if (getCryptoSuite() == null) {
+            throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
+        } else if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogDeactivatorStrategyException("Deactivation key mismatch");
         }
 

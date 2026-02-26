@@ -3,6 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
@@ -429,5 +430,31 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             assertEquals(TEST_KEY_FILES.length, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
             new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
+    }
+
+    @DisplayName("Updating DID log without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
+    @Test
+    public void testUpdateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
+
+        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            WebVerifiableHistoryUpdater.builder()
+                    // IMPORTANT .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .build()
+                    .updateDidLog(initialDidLogEntry); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
+
+        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            WebVerifiableHistoryUpdater.builder()
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
+                    .build()
+                    .updateDidLog(initialDidLogEntry); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No update will take place as no verification material is supplied whatsoever"));
     }
 }

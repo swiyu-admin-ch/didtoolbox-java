@@ -4,10 +4,7 @@ import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
 import ch.admin.bj.swiyu.didtoolbox.InvalidDidLogException;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.PemUtils;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
@@ -394,7 +391,9 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
-        if (!super.isVerificationMethodKeyProviderLegal(this.getCryptoSuite())) {
+        if (getCryptoSuite() == null) {
+            throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
+        } else if (!super.isVerificationMethodKeyProviderLegal(this.getCryptoSuite())) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
@@ -448,7 +447,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         //didDoc.addProperty("controller", didTDW);
 
         if (this.allAuthentications().isEmpty() && this.allAssertionMethods().isEmpty()) {
-            throw new DidLogUpdaterStrategyException("No update will take place as no verification material is supplied whatsoever");
+            throw new IncompleteDidLogEntryBuilderException("No update will take place as no verification material is supplied whatsoever");
         }
 
         var verificationMethod = new JsonArray();

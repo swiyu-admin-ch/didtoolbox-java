@@ -2,7 +2,6 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.didresolver.Did;
@@ -131,9 +130,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      *
      * @since 1.8.0
      */
-    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
     /**
      * @deprecated Use {@link #cryptographicSuite} instead
@@ -283,8 +281,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     /**
      * Updates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
      * features of this {@link TdwUpdater} object, optionally customized by previously calling fluent methods like
-     * {@link TdwUpdater#verificationMethodKeyProvider}, {@link TdwUpdater#authenticationKeys} or
-     * {@link TdwUpdater#assertionMethodKeys}.
+     * {@link TdwUpdater#cryptographicSuite}, {@link TdwUpdater#authentications} or
+     * {@link TdwUpdater#assertionMethods}.
      *
      * @param didLog to update. Expected to be resolvable/verifiable already.
      * @return a whole new <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
@@ -358,10 +356,6 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
-        if (getCryptoSuite() == null) {
-            throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
-        }
-
         try {
             super.peek(resolvableDidLog);
         } catch (DidLogMetaPeekerException e) {
@@ -373,7 +367,9 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
-        if (!this.getCryptoSuite().isKeyMultibaseInSet(this.didLogMeta.getParams().getUpdateKeys())) {
+        if (getCryptoSuite() == null) {
+            throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
+        } else if (!this.getCryptoSuite().isKeyMultibaseInSet(this.didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
@@ -404,7 +400,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         //didDoc.addProperty("controller", didTDW);
 
         if ((this.allAuthentications().isEmpty() && this.allAssertionMethods().isEmpty())) {
-            throw new IncompleteDidLogEntryBuilderException("No verification material is supplied");
+            throw new IncompleteDidLogEntryBuilderException("No update will take place as no verification material is supplied whatsoever");
         }
 
         var verificationMethod = new JsonArray();

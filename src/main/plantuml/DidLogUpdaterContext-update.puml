@@ -4,6 +4,7 @@
 participant ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 participant ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
 participant ch.admin.bj.swiyu.didtoolbox.TdwUpdater
+participant ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 participant ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater
 participant ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategy
 
@@ -16,11 +17,7 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getNextKeyHashesDidMethodParameter
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getNextKeyHashesDidMethodParameter
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : allNextKeyHashesDidMethodParameter
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
@@ -36,15 +33,23 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getAssertionMethodKeys
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : allAssertionMethods
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
+				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+				deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getAuthenticationKeys
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : allAuthentications
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
+				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+				deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getUpdateKeysDidMethodParameter
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : allUpdateKeysDidMethodParameter
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
@@ -56,19 +61,27 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getAssertionMethodKeys
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : allAssertionMethods
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
+				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+				deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getAuthenticationKeys
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : allAuthentications
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Map
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
+				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+				deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getUpdateKeysDidMethodParameter
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : allUpdateKeysDidMethodParameter
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : getNextKeyHashesDidMethodParameter
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext : allNextKeyHashesDidMethodParameter
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext

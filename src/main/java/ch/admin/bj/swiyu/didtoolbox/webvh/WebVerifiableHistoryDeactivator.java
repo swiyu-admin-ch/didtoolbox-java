@@ -1,14 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.*;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.didresolver.Did;
@@ -58,9 +54,9 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets no precedence over it (if both called against the same object).
      */
-    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite;
+
     /**
      * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
      */
@@ -137,7 +133,9 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
             throw new DidLogDeactivatorStrategyException("DID already deactivated");
         }
 
-        if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        if (getCryptoSuite() == null) {
+            throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
+        } else if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogDeactivatorStrategyException("Deactivation key mismatch");
         }
 
