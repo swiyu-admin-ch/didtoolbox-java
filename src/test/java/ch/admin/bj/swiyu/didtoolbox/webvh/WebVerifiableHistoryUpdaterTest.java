@@ -2,12 +2,9 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
-import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.didresolver.Did;
@@ -18,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -88,7 +84,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
             WebVerifiableHistoryUpdater.builder()
-                    // no explicit verificationMethodKeyProvider, hence keys are generated on-the-fly
+                    // anything but TEST_CRYPTO_SUITE
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .updateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
@@ -133,8 +130,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             nextLogEntry = WebVerifiableHistoryUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     // CAUTION No need for explicit call of method: .updateKeys(Set.of(new File("src/test/data/public.pem")))
                     //         The updateKey matching VERIFICATION_METHOD_KEY_PROVIDER is already present in initialDidLogEntry.
                     .build()
@@ -187,8 +184,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                     //     Given the setup of initialDidLogEntry (see above), either of TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS and
                     //     TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER must work
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     // 2nd updateKey supplied explicitly (from file)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(
                             //new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
@@ -234,9 +231,10 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
-                    // IMPORTANT Let the builder set any VerificationMethodKeyProvider itself, as long as it delivers a key different than the one from initial entry
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    // IMPORTANT Any cryptographic suite delivering keys different from those from the initial entry
+                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -261,8 +259,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_ANOTHER) // using a whole another verification key provider
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     // IMPORTANT The key does not match TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER thus ILLEGAL
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public.pem"))))
                     .build()
@@ -294,8 +292,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             nextLogEntry.set(WebVerifiableHistoryUpdater.builder()
                     // using already available verification method key provider
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
-                    .assertionMethodKeys(TEST_ASSERTION_METHOD_KEYS)
-                    .authenticationKeys(TEST_AUTHENTICATION_METHOD_KEYS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .authentications(TEST_AUTHENTICATIONS)
                     // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
                     //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
                     .build()
@@ -356,8 +354,9 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
                 var nextLogEntry = WebVerifiableHistoryUpdater.builder()
                         .cryptographicSuite(cryptoSuite) // different for odd and even entries (key alternation)
-                        .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
-                        .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                        .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                        .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                        // TODO Use more potent fluent methods
                         // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
                         //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
                         .build()
@@ -400,8 +399,9 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
                 String nextLogEntry = WebVerifiableHistoryUpdater.builder()
                         .cryptographicSuite(TEST_CRYPTO_SUITES[i - 2]) // rotate to the key defined by the previous entry
-                        .assertionMethodKeys(Map.of("my-assert-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-0" + i)))
-                        .authenticationKeys(Map.of("my-auth-key-0" + i, JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/auth-key-01.pub"), "my-auth-key-0" + i)))
+                        .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                        .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                        // TODO Use more potent fluent methods
                         // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
                         //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
                         // Using alternative and more potent method to supply pre-rotation keys.
@@ -430,5 +430,31 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             assertEquals(TEST_KEY_FILES.length, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // the loop should have created that many
             new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
+    }
+
+    @DisplayName("Updating DID log without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
+    @Test
+    public void testUpdateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
+
+        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            WebVerifiableHistoryUpdater.builder()
+                    // IMPORTANT .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .build()
+                    .updateDidLog(initialDidLogEntry); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
+
+        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+            WebVerifiableHistoryUpdater.builder()
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
+                    .build()
+                    .updateDidLog(initialDidLogEntry); // MUT
+        });
+        assertTrue(exc.getMessage().contains("No update will take place as no verification material is supplied whatsoever"));
     }
 }

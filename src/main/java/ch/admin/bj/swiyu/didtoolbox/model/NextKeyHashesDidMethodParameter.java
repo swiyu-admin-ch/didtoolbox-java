@@ -36,7 +36,7 @@ import java.util.Set;
  * of holding Ed25519 public keys e.g. {@link PublicKey}, {@link Path} or {@link String}.
  * Given so, these helpers can be used out-of-the-box for the purpose of <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">pre-rotation-key-hash-generation-and-verification</a>.
  */
-@SuppressWarnings("PMD.ImplicitFunctionalInterface")
+@SuppressWarnings({"PMD.ImplicitFunctionalInterface"})
 public interface NextKeyHashesDidMethodParameter {
 
     /**

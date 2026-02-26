@@ -7,8 +7,8 @@ import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.did_sidekicks.DidDoc;
@@ -26,6 +26,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,16 +37,18 @@ import java.util.stream.Collectors;
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
- * it is intended to be instantiated exclusively via its static {@link #builder()} method.
+ * it is intended to be instantiated exclusively via its static {@code builder()} method.
  * <p>
- * Once a {@link WebVerifiableHistoryCreator} object is "built", creating a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
- * log goes simply by calling {@link #createDidLog(URL)} method. Optionally, but most likely, an already existing key material will
- * be also used in the process, so for the purpose there are further fluent methods available:
+ * Once a {@link WebVerifiableHistoryCreator} object is properly "built"
+ * (i.e. with some proper cryptographic suite and verification material included),
+ * creating a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
+ * log goes simply by calling {@link #createDidLog(URL)} method.
+ * So, before calling the {@code build()} method there are also these fluent methods available:
  * <ul>
- * <li>{@link WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider(VcDataIntegrityCryptographicSuite)} for the purpose of adding data integrity proof</li>
- * <li>{@link WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} for setting authentication
+ * <li>{@link WebVerifiableHistoryCreator#verificationMethodKeyProvider} for the purpose of adding data integrity proof</li>
+ * <li>{@link WebVerifiableHistoryCreator#authentications} for setting authentication
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)} for setting/assertion
+ * <li>{@link WebVerifiableHistoryCreator#assertionMethods} for setting/assertion
  * (EC/P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
@@ -54,29 +57,91 @@ import java.util.stream.Collectors;
  * To load authentication/assertion public EC P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
  * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link JwkUtils}.
  * <p>
- * <p>
  * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
  * Instead, rather rely on the designated {@link DidLogCreatorContext} for the purpose. Needless to say,
  * the proper DID method must be supplied to the strategy - in this case it should be {@link DidMethodEnum#WEBVH_1_0}.
- * <p>
  */
 @Builder
 @Getter
-@SuppressWarnings("PMD.ExcessiveImports")
 public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
 
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
+     * verification relationships.
+     * <p>
+     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
+     * <p>
+     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
+     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
+     * <p>
+     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
+     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
+     *
+     * @deprecated Use {@link #assertionMethods} instead
+     */
     @Getter(AccessLevel.PRIVATE)
+    @Deprecated(since = "1.9.0")
     private Map<String, String> assertionMethodKeys;
+
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
+     * verification relationships.
+     *
+     * @since 1.9.0
+     */
     @Getter(AccessLevel.PRIVATE)
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> assertionMethods;
+
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
+     * verification relationships.
+     * <p>
+     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
+     * <p>
+     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
+     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
+     * <p>
+     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
+     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
+     *
+     * @deprecated Use {@link #authentications} instead
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated(since = "1.9.0")
     private Map<String, String> authenticationKeys;
+
+    /**
+     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
+     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
+     * for DID document.
+     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
+     * verification relationships.
+     * <p>
+     * This is an alternative and more potent method to supply the verification material.
+     * Eventually, all the keys supplied one way or another are simply combined into a distinct list of values.
+     * <p>
+     * HINT: Use available {@link ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod} static factory methods to supply public keys.
+     *
+     * @since 1.9.0
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> authentications;
 
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets NO precedence over it (if both called against the same object).
      */
-    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+    private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
     /**
      * @deprecated Use {@link #cryptographicSuite} instead
@@ -123,13 +188,48 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     @Getter(AccessLevel.PACKAGE)
     private Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameter;
 
+    /**
+     * @deprecated Removed as redundant
+     */
     @Getter(AccessLevel.PRIVATE)
+    @Deprecated(since = "1.9.0")
     private boolean forceOverwrite;
+
+    /**
+     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter:
+     * <pre>
+     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
+     * </pre>
+     *
+     * @deprecated Use the {@link #updateKeysDidMethodParameter} setter instead
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated(since = "1.8.0")
+    private Set<File> updateKeys;
+
+    /**
+     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
+     * <ul>
+     * <li><pre>
+     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
+     * </pre></li>
+     * <li><pre>
+     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
+     * </pre></li>
+     * </ul>
+     *
+     * @deprecated Use the {@link #nextKeyHashesDidMethodParameter} setter instead
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Deprecated(since = "1.8.0")
+    private Set<File> nextKeys;
 
     /**
      * A static helper aiming at creation of a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
      * DID log featuring cryptographic key material from the supplied {@link DidDoc}.
      *
+     * @param cryptoSuite
      * @param didDoc                a valid <a href="https://www.w3.org/TR/did-1.0/#did-document-properties">DID document</a>
      *                              object containing cryptographic key material
      * @param identifierRegistryUrl (of a did.jsonl) in its entirety w.r.t.
@@ -139,7 +239,9 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      * @throws DidLogCreatorStrategyException if creation fails for whatever reason
      * @since 1.8.0
      */
-    public static String createDidLogFromDidDoc(DidDoc didDoc, URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
+    public static String createDidLogFromDidDoc(
+            VcDataIntegrityCryptographicSuite cryptoSuite, DidDoc didDoc, URL identifierRegistryUrl, ZonedDateTime zdt)
+            throws DidLogCreatorStrategyException {
 
         var newDidDoc = new JsonObject();
 
@@ -147,7 +249,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         didDoc.getContext().forEach(ctx::add);
         newDidDoc.add("@context", ctx);
 
-        var creator = builder().build();
+        var creator = builder().cryptographicSuite(cryptoSuite).build();
 
         var did = creator.buildDid(identifierRegistryUrl);
 
@@ -219,35 +321,108 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     }
 
     /**
-     * Holder of the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">updateKeys</a>
-     * DID method parameter:
-     * <pre>
-     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
-     * </pre>
+     * Aggregates verification material from various sources, hence it should be exclusively used in this class instead of
+     * the {@link #authentications} getter.
      *
-     * @deprecated Use the {@link #updateKeysDidMethodParameter} method instead
+     * @since 1.9.0
      */
-    @Deprecated(since = "1.8.0")
-    public void updateKeys(Set<File> pemFiles) throws UpdateKeysDidMethodParameterException {
-        updateKeysDidMethodParameter.addAll(UpdateKeysDidMethodParameter.of(pemFiles));
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAuthentications() throws DidLogCreatorStrategyException {
+        var set = new HashSet<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod>();
+        if (this.authenticationKeys != null) { // collect all from deprecated class member
+            for (var entry : this.authenticationKeys.entrySet()) {
+                try {
+                    set.add(ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod.of(entry.getKey(), entry.getValue()));
+                } catch (VerificationMethodException e) {
+                    throw new DidLogCreatorStrategyException(e);
+                }
+            }
+        }
+
+        if (this.authentications != null) {
+            set.addAll(authentications);
+        }
+
+        return set;
     }
 
     /**
-     * As specified by <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">didwebvh-did-method-parameters</a>, that is:
-     * <ul>
-     * <li><pre>
-     * Once the nextKeyHashes parameter has been set to a non-empty array, Key Pre-Rotation is active.
-     * </pre></li>
-     * <li><pre>
-     * The value of nextKeyHashes MAY be set to an empty array ([]) to deactivate pre-rotation.
-     * </pre></li>
-     * </ul>
+     * Aggregates verification material from various sources, hence it should be exclusively used in this class instead of
+     * the {@link #assertionMethods} getter.
      *
-     * @deprecated Use the {@link #nextKeyHashesDidMethodParameter} method instead
+     * @since 1.9.0
      */
-    @Deprecated(since = "1.8.0")
-    public void nextKeys(Set<File> pemFiles) throws NextKeyHashesDidMethodParameterException {
-        nextKeyHashesDidMethodParameter.addAll(NextKeyHashesDidMethodParameter.of(pemFiles));
+    private Set<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod> allAssertionMethods() throws DidLogCreatorStrategyException {
+        var set = new HashSet<ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod>();
+        if (this.assertionMethodKeys != null) { // collect all from deprecated class member
+            for (var entry : this.assertionMethodKeys.entrySet()) {
+                try {
+                    set.add(ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod.of(entry.getKey(), entry.getValue()));
+                } catch (VerificationMethodException e) {
+                    throw new DidLogCreatorStrategyException(e);
+                }
+            }
+        }
+
+        if (this.assertionMethods != null) {
+            set.addAll(assertionMethods);
+        }
+
+        return set;
+    }
+
+    /**
+     * Aggregates all <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
+     * DID method parameter values supplied from various sources, hence it should be exclusively used in this class instead of
+     * the {@link #updateKeysDidMethodParameter} getter.
+     *
+     * @since 1.9.0
+     */
+    private Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogCreatorStrategyException {
+
+        var set = new HashSet<UpdateKeysDidMethodParameter>();
+        if (this.updateKeys != null) { // collect all from deprecated class member
+            for (var key : this.updateKeys) {
+                try {
+                    set.add(UpdateKeysDidMethodParameter.of(key.toPath()));
+                } catch (UpdateKeysDidMethodParameterException e) {
+                    throw new DidLogCreatorStrategyException(e);
+                }
+            }
+        }
+
+        if (this.updateKeysDidMethodParameter != null) {
+            set.addAll(updateKeysDidMethodParameter);
+        }
+
+        return set;
+    }
+
+    /**
+     * Aggregates all <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">nextKeyHashes</a>
+     * DID method parameter values supplied from various sources, hence it should be exclusively used in this class instead of
+     * the {@link #nextKeyHashesDidMethodParameter} getter.
+     *
+     * @return a set of {@link NextKeyHashesDidMethodParameter} objects, never {@code null}
+     * @since 1.9.0
+     */
+    private Set<NextKeyHashesDidMethodParameter> allNextKeyHashesDidMethodParameter() throws DidLogCreatorStrategyException {
+
+        var set = new HashSet<NextKeyHashesDidMethodParameter>();
+        if (this.nextKeys != null) { // collect all from deprecated class member
+            for (var key : this.nextKeys) {
+                try {
+                    set.add(NextKeyHashesDidMethodParameter.of(key.toPath()));
+                } catch (NextKeyHashesDidMethodParameterException e) {
+                    throw new DidLogCreatorStrategyException(e);
+                }
+            }
+        }
+
+        if (this.nextKeyHashesDidMethodParameter != null) {
+            set.addAll(nextKeyHashesDidMethodParameter);
+        }
+
+        return set;
     }
 
     private VcDataIntegrityCryptographicSuite getCryptoSuite() {
@@ -266,13 +441,14 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log by taking into account other
      * features of this {@link WebVerifiableHistoryCreator} object, optionally customized by previously calling fluent methods like
-     * {@link WebVerifiableHistoryCreatorBuilder#verificationMethodKeyProvider}, {@link WebVerifiableHistoryCreatorBuilder#authenticationKeys(Map)} or
-     * {@link WebVerifiableHistoryCreatorBuilder#assertionMethodKeys(Map)}.
+     * {@link WebVerifiableHistoryCreator#verificationMethodKeyProvider}, {@link WebVerifiableHistoryCreator#authentications} or
+     * {@link WebVerifiableHistoryCreator#assertionMethods}.
      *
      * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
      *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
      * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
-     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
+     * @throws DidLogCreatorStrategyException        if creation fails for whatever reason
+     * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      * @see #createDidLog(URL, ZonedDateTime)
      */
     @Override
@@ -291,17 +467,22 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
      *                              <a href="https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation">the-did-to-https-transformation</a>
      * @param zdt                   a date-time with a time-zone in the ISO-8601 calendar system
      * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log
-     * @throws DidLogCreatorStrategyException if creation fails for whatever reason
+     * @throws DidLogCreatorStrategyException        if creation fails for whatever reason
+     * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      */
     @Override
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         // Create initial did doc with placeholder
-        return createDidLog(createDidDoc(identifierRegistryUrl, this.authenticationKeys, this.assertionMethodKeys, this.forceOverwrite), zdt);
+        return createDidLog(createDidDoc(identifierRegistryUrl, this.allAuthentications(), this.allAssertionMethods()), zdt);
     }
 
     //@SuppressWarnings({"PMD.CyclomaticComplexity"})
     private String createDidLog(JsonObject didDoc, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
+
+        if (getCryptoSuite() == null) {
+            throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
+        }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
         var didLogEntryWithoutProofAndSignature = new JsonObject();
@@ -320,8 +501,8 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
                 createDidParams(this.getCryptoSuite(),
-                        this.updateKeysDidMethodParameter,
-                        this.nextKeyHashesDidMethodParameter));
+                        this.allUpdateKeysDidMethodParameter(),
+                        this.allNextKeyHashesDidMethodParameter()));
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);

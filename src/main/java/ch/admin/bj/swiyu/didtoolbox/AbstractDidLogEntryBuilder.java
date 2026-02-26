@@ -1,18 +1,13 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileAlreadyExistsException;
-import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractDidLogEntryBuilder {
@@ -26,24 +21,9 @@ public abstract class AbstractDidLogEntryBuilder {
 
     protected DidLogMeta didLogMeta;
 
-    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String jwk, File jwksFile,
-                                                                        boolean forceOverwrite) throws DidLogCreatorStrategyException {
-
-        String publicKeyJwk = jwk;
-        if (publicKeyJwk == null || publicKeyJwk.isEmpty()) {
-            try {
-                publicKeyJwk = JwkUtils.generatePublicEC256(keyID, jwksFile, forceOverwrite);
-            } catch (IOException e) {
-                throw new DidLogCreatorStrategyException(e);
-            }
-        }
-
-        return buildVerificationMethodWithPublicKeyJwk(didTDW, keyID, publicKeyJwk);
-    }
-
     protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String publicKeyJwk) {
 
-        JsonObject verificationMethodObj = new JsonObject();
+        var verificationMethodObj = new JsonObject();
         verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://confluence.bit.admin.ch/x/3e0EMw
@@ -53,24 +33,6 @@ public abstract class AbstractDidLogEntryBuilder {
         verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
 
         return verificationMethodObj;
-    }
-
-    protected static File createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws DidLogCreatorStrategyException {
-        var outputDir = new File(pathname);
-        if (!outputDir.exists()) {
-            try {
-                return FilesPrivacy.createPrivateDirectory(outputDir.toPath(), false).toFile(); // may throw DirectoryNotEmptyException, SecurityException etc.
-            } catch (DirectoryNotEmptyException | FileAlreadyExistsException | AccessDeniedException ex) {
-                // the directory (if exists) must be empty with write access granted
-                throw new IllegalArgumentException(ex);
-                //} catch (AccessDeniedException ex) {
-                //    throw new AccessDeniedException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
-            } catch (Throwable thr) {
-                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathname + " due to: " + thr.getMessage());
-            }
-        }
-
-        return outputDir;
     }
 
     /**
@@ -253,10 +215,19 @@ public abstract class AbstractDidLogEntryBuilder {
         return did;
     }
 
+    /**
+     * Create a valid DID document w.r.t. supplied verification material.
+     *
+     * @param identifierRegistryUrl to build a DID for
+     * @param authentications
+     * @param assertionMethods
+     * @return JSON object representing a valid DID document w.r.t. to supplied verification material
+     * @throws IncompleteDidLogEntryBuilderException if no proper verification material is supplied
+     */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     protected JsonObject createDidDoc(URL identifierRegistryUrl,
-                                      Map<String, String> authenticationKeys,
-                                      Map<String, String> assertionMethodKeys,
-                                      boolean forceOverwrite) throws DidLogCreatorStrategyException {
+                                      Set<VerificationMethod> authentications,
+                                      Set<VerificationMethod> assertionMethods) {
 
         var did = buildDid(identifierRegistryUrl);
 
@@ -275,45 +246,32 @@ public abstract class AbstractDidLogEntryBuilder {
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
         //didDoc.addProperty("controller", did);
 
-        JsonArray verificationMethod = new JsonArray();
+        var verificationMethod = new JsonArray();
 
-        if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
+        if ((authentications == null || authentications.isEmpty())
+                && (assertionMethods == null || assertionMethods.isEmpty())) {
+            throw new IncompleteDidLogEntryBuilderException("No verification material (authentication or assertion) supplied");
+        }
 
-            JsonArray authentication = new JsonArray();
-            for (var key : authenticationKeys.entrySet()) {
-                authentication.add(did + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, key.getKey(), key.getValue(), null, forceOverwrite));
+        if (authentications != null && !authentications.isEmpty()) {
+
+            var authentication = new JsonArray();
+            for (var vm : authentications) {
+                authentication.add(did + "#" + vm.getIdFragment());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
 
-            didDoc.add("authentication", authentication);
-
-        } else {
-
-            var outputDir = createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, "auth-key-01", null, new File(outputDir, "auth-key-01"), forceOverwrite)); // default
-
-            JsonArray authentication = new JsonArray();
-            authentication.add(did + "#" + "auth-key-01");
             didDoc.add("authentication", authentication);
         }
 
-        if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
+        if (assertionMethods != null && !assertionMethods.isEmpty()) {
 
-            JsonArray assertionMethod = new JsonArray();
-            for (var key : assertionMethodKeys.entrySet()) {
-                assertionMethod.add(did + "#" + key.getKey());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, key.getKey(), key.getValue(), null, forceOverwrite));
+            var assertionMethod = new JsonArray();
+            for (var vm : assertionMethods) {
+                assertionMethod.add(did + "#" + vm.getIdFragment());
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
 
-            didDoc.add("assertionMethod", assertionMethod);
-
-        } else {
-
-            var outputDir = createPrivateKeyDirectoryIfDoesNotExist(".didtoolbox");
-            verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, "assert-key-01", null, new File(outputDir, "assert-key-01"), forceOverwrite)); // default
-
-            JsonArray assertionMethod = new JsonArray();
-            assertionMethod.add(did + "#" + "assert-key-01");
             didDoc.add("assertionMethod", assertionMethod);
         }
 

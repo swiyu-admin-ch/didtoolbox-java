@@ -125,12 +125,9 @@ public final class JwkUtils {
 
                 createPrivateFile(keyPairPemFile, forceOverwrite);
 
-                Writer w = Files.newBufferedWriter(keyPairPemFile.toPath());
-                try {
+                try (Writer w = Files.newBufferedWriter(keyPairPemFile.toPath())) {
                     w.write(keyPairPem);
                     w.flush();
-                } finally {
-                    w.close();
                 }
 
                 // Creates (keyPairPemFile || ".pub") file
@@ -162,7 +159,7 @@ public final class JwkUtils {
             //} catch (AccessDeniedException ex) {
             //    throw new AccessDeniedException("Access denied to private key PEM file " + keyPairPemFile.getPath() + " due to: " + ex.getMessage());
         } catch (Throwable thr) {
-            throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage());
+            throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage(), thr);
         }
     }
 
