@@ -21,7 +21,7 @@ public class VerifyProofOfPossessionCommand extends AbstractCommandBase {
         return COMMAND_NAME;
     }
 
-    final public static String COMMAND_NAME = "verify-pop";
+    public final static String COMMAND_NAME = "verify-pop";
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},
             description = "Text representation of the possession to be included in the proof",

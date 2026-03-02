@@ -7,10 +7,6 @@ package ch.admin.bj.swiyu.didtoolbox;
  * @see ProofOfPossessionCreator
  */
 public class ProofOfPossessionCreatorException extends Exception {
-    public ProofOfPossessionCreatorException(String message) {
-        super(message);
-    }
-
     public ProofOfPossessionCreatorException(Exception e) {
         super(e);
     }
