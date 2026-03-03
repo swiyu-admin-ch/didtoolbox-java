@@ -89,7 +89,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     /**
      * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
      * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
-     * for DID document.
+     * for a DID document.
      * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
      * verification relationships.
      *

@@ -7,6 +7,7 @@ import java.io.Serial;
  * any {@link VerificationMethod} interface implementation, that any reasonable application might want to catch.
  *
  * @see VerificationMethod
+ * @since 1.9.0
  */
 public class VerificationMethodException extends Exception {
 

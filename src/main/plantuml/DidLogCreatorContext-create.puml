@@ -37,6 +37,10 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
 				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
+					activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 				deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
@@ -45,6 +49,10 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
 				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
+					activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 				deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
@@ -65,6 +73,10 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
 				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
+					activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 				deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set
@@ -73,6 +85,10 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
 				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
+					activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+					deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 				deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : java.util.Set

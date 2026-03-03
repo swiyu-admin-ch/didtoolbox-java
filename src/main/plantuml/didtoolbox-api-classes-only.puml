@@ -172,7 +172,7 @@ class ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameterException {
 
 interface ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial {
 	{method}  {abstract} +getPublicKeyJwk () : String
-	{method}  {abstract} +getPublicKeyMultibase () : String
+	{method}  {static} +of ( paramString1 : String , paramPath2 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial
 	{method}  {static} +of ( paramString1 : String , paramECPublicKey2 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial
 }
 
@@ -185,6 +185,9 @@ interface ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod {
 	{method}  {static} +of ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 	{method}  {static} +of ( paramString1 : String , paramPath2 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 	{method}  {static} +of ( paramString1 : String , paramECPublicKey2 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramString3 : String ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramPath3 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramECPublicKey3 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 }
 
 

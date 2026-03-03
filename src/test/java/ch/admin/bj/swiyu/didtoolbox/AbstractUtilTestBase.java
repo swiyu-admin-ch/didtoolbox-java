@@ -298,7 +298,6 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                         .cryptographicSuite(cryptoSuite)
                         .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
-                        // TODO Use more potent fluent methods
                         .build()
                         .update(updatedDidLog.toString()); // MUT
 
@@ -328,7 +327,6 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                         .cryptographicSuite(cryptoSuite)
                         .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
-                        // TODO Use more potent fluent methods
                         .build()
                         .update(updatedDidLog.toString()); // MUT
 

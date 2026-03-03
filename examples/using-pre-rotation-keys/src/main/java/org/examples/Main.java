@@ -59,7 +59,7 @@ public class Main {
                                 //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                         ))
                         .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-01", Path.of("../../src/test/data/assert-key-01.pub"))))
-                        //.authentications(Set.of(VerificationMethod.of("my-auth-key-01", Path.of("../../src/test/data/auth-key-01.pub"))))
+                        .authentications(Set.of(VerificationMethod.of("my-auth-key-01", Path.of("../../src/test/data/auth-key-01.pub"))))
                         .build()
                         .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null))
         ).append(System.lineSeparator());

@@ -13,10 +13,6 @@ public class ProofOfPossessionCreatorException extends Exception {
     @Serial
     private static final long serialVersionUID = -8688911417489177064L;
 
-    public ProofOfPossessionCreatorException(String message) {
-        super(message);
-    }
-
     public ProofOfPossessionCreatorException(Exception e) {
         super(e);
     }

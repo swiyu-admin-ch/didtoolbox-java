@@ -21,10 +21,10 @@ public abstract class AbstractDidLogEntryBuilder {
 
     protected DidLogMeta didLogMeta;
 
-    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String didTDW, String keyID, String publicKeyJwk) {
+    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String did, String fragmentId, String publicKeyJwk) {
 
         var verificationMethodObj = new JsonObject();
-        verificationMethodObj.addProperty("id", didTDW + "#" + keyID);
+        verificationMethodObj.addProperty("id", did + "#" + fragmentId);
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://confluence.bit.admin.ch/x/3e0EMw
         verificationMethodObj.addProperty("type", "JsonWebKey2020");
