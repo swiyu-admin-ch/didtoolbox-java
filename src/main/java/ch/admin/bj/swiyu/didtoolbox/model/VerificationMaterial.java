@@ -23,6 +23,7 @@ import java.security.interfaces.ECPublicKey;
  *
  * @since 1.9.0
  */
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface VerificationMaterial {
 
     /**
@@ -39,8 +40,7 @@ public interface VerificationMaterial {
      * private values removed, never {@code null}
      */
     static VerificationMaterial of(String kid, ECPublicKey ecPublicKey) {
-
-        return () -> (new ECKey.Builder(Curve.P_256, ecPublicKey)).keyID(kid).build().toPublicJWK().toJSONString();
+        return () -> new ECKey.Builder(Curve.P_256, ecPublicKey).keyID(kid).build().toPublicJWK().toJSONString();
     }
 
     /**
@@ -55,11 +55,11 @@ public interface VerificationMaterial {
      * @param ecPublicKeyPemPath file featuring a proper public EC key in PEM format
      * @return a valid {@link VerificationMaterial} implementation object representing Elliptic Curve JWK with any
      * @throws IOException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
-     * private values removed, never {@code null}
+     *                     private values removed, never {@code null}
      */
     static VerificationMaterial of(String kid, Path ecPublicKeyPemPath) throws IOException {
         var ecPublicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicKeyPemPath));
-        return () -> (new ECKey.Builder(Curve.P_256, ecPublicKey)).keyID(kid).build().toPublicJWK().toJSONString();
+        return () -> new ECKey.Builder(Curve.P_256, ecPublicKey).keyID(kid).build().toPublicJWK().toJSONString();
     }
 
     /**

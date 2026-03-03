@@ -65,7 +65,7 @@ public final class JwkUtils {
 
         var publicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicPemPath));
 
-        return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
+        return new ECKey.Builder(Curve.P_256, publicKey).keyID(kid).build().toPublicJWK().toJSONString();
     }
 
     /**
