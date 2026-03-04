@@ -12,8 +12,8 @@ public class PemFileParameterValidator implements IParameterValidator {
     public void validate(String name, String value) { // throws ParameterException {
         try {
             PemUtils.readPEMFile(new File(value));
-        } catch (IOException e) {
-            throw new ParameterException("Parameter " + name + " should be a regular file containing key in PEM format (found " + value + ")");
+        } catch (IOException exc) {
+            throw new ParameterException("Parameter " + name + " should be a regular file containing key in PEM format (found " + value + ")", exc);
         }
     }
 }

@@ -12,15 +12,14 @@ public class IdentifierRegistryUrlParameterValidator implements IParameterValida
     @Override
     public void validate(String name, String value) { // throws ParameterException {
         URL url;
-        var exc = new ParameterException("Parameter " + name + " should be a regular HTTP(S) DID URL (found '" + value + "')");
         try {
             url = URL.of(new URI(value), null);
-        } catch (URISyntaxException | MalformedURLException e) {
-            throw exc;
+        } catch (URISyntaxException | MalformedURLException exc) {
+            throw new ParameterException("Parameter " + name + " should be a regular HTTP(S) DID URL (found '" + value + "')", exc);
         }
 
         if (!url.getProtocol().startsWith("http")) {
-            throw exc;
+            throw new ParameterException("Parameter " + name + " should be a regular HTTP(S) DID URL (found '" + value + "')");
         }
     }
 }

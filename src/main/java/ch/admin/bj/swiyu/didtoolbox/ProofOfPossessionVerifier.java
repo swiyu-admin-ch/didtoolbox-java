@@ -5,6 +5,8 @@ import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
@@ -12,12 +14,9 @@ import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Set;
 
 /**
@@ -61,6 +60,7 @@ public class ProofOfPossessionVerifier {
         this.didDoc = didDoc;
     }
 
+    @SuppressWarnings("PMD.PreserveStackTrace")
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
         try {
             this.didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:webvh log
@@ -99,7 +99,7 @@ public class ProofOfPossessionVerifier {
      * @throws ProofOfPossessionVerifierException is thrown in case the JWT is invalid, containing more details as to why
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7800">Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)</a>
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.PreserveStackTrace"})
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
         var algorithm = signedJWT.getHeader().getAlgorithm();
         if (!Set.of(JWSAlgorithm.Ed25519, JWSAlgorithm.ES256).contains(algorithm)) {

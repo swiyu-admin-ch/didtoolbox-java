@@ -10,6 +10,7 @@ import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater;
 /**
  * The factory delivering all possible strategies in regard to DID log manipulation, regardless of DID method.
  */
+@SuppressWarnings("PMD.NonExhaustiveSwitch")
 final class DidLogStrategyFactory {
 
     private DidLogStrategyFactory() {

@@ -49,15 +49,15 @@ public class DidLogMeta {
     private void setParams(Map<String, DidMethodParameter> paramsMap) {
         var metaParams = new NamedDidMethodParameters();
         Objects.requireNonNull(paramsMap).forEach((name, param) -> {
-            if (name.equals("method") && param.isString()) {
+            if ("method".equals(name) && param.isString()) {
                 metaParams.setMethod(param.getStringValue());
-            } else if (name.equals("scid") && param.isString()) {
+            } else if ("scid".equals(name) && param.isString()) {
                 metaParams.setScid(param.getStringValue());
-            } else if (name.equals(NamedDidMethodParameters.UPDATE_KEYS) && param.isArray() && !param.isEmptyArray()) {
+            } else if (NamedDidMethodParameters.UPDATE_KEYS.equals(name) && param.isArray() && !param.isEmptyArray()) {
                 metaParams.setUpdateKeys(new HashSet<>(Objects.requireNonNull(param.getStringArrayValue())));
-            } else if (name.equals(NamedDidMethodParameters.NEXT_KEY_HASHES) && param.isArray() && !param.isEmptyArray()) {
+            } else if (NamedDidMethodParameters.NEXT_KEY_HASHES.equals(name) && param.isArray() && !param.isEmptyArray()) {
                 metaParams.setNextKeyHashes(new HashSet<>(Objects.requireNonNull(param.getStringArrayValue())));
-            } else if (name.equals("deactivated") && param.isBool()) {
+            } else if ("deactivated".equals(name) && param.isBool()) {
                 metaParams.setDeactivated(param.getBoolValue());
             }
         });

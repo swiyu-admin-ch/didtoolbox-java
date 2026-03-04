@@ -90,15 +90,16 @@ public enum DidMethodEnum {
         return detectDidMethod(Files.readString(didLogFile.toPath()));
     }
 
+    @SuppressWarnings("PMD.PreserveStackTrace")
     public static DidMethodEnum detectDidMethod(String didLog) throws DidLogMetaPeekerException {
         DidLogMeta didLogMeta;
         try {
             didLogMeta = TdwDidLogMetaPeeker.peek(didLog); // assume a did:tdw log
-        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+        } catch (DidLogMetaPeekerException ignore) { // not a did:tdw log
             try {
                 didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
-            } catch (DidLogMetaPeekerException ex) { // not a did:webvh log
-                throw new DidLogMetaPeekerException("The supplied DID log features an unsupported DID method", ex);
+            } catch (DidLogMetaPeekerException exc) { // not a did:webvh log
+                throw new DidLogMetaPeekerException("The supplied DID log features an unsupported DID method", exc);
             }
         }
 

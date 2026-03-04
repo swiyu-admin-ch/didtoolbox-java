@@ -73,6 +73,7 @@ final class FilesPrivacy {
             AclEntryPermission.ADD_SUBDIRECTORY
     );
 
+    @SuppressWarnings("PMD.LooseCoupling")
     final private static EnumSet<AclEntryFlag> ALL_ACL_FLAGS = EnumSet.of(
             // Can be placed on a directory and indicates that the ACL entry should be added to each new non-directory file created.
             AclEntryFlag.FILE_INHERIT,

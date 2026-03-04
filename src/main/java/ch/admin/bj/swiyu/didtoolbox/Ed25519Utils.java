@@ -51,6 +51,7 @@ public final class Ed25519Utils {
                 .generatePublic(new EdECPublicKeySpec(NamedParameterSpec.ED25519, new EdECPoint(xOdd, y))); // default provider -> "SunEC"
     }
 
+    @SuppressWarnings("PMD.ForLoopVariableCount")
     private static byte[] reverse(final byte[] bytes, final int offset, final int len) {
         final byte[] reversed = new byte[len];
         for (int i = offset, j = (offset + len) - 1; j >= offset; ++i, --j) {

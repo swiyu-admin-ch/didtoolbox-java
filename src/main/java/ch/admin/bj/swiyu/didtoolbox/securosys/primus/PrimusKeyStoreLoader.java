@@ -170,6 +170,7 @@ public class PrimusKeyStoreLoader {
         /**
          * Assembles a (byte) stream suitable for feeding (directly) into Primus' keystore.
          */
+        @SuppressWarnings("PMD.RelianceOnDefaultCharset")
         static InputStream toStream(String host,
                                     int port,
                                     String user,
@@ -218,6 +219,7 @@ public class PrimusKeyStoreLoader {
      * @throws NoSuchAlgorithmException
      * @throws KeyException
      */
+    @SuppressWarnings("PMD.UnusedAssignment")
     KeyPair loadKeyPair(String alias, String password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 

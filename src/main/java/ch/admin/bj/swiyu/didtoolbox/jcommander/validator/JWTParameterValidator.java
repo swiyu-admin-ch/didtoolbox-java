@@ -11,8 +11,8 @@ public class JWTParameterValidator implements IParameterValidator {
     public void validate(String name, String value) { // throws ParameterException {
         try {
             SignedJWT.parse(value);
-        } catch (ParseException e) {
-            throw new ParameterException("Parameter " + name + " should be a valid JWT. Failed to parse parameter: " + e.getLocalizedMessage());
+        } catch (ParseException exc) {
+            throw new ParameterException("Parameter " + name + " should be a valid JWT. Failed to parse parameter: " + exc.getLocalizedMessage(), exc);
         }
     }
 }

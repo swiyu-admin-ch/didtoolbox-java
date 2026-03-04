@@ -11,10 +11,10 @@ public class DidMethodParameterValidator implements IParameterValidator {
     public void validate(String name, String value) { // throws ParameterException {
         try {
             DidMethodEnum.parse(value);
-        } catch (ParseException e) {
+        } catch (ParseException exc) {
             throw new ParameterException(
                     "A value of the parameter " + name +
-                            " should be one of the supported DID method specification versions. The supplied parameter value is invalid due to: " + e.getLocalizedMessage());
+                            " should be one of the supported DID method specification versions. The supplied parameter value is invalid due to: " + exc.getLocalizedMessage(), exc);
         }
     }
 }

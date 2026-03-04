@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class DidLogFileParameterValidator implements IParameterValidator {
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.PreserveStackTrace"})
     public void validate(String name, String value) { // throws ParameterException {
 
         final var didLogFile = new File(value);
@@ -30,10 +30,10 @@ public class DidLogFileParameterValidator implements IParameterValidator {
         } catch (MalformedTdwDidLogMetaPeekerException ignore) { // not a did:tdw log at all
             try {
                 WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
-            } catch (MalformedWebVerifiableHistoryDidLogMetaPeekerException ex) { // not a did:webvh log at all
-                throw buildParameterException(name, value, new IllegalArgumentException("Malformed DID log or unsupported DID method")); // none of the (known) kind
-            } catch (DidLogMetaPeekerException ex) { // not a valid did:webvh log
-                throw buildParameterException(name, value, ex);
+            } catch (MalformedWebVerifiableHistoryDidLogMetaPeekerException exc) { // not a did:webvh log at all
+                throw buildParameterException(name, value, new IllegalArgumentException("Malformed DID log or unsupported DID method", exc)); // none of the (known) kind
+            } catch (DidLogMetaPeekerException exc) { // not a valid did:webvh log
+                throw buildParameterException(name, value, exc);
             }
         } catch (DidLogMetaPeekerException ex) { // not a valid did:tdw log
             throw buildParameterException(name, value, ex);
