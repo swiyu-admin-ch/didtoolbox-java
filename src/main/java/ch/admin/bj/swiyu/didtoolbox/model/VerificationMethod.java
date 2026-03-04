@@ -42,7 +42,7 @@ public interface VerificationMethod {
      *
      * @param kid          non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
      * @param type         string representation of a <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type
-     *                     (e.g. <{@link #VM_TYPE_JSON_WEB_KEY_2020})
+     *                     (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020})
      * @param publicKeyJwk string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
      * @return a valid {@link VerificationMethod} implementation object, never {@code null}
      * @throws VerificationMethodException if the supplied {@code publicKeyJwk} does not represent a proper
@@ -124,7 +124,7 @@ public interface VerificationMethod {
      *
      * @param kid                non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
      * @param type               string representation of a <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type
-     *                           (e.g. <{@link #VM_TYPE_JSON_WEB_KEY_2020})
+     *                           (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020})
      * @param ecPublicKeyPemPath file featuring a proper public EC key in PEM format
      * @return a valid {@link VerificationMethod} implementation object, never {@code null}
      * @throws VerificationMethodException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
@@ -191,7 +191,7 @@ public interface VerificationMethod {
      *
      * @param kid         non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
      * @param type        string representation of a <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type
-     *                    (e.g. <{@link #VM_TYPE_JSON_WEB_KEY_2020})
+     *                    (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020})
      * @param ecPublicKey valid public EC public key
      * @return a valid {@link VerificationMethod} implementation object, never {@code null}
      * @see VerificationMaterial#of(String, ECPublicKey)
