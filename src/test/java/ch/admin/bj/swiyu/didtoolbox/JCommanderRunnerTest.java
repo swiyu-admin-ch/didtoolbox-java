@@ -56,13 +56,40 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
+    void testRunCreateDidLogCommand() {
+
+        // REMINDER By default, command.methodVersion is set to DidMethodEnum.WEBVH_1_0
+        var command = new CreateDidLogCommand();
+
+        command.forceOverwrite = true;
+
+        // REMINDER In case of CLI, Omitting signingKeyPemFile/verifyingKeyPemFiles denotes key pair generation by the command itself
+
+        assertDoesNotThrow(() -> {
+
+            command.identifierRegistryUrl = URL.of(new URI(TEST_DID_URL), null);
+
+            // REMINDER In case of CLI, supplying no verification material would result in a DID document with generated auth/assert keys
+
+            new JCommanderRunner(jCommanderBuilder
+                    .addCommand(CreateDidLogCommand.COMMAND_NAME, command)
+                    .build(),
+                    UpdateDidLogCommand.COMMAND_NAME
+            ).runCreateDidLogCommand(command); // MUT
+        });
+
+        assertFalse(output.isEmpty());
+        //System.out.println(output);
+    }
+
+    @Test
     void testRunCreateDidLogCommandWithKeyPrerotation() {
 
         // REMINDER By default, command.methodVersion is set to DidMethodEnum.WEBVH_1_0
         var command = new CreateDidLogCommand();
 
         command.forceOverwrite = true;
-        // REMINDER Omitting signingKeyPemFile/verifyingKeyPemFiles denotes key pair generation by the command itself
+        // REMINDER In case of CLI, omitting signingKeyPemFile/verifyingKeyPemFiles denotes key pair generation by the command itself
         //command.signingKeyPemFile = TEST_SIGNING_KEY_FILES[0];
         //command.verifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0]);
         command.nextVerifyingKeyPemFiles = Set.of(TEST_KEY_FILES[1], TEST_KEY_FILES[2]); // denotes "key pre-rotation"
@@ -71,7 +98,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
             command.identifierRegistryUrl = URL.of(new URI(TEST_DID_URL), null);
 
-            setKeyMaterial(command); // essential
+            // REMINDER In case of CLI, supplying no verification material would result in a DID document with generated auth/assert keys
 
             new JCommanderRunner(jCommanderBuilder
                     .addCommand(CreateDidLogCommand.COMMAND_NAME, command)

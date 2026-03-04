@@ -22,7 +22,8 @@ import java.security.PublicKey;
  * <strong>CAUTION</strong> The sole purpose of this helper class is to assist developers while writing unit tests.
  * It is NOT intended to be used in production code.
  */
-public class RandomEd25519KeyStore {
+@SuppressWarnings("PMD")
+public final class RandomEd25519KeyStore {
 
     private static RandomEd25519KeyStore instance = new RandomEd25519KeyStore(5);
     private final VcDataIntegrityCryptographicSuite[] suites;

@@ -15,58 +15,57 @@ final class DidLogStrategyFactory {
     private DidLogStrategyFactory() {
     }
 
-    static DidLogCreatorStrategy getCreatorStrategy(DidLogCreatorContext ctx) {
+    static DidLogCreatorStrategy getCreatorStrategy(DidLogCreatorContext ctx) throws DidLogCreatorStrategyException {
 
         switch (ctx.getDidMethod()) {
             case TDW_0_3 -> {
 
-                if (ctx.getNextKeyHashesDidMethodParameter() != null && !ctx.getNextKeyHashesDidMethodParameter().isEmpty()) {
+                if (!ctx.allNextKeyHashesDidMethodParameter().isEmpty()) {
                     throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
                 }
 
                 return TdwCreator.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
-                        .assertionMethodKeys(ctx.getAssertionMethodKeys())
-                        .authenticationKeys(ctx.getAuthenticationKeys())
+                        .assertionMethods(ctx.allAssertionMethods())
+                        .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
-                        .forceOverwrite(ctx.isForceOverwrite())
+                        .updateKeysDidMethodParameter(ctx.allUpdateKeysDidMethodParameter())
                         .build();
             }
             case WEBVH_1_0 -> {
                 return WebVerifiableHistoryCreator.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
-                        .assertionMethodKeys(ctx.getAssertionMethodKeys())
-                        .authenticationKeys(ctx.getAuthenticationKeys())
+                        .assertionMethods(ctx.allAssertionMethods())
+                        .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
+                        .updateKeysDidMethodParameter(ctx.allUpdateKeysDidMethodParameter())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .nextKeyHashesDidMethodParameter(ctx.getNextKeyHashesDidMethodParameter())
-                        .forceOverwrite(ctx.isForceOverwrite())
+                        .nextKeyHashesDidMethodParameter(ctx.allNextKeyHashesDidMethodParameter())
                         .build();
             }
-            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
+
+        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 
-    static DidLogUpdaterStrategy getUpdaterStrategy(DidLogUpdaterContext ctx) {
+    static DidLogUpdaterStrategy getUpdaterStrategy(DidLogUpdaterContext ctx) throws DidLogUpdaterStrategyException {
         switch (ctx.getDidMethod()) {
             case TDW_0_3 -> {
 
-                if (ctx.getNextKeyHashesDidMethodParameter() != null && !ctx.getNextKeyHashesDidMethodParameter().isEmpty()) {
+                if (!ctx.allNextKeyHashesDidMethodParameter().isEmpty()) {
                     throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
                 }
 
                 return TdwUpdater.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
-                        .assertionMethodKeys(ctx.getAssertionMethodKeys())
-                        .authenticationKeys(ctx.getAuthenticationKeys())
+                        .assertionMethods(ctx.allAssertionMethods())
+                        .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
+                        .updateKeysDidMethodParameter(ctx.allUpdateKeysDidMethodParameter())
                         // CAUTION Not implemented yet:
                         // .nextKeys(ctx.getNextKeys())
                         .build();
@@ -74,18 +73,19 @@ final class DidLogStrategyFactory {
             case WEBVH_1_0 -> {
                 return WebVerifiableHistoryUpdater.builder()
                         .cryptographicSuite(ctx.getCryptoSuite())
-                        .assertionMethodKeys(ctx.getAssertionMethodKeys())
-                        .authenticationKeys(ctx.getAuthenticationKeys())
+                        .assertionMethods(ctx.allAssertionMethods())
+                        .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .updateKeysDidMethodParameter(ctx.getUpdateKeysDidMethodParameter())
+                        .updateKeysDidMethodParameter(ctx.allUpdateKeysDidMethodParameter())
                         // Using alternative and more potent method to supply the parameter.
                         // Eventually, all supplied keys are combined and their distinct values are taken.
-                        .nextKeyHashesDidMethodParameter(ctx.getNextKeyHashesDidMethodParameter())
+                        .nextKeyHashesDidMethodParameter(ctx.allNextKeyHashesDidMethodParameter())
                         .build();
             }
-            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
+
+        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 
     static DidLogDeactivatorStrategy getDeactivatorStrategy(DidLogDeactivatorContext ctx) {
@@ -100,7 +100,8 @@ final class DidLogStrategyFactory {
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .build();
             }
-            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
+
+        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 }

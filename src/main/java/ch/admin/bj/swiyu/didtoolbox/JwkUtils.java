@@ -2,9 +2,6 @@ package ch.admin.bj.swiyu.didtoolbox;
 
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
@@ -66,8 +63,9 @@ public final class JwkUtils {
             throw new IllegalArgumentException(String.format("The supplied key ID (kid) of the JWK '%s' must be a regular case-sensitive string featuring no URIs reserved characters", kid));
         }
 
-        ECPublicKey publicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicPemPath));
-        return (new ECKey.Builder(Curve.P_256, publicKey)).keyID(kid).build().toPublicJWK().toJSONString();
+        var publicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicPemPath));
+
+        return new ECKey.Builder(Curve.P_256, publicKey).keyID(kid).build().toPublicJWK().toJSONString();
     }
 
     /**
@@ -127,12 +125,9 @@ public final class JwkUtils {
 
                 createPrivateFile(keyPairPemFile, forceOverwrite);
 
-                Writer w = Files.newBufferedWriter(keyPairPemFile.toPath());
-                try {
+                try (Writer w = Files.newBufferedWriter(keyPairPemFile.toPath())) {
                     w.write(keyPairPem);
                     w.flush();
-                } finally {
-                    w.close();
                 }
 
                 // Creates (keyPairPemFile || ".pub") file
@@ -164,7 +159,7 @@ public final class JwkUtils {
             //} catch (AccessDeniedException ex) {
             //    throw new AccessDeniedException("Access denied to private key PEM file " + keyPairPemFile.getPath() + " due to: " + ex.getMessage());
         } catch (Throwable thr) {
-            throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage());
+            throw new IOException("The private key PEM file " + keyPairPemFile.getPath() + " could not be (re)created with restricted access due to: " + thr.getMessage(), thr);
         }
     }
 

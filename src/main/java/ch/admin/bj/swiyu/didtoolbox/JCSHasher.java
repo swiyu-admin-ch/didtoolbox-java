@@ -30,7 +30,8 @@ public final class JCSHasher {
 
     /**
      * multihash is an implementation of the <a href="https://www.w3.org/TR/controller-document/#multihash">multihash</a> specification.
-     * Its output is a hash of the input using the associated <hash algorithm>, prefixed with a hash algorithm identifier and the hash size.
+     * Its output is a hash of the input using the associated <a href="https://www.rfc-editor.org/rfc/rfc6234">hash algorithm</a>,
+     * prefixed with a hash algorithm identifier and the hash size.
      *
      * @param input string to be hashed
      * @return {@code input} string hashed accordingly
