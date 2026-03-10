@@ -4,8 +4,8 @@ permissions:
 on:
   release:
     types: [created]
-#on:
-#  workflow_dispatch:
+  workflow_dispatch:
+
 jobs:
   publish:
     runs-on: ubuntu-latest
