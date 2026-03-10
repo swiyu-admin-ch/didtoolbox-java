@@ -42,9 +42,9 @@ jobs:
       - name: Set version (from release tag)
         run: mvn versions:set -DnewVersion=${{ github.event.release.tag_name }}
 
-#      - name: Publish to repo
-#        run: mvn --batch-mode deploy -DskipTests
-#        env:
-#          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-#          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-#          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Publish to repo
+        run: mvn --batch-mode deploy -DskipTests
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
