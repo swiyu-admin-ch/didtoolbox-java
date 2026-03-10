@@ -35,7 +35,7 @@ jobs:
           server-id: central
 #          server-username: MAVEN_CENTRAL_USERNAME
 #          server-password: MAVEN_CENTRAL_PASSWORD
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY_TEST }}
 #          gpg-private-key: ${{ steps.read_gpg_file.outputs.content }}
 #          gpg-passphrase: GPG_PASSPHRASE
 
