@@ -48,4 +48,5 @@ jobs:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY_TEST }}
+          #GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY_TEST }}
+          GPG_PRIVATE_KEY: ${{ steps.read_gpg_file.outputs.content }}
