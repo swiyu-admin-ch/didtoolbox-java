@@ -12,21 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Decode GPG private key into file
-        id: write_gpg_file
-        uses: timheuer/base64-to-file@v1.2.4
-        with:
-          fileName: 'GPG_PRIVATE_KEY.gpg'
-          encodedString: ${{ secrets.GPG_PRIVATE_KEY_BASE64 }}
-
-      - name: Read decoded GPG private key file
-        id: read_gpg_file
-        #uses: andstor/file-reader-action@v1
-        uses: juliangruber/read-file-action@v1.1.7
-        with:
-          path: ${{ steps.write_gpg_file.outputs.filePath }}
-          trim: true
-
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v4
         with:
@@ -48,5 +33,3 @@ jobs:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          #GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY_TEST }}
-          #GPG_PRIVATE_KEY: ${{ steps.read_gpg_file.outputs.content }}
