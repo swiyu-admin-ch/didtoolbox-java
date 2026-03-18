@@ -18,10 +18,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           server-id: central
-#          server-username: MAVEN_CENTRAL_USERNAME
-#          server-password: MAVEN_CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-#          gpg-passphrase: GPG_PASSPHRASE
 
       - name: Set version (from release tag)
         run: mvn versions:set -DnewVersion=${{ github.event.release.tag_name }}
