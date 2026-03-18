@@ -312,7 +312,7 @@
                     <!--autoPublish>true</autoPublish-->
                     <waitUntil>published</waitUntil>
                     <checksums>required</checksums>
-                    <skipPublishing>true</skipPublishing>
+                    <!--skipPublishing>true</skipPublishing-->
                 </configuration>
             </plugin>
             <plugin>
