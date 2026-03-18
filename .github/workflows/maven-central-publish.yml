@@ -22,7 +22,7 @@ jobs:
           server-password: MAVEN_CENTRAL_PASSWORD
           # to prevent "no default secret key: No secret key"
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          #gpg-passphrase: GPG_PASSPHRASE
+          gpg-passphrase: GPG_PASSPHRASE
 
       - name: Set version (from release tag)
         run: mvn versions:set -DnewVersion=${{ github.event.release.tag_name }}
@@ -32,5 +32,4 @@ jobs:
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-          #MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
