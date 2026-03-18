@@ -518,8 +518,8 @@
         <dependency>
             <!-- CAUTION Until 2.0.1 (GitHub packages), the "groupId" was set to "ch.admin.eid".
                          For the sake of Maven Central publishing, it must now match the Maven Central namespace. -->
-            <!-- https://mvnrepository.com/artifact/io.github.swiyu-admin-ch/didresolver -->
-            <groupId>io.github.swiyu-admin-ch</groupId>
+            <!-- https://mvnrepository.com/artifact/ch.admin.swiyu/didresolver -->
+            <groupId>ch.admin.swiyu</groupId>
             <artifactId>didresolver</artifactId>
             <version>${didresolver.version}</version>
         </dependency>
