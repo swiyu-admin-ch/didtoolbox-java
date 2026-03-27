@@ -1,6 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import io.ipfs.multibase.Base58;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

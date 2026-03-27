@@ -1,7 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import io.ipfs.multibase.Base58;
-
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.*;

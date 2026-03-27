@@ -8,8 +8,8 @@ This is the list of all third-party dependencies grouped by their license type. 
 ## Apache License, Version 2.0:
 
 * **Jackson-annotations** (com.fasterxml.jackson.core:jackson-annotations:2.21 - https://github.com/FasterXML/jackson)
-* **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.21.1 - https://github.com/FasterXML/jackson-core)
-* **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.21.1 - https://github.com/FasterXML/jackson)
+* **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.21.2 - https://github.com/FasterXML/jackson-core)
+* **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.21.2 - https://github.com/FasterXML/jackson)
 * **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
 * **Gson** (com.google.code.gson:gson:2.13.2 - https://github.com/google/gson)
 * **Tink Cryptography API** (com.google.crypto.tink:tink:1.20.0 - http://github.com/tink-crypto/tink-java)
@@ -49,6 +49,5 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## MIT License:
 
-* **multibase** (com.github.multiformats:java-multibase:1.3.0 - https://github.com/multiformats/java-multibase)
-* **DID Resolver** (ch.admin.swiyu:didresolver:2.6.0 - https://github.com/swiyu-admin-ch/didresolver-kotlin)
+* **DID Resolver** (ch.admin.swiyu:didresolver:2.7.0 - https://github.com/swiyu-admin-ch/didresolver-kotlin)
 * **Project Lombok** (org.projectlombok:lombok:1.18.44 - https://projectlombok.org)

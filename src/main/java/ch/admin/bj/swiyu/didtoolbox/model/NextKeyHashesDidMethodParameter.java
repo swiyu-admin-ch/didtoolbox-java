@@ -1,12 +1,12 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
+import ch.admin.bj.swiyu.didtoolbox.Base58;
 import ch.admin.bj.swiyu.didtoolbox.Ed25519Utils;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.PemUtils;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import io.ipfs.multibase.Base58;
 
 import java.io.File;
 import java.nio.file.Path;
