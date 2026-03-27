@@ -16,7 +16,7 @@
     <groupId>ch.admin.swiyu</groupId>
 
     <artifactId>didtoolbox</artifactId>
-    <version>1.9.1-SNAPSHOT</version>
+    <version>1.9.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <!-- required by https://central.sonatype.org/publish/requirements/ -->
@@ -65,7 +65,6 @@
         <didresolver.version>2.7.0</didresolver.version>
         <jna.version>5.18.1</jna.version>
         <gson.version>2.13.2</gson.version>
-        <java-multibase.version>1.3.0</java-multibase.version>
         <lombok.version>1.18.44</lombok.version>
         <jcommander.version>3.0</jcommander.version>
         <bouncycastle.version>1.83</bouncycastle.version>
@@ -505,15 +504,6 @@
         </snapshotRepository>
     </distributionManagement-->
 
-    <repositories>
-        <!-- required for https://github.com/multiformats/java-multibase
-             as described by https://jitpack.io/#multiformats/java-multibase/ -->
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <!-- CAUTION Until 2.0.1 (GitHub packages), the "groupId" was set to "ch.admin.eid".
@@ -534,12 +524,6 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.github.multiformats/java-multibase -->
-        <dependency>
-            <groupId>com.github.multiformats</groupId>
-            <artifactId>java-multibase</artifactId>
-            <version>${java-multibase.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on -->
         <!-- https://www.bouncycastle.org/download/bouncy-castle-java/?filter=java%3Drelease-1-81 -->

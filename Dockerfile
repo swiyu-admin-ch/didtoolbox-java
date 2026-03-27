@@ -1,7 +1,7 @@
 FROM alpine/curl AS curl
 
 # All version are avilable here: https://central.sonatype.com/artifact/ch.admin.swiyu/didtoolbox/versions
-ARG VERSION="1.9.0"
+ARG VERSION="1.9.1"
 
 WORKDIR /app
 RUN curl --fail --output /app/app.jar \
