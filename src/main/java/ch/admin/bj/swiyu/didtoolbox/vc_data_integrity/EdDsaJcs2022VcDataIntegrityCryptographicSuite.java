@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.vc_data_integrity;
 
+import ch.admin.bj.swiyu.didtoolbox.Base58;
 import ch.admin.bj.swiyu.didtoolbox.Ed25519Utils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
@@ -8,7 +9,6 @@ import ch.admin.eid.did_sidekicks.*;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import io.ipfs.multibase.Base58;
 
 import java.io.IOException;
 import java.io.InputStream;

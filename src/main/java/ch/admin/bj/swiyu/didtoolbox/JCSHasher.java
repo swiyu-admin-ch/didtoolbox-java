@@ -4,7 +4,6 @@ import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptograph
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonObject;
-import io.ipfs.multibase.Base58;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
