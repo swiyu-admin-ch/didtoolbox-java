@@ -1,6 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 
 /**
@@ -42,6 +41,9 @@ public class Base58 {
         }
     }
 
+    private Base58() {
+    }
+
     /**
      * Encodes the given bytes as a base58 string (no checksum is appended).
      *
@@ -52,29 +54,33 @@ public class Base58 {
         if (input.length == 0) {
             return "";
         }
+
         // Count leading zeros.
         int zeros = 0;
         while (zeros < input.length && input[zeros] == 0) {
             ++zeros;
         }
+
         // Convert base-256 digits to base-58 digits (plus conversion to ASCII characters)
-        input = Arrays.copyOf(input, input.length); // since we modify it in-place
-        char[] encoded = new char[input.length * 2]; // upper bound
+        var in = Arrays.copyOf(input, input.length); // since we modify it in-place
+        char[] encoded = new char[in.length * 2]; // upper bound
         int outputStart = encoded.length;
-        for (int inputStart = zeros; inputStart < input.length; ) {
-            encoded[--outputStart] = ALPHABET[divmod(input, inputStart, 256, 58)];
-            if (input[inputStart] == 0) {
+        for (int inputStart = zeros; inputStart < in.length; ) {
+            encoded[--outputStart] = ALPHABET[divmod(in, inputStart, 256, 58)];
+            if (in[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }
         }
-        // Preserve exactly as many leading encoded zeros in output as there were leading zeros in
-        // input.
+
+        // Preserve exactly as many leading encoded zeros in output as there were leading zeros in input.
         while (outputStart < encoded.length && encoded[outputStart] == ENCODED_ZERO) {
             ++outputStart;
         }
+
         while (--zeros >= 0) {
             encoded[--outputStart] = ENCODED_ZERO;
         }
+
         // Return encoded string (including encoded leading zeros).
         return new String(encoded, outputStart, encoded.length - outputStart);
     }
@@ -85,10 +91,12 @@ public class Base58 {
      * @param input the base58-encoded string to decode
      * @return the decoded data bytes
      */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public static byte[] decode(String input) {
         if (input.isEmpty()) {
             return new byte[0];
         }
+
         // Convert the base58-encoded ASCII chars to a base58 byte sequence (base58 digits).
         byte[] input58 = new byte[input.length()];
         for (int i = 0; i < input.length(); ++i) {
@@ -100,11 +108,13 @@ public class Base58 {
             }
             input58[i] = (byte) digit;
         }
+
         // Count leading zeros.
         int zeros = 0;
         while (zeros < input58.length && input58[zeros] == 0) {
             ++zeros;
         }
+
         // Convert base-58 digits to base-256 digits.
         byte[] decoded = new byte[input.length()];
         int outputStart = decoded.length;
@@ -114,16 +124,14 @@ public class Base58 {
                 ++inputStart; // optimization - skip leading zeros
             }
         }
+
         // Ignore extra leading zeroes that were added during the calculation.
         while (outputStart < decoded.length && decoded[outputStart] == 0) {
             ++outputStart;
         }
+
         // Return decoded data (including original number of leading zeros).
         return Arrays.copyOfRange(decoded, outputStart - zeros, decoded.length);
-    }
-
-    public static BigInteger decodeToBigInteger(String input) {
-        return new BigInteger(1, decode(input));
     }
 
     /**
