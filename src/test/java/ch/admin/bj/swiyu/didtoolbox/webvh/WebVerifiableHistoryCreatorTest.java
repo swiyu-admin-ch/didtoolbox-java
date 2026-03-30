@@ -84,7 +84,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreateDidLog(URL identifierRegistryUrl) {
+    void testCreateDidLog(URL identifierRegistryUrl) {
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -104,7 +104,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys)")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreateDidLogWithMultipleUpdateKeys(URL identifierRegistryUrl) {
+    void testCreateDidLogWithMultipleUpdateKeys(URL identifierRegistryUrl) {
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -128,7 +128,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation(URL identifierRegistryUrl) {
+    void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation(URL identifierRegistryUrl) {
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
 
@@ -158,7 +158,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation2(URL identifierRegistryUrl) {
+    void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation2(URL identifierRegistryUrl) {
 
         // Now, try activating prerotation by adding a hash of whole another key to be used in the future
 
@@ -190,7 +190,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation3(URL identifierRegistryUrl) {
+    void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation3(URL identifierRegistryUrl) {
 
         // Now, try activating prerotation by adding a hash of whole another key to be used in the future
 
@@ -221,7 +221,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants using Java Keystore (JKS)")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreateDidLogUsingJKS(URL identifierRegistryUrl) {
+    void testCreateDidLogUsingJKS(URL identifierRegistryUrl) {
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -251,7 +251,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (incl. external authentication/assertion keys) using existing keys")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    public void testCreateDidLogUsingJksWithExternalVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
+    void testCreateDidLogUsingJksWithExternalVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -279,13 +279,13 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("#my-assert-key-01"));
 
         assertTrue("""
-                {"versionId":"1-QmaCuNToJzcbc2DJKyYrdJCHkfe4Bs8xjxoyNCP5RTjJvZ","versionTime":"2012-12-12T12:12:12Z","parameters":{"method":"did:webvh:1.0","scid":"QmSPEpPcSwb3fegq8YE8zotcPEgzHrSFyTJJDAzPo2CYBp","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},"state":{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/jwk/v1"],"id":"did:webvh:QmSPEpPcSwb3fegq8YE8zotcPEgzHrSFyTJJDAzPo2CYBp:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:webvh:QmSPEpPcSwb3fegq8YE8zotcPEgzHrSFyTJJDAzPo2CYBp:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01"],"assertionMethod":["did:webvh:QmSPEpPcSwb3fegq8YE8zotcPEgzHrSFyTJJDAzPo2CYBp:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmSPEpPcSwb3fegq8YE8zotcPEgzHrSFyTJJDAzPo2CYBp:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmSPEpPcSwb3fegq8YE8zotcPEgzHrSFyTJJDAzPo2CYBp:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:12Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"zaKCwhEC548Aiwa1Uah8pCKtgih4WPbBQEx9BYVSg9vURt293JQnrrKMd4YwXLnZyuNDA8NCvkNxFFndJuuizsj7"}]}
+                {"versionId":"1-QmSa1RYNaiMBsgNCu3wUaZEmXy8JgVJe2Pk2JVNB2mWzY4","versionTime":"2012-12-12T12:12:12Z","parameters":{"method":"did:webvh:1.0","scid":"QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},"state":{"id":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01"],"assertionMethod":["did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01","controller":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01","controller":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:12Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z3oxSyJeCZEw3qAhBk3QQZpAJ8h8MhGjNSFFRaZxCN2q75x9W9Hyahav4bvSKjJuGbH6H7dsy3pRwaf2oEQLeTGZh"}]}
                 """.contains(didLogEntry.get()));
     }
 
     @DisplayName("Building DID log entry without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
     @Test
-    public void testCreateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+    void testCreateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
 
         var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
             WebVerifiableHistoryCreator.builder()

@@ -22,9 +22,11 @@ public abstract class AbstractDidLogEntryBuilder {
     protected DidLogMeta didLogMeta;
 
     protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String did, String fragmentId, String publicKeyJwk) {
-
         var verificationMethodObj = new JsonObject();
         verificationMethodObj.addProperty("id", did + "#" + fragmentId);
+        // According to swiss profile (https://confluence.bit.admin.ch/x/VL8VTQ)
+        // controller must be the did itself
+        verificationMethodObj.addProperty("controller", did);
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://confluence.bit.admin.ch/x/3e0EMw
         verificationMethodObj.addProperty("type", "JsonWebKey2020");
@@ -231,15 +233,8 @@ public abstract class AbstractDidLogEntryBuilder {
 
         var did = buildDid(identifierRegistryUrl);
 
-        var context = new JsonArray();
-        // See "Swiss e-ID and trust infrastructure: Interoperability profile" available at:
-        //     https://github.com/e-id-admin/open-source-community/blob/main/tech-roadmap/swiss-profile.md#did-document-format
-        context.add("https://www.w3.org/ns/did/v1");
-        context.add("https://w3id.org/security/jwk/v1");
-
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
-        didDoc.add("@context", context);
         didDoc.addProperty("id", did);
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352

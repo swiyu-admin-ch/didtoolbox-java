@@ -192,14 +192,6 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
-
-        // take over context
-        var context = new JsonArray();
-        for (var ctx : didLogMeta.getDidDoc().getContext()) {
-            context.add(ctx);
-        }
-        didDoc.add("@context", context);
-
         didDoc.addProperty("id", didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
@@ -208,7 +200,6 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
 
         // The DID log entry is an input JSON array that when completed contains the following items:
         // [ versionId, versionTime, parameters, DIDDoc State, Data Integrity Proof ].
-
         var didLogEntryWithoutProofAndSignature = new JsonArray();
 
         // https://identity.foundation/didwebvh/v0.3/#entry-hash-generation-and-verification:
@@ -227,14 +218,13 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         // Define the parameters (https://identity.foundation/didwebvh/v0.3/#didtdw-did-method-parameters)
-
         var didMethodParameters = new JsonObject();
         didMethodParameters.addProperty("deactivated", true);
+
         // https://identity.foundation/didwebvh/v0.3/#deactivate-revoke:
         // A DID MAY update the DIDDoc further to indicate the deactivation of the DID, such as including an empty updateKeys list
         // ("updateKeys": []) in the parameters, preventing further versions of the DID.
         didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, new JsonArray());
-
         didLogEntryWithoutProofAndSignature.add(didMethodParameters);
 
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.

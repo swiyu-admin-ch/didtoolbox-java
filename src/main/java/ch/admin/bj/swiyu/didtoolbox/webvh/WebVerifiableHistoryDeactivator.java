@@ -151,14 +151,6 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
-
-        // take over context
-        var context = new JsonArray();
-        for (var ctx : didLogMeta.getDidDoc().getContext()) {
-            context.add(ctx);
-        }
-        didDoc.add("@context", context);
-
         didDoc.addProperty("id", didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
@@ -192,14 +184,13 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters)
-
         var didMethodParameters = new JsonObject();
         didMethodParameters.addProperty("deactivated", true);
+
         // https://identity.foundation/didwebvh/v1.0/#deactivate-revoke:
         // A DID MAY update the DIDDoc further to indicate the deactivation of the DID, such as including an empty updateKeys list
         // ("updateKeys": []) in the parameters, preventing further versions of the DID.
         didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, new JsonArray());
-
         didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, didMethodParameters);
 
         // The JSON object "state" contains the DIDDoc for this version of the DID.
