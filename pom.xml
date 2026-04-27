@@ -65,7 +65,7 @@
         <didresolver.version>2.7.0</didresolver.version>
         <jna.version>5.18.1</jna.version>
         <gson.version>2.13.2</gson.version>
-        <lombok.version>1.18.44</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
         <jcommander.version>3.0</jcommander.version>
         <bouncycastle.version>1.84</bouncycastle.version>
         <nimbus-jose-jwt.version>10.9</nimbus-jose-jwt.version>
