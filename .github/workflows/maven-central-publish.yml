@@ -33,3 +33,15 @@ jobs:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Monitor Snyk for vulnerabilities in code 📦
+        uses: snyk/actions/maven-3-jdk-21@master
+        env:
+          JAVA_HOME: '' # Snyk action sets JAVA_HOME to a path that is not compatible with the setup-java action, so we need to reset it here
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SNYK_API: https://api.eu.snyk.io
+          SNYK_ORG: ${{ secrets.SNYK_ORG }}
+        with:
+          # report only vulnerabilities with level high or critical, as we want to avoid noise in the PR checks
+          command: monitor
+          args: --maven-aggregate-project --severity-threshold=high --project-tags:app-name=swiyu-issuer,version=${{ env.IMAGE_VERSION_TAG  }}
