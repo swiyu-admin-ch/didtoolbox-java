@@ -1,0 +1,50 @@
+{
+  "versionId": "1-QmdDWPeSMMRXUUM2cEb4iEBEAVUkNjECGsG5sv6jE4KSdh",
+  "versionTime": "2026-05-09T13:47:46Z",
+  "parameters": {
+    "method": "did:webvh:1.0",
+    "scid": "QmbyMFPspJMgJ4Kg3RXqqQE79whb42tU4w8DpkjXphThfH",
+    "updateKeys": [
+      "z6MkwY9ZpYqAu89C9GPp648D5NAr2Fa89F1YRDKjxX31DE6f"
+    ],
+    "portable": true,
+    "nextKeyHashes": [],
+    "watchers": [],
+    "witness": {},
+    "deactivated": false
+  },
+  "state": {
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      "https://w3id.org/security/multikey/v1"
+    ],
+    "id": "did:webvh:QmbyMFPspJMgJ4Kg3RXqqQE79whb42tU4w8DpkjXphThfH:alice.test.did.ninja",
+    "verificationMethod": [
+      {
+        "id": "#key-1",
+        "type": "Multikey",
+        "publicKeyMultibase": "z6MkwY9ZpYqAu89C9GPp648D5NAr2Fa89F1YRDKjxX31DE6f",
+        "controller": "did:webvh:QmbyMFPspJMgJ4Kg3RXqqQE79whb42tU4w8DpkjXphThfH:alice.test.did.ninja"
+      }
+    ],
+    "authentication": [
+      "#key-1"
+    ],
+    "assertionMethod": [
+      "#key-1"
+    ],
+    "keyAgreement": [],
+    "capabilityDelegation": [],
+    "capabilityInvocation": []
+  },
+  "proof": [
+    {
+      "type": "DataIntegrityProof",
+      "cryptosuite": "eddsa-jcs-2022",
+      "verificationMethod": "did:key:z6MkwY9ZpYqAu89C9GPp648D5NAr2Fa89F1YRDKjxX31DE6f#z6MkwY9ZpYqAu89C9GPp648D5NAr2Fa89F1YRDKjxX31DE6f",
+      "created": "2026-05-09T13:47:46Z",
+      "proofPurpose": "assertionMethod",
+      "proofValue": "z4u4K9dQNjRk9Pu4pe3VUXkFKLSZL2imFJxsJ8QKSPhNWDvbULtR9SHXb7ZPU9Xw9ZvgNqqmVq6VP4isz9QxmSJNQ"
+    }
+  ]
+}
