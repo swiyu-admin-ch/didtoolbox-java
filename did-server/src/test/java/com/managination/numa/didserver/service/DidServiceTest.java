@@ -1,6 +1,7 @@
 package com.managination.numa.didserver.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.managination.numa.didserver.dto.*;
 import com.managination.numa.didserver.model.DidDocument;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class DidServiceTest {
 
     private DidService didService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @BeforeEach
     void setUp() {
-        didService = new DidService();
+        didService = new DidService(objectMapper);
         didService.init();
     }
 

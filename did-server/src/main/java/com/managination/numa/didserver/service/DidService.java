@@ -52,9 +52,6 @@ public class DidService {
     private JsonWebKey serverPublicKey;
     private Instant keyRotatedAt;
 
-    public DidService() {
-    }
-
     @PostConstruct
     public void init() {
         initializeServerKey();
@@ -264,7 +261,11 @@ public class DidService {
         return String.format("%.2f %sB", bytes / Math.pow(1024, exp), pre);
     }
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public DidService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public DidRegistrationResponse registerDid(String didJsonl) throws JsonProcessingException {
         String[] normalizedLog = didJsonl.replaceAll("\\r?\\n\\s*", "").replace("}{", "}\n{").split("\\R");
@@ -276,8 +277,8 @@ public class DidService {
             throw new IllegalArgumentException("DID state is required");
         }
 
-        if (!logEntry.getParameters().getMethod().equals("did:webvh:")) {
-            throw new IllegalArgumentException("Invalid DID format. Must start with did:webvh:");
+        if (!logEntry.getParameters().getMethod().equals("did:webvh:1.0")) {
+            throw new IllegalArgumentException("Invalid DID format. Must use did:webvh:1.0");
         }
 
         String did = logEntry.getState().getId();
