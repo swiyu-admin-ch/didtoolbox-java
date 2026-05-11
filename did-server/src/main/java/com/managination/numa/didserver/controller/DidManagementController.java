@@ -10,15 +10,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 @RestController
-@RequestMapping("/did")
+@RequestMapping("/")
 @Tag(name = "DID Management", description = "Endpoints for creating, registering, updating, and retrieving DID documents")
 public class DidManagementController {
 
@@ -40,7 +42,7 @@ public class DidManagementController {
    })
    public ResponseEntity<?> registerDid(@RequestBody String didJsonl) {
       try {
-         DidRegistrationResponse response = didService.registerDid(didJsonl);
+         DidRegistrationResponse response = didService.verifyAndSaveDid(didJsonl);
          return ResponseEntity.ok(response);
       } catch (IllegalArgumentException e) {
          return ResponseEntity.badRequest().body(new ErrorResponse("invalid_request", e.getMessage()));
@@ -51,7 +53,7 @@ public class DidManagementController {
       }
    }
 
-   @GetMapping("/{did}")
+   @GetMapping({"", "/{did}"})
    @Operation(summary = "Resolve a DID to its state", operationId = "resolveDid")
    @ApiResponses(value = {
          @ApiResponse(responseCode = "200", description = "DID state found",
@@ -61,19 +63,28 @@ public class DidManagementController {
    })
    public ResponseEntity<?> resolveDid(
          @Parameter(description = "URL-encoded DID string", required = true)
-         @PathVariable String did) {
+         @PathVariable String did, HttpServletRequest request) {
       try {
-         String decodedDid = URLDecoder.decode(did, StandardCharsets.UTF_8);
-         WebVhDidDocument document = didService.resolveDid(decodedDid);
-         return ResponseEntity.ok(document);
+         String domain = request.getServerName();
+         String decodedDid = did == null || did.isBlank()
+               ? ""
+               : URLDecoder.decode(did, StandardCharsets.UTF_8);
+
+         String didString = decodedDid.isBlank()
+               ? domain
+               : domain + ":" + decodedDid;
+
+         return ResponseEntity.ok(didService.resolveDid("did:webvh:fakescid:" + didString));
       } catch (DidService.DidNotFoundException e) {
          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("not_found", e.getMessage()));
       } catch (IllegalArgumentException e) {
          return ResponseEntity.badRequest().body(new ErrorResponse("invalid_did", e.getMessage()));
+      } catch (IOException e) {
+         throw new RuntimeException(e);
       }
    }
 
-   @PutMapping("/{did}/update")
+   @PutMapping("")
    @Operation(summary = "Update an existing DID state", operationId = "updateDid")
    @ApiResponses(value = {
          @ApiResponse(responseCode = "200", description = "DID state updated successfully",
@@ -87,11 +98,9 @@ public class DidManagementController {
    })
    public ResponseEntity<?> updateDid(
          @Parameter(description = "URL-encoded DID string", required = true)
-         @PathVariable String did,
          @RequestBody String didJsonl) {
       try {
-         String decodedDid = URLDecoder.decode(did, StandardCharsets.UTF_8);
-         DidUpdateResponse response = didService.updateDid(decodedDid, didJsonl);
+         DidRegistrationResponse response = didService.verifyAndSaveDid(didJsonl);
          return ResponseEntity.ok(response);
       } catch (DidService.DidNotFoundException e) {
          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("not_found", e.getMessage()));

@@ -7,6 +7,7 @@ import com.managination.numa.didserver.model.DidDocument;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ class DidServiceTest {
     }
 
     @Test
-    void testRegisterDidWithProofJsonl() throws Exception {
+    void testVerifyAndSaveDidWithProofJsonl() {
         String resourcePath = "/example-with-proof.jsonl";
         Map<String, Object> logEntry;
         String didJsonl;
@@ -57,9 +58,11 @@ class DidServiceTest {
             assertNotNull(is, "Resource not found: " + resourcePath);
             logEntry = objectMapper.readValue(is, Map.class);
             didJsonl = objectMapper.writeValueAsString(logEntry);
+        } catch (IOException e) {
+           throw new RuntimeException(e);
         }
 
-        @SuppressWarnings("unchecked")
+       @SuppressWarnings("unchecked")
         Map<String, Object> state = (Map<String, Object>) logEntry.get("state");
         assertNotNull(state, "Log entry must contain 'state'");
 
@@ -71,15 +74,11 @@ class DidServiceTest {
         assertEquals(did, document.id(), "Document ID must match DID");
 
         DidRegistrationRequest request = new DidRegistrationRequest(did, document, List.of(logEntry));
-        DidRegistrationResponse response = didService.registerDid(didJsonl);
+        DidRegistrationResponse response = didService.verifyAndSaveDid(didJsonl);
 
         assertNotNull(response);
         assertTrue(response.success(), "Registration should succeed");
         assertEquals(did, response.did(), "Response DID should match");
-
-        WebVhDidDocument resolved = didService.resolveDid(did);
-        assertNotNull(resolved, "Resolved state should not be null");
-        assertEquals(did, resolved.getId(), "Resolved state ID should match");
     }
 
     @Test

@@ -124,7 +124,7 @@ public class CredentialIssuanceController {
             return ResponseEntity.badRequest().body(new ErrorResponse("invalid_request", "format is required"));
         }
 
-        String credentialJwt = vcIssuanceService.createCredential(entry.holderDid(), entry.credentialType(), didService.getIssuerDid());
+        String credentialJwt = vcIssuanceService.createCredential(entry.holderDid(), entry.credentialType(), "didService.getIssuerDid()");
 
         return ResponseEntity.ok(new CredentialResponse(credentialJwt, request.format()));
     }
