@@ -46,6 +46,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         var didDoc = jsonObject.get("state").getAsJsonObject();
         assertTrue(didDoc.has("id"));
         assertTrue(didDoc.get("authentication").isJsonArray());
+        assertFalse(didDoc.has("@context"));
         var authentication = didDoc.get("authentication").getAsJsonArray();
         assertFalse(authentication.isEmpty());
         assertTrue(didDoc.has("assertionMethod"));
