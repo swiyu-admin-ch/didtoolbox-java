@@ -95,8 +95,6 @@ public class Main {
                  VerificationMethodException | DidLogUpdaterStrategyException e) {
             overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
         }
-
-        System.exit(0);
     }
 
     private static void overAndOut(JCommander jc, String commandName, String message) {

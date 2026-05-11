@@ -11,10 +11,10 @@ This is the list of all third-party dependencies grouped by their license type. 
 * **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.21.2 - https://github.com/FasterXML/jackson-core)
 * **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.21.2 - https://github.com/FasterXML/jackson)
 * **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
-* **Gson** (com.google.code.gson:gson:2.13.2 - https://github.com/google/gson)
-* **Tink Cryptography API** (com.google.crypto.tink:tink:1.20.0 - http://github.com/tink-crypto/tink-java)
-* **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.41.0 - https://errorprone.info/error_prone_annotations)
-* **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.8 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
+* **Gson** (com.google.code.gson:gson:2.14.0 - https://github.com/google/gson)
+* **Tink Cryptography API** (com.google.crypto.tink:tink:1.21.0 - http://github.com/tink-crypto/tink-java)
+* **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.48.0 - https://errorprone.info/error_prone_annotations)
+* **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.9 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
 * **Java Native Access** (net.java.dev.jna:jna:5.18.1 - https://github.com/java-native-access/jna)
 * **org.apiguardian:apiguardian-api** (org.apiguardian:apiguardian-api:1.1.2 - https://github.com/apiguardian-team/apiguardian)
 * **jcommander** (org.jcommander:jcommander:3.0 - https://jcommander.org)
@@ -29,9 +29,9 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## Bouncy Castle Licence:
 
-* **Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs** (org.bouncycastle:bcpkix-jdk18on:1.83 - https://www.bouncycastle.org/download/bouncy-castle-java/)
-* **Bouncy Castle Provider** (org.bouncycastle:bcprov-jdk18on:1.83 - https://www.bouncycastle.org/download/bouncy-castle-java/)
-* **Bouncy Castle ASN.1 Extension and Utility APIs** (org.bouncycastle:bcutil-jdk18on:1.83 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs** (org.bouncycastle:bcpkix-jdk18on:1.84 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle Provider** (org.bouncycastle:bcprov-jdk18on:1.84 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle ASN.1 Extension and Utility APIs** (org.bouncycastle:bcutil-jdk18on:1.84 - https://www.bouncycastle.org/download/bouncy-castle-java/)
 
 ## Eclipse Public License v2.0:
 
@@ -49,5 +49,4 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## MIT License:
 
-* **DID Resolver** (ch.admin.swiyu:didresolver:2.7.0 - https://github.com/swiyu-admin-ch/didresolver-kotlin)
 * **Project Lombok** (org.projectlombok:lombok:1.18.44 - https://projectlombok.org)
