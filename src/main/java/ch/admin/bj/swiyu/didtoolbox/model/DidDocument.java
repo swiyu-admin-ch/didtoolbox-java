@@ -15,9 +15,6 @@ import java.util.Set;
  */
 class DidDocument {
     @Getter
-    @SerializedName("@context")
-    Set<String> context;
-    @Getter
     String id;
     Set<String> authentication;
     Set<String> assertionMethod;

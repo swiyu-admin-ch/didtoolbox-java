@@ -89,13 +89,8 @@ class JCSHasherTest {
         parameters.addProperty("scid", "{SCID}");
         didLogEntryWithoutProofAndSignature.add(parameters);
 
-        var context = new JsonArray();
-        context.add("https://www.w3.org/ns/did/v1");
-        context.add("https://w3id.org/security/multikey/v1");
-
         // Create initial did doc with placeholder
         var genesisDidDoc = new JsonObject();
-        genesisDidDoc.add("@context", context);
         genesisDidDoc.addProperty("id", "did:tdw:{SCID}:domain.example");
 
         JsonObject initialDidDoc = new JsonObject();
@@ -130,7 +125,7 @@ class JCSHasherTest {
     public void testBuildSCID() { // according to https://identity.foundation/didwebvh/v0.3/#didtdw-example
 
         assertDoesNotThrow(() -> {
-            assertEquals("Qma6mc1qZw3NqxwX6SB5GPQYzP4pGN2nXD15Jwi4bcDBKu", hasher.base58btcEncodeMultihash(buildDidLogEntryWithoutProofAndSignature().toString())); // MUT
+            assertEquals("QmUqw7pLTbjmDBJgxKd4DiC2sYDMVUqxmze5zkgNAK914Q", hasher.base58btcEncodeMultihash(buildDidLogEntryWithoutProofAndSignature().toString())); // MUT
         });
     }
 
@@ -164,7 +159,7 @@ class JCSHasherTest {
             fail(e);
         }
 
-        assertEquals("QmdwvukAYUU6VYwqM4jQbSiKk1ctg12j5hMTY6EfbbkyEJ", actual);
+        assertEquals( "QmNpLm7YWwp1TxQ2KspuGtYrhXgSa7KqfqEvSZoTkhgdct", actual);
     }
 
     @Test
