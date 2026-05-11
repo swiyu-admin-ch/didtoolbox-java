@@ -3,10 +3,12 @@ package com.managination.numa.didserver.service;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.managination.numa.didserver.dto.*;
 import com.managination.numa.didserver.model.DidDocument;
 import com.managination.numa.didserver.model.JsonWebKey;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.annotation.PostConstruct;
@@ -34,6 +36,7 @@ import java.util.Base64;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@Getter
 public class DidService {
 
     private static final Logger log = LoggerFactory.getLogger(DidService.class);
@@ -41,7 +44,7 @@ public class DidService {
     @Value("${storage.did.path:./storage/dids}")
     private String storagePath = "./storage/dids";
 
-    private final ConcurrentHashMap<String, DidDocument> didStore = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, WebVhDidDocument> didStore = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> didLogStore = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> didVersionStore = new ConcurrentHashMap<>();
 
@@ -84,6 +87,7 @@ public class DidService {
 
             serverPublicKey = new JsonWebKey(
                 "EC",
+                "auth-0",
                 "P-256",
                 Base64.getUrlEncoder().withoutPadding().encodeToString(xBytes),
                 Base64.getUrlEncoder().withoutPadding().encodeToString(yBytes)
@@ -262,46 +266,35 @@ public class DidService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public DidRegistrationResponse registerDid(DidRegistrationRequest request) {
-        if (request.did() == null || !request.did().startsWith("did:webvh:")) {
+    public DidRegistrationResponse registerDid(String didJsonl) throws JsonProcessingException {
+        String[] normalizedLog = didJsonl.replaceAll("\\r?\\n\\s*", "").replace("}{", "}\n{").split("\\R");
+        String lastEntry = normalizedLog[normalizedLog.length - 1];
+
+        WebVhLogEntry logEntry = objectMapper.readValue(lastEntry, WebVhLogEntry.class);
+
+        if (logEntry.getState() == null || logEntry.getState().getId() == null) {
+            throw new IllegalArgumentException("DID state is required");
+        }
+
+        if (!logEntry.getParameters().getMethod().equals("did:webvh:")) {
             throw new IllegalArgumentException("Invalid DID format. Must start with did:webvh:");
         }
 
-        if (request.document() == null || request.document().id() == null) {
-            throw new IllegalArgumentException("DID document is required");
-        }
-
-        if (request.log() == null || request.log().isEmpty()) {
-            throw new IllegalArgumentException("DID log is required");
-        }
-
-        String did = request.did();
+        String did = logEntry.getState().getId();
 
         if (didStore.containsKey(did)) {
             throw new IllegalStateException("DID already exists: " + did);
         }
 
         try {
-            String logContent = request.log().stream()
-                .map(entry -> {
-                    try {
-                        return objectMapper.writeValueAsString(entry);
-                    } catch (Exception e) {
-                        return "";
-                    }
-                })
-                .reduce((a, b) -> a + "\n" + b)
-                .orElse("");
+            new Did(did).resolveAll(lastEntry);
 
-            String normalizedLog = logContent.replaceAll("\\r?\\n\\s*", "");
-            new Did(did).resolveAll(normalizedLog);
-
-            didStore.put(did, request.document());
-            didLogStore.put(did, logContent);
+            didStore.put(did, logEntry.getState());
+            didLogStore.put(did, didJsonl);
             didVersionStore.put(did, "0");
 
             Path targetPath = getFilePath(did);
-            saveFile(targetPath, logContent);
+            saveFile(targetPath, didJsonl);
 
             return new DidRegistrationResponse(true, did, "DID registered successfully");
         } catch (Exception e) {
@@ -310,12 +303,12 @@ public class DidService {
         }
     }
 
-    public DidDocument resolveDid(String did) {
+    public WebVhDidDocument resolveDid(String did) {
         if (!did.startsWith("did:webvh:")) {
             throw new IllegalArgumentException("Invalid DID format. Must start with did:webvh:");
         }
 
-        DidDocument document = didStore.get(did);
+        WebVhDidDocument document = didStore.get(did);
         if (document == null) {
             throw new DidNotFoundException("DID not found: " + did);
         }
@@ -323,7 +316,12 @@ public class DidService {
         return document;
     }
 
-    public DidUpdateResponse updateDid(String did, DidUpdateRequest request) {
+    public DidUpdateResponse updateDid(String did, String didJsonl) throws JsonProcessingException {
+        String[] normalizedLog = didJsonl.replaceAll("\\r?\\n\\s*", "").replace("}{", "}\n{").split("\\R");
+        String lastEntry = normalizedLog[normalizedLog.length - 1];
+
+        WebVhLogEntry logEntry = objectMapper.readValue(lastEntry, WebVhLogEntry.class);
+
         if (!did.startsWith("did:webvh:")) {
             throw new IllegalArgumentException("Invalid DID format. Must start with did:webvh:");
         }
@@ -333,11 +331,11 @@ public class DidService {
             throw new DidNotFoundException("DID not found: " + did);
         }
 
-        if (request.versionId() != null && !request.versionId().equals(currentVersion)) {
+        if (logEntry.getVersionId() != null && !logEntry.getVersionId().equals(currentVersion)) {
             throw new VersionConflictException(
                 "Version conflict",
                 currentVersion,
-                request.versionId(),
+                logEntry.getVersionId(),
                 didStore.get(did)
             );
         }
@@ -351,19 +349,8 @@ public class DidService {
             int newVersion = Integer.parseInt(currentVersion) + 1;
             String newVersionId = String.valueOf(newVersion);
 
-            didStore.put(did, request.document());
+            didStore.put(did, logEntry.getState());
             didVersionStore.put(did, newVersionId);
-
-            if (request.logEntry() != null) {
-                String newLogEntry = objectMapper.writeValueAsString(request.logEntry());
-                String updatedLog = (existingLog != null && !existingLog.isBlank())
-                    ? existingLog + "\n" + newLogEntry
-                    : newLogEntry;
-                didLogStore.put(did, updatedLog);
-
-                Path targetPath = getFilePath(did);
-                saveFile(targetPath, updatedLog);
-            }
 
             return new DidUpdateResponse(true, newVersionId, "DID updated successfully");
         } catch (DidLogMetaPeekerException e) {
@@ -375,11 +362,7 @@ public class DidService {
         }
     }
 
-    public KeyPair getServerKeyPair() {
-        return serverKeyPair;
-    }
-
-    public String getIssuerDid() {
+   public String getIssuerDid() {
         return "did:webvh:SCID:issuer.did.ninja";
     }
 
@@ -433,9 +416,9 @@ public class DidService {
     public static class VersionConflictException extends RuntimeException {
         private final String serverVersionId;
         private final String clientVersionId;
-        private final DidDocument serverDocument;
+        private final WebVhDidDocument serverDocument;
 
-        public VersionConflictException(String message, String serverVersionId, String clientVersionId, DidDocument serverDocument) {
+        public VersionConflictException(String message, String serverVersionId, String clientVersionId, WebVhDidDocument serverDocument) {
             super(message);
             this.serverVersionId = serverVersionId;
             this.clientVersionId = clientVersionId;
@@ -450,7 +433,7 @@ public class DidService {
             return clientVersionId;
         }
 
-        public DidDocument getServerDocument() {
+        public WebVhDidDocument getServerDocument() {
             return serverDocument;
         }
     }

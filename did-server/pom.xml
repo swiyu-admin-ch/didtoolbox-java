@@ -66,6 +66,10 @@
             <version>${nimbus-jose-jwt.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ch.admin.swiyu</groupId>
             <artifactId>didtoolbox</artifactId>
             <version>${project.version}</version>

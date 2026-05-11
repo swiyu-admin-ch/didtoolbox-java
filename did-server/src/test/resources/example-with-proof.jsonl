@@ -1,50 +1,59 @@
 {
-  "versionId": "1-QmdDWPeSMMRXUUM2cEb4iEBEAVUkNjECGsG5sv6jE4KSdh",
-  "versionTime": "2026-05-09T13:47:46Z",
+  "versionId": "1-Qmc9hoXdaayGCpELfmhxL51meBNVxBCVfDEnkQWe2EXbD8",
+  "versionTime": "2026-03-24T21:09:26Z",
   "parameters": {
     "method": "did:webvh:1.0",
-    "scid": "QmbyMFPspJMgJ4Kg3RXqqQE79whb42tU4w8DpkjXphThfH",
+    "scid": "QmWzhNFyKLfLGeXAEwFWGxBwpV5ArcBfmiXs2Wkxt4rZhY",
     "updateKeys": [
-      "z6MkwY9ZpYqAu89C9GPp648D5NAr2Fa89F1YRDKjxX31DE6f"
+      "z6MkudPJaxsujRgRuqhKFgkHJVcJR3CQPvNGCRgEFafJ83Ej"
     ],
-    "portable": true,
-    "nextKeyHashes": [],
-    "watchers": [],
-    "witness": {},
-    "deactivated": false
+    "portable": false
   },
   "state": {
     "@context": [
       "https://www.w3.org/ns/did/v1",
-      "https://w3id.org/security/multikey/v1"
+      "https://w3id.org/security/jwk/v1"
     ],
-    "id": "did:webvh:QmbyMFPspJMgJ4Kg3RXqqQE79whb42tU4w8DpkjXphThfH:alice.test.did.ninja",
-    "verificationMethod": [
-      {
-        "id": "#key-1",
-        "type": "Multikey",
-        "publicKeyMultibase": "z6MkwY9ZpYqAu89C9GPp648D5NAr2Fa89F1YRDKjxX31DE6f",
-        "controller": "did:webvh:QmbyMFPspJMgJ4Kg3RXqqQE79whb42tU4w8DpkjXphThfH:alice.test.did.ninja"
-      }
-    ],
+    "id": "did:webvh:QmWzhNFyKLfLGeXAEwFWGxBwpV5ArcBfmiXs2Wkxt4rZhY:micha.did.ninja",
     "authentication": [
-      "#key-1"
+      "did:webvh:QmWzhNFyKLfLGeXAEwFWGxBwpV5ArcBfmiXs2Wkxt4rZhY:micha.did.ninja#auth-0"
     ],
     "assertionMethod": [
-      "#key-1"
+      "did:webvh:QmWzhNFyKLfLGeXAEwFWGxBwpV5ArcBfmiXs2Wkxt4rZhY:micha.did.ninja#assert-0"
     ],
-    "keyAgreement": [],
-    "capabilityDelegation": [],
-    "capabilityInvocation": []
+    "verificationMethod": [
+      {
+        "id": "did:webvh:QmWzhNFyKLfLGeXAEwFWGxBwpV5ArcBfmiXs2Wkxt4rZhY:micha.did.ninja#auth-0",
+        "type": "JsonWebKey2020",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "P-256",
+          "kid": "auth-0",
+          "x": "Rdl8pRS_3XcG90CI1MBT8ssz-Xg2E8wv-D8eloaLZcg",
+          "y": "HXVMZR6SOYE8ZaEBj4yIo_hgiLQQmXwEOIdjbKXNL00"
+        }
+      },
+      {
+        "id": "did:webvh:QmWzhNFyKLfLGeXAEwFWGxBwpV5ArcBfmiXs2Wkxt4rZhY:micha.did.ninja#assert-0",
+        "type": "JsonWebKey2020",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "P-256",
+          "kid": "assert-0",
+          "x": "HezZJsS2sDBB-nlcG8r4IRqbTj-L5HZu9oQLXtkadsE",
+          "y": "Z_eKQxfwo3ntxdfySrg4KzcIBt_mb-sMwLV3GcA5wWA"
+        }
+      }
+    ]
   },
   "proof": [
     {
       "type": "DataIntegrityProof",
       "cryptosuite": "eddsa-jcs-2022",
-      "verificationMethod": "did:key:z6MkwY9ZpYqAu89C9GPp648D5NAr2Fa89F1YRDKjxX31DE6f#z6MkwY9ZpYqAu89C9GPp648D5NAr2Fa89F1YRDKjxX31DE6f",
-      "created": "2026-05-09T13:47:46Z",
+      "created": "2026-03-24T21:09:26Z",
+      "verificationMethod": "did:key:z6MkudPJaxsujRgRuqhKFgkHJVcJR3CQPvNGCRgEFafJ83Ej#z6MkudPJaxsujRgRuqhKFgkHJVcJR3CQPvNGCRgEFafJ83Ej",
       "proofPurpose": "assertionMethod",
-      "proofValue": "z4u4K9dQNjRk9Pu4pe3VUXkFKLSZL2imFJxsJ8QKSPhNWDvbULtR9SHXb7ZPU9Xw9ZvgNqqmVq6VP4isz9QxmSJNQ"
+      "proofValue": "z2RbxW5T1KVwHJ8VpDnZ9nzSsZxGGHZZTmiVrhCzoe5uebcnLKKKSmkMnVMVBP6DbagwQBe3AbhgZydLevyXHNAdM"
     }
   ]
 }

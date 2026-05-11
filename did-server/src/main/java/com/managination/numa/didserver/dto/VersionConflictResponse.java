@@ -7,5 +7,5 @@ public record VersionConflictResponse(
     String message,
     String serverVersionId,
     String clientVersionId,
-    DidDocument serverDocument
+    WebVhDidDocument serverDocument
 ) {}

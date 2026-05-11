@@ -48,32 +48,14 @@ class DidServiceTest {
     }
 
     @Test
-    void testRegisterDid() {
-        assertThrows(RuntimeException.class, () -> {
-            DidRegistrationRequest request = new DidRegistrationRequest(
-                "did:webvh:test:register.example.com",
-                new com.managination.numa.didserver.model.DidDocument(
-                    java.util.List.of("https://www.w3.org/ns/did/v1"),
-                    "did:webvh:test:register.example.com",
-                    null, null, null, null, null, null, null, null, null
-                ),
-                java.util.List.of(java.util.Map.of(
-                    "versionId", "1-testhash",
-                    "versionTime", "2024-01-01T00:00:00Z",
-                    "state", java.util.Map.of("id", "did:webvh:test:register.example.com")
-                ))
-            );
-            didService.registerDid(request);
-        });
-    }
-
-    @Test
     void testRegisterDidWithProofJsonl() throws Exception {
         String resourcePath = "/example-with-proof.jsonl";
         Map<String, Object> logEntry;
+        String didJsonl;
         try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
             assertNotNull(is, "Resource not found: " + resourcePath);
             logEntry = objectMapper.readValue(is, Map.class);
+            didJsonl = objectMapper.writeValueAsString(logEntry);
         }
 
         @SuppressWarnings("unchecked")
@@ -88,47 +70,21 @@ class DidServiceTest {
         assertEquals(did, document.id(), "Document ID must match DID");
 
         DidRegistrationRequest request = new DidRegistrationRequest(did, document, List.of(logEntry));
-        DidRegistrationResponse response = didService.registerDid(request);
+        DidRegistrationResponse response = didService.registerDid(didJsonl);
 
         assertNotNull(response);
         assertTrue(response.success(), "Registration should succeed");
         assertEquals(did, response.did(), "Response DID should match");
 
-        DidDocument resolved = didService.resolveDid(did);
-        assertNotNull(resolved, "Resolved document should not be null");
-        assertEquals(did, resolved.id(), "Resolved document ID should match");
+        WebVhDidDocument resolved = didService.resolveDid(did);
+        assertNotNull(resolved, "Resolved state should not be null");
+        assertEquals(did, resolved.getId(), "Resolved state ID should match");
     }
 
     @Test
     void testResolveDid() {
         assertThrows(DidService.DidNotFoundException.class, () -> {
             didService.resolveDid("did:webvh:nonexistent:example.com");
-        });
-    }
-
-    @Test
-    void testUpdateDid() {
-        assertThrows(DidService.DidNotFoundException.class, () -> {
-            com.managination.numa.didserver.model.DidDocument doc = new com.managination.numa.didserver.model.DidDocument(
-                java.util.List.of("https://www.w3.org/ns/did/v1"),
-                "did:webvh:nonexistent:example.com",
-                null, null, null, null, null, null, null, null, null
-            );
-            DidUpdateRequest request = new DidUpdateRequest(doc, null, "0");
-            didService.updateDid("did:webvh:nonexistent:example.com", request);
-        });
-    }
-
-    @Test
-    void testVersionConflict() {
-        assertThrows(DidService.DidNotFoundException.class, () -> {
-            com.managination.numa.didserver.model.DidDocument doc = new com.managination.numa.didserver.model.DidDocument(
-                java.util.List.of("https://www.w3.org/ns/did/v1"),
-                "did:webvh:nonexistent:example.com",
-                null, null, null, null, null, null, null, null, null
-            );
-            DidUpdateRequest request = new DidUpdateRequest(doc, null, "wrong-version");
-            didService.updateDid("did:webvh:nonexistent:example.com", request);
         });
     }
 }

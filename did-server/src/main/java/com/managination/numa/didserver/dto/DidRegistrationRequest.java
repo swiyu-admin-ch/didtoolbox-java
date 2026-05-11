@@ -4,6 +4,6 @@ import com.managination.numa.didserver.model.DidDocument;
 
 public record DidRegistrationRequest(
     String did,
-    DidDocument document,
+    DidDocument state,
     java.util.List<java.util.Map<String, Object>> log
 ) {}
