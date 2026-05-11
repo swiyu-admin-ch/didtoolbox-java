@@ -245,10 +245,6 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
 
         var newDidDoc = new JsonObject();
 
-        var ctx = new JsonArray();
-        didDoc.getContext().forEach(ctx::add);
-        newDidDoc.add("@context", ctx);
-
         var creator = builder().cryptographicSuite(cryptoSuite).build();
 
         var did = creator.buildDid(identifierRegistryUrl);

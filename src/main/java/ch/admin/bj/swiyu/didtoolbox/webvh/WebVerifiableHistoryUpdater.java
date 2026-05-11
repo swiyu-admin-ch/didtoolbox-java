@@ -433,13 +433,6 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
 
-        // take over context
-        var context = new JsonArray();
-        for (var ctx : super.didLogMeta.getDidDoc().getContext()) {
-            context.add(ctx);
-        }
-        didDoc.add("@context", context);
-
         didDoc.addProperty("id", super.didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
