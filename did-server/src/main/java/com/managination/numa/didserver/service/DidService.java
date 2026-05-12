@@ -290,7 +290,7 @@ public class DidService {
       }
    }
 
-   public String resolveDid(String did) throws IOException {
+   public String resolveDid(String did) {
       if (!did.startsWith("did:webvh:")) {
          throw new IllegalArgumentException("Invalid DID format. Must start with did:webvh:");
       }
@@ -300,7 +300,11 @@ public class DidService {
          throw new DidNotFoundException("DID not found: " + did);
       }
 
-      return Files.readString(targetPath, StandardCharsets.UTF_8);
+      try {
+         return Files.readString(targetPath, StandardCharsets.UTF_8);
+      } catch (IOException e) {
+         throw new RuntimeException(e);
+      }
    }
 
    public ServerPublicKeyResponse getServerPublicKey() {

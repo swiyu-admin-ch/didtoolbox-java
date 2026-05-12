@@ -27,7 +27,7 @@ class DidManagementControllerTest {
             }
             """;
 
-        mockMvc.perform(post("/did")
+        mockMvc.perform(post("/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isBadRequest());
@@ -42,7 +42,7 @@ class DidManagementControllerTest {
             }
             """;
 
-        mockMvc.perform(post("/did")
+        mockMvc.perform(post("/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isBadRequest());
@@ -50,7 +50,7 @@ class DidManagementControllerTest {
 
     @Test
     void testResolveDidNotFound() throws Exception {
-        mockMvc.perform(get("/did/did%3Awebvh%3Anonexistent%3Aexample.com"))
+        mockMvc.perform(get("/did%3Awebvh%3Anonexistent%3Aexample.com"))
             .andExpect(status().isNotFound());
     }
 
@@ -63,9 +63,9 @@ class DidManagementControllerTest {
             }
             """;
 
-        mockMvc.perform(put("/did/did%3Awebvh%3Anonexistent%3Aexample.com/update")
+        mockMvc.perform(put("/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateBody))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isBadRequest());
     }
 }

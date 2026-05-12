@@ -12,8 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -30,7 +32,12 @@ public class DidManagementController {
       this.didService = didService;
    }
 
-   @PostMapping
+   @PostMapping(consumes = {
+         MediaType.APPLICATION_JSON_VALUE,
+         MediaType.TEXT_PLAIN_VALUE,
+         "application/jsonl",
+         "application/x-ndjson"
+   })
    @Operation(summary = "Register a new DID with the server", operationId = "registerDid")
    @ApiResponses(value = {
          @ApiResponse(responseCode = "200", description = "DID registered successfully",
@@ -41,6 +48,67 @@ public class DidManagementController {
                content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
    })
    public ResponseEntity<?> registerDid(@RequestBody String didJsonl) {
+      return registerDidJsonl(didJsonl);
+   }
+
+   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+   @Operation(summary = "Register a new DID with the server from an uploaded JSONL file", operationId = "registerDidFile")
+   @ApiResponses(value = {
+         @ApiResponse(responseCode = "200", description = "DID registered successfully",
+               content = @Content(schema = @Schema(implementation = DidRegistrationResponse.class))),
+         @ApiResponse(responseCode = "400", description = "Invalid DID registration request",
+               content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+         @ApiResponse(responseCode = "409", description = "DID already exists with different state",
+               content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+   })
+   public ResponseEntity<?> registerDidFile(@RequestPart("didJsonl") MultipartFile didJsonlFile) {
+      try {
+         String didJsonl = new String(didJsonlFile.getBytes(), StandardCharsets.UTF_8);
+         return registerDidJsonl(didJsonl);
+      } catch (IOException e) {
+         return ResponseEntity.badRequest().body(new ErrorResponse("invalid_request", "Could not read uploaded DID JSONL file"));
+      }
+   }
+
+   @PutMapping(consumes = {
+         MediaType.APPLICATION_JSON_VALUE,
+         MediaType.TEXT_PLAIN_VALUE,
+         "application/jsonl",
+         "application/x-ndjson"
+   })
+   @Operation(summary = "Update an existing DID with the server", operationId = "registerDid")
+   @ApiResponses(value = {
+         @ApiResponse(responseCode = "200", description = "DID registered successfully",
+               content = @Content(schema = @Schema(implementation = DidRegistrationResponse.class))),
+         @ApiResponse(responseCode = "400", description = "Invalid DID registration request",
+               content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+         @ApiResponse(responseCode = "409", description = "DID already exists with different state",
+               content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+   })
+   public ResponseEntity<?> updateDid(@RequestBody String didJsonl) {
+      return registerDidJsonl(didJsonl);
+   }
+
+   @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+   @Operation(summary = "Update an existing DID with the server from an uploaded JSONL file", operationId = "registerDidFile")
+   @ApiResponses(value = {
+         @ApiResponse(responseCode = "200", description = "DID registered successfully",
+               content = @Content(schema = @Schema(implementation = DidRegistrationResponse.class))),
+         @ApiResponse(responseCode = "400", description = "Invalid DID registration request",
+               content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+         @ApiResponse(responseCode = "409", description = "DID already exists with different state",
+               content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+   })
+   public ResponseEntity<?> updateDidFile(@RequestPart("didJsonl") MultipartFile didJsonlFile) {
+      try {
+         String didJsonl = new String(didJsonlFile.getBytes(), StandardCharsets.UTF_8);
+         return registerDidJsonl(didJsonl);
+      } catch (IOException e) {
+         return ResponseEntity.badRequest().body(new ErrorResponse("invalid_request", "Could not read uploaded DID JSONL file"));
+      }
+   }
+
+   private ResponseEntity<?> registerDidJsonl(String didJsonl) {
       try {
          DidRegistrationResponse response = didService.verifyAndSaveDid(didJsonl);
          return ResponseEntity.ok(response);
@@ -63,10 +131,10 @@ public class DidManagementController {
    })
    public ResponseEntity<?> resolveDid(
          @Parameter(description = "URL-encoded DID string", required = true)
-         @PathVariable String did, HttpServletRequest request) {
+         @PathVariable(required = false) String did, HttpServletRequest request) {
       try {
          String domain = request.getServerName();
-         String decodedDid = did == null || did.isBlank()
+         String decodedDid = did == null || did.isBlank() || did.equals(".well-known")
                ? ""
                : URLDecoder.decode(did, StandardCharsets.UTF_8);
 
@@ -79,44 +147,6 @@ public class DidManagementController {
          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("not_found", e.getMessage()));
       } catch (IllegalArgumentException e) {
          return ResponseEntity.badRequest().body(new ErrorResponse("invalid_did", e.getMessage()));
-      } catch (IOException e) {
-         throw new RuntimeException(e);
-      }
-   }
-
-   @PutMapping("")
-   @Operation(summary = "Update an existing DID state", operationId = "updateDid")
-   @ApiResponses(value = {
-         @ApiResponse(responseCode = "200", description = "DID state updated successfully",
-               content = @Content(schema = @Schema(implementation = DidUpdateResponse.class))),
-         @ApiResponse(responseCode = "400", description = "Invalid update request",
-               content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-         @ApiResponse(responseCode = "403", description = "Unauthorized - proof verification failed",
-               content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-         @ApiResponse(responseCode = "409", description = "Version conflict - server has newer version",
-               content = @Content(schema = @Schema(implementation = VersionConflictResponse.class)))
-   })
-   public ResponseEntity<?> updateDid(
-         @Parameter(description = "URL-encoded DID string", required = true)
-         @RequestBody String didJsonl) {
-      try {
-         DidRegistrationResponse response = didService.verifyAndSaveDid(didJsonl);
-         return ResponseEntity.ok(response);
-      } catch (DidService.DidNotFoundException e) {
-         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("not_found", e.getMessage()));
-      } catch (DidService.VersionConflictException e) {
-         VersionConflictResponse conflict = new VersionConflictResponse(
-               "version_conflict",
-               e.getMessage(),
-               e.getServerVersionId(),
-               e.getClientVersionId(),
-               e.getServerDocument()
-         );
-         return ResponseEntity.status(HttpStatus.CONFLICT).body(conflict);
-      } catch (IllegalArgumentException e) {
-         return ResponseEntity.badRequest().body(new ErrorResponse("invalid_request", e.getMessage()));
-      } catch (Exception e) {
-         return ResponseEntity.badRequest().body(new ErrorResponse("update_failed", e.getMessage()));
       }
    }
 }

@@ -84,7 +84,7 @@ class DidServiceTest {
     @Test
     void testResolveDid() {
         assertThrows(DidService.DidNotFoundException.class, () -> {
-            didService.resolveDid("did:webvh:nonexistent:example.com");
+            didService.resolveDid("did:webvh:fakescid:nonexistent.example.com");
         });
     }
 }
