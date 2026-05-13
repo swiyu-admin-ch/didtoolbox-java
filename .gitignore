@@ -47,3 +47,4 @@ lib/
 /swiyu-issuer-codeql-db/
 /did-server/storage/
 /did-operations/
+/did-server/storage/dids

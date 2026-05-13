@@ -74,6 +74,8 @@
         <junit-jupiter.version>6.0.3</junit-jupiter.version>
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
         <spring-boot.version>3.4.3</spring-boot.version>
+
+        <surefire.excludes>**/ExternalIntegrationTest.java</surefire.excludes>
     </properties>
 
     <build>
@@ -82,6 +84,11 @@
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.5.5</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>${surefire.excludes}</exclude>
+                        </excludes>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
@@ -95,9 +102,36 @@
                         <parameters>true</parameters>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>3.4.4</version>
+                    <configuration>
+                        <from>
+                            <image>gcr.io/distroless/java21-debian12</image>
+                        </from>
+                        <container>
+                            <ports>
+                                <port>8080</port>
+                            </ports>
+                            <environment>
+                                <TZ>Europe/Zurich</TZ>
+                            </environment>
+                        </container>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>integration-test</id>
+            <properties>
+                <surefire.excludes>none</surefire.excludes>
+            </properties>
+        </profile>
+    </profiles>
 
     <repositories>
         <repository>
