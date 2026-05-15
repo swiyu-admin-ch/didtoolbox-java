@@ -162,7 +162,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
     @DisplayName("Updating DID log by using another (pre-rotation) key")
     @Test
-    void testUpdateDidLogWithKeyPrerotation() {
+    void testUpdateDidLogWithKeyPrerotationInInitialDidLogEntry() {
 
         // The initial entry features 2 pre-rotation keys, both eligible for updating the DID log
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
@@ -213,7 +213,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            var did = new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+            assertTrue(did.getDidMethodParameters().get("nextKeyHashes").isEmptyArray());
         });
     }
 
