@@ -4,14 +4,16 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
+import ch.admin.bj.swiyu.didtoolbox.jcommander.RootCommandParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethodException;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.UnixStyleUsageFormatter;
+import com.beust.jcommander.internal.Console;
+import com.beust.jcommander.internal.DefaultConsole;
 
 import java.io.IOException;
 import java.security.KeyException;
@@ -21,26 +23,43 @@ import java.security.UnrecoverableEntryException;
 
 @SuppressWarnings({"PMD.DoNotTerminateVM", "PMD.CyclomaticComplexity"})
 public class Main {
+    private final Console console;
 
-    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},
-            description = "Display help for the DID toolbox",
-            help = true)
-    boolean help;
-
-    @Parameter(names = {"--version", "-V"},
-            description = "Display version")
-    boolean version;
-
+    /**
+     * Entrypoint of the cli, prints output to the stdout.
+     * @param args Arguments to CLI is called with
+     */
     public static void main(String... args) {
-        var main = new Main();
+        var main = new Main(new DefaultConsole());
+        var exitCode = main.run(args);
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
+    }
 
+    /**
+     * Instantiates the main, allowing for custom console/output
+     * @param console Console to print the output to
+     */
+    public Main(Console console) {
+        this.console = console;
+    }
+
+    /**
+     * Runs the CLI
+     * @param args cli arguments to be parsed and then executed
+     * @return the exit code
+     */
+    public int run(String[] args) {
+        var rootParameters = new RootCommandParameter();
         var createDidLogCommand = new CreateDidLogCommand();
         var updateDidLogCommand = new UpdateDidLogCommand();
         var deactivateCommand = new DeactivateDidLogCommand();
         var createProofOfPossessionCommand = new CreateProofOfPossessionCommand();
         var verifyProofOfPossessionCommand = new VerifyProofOfPossessionCommand();
         var jc = JCommander.newBuilder()
-                .addObject(main)
+                .addObject(rootParameters)
+                .console(this.console)
                 .addCommand(CreateDidLogCommand.COMMAND_NAME, createDidLogCommand)
                 .addCommand(UpdateDidLogCommand.COMMAND_NAME, updateDidLogCommand)
                 .addCommand(DeactivateDidLogCommand.COMMAND_NAME, deactivateCommand)
@@ -56,28 +75,28 @@ public class Main {
         try {
             jc.parse(args);
         } catch (ParameterException e) {
-            overAndOut(jc, null, e.getLocalizedMessage());
+            return printCommandError(jc, null, e.getLocalizedMessage());
         }
 
-        if (main.version) {
+        if (rootParameters.version) {
             jc.getConsole().println(ManifestUtils.getImplementationTitle() + " " + ManifestUtils.getImplementationVersion());
-            System.exit(0);
+            return 0;
         }
 
-        if (main.help) {
+        if (rootParameters.help) {
             jc.usage();
-            System.exit(0);
+            return 0;
         }
 
         var parsedCommandName = jc.getParsedCommand();
         if (parsedCommandName == null) {
             jc.usage();
-            System.exit(1);
+            return 1;
         }
 
         var commandRunner = new JCommanderRunner(jc, parsedCommandName);
         try {
-            switch (parsedCommandName) {
+            return switch (parsedCommandName) {
                 case CreateDidLogCommand.COMMAND_NAME -> commandRunner.runCreateDidLogCommand(createDidLogCommand);
                 case UpdateDidLogCommand.COMMAND_NAME -> commandRunner.runUpdateDidLogCommand(updateDidLogCommand);
                 case DeactivateDidLogCommand.COMMAND_NAME ->
@@ -86,20 +105,18 @@ public class Main {
                         commandRunner.runPoPCreateCommand(createProofOfPossessionCommand);
                 case VerifyProofOfPossessionCommand.COMMAND_NAME ->
                         commandRunner.runPoPVerifyCommand(verifyProofOfPossessionCommand);
-                default -> overAndOut(jc, null, "Invalid command: " + parsedCommandName);
-            }
+                default -> printCommandError(jc, null, "Invalid command: " + parsedCommandName);
+            };
         } catch (IOException | UnrecoverableEntryException | VcDataIntegrityCryptographicSuiteException |
                  KeyStoreException | NoSuchAlgorithmException | KeyException | DidLogDeactivatorStrategyException |
                  ProofOfPossessionCreatorException | DidLogCreatorStrategyException |
                  NextKeyHashesDidMethodParameterException | UpdateKeysDidMethodParameterException |
                  VerificationMethodException | DidLogUpdaterStrategyException e) {
-            overAndOut(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
+            return printCommandError(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
         }
-
-        System.exit(0);
     }
 
-    private static void overAndOut(JCommander jc, String commandName, String message) {
+    private int printCommandError(JCommander jc, String commandName, String message) {
         jc.getConsole().println(message);
         jc.getConsole().println("");
         if (commandName != null) {
@@ -107,6 +124,6 @@ public class Main {
         } else {
             jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
         }
-        System.exit(1);
+        return 1;
     }
 }
