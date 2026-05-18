@@ -541,8 +541,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         try (var did = new Did(super.didLogMeta.getDidDoc().getId())) {
             var didLogEntry = this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-
-            did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntry).toString()); // sanity check
+            var newDidLog = new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntry).toString();
+            did.resolveAll(newDidLog); // sanity check
 
             return didLogEntry;
         } catch (VcDataIntegrityCryptographicSuiteException exc) {
@@ -570,20 +570,6 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         });
 
         return keys;
-    }
-
-    /**
-     * Proves if no single value for the {@code updateKeys} DID method parameter was supplied, or not. One why or another.
-     */
-    private boolean noneUpdateKeys() throws DidLogUpdaterStrategyException {
-        return this.allUpdateKeysDidMethodParameter().isEmpty();
-    }
-
-    /**
-     * Proves if at least one single value for the {@code updateKeys} DID method parameter was supplied, or not. One why or another.
-     */
-    private boolean someUpdateKeys() throws DidLogUpdaterStrategyException {
-        return !this.allUpdateKeysDidMethodParameter().isEmpty();
     }
 
     /**
@@ -622,78 +608,22 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      */
     @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
-
         var didMethodParameters = new JsonObject();
 
         var updateKeysJsonArray = new JsonArray();
         var nextKeyHashesJsonArray = new JsonArray();
 
-        if (noneUpdateKeys()
-                && !this.shouldActivateKeyPreRotation()
-                && super.didLogMeta.isKeyPreRotationActivated()) {
-
-            updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
-
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, new JsonArray()); // key pre-rotation MUST be deactivated
-
-        } else if (noneUpdateKeys()
-                && !this.shouldActivateKeyPreRotation()
-                && !super.didLogMeta.isKeyPreRotationActivated()) {
-
-            // all parameters remain the same
-
-        } else if (noneUpdateKeys()
-                && this.shouldActivateKeyPreRotation()
-                && super.didLogMeta.isKeyPreRotationActivated()) {
-
-            updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
-
-            loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
-
-        } else if (noneUpdateKeys()
-                && this.shouldActivateKeyPreRotation()
-                && !super.didLogMeta.isKeyPreRotationActivated()) {
-
-            loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
-
-        } else if (someUpdateKeys()
-                && !this.shouldActivateKeyPreRotation()
-                && super.didLogMeta.isKeyPreRotationActivated()) {
-
-            loadUpdateKeys().forEach(updateKeysJsonArray::add);
-            if (!updateKeysJsonArray.contains(new JsonPrimitive(this.getCryptoSuite().getVerificationKeyMultibase()))) {
-                updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
-            }
-
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, new JsonArray()); // key pre-rotation MUST be deactivated
-
-        } else if (someUpdateKeys()
-                && !this.shouldActivateKeyPreRotation()
-                && !super.didLogMeta.isKeyPreRotationActivated()) {
-
-            // CAUTION No "updateKeys" can be set here. Otherwise, thrown is: "Invalid update key found. UpdateKey may only be set during key pre-rotation.".
-            //         Hence, all parameters remain the same.
-
-        } else if (someUpdateKeys()
-                && this.shouldActivateKeyPreRotation()
-                && super.didLogMeta.isKeyPreRotationActivated()) {
-
-            updateKeysJsonArray.add(this.getCryptoSuite().getVerificationKeyMultibase());
-
-            loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
-        }
-        /*} else {
-            // all parameters remain the same
-        }*/
-
-        if (!updateKeysJsonArray.isEmpty()) {
+        if (super.didLogMeta.isKeyPreRotationActivated()) {
+            var updateKeys = loadUpdateKeys();
+            updateKeys.add(this.cryptographicSuite.getVerificationKeyMultibase());
+            updateKeys.forEach(updateKeysJsonArray::add);
             didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
+
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray); // to deactivate key rotation
         }
 
-        if (!nextKeyHashesJsonArray.isEmpty()) {
+        if (this.shouldActivateKeyPreRotation()) {
+            loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
             didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
         }
 
