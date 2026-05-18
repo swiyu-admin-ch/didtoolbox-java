@@ -165,7 +165,7 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
             TEST_CRYPTO_SUITE = suite;
 
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            var suiteJks = new EdDsaJcs2022ProofOfPossessionJWSSigner(
+            var suiteJks = new EdDsaJcs2022JWSSigner(
                     Files.newInputStream(Path.of(TEST_DATA_PATH_PREFIX + "mykeystore.jks")), "changeit", "myalias", "changeit", TEST_POP_JWS_KID);
             TEST_CRYPTO_SUITE_JKS = suiteJks;
 
@@ -176,7 +176,7 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
         }
 
         try {
-            var suite_jws = new EdDsaJcs2022ProofOfPossessionJWSSigner(Path.of(TEST_DATA_PATH_PREFIX + "private01.pem"), TEST_POP_JWS_KID_ANOTHER); // supplied external key pair
+            var suite_jws = new EdDsaJcs2022JWSSigner(Path.of(TEST_DATA_PATH_PREFIX + "private01.pem"), TEST_POP_JWS_KID_ANOTHER); // supplied external key pair
             TEST_CRYPTO_SUITE_ANOTHER = suite_jws;
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
