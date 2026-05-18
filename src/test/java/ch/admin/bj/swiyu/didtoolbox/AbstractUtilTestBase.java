@@ -40,7 +40,7 @@ public abstract class AbstractUtilTestBase {
             https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085""";
 
     /**
-     * Sharing the very same keys with {@link #TEST_POP_JWS_SIGNER_JKS}
+     * Sharing the very same keys with {@link #TEST_CRYPTO_SUITE_ANOTHER}
      */
     final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE_JKS;
 
@@ -50,7 +50,7 @@ public abstract class AbstractUtilTestBase {
     final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE;
 
     /**
-     * Sharing the very same keys with {@link #TEST_POP_JWS_SIGNER_ANOTHER}
+     * Sharing the very same keys with {@link #TEST_CRYPTO_SUITE_JKS}
      */
     final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE_ANOTHER;
 
@@ -72,20 +72,11 @@ public abstract class AbstractUtilTestBase {
     final protected static String TEST_PUBLIC_KEY_MULTIBASE = "z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2";
 
     /**
-     * Sharing the very same keys with {@link #TEST_CRYPTO_SUITE_JKS}
-     */
-    final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER_JKS;
-
-    /**
      * Sharing the very same keys ({@link #TEST_PRIVATE_KEY_MULTIBASE}, {@link #TEST_PUBLIC_KEY_MULTIBASE}) with {@link #TEST_CRYPTO_SUITE}
      */
     final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER;
     final static String TEST_POP_JWS_KID = "did:webvh:SCID:example.com#key-1";
 
-    /**
-     * Sharing the very same keys with {@link #TEST_CRYPTO_SUITE_ANOTHER}
-     */
-    final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER_ANOTHER;
     final static String TEST_POP_JWS_KID_ANOTHER = "did:webvh:SCID:example.com#key-2";
 
     /**
@@ -176,7 +167,6 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
             var suiteJks = new EdDsaJcs2022ProofOfPossessionJWSSigner(
                     Files.newInputStream(Path.of(TEST_DATA_PATH_PREFIX + "mykeystore.jks")), "changeit", "myalias", "changeit", TEST_POP_JWS_KID);
-            TEST_POP_JWS_SIGNER_JKS = suiteJks;
             TEST_CRYPTO_SUITE_JKS = suiteJks;
 
             TEST_ASSERTION_METHODS = Set.of(VerificationMethod.of("my-assert-key-01", Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub")));
@@ -187,7 +177,6 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
 
         try {
             var suite_jws = new EdDsaJcs2022ProofOfPossessionJWSSigner(Path.of(TEST_DATA_PATH_PREFIX + "private01.pem"), TEST_POP_JWS_KID_ANOTHER); // supplied external key pair
-            TEST_POP_JWS_SIGNER_ANOTHER = suite_jws;
             TEST_CRYPTO_SUITE_ANOTHER = suite_jws;
         } catch (Exception e) {
             throw new IllegalArgumentException(e);

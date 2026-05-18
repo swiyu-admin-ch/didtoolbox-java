@@ -50,7 +50,8 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
     @Test
     void verify_KeyNotInDidLog() {
         var nonce = "my_nonce";
-        var proof = assertDoesNotThrow(() -> new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER).create(nonce, ONE_DAY_LONG));
+        signer = assertDoesNotThrow(() -> new EcP256ProofOfPossessionJWSSigner(Path.of("src/test/data/assert-key-01"), didDoc.getId() + "#my-assert-key-01-not-in-doc"));
+        var proof = assertDoesNotThrow(() -> new ProofOfPossessionCreator(signer).create(nonce, ONE_DAY_LONG));
 
         // for the purpose, you may also use EXAMPLE_POP_JWS_SIGNER_ANOTHER here, instead
         var verifier = assertDoesNotThrow(() -> new ProofOfPossessionVerifier(didLog)); // CAUTION: Using a whole other key
@@ -60,27 +61,27 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testVerifyExpired() {
-        var expiredJWT = assertDoesNotThrow(() -> SignedJWT.parse("eyJraWQiOiJkaWQ6a2V5Ono2TWt0ZEFyM2lVUmVVN0hzQ2Y3Sm5vQ2pRNXVycEtUeFpTQzQ5S25qRVZzQTVDQSN6Nk1rdGRBcjNpVVJlVTdIc0NmN0pub0NqUTV1cnBLVHhaU0M0OUtuakVWc0E1Q0EiLCJhbGciOiJFZDI1NTE5In0.eyJleHAiOjE3NTM4NzE5OTAsIm5vbmNlIjoiZm9vIn0.Srooog6HXT8TPReDjkhkvGAwwcqe7MgMDbbOWgqfxo2qs1zrug-DJQPv7_lpTOnJmQpvkO7I_-y9d37QBaC-Cw"));
+    void verify_expired_thenFailure() {
+        var expiredJWT = assertDoesNotThrow(() -> SignedJWT.parse("eyJraWQiOiJkaWQ6d2Vidmg6UW1TbXJ0dVJMYm44R0JxeGIzekdiZlNpdFc0dUFYeVBWalhlVUJtcXJjS01iMTppZGVudGlmaWVyLXJlZy50cnVzdC1pbmZyYS5zd2l5dS1pbnQuYWRtaW4uY2g6YXBpOnYxOmRpZDoxOGZhN2M3Ny05ZGQxLTRlMjAtYTE0Ny1mYjFiZWMxNDYwODUjbXktYXNzZXJ0LWtleS0wMSIsImFsZyI6IkVTMjU2In0.eyJpc3MiOiJkaWQ6d2Vidmg6UW1TbXJ0dVJMYm44R0JxeGIzekdiZlNpdFc0dUFYeVBWalhlVUJtcXJjS01iMTppZGVudGlmaWVyLXJlZy50cnVzdC1pbmZyYS5zd2l5dS1pbnQuYWRtaW4uY2g6YXBpOnYxOmRpZDoxOGZhN2M3Ny05ZGQxLTRlMjAtYTE0Ny1mYjFiZWMxNDYwODUiLCJleHAiOjE3NzkxNzkyMzAsIm5vbmNlIjoibXlfbm9uY2UiLCJpYXQiOjE3NzkwOTI4MzB9.QZwCyPGcwHUJWUL_AJNaKRf_XJSZmJ1fVZx5L1yJwAY7meiLV4UIu-oHvcHQXz1FhFC003PCdAC07UgiAK66Ng"));
         var verifier = assertDoesNotThrow(() -> new ProofOfPossessionVerifier(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)));
-        var e = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.verify(expiredJWT, "foo"));
+        var e = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.verify(expiredJWT, "my_nonce"));
         assertEquals(ProofOfPossessionVerifierException.ErrorCause.EXPIRED, e.getErrorCause());
     }
 
     @Test
-    void testVerifyNonceMismatch() {
+    void verify_nonceMismatch_thenFailure() {
         var nonce = "bar";
 
         // create proof
-        var proof = assertDoesNotThrow(() -> new ProofOfPossessionCreator(TEST_POP_JWS_SIGNER).create(nonce, ONE_DAY_LONG));
-        var verifier = assertDoesNotThrow(() -> new ProofOfPossessionVerifier(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)));
+        var proof = assertDoesNotThrow(() -> new ProofOfPossessionCreator(signer).create(nonce, ONE_DAY_LONG));
+        var verifier = assertDoesNotThrow(() -> new ProofOfPossessionVerifier(didLog));
 
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.verify(proof, "foo"));
         assertEquals(ProofOfPossessionVerifierException.ErrorCause.INVALID_NONCE, exc.getErrorCause());
     }
 
     @Test
-    void testVerifyUnsupportedAlgorithm() {
+    void verify_unsupportedAlgorithm_thenFailure() {
         // JWT placeholder from https://www.jwt.io/ using HS256
         var jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
         var signedJWT = assertDoesNotThrow(() -> SignedJWT.parse(jwt));
