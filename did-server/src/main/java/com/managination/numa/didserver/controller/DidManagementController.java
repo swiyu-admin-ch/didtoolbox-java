@@ -1,6 +1,7 @@
 package com.managination.numa.didserver.controller;
 
-import com.managination.numa.didserver.dto.*;
+import com.managination.numa.didserver.dto.DidRegistrationResponse;
+import com.managination.numa.didserver.dto.ErrorResponse;
 import com.managination.numa.didserver.model.DidDocument;
 import com.managination.numa.didserver.service.DidService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -134,6 +135,9 @@ public class DidManagementController {
          @PathVariable(required = false) String did, HttpServletRequest request) {
       try {
          String domain = request.getServerName();
+         if (domain.equals("localhost")) {// for local testing and when the server is behind a proxy
+            domain = request.getHeader("X-Target-Host");
+         }
          String decodedDid = did == null || did.isBlank() || did.equals(".well-known")
                ? ""
                : URLDecoder.decode(did, StandardCharsets.UTF_8);
@@ -142,11 +146,14 @@ public class DidManagementController {
                ? domain
                : domain + ":" + decodedDid;
 
-         return ResponseEntity.ok(didService.resolveDid("did:webvh:fakescid:" + didString));
+         ResponseEntity<String> ok = ResponseEntity.ok(didService.resolveDid("did:webvh:fakescid:" + didString));
+         return ok;
       } catch (DidService.DidNotFoundException e) {
          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("not_found", e.getMessage()));
       } catch (IllegalArgumentException e) {
          return ResponseEntity.badRequest().body(new ErrorResponse("invalid_did", e.getMessage()));
+      } catch (Exception e) {
+         throw new RuntimeException(e);
       }
    }
 }

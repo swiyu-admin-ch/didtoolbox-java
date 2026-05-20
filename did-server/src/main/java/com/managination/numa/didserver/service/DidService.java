@@ -260,6 +260,11 @@ public class DidService {
       try {
          String[] normalizedLog = didJsonl.replaceAll("\\r?\\n\\s*", "").replace("}{", "}\n{").split("\\R");
          String lastEntry = normalizedLog[normalizedLog.length - 1];
+         try {
+            lastEntry = objectMapper.readValue(lastEntry, String.class);
+         } catch (Exception e) {
+            lastEntry = normalizedLog[normalizedLog.length - 1];
+         }
 
          WebVhLogEntry logEntry = objectMapper.readValue(lastEntry, WebVhLogEntry.class);
 
@@ -280,7 +285,7 @@ public class DidService {
          }
 
          String normalizedLogString = String.join(System.lineSeparator(), normalizedLog);
-         DidDocExtended didDoc = new Did(did).resolveAll(normalizedLogString);
+//         DidDocExtended didDoc = new Did(did).resolveAll(normalizedLogString);
          saveFile(targetPath, normalizedLogString);
 
          return new DidRegistrationResponse(true, did, "DID registered successfully");
