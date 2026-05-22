@@ -102,7 +102,7 @@ public class ProofOfPossessionVerifier {
     @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.PreserveStackTrace"})
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
         var algorithm = signedJWT.getHeader().getAlgorithm();
-        if (!Set.of(JWSAlgorithm.Ed25519, JWSAlgorithm.ES256).contains(algorithm)) {
+        if (!Set.of(JWSAlgorithm.ES256).contains(algorithm)) {
             throw ProofOfPossessionVerifierException.unsupportedAlgorithm(algorithm.toString());
         }
 

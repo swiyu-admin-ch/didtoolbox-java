@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -296,7 +297,7 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
         try (var sign = Ed25519Signature.Companion.fromMultibase('z' + Base58.encode(signature))) {
 
             try {
-                this.signingKey.getVerifyingKey().verifyStrict(new String(message, Charset.defaultCharset()), sign);
+                this.signingKey.getVerifyingKey().verifyStrict(new String(message, StandardCharsets.UTF_8), sign);
             } catch (DidSidekicksException ignore) {
                 return false;
             }
