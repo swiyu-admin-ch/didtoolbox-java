@@ -264,6 +264,11 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         return DidMethodEnum.TDW_0_3;
     }
 
+    @Override
+    protected ProfileVersion getProfileVersion() {
+        return null;
+    }
+
     /**
      * Left for the sake of backward compatibility. See deprecation notice.
      *

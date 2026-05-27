@@ -11,13 +11,20 @@ import java.net.URL;
 import java.util.Set;
 
 public abstract class AbstractDidLogEntryBuilder {
+    protected static final String SCID_PLACEHOLDER = "{SCID}";
 
-    protected final static String SCID_PLACEHOLDER = "{SCID}";
+    // Common DID Log attributes
+    protected static final String DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID = "versionId";
+    protected static final String DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME = "versionTime";
+    protected static final String DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS = "parameters";
+    protected static final String DID_LOG_ENTRY_JSON_PROPERTY_STATE = "state";
 
-    protected final static String DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID = "versionId";
-    protected final static String DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME = "versionTime";
-    protected final static String DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS = "parameters";
-    protected final static String DID_LOG_ENTRY_JSON_PROPERTY_STATE = "state";
+    // Common DID Document attributes
+    protected static final String DID_DOC_PROPERTY_ID = "id";
+    protected static final String DID_DOC_PROPERTY_PROFILE_VERSION = "profile_version";
+    protected static final String DID_DOC_PROPERTY_VERIFICATION_METHOD = "verificationMethod";
+    protected static final String DID_DOC_PROPERTY_AUTHENTICATION = "authentication";
+    protected static final String DID_DOC_PROPERTY_ASSERTION_METHOD = "assertionMethod";
 
     protected DidLogMeta didLogMeta;
 
@@ -88,6 +95,14 @@ public abstract class AbstractDidLogEntryBuilder {
      * @return name of the DID method
      */
     protected abstract DidMethodEnum getDidMethod();
+
+    /**
+     * Returns the value for the `profile_version` attribute in the did document.
+     * @return profile version
+     */
+    protected ProfileVersion getProfileVersion() {
+        return ProfileVersion.getLatest();
+    }
 
     /**
      * Creates a JSON object representing DID method parameters
@@ -235,11 +250,16 @@ public abstract class AbstractDidLogEntryBuilder {
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
-        didDoc.addProperty("id", did);
+        didDoc.addProperty(DID_DOC_PROPERTY_ID, did);
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
         //didDoc.addProperty("controller", did);
+
+        var profileVersion = this.getProfileVersion();
+        if (profileVersion != null) {
+            didDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
+        }
 
         var verificationMethod = new JsonArray();
 
@@ -256,7 +276,7 @@ public abstract class AbstractDidLogEntryBuilder {
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
 
-            didDoc.add("authentication", authentication);
+            didDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
         }
 
         if (assertionMethods != null && !assertionMethods.isEmpty()) {
@@ -267,10 +287,10 @@ public abstract class AbstractDidLogEntryBuilder {
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
 
-            didDoc.add("assertionMethod", assertionMethod);
+            didDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);
         }
 
-        didDoc.add("verificationMethod", verificationMethod);
+        didDoc.add(DID_DOC_PROPERTY_VERIFICATION_METHOD, verificationMethod);
 
         return didDoc;
     }

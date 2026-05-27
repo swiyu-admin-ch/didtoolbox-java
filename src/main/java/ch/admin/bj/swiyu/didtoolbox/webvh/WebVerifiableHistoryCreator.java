@@ -1,9 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
-import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
-import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
+import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
@@ -250,6 +247,11 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         var did = creator.buildDid(identifierRegistryUrl);
 
         newDidDoc.addProperty("id", did);
+
+        var profileVersion = WebVerifiableHistoryCreator.builder().build().getProfileVersion();
+        if (profileVersion != null) {
+            newDidDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
+        }
 
         var authentication = new JsonArray();
         didDoc.getAuthentication().stream()

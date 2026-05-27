@@ -12,7 +12,6 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -434,6 +433,12 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var didDoc = new JsonObject();
 
         didDoc.addProperty("id", super.didLogMeta.getDidDoc().getId());
+
+        var profileVersion = getProfileVersion();
+        if (profileVersion != null) {
+            didDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
+        }
+
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check

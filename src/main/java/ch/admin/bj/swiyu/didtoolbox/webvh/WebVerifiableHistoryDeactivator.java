@@ -152,6 +152,12 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
         didDoc.addProperty("id", didLogMeta.getDidDoc().getId());
+
+        var profileVersion = getProfileVersion();
+        if (profileVersion != null) {
+            didDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
+        }
+
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check

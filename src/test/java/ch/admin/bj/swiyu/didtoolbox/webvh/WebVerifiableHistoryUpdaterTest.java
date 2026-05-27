@@ -42,6 +42,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         assertTrue(jsonObject.get("state").isJsonObject());
         var didDoc = jsonObject.get("state").getAsJsonObject();
         assertTrue(didDoc.has("id"));
+        assertTrue(didDoc.has("profile_version"));
+        assertEquals("swiss-profile-anchor:1.0.0", didDoc.get("profile_version").getAsString());
         assertFalse(didDoc.has("@context"));
         assertTrue(didDoc.get("authentication").isJsonArray());
         var authentication = didDoc.get("authentication").getAsJsonArray();
