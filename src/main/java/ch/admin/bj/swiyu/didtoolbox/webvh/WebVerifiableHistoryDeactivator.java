@@ -151,7 +151,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
-        didDoc.addProperty("id", didLogMeta.getDidDoc().getId());
+        didDoc.addProperty(DID_DOC_PROPERTY_ID, didLogMeta.getDidDoc().getId());
 
         var profileVersion = getProfileVersion();
         if (profileVersion != null) {
