@@ -1,5 +1,17 @@
 # DID Toolbox changelog
 
+## next
+
+### Added
+- WEBVH Did Logs are now Swiss Profile conform
+  - adds property `profile_version` with current Swiss Profile Anchor version (`swiss-profile-anchor:1.0.0`) to webvh did documents
+
+### Fixed
+- Removed unsupported algorithm from proof of possession whitelist
+- Properly populate prerotation parameters when updating a did log through the CLI
+- Removed context from updated did logs
+
+## Older Versions
 | Version   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **2.0.0** | **Feature**: Added `controller` to verification methods in DID Document. Removed `@context` from DID Document (**BREAKING CHANGE**). Requires [didresolver](https://github.com/swiyu-admin-ch/didresolver/) version 2.7.0 and newer for DID Log resolving.                                                                                                                                                                                                                                                                                                                                                                                                                             |
