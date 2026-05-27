@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox;
+package ch.admin.bj.swiyu.didtoolbox.model;
 
 /**
  * Enum defining all versions of the Swiss Profile Anchor.

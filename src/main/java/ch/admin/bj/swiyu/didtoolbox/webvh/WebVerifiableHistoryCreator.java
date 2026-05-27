@@ -248,7 +248,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
 
         newDidDoc.addProperty(DID_DOC_PROPERTY_ID, did);
 
-        var profileVersion = WebVerifiableHistoryCreator.builder().build().getProfileVersion();
+        var profileVersion = creator.getProfileVersion();
         if (profileVersion != null) {
             newDidDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
         }
@@ -434,6 +434,11 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     @Override
     protected DidMethodEnum getDidMethod() {
         return DidMethodEnum.WEBVH_1_0;
+    }
+
+    @Override
+    protected ProfileVersion getProfileVersion() {
+        return ProfileVersion.SWISS_PROFILE_ANCHOR_1_0_0;
     }
 
     /**

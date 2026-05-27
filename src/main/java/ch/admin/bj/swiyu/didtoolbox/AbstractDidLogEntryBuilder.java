@@ -100,9 +100,7 @@ public abstract class AbstractDidLogEntryBuilder {
      * Returns the value for the `profile_version` attribute in the did document.
      * @return profile version
      */
-    protected ProfileVersion getProfileVersion() {
-        return ProfileVersion.getLatest();
-    }
+    protected abstract ProfileVersion getProfileVersion();
 
     /**
      * Creates a JSON object representing DID method parameters

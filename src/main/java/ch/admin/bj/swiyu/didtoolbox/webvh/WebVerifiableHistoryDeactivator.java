@@ -5,6 +5,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.didresolver.Did;
@@ -67,6 +68,11 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
     @Override
     protected DidMethodEnum getDidMethod() {
         return DidMethodEnum.WEBVH_1_0;
+    }
+
+    @Override
+    protected ProfileVersion getProfileVersion() {
+        return ProfileVersion.SWISS_PROFILE_ANCHOR_1_0_0;
     }
 
     private VcDataIntegrityCryptographicSuite getCryptoSuite() {

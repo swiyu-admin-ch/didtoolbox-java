@@ -321,6 +321,11 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         return DidMethodEnum.WEBVH_1_0;
     }
 
+    @Override
+    protected ProfileVersion getProfileVersion() {
+        return ProfileVersion.SWISS_PROFILE_ANCHOR_1_0_0;
+    }
+
     VcDataIntegrityCryptographicSuite getCryptoSuite() {
         if (this.verificationMethodKeyProvider != null) {
             return this.verificationMethodKeyProvider;
