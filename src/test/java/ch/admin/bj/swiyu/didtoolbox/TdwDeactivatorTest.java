@@ -68,6 +68,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
         assertEquals(1, didDoc.size()); // only "id" should be in the didDoc
         assertTrue(didDoc.has("id"));
+        assertFalse(didDoc.has("profile_version"));
 
         var proofs = jsonArray.get(4);
         assertTrue(proofs.isJsonArray());

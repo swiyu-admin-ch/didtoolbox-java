@@ -41,6 +41,7 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         assertTrue(jsonArray.get(3).getAsJsonObject().has("value"));
         var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
         assertTrue(didDoc.has("id"));
+        assertFalse(didDoc.has("profile_version"));
         assertTrue(didDoc.get("authentication").isJsonArray());
         var authentication = didDoc.get("authentication").getAsJsonArray();
         assertFalse(authentication.isEmpty());

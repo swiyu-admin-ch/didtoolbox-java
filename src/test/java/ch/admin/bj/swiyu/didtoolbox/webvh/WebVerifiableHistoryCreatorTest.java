@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
 
     public static void assertDidLogEntry(String didLogEntry) {
-
         assertNotNull(didLogEntry);
         assertTrue(JsonParser.parseString(didLogEntry).isJsonObject());
         var jsonObject = JsonParser.parseString(didLogEntry).getAsJsonObject();
@@ -45,6 +44,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertTrue(jsonObject.get("state").isJsonObject());
         var didDoc = jsonObject.get("state").getAsJsonObject();
         assertTrue(didDoc.has("id"));
+        assertTrue(didDoc.has("profile_version"));
+        assertEquals("swiss-profile-anchor:1.0.0", didDoc.get("profile_version").getAsString());
         assertTrue(didDoc.get("authentication").isJsonArray());
         assertFalse(didDoc.has("@context"));
         var authentication = didDoc.get("authentication").getAsJsonArray();
@@ -280,7 +281,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("#my-assert-key-01"));
 
         assertTrue("""
-                {"versionId":"1-QmSa1RYNaiMBsgNCu3wUaZEmXy8JgVJe2Pk2JVNB2mWzY4","versionTime":"2012-12-12T12:12:12Z","parameters":{"method":"did:webvh:1.0","scid":"QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},"state":{"id":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01"],"assertionMethod":["did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01","controller":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01","controller":"did:webvh:QmbLSS4iwF34qmmwBNcM9YCEemguoULuJZyU5ZUACzCECn:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:12Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z3oxSyJeCZEw3qAhBk3QQZpAJ8h8MhGjNSFFRaZxCN2q75x9W9Hyahav4bvSKjJuGbH6H7dsy3pRwaf2oEQLeTGZh"}]}
+                {"versionId":"1-QmdFbTY7oG4JeMvF3xMu5TurE1YEG5HtZcmDWJz6HjPh7b","versionTime":"2012-12-12T12:12:12Z","parameters":{"method":"did:webvh:1.0","scid":"QmcdhxoCTGiRN6g3TJvT2iWwpeZrT43y93XZvKVEtvhNs7","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},"state":{"id":"did:webvh:QmcdhxoCTGiRN6g3TJvT2iWwpeZrT43y93XZvKVEtvhNs7:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","profile_version":"swiss-profile-anchor:1.0.0","authentication":["did:webvh:QmcdhxoCTGiRN6g3TJvT2iWwpeZrT43y93XZvKVEtvhNs7:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01"],"assertionMethod":["did:webvh:QmcdhxoCTGiRN6g3TJvT2iWwpeZrT43y93XZvKVEtvhNs7:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmcdhxoCTGiRN6g3TJvT2iWwpeZrT43y93XZvKVEtvhNs7:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01","controller":"did:webvh:QmcdhxoCTGiRN6g3TJvT2iWwpeZrT43y93XZvKVEtvhNs7:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmcdhxoCTGiRN6g3TJvT2iWwpeZrT43y93XZvKVEtvhNs7:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01","controller":"did:webvh:QmcdhxoCTGiRN6g3TJvT2iWwpeZrT43y93XZvKVEtvhNs7:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:12Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z4Fw8t6e6m5THuPyWmY1shAUKonoVgUzbGFLareXfeLc8drNVJe6AiwbdLXJRVSSTJbTQVsgKcYSt7g7skHENuXtp"}]}
                 """.contains(didLogEntry.get()));
     }
 
@@ -331,11 +332,18 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     )
                     .getDidDoc();
 
-            assertDidLogEntry(
-                    WebVerifiableHistoryCreator
-                            // Use a whole another cryptographic suite
-                            .createDidLogFromDidDoc(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(), didDoc, webvhUrl, zdt) // MUT
-            );
+            var didLogEntry = WebVerifiableHistoryCreator.createDidLogFromDidDoc(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(), didDoc, webvhUrl, zdt);
+
+            assertNotNull(didLogEntry);
+            assertTrue(JsonParser.parseString(didLogEntry).isJsonObject());
+            var jsonObject = JsonParser.parseString(didLogEntry).getAsJsonObject();
+            var didWebvhDoc = jsonObject.get("state").getAsJsonObject();
+
+            var didTdwDoc = JsonParser.parseString(didDoc.toJson()).getAsJsonObject();
+
+            assertTrue(didWebvhDoc.asMap().keySet().containsAll(didTdwDoc.asMap().keySet()));
+            assertTrue(didWebvhDoc.has("profile_version"));
+            assertEquals(didTdwDoc.size(), didWebvhDoc.size() - 1); // only difference is profile version
         });
     }
 }

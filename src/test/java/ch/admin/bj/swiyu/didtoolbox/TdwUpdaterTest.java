@@ -71,6 +71,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         assertTrue(jsonArray.get(3).getAsJsonObject().has("value"));
         var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
         assertTrue(didDoc.has("id"));
+        assertFalse(didDoc.has("profile_version"));
         assertTrue(didDoc.has("authentication"));
         assertTrue(didDoc.get("authentication").isJsonArray());
         var authentication = didDoc.get("authentication").getAsJsonArray();

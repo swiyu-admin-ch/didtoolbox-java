@@ -49,4 +49,4 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## MIT License:
 
-* **Project Lombok** (org.projectlombok:lombok:1.18.44 - https://projectlombok.org)
+* **Project Lombok** (org.projectlombok:lombok:1.18.46 - https://projectlombok.org)

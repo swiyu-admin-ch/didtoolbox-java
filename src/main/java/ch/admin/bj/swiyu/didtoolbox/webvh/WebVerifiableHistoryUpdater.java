@@ -12,7 +12,6 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -62,9 +61,6 @@ import java.util.stream.Collectors;
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
-
-    private static final String SCID_PLACEHOLDER = "{SCID}";
-
     /**
      * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
      * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
@@ -325,6 +321,11 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         return DidMethodEnum.WEBVH_1_0;
     }
 
+    @Override
+    protected ProfileVersion getProfileVersion() {
+        return ProfileVersion.SWISS_PROFILE_ANCHOR_1_0_0;
+    }
+
     VcDataIntegrityCryptographicSuite getCryptoSuite() {
         if (this.verificationMethodKeyProvider != null) {
             return this.verificationMethodKeyProvider;
@@ -433,7 +434,13 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
 
-        didDoc.addProperty("id", super.didLogMeta.getDidDoc().getId());
+        didDoc.addProperty(DID_DOC_PROPERTY_ID, super.didLogMeta.getDidDoc().getId());
+
+        var profileVersion = getProfileVersion();
+        if (profileVersion != null) {
+            didDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
+        }
+
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
@@ -455,7 +462,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                         this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
 
-            didDoc.add("authentication", authentication);
+            didDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
         }
 
         if (!this.allAssertionMethods().isEmpty()) {
@@ -468,13 +475,13 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                         this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
 
-            didDoc.add("assertionMethod", assertionMethod);
+            didDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);
         }
 
         // NOTE that there is no need to add the rest of the existing (verification method) keys, as they can be
         //      added, if required, at any point again
 
-        didDoc.add("verificationMethod", verificationMethod);
+        didDoc.add(DID_DOC_PROPERTY_VERIFICATION_METHOD, verificationMethod);
 
         /* https://identity.foundation/didwebvh/v1.0/#the-did-log-file:
         The DID log file contains a list of entries, one for each version of the DID

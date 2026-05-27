@@ -5,6 +5,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.eid.didresolver.Did;
@@ -67,6 +68,11 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
     @Override
     protected DidMethodEnum getDidMethod() {
         return DidMethodEnum.WEBVH_1_0;
+    }
+
+    @Override
+    protected ProfileVersion getProfileVersion() {
+        return ProfileVersion.SWISS_PROFILE_ANCHOR_1_0_0;
     }
 
     private VcDataIntegrityCryptographicSuite getCryptoSuite() {
@@ -151,7 +157,13 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
 
         // Create initial did doc with placeholder
         var didDoc = new JsonObject();
-        didDoc.addProperty("id", didLogMeta.getDidDoc().getId());
+        didDoc.addProperty(DID_DOC_PROPERTY_ID, didLogMeta.getDidDoc().getId());
+
+        var profileVersion = getProfileVersion();
+        if (profileVersion != null) {
+            didDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
+        }
+
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check

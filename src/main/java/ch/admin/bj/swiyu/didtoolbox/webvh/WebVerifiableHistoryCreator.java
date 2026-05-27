@@ -1,9 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
-import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
-import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
+import ch.admin.bj.swiyu.didtoolbox.*;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
@@ -249,19 +246,24 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
 
         var did = creator.buildDid(identifierRegistryUrl);
 
-        newDidDoc.addProperty("id", did);
+        newDidDoc.addProperty(DID_DOC_PROPERTY_ID, did);
+
+        var profileVersion = creator.getProfileVersion();
+        if (profileVersion != null) {
+            newDidDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
+        }
 
         var authentication = new JsonArray();
         didDoc.getAuthentication().stream()
                 .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining()))
                 .forEach(authentication::add);
-        newDidDoc.add("authentication", authentication);
+        newDidDoc.add( DID_DOC_PROPERTY_AUTHENTICATION, authentication);
 
         var assertionMethod = new JsonArray();
         didDoc.getAssertionMethod().stream()
                 .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining()))
                 .forEach(assertionMethod::add);
-        newDidDoc.add("assertionMethod", assertionMethod);
+        newDidDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);
 
         // Collect cryptographic key material from the supplied DID document object and convert it to JSON according to specification
         var verificationMethod = new JsonArray();
@@ -311,7 +313,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
             verificationMethod.add(verificationMethodObj);
         });
 
-        newDidDoc.add("verificationMethod", verificationMethod);
+        newDidDoc.add(DID_DOC_PROPERTY_VERIFICATION_METHOD, verificationMethod);
 
         return creator.createDidLog(newDidDoc, zdt); // may throw DidLogCreatorStrategyException
     }
@@ -432,6 +434,11 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
     @Override
     protected DidMethodEnum getDidMethod() {
         return DidMethodEnum.WEBVH_1_0;
+    }
+
+    @Override
+    protected ProfileVersion getProfileVersion() {
+        return ProfileVersion.SWISS_PROFILE_ANCHOR_1_0_0;
     }
 
     /**
