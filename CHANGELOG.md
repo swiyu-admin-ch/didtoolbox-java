@@ -1,6 +1,16 @@
 # DID Toolbox changelog
 
-## next
+## Next
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## 2.1.0 - 2026-05-27
 
 ### Added
 - WEBVH Did Logs are now Swiss Profile conform
