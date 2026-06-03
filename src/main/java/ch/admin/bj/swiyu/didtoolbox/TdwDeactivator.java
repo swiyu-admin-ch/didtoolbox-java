@@ -275,18 +275,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
-        try (var did = new Did(didLogMeta.getDidDoc().getId())) {
-            // NOTE Enforcing DID log conformity by calling:
-            //      ch.admin.eid.didtoolbox.DidLogEntryValidator.Companion
-            //          .from(DidLogEntryJsonSchema.V03_EID_CONFORM)
-            //          .validate(didLogEntryWithProof.toString());
-            //      would not be necessary here, as it is already part of the `resolve` method.
-            // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolveAll(didLog.trim() + System.lineSeparator() + didLogEntryWithProof); // sanity check
-        } catch (DidResolveException e) {
-            throw new InvalidDidLogException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", e);
-        }
-
+        // skip final resolve check, as resolver returns an error when resolving a deactivated did
         return didLogEntryWithProof.toString();
     }
 }

@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
@@ -9,6 +10,7 @@ import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.didresolver.Did;
+import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SuppressWarnings({"PMD"})
 class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
 
-    private static void assertDeactivatedDidLogEntry(String didLogEntry) {
+    private static void assertDeactivatedDidLogEntry(String didLogEntry, String didLog) {
 
         assertNotNull(didLogEntry);
         assertTrue(JsonParser.parseString(didLogEntry).isJsonObject());
@@ -51,6 +53,12 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
         var proof = proofs.getAsJsonArray().get(0);
         assertTrue(proof.isJsonObject());
         assertTrue(proof.getAsJsonObject().has("proofValue"));
+
+        var exc = assertThrowsExactly(DidResolveException.InvalidDidDocument.class, () -> {
+            var did = new Did(didDoc.get("id").getAsString());
+            did.resolveAll(didLog); // sanity check
+        });
+        assertTrue(exc.getMessage().contains("Document has been deactivated"));
     }
 
     @Test
@@ -97,23 +105,21 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
                     .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
-        assertDeactivatedDidLogEntry(nextLogEntry.get());
 
         deactivatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
-
         var finalUpdatedDidLog = deactivatedDidLog.toString().trim(); // trimming due to a closing line separator
 
-        //System.out.println(finalUpdatedDidLog); // checkpoint
+        assertDeactivatedDidLogEntry(nextLogEntry.get(), finalUpdatedDidLog);
 
         assertTrue("""
                 {"versionId":"1-QmU71QhcuPZcswrMbb4GxM3afb5eiRjuCFk37jj2XrF8jZ","versionTime":"2012-12-12T12:12:12Z","parameters":{"method":"did:webvh:1.0","scid":"QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX","updateKeys":["z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2","z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},"state":{"id":"did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","profile_version":"swiss-profile-anchor:1.0.0","authentication":["did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01"],"assertionMethod":["did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01"],"verificationMethod":[{"id":"did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01","controller":"did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01","controller":"did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:12Z","verificationMethod":"did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2#z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2","proofPurpose":"assertionMethod","proofValue":"z4WdFmBpv4Bd4McJYu899ZeCXaP9Vx4M5mgtVX6qbX8e1bN7Z4pfCjaCtjUfXTvdR3HvqPB8BUVJufZ7Gbe5QUJw2"}]}
                 {"versionId":"2-QmQMuUUM8V7WjotLsDpwpe9ttnkPDfwMmHhCzrxpZxRZkB","versionTime":"2012-12-12T12:12:13Z","parameters":{"deactivated":true,"updateKeys":[]},"state":{"id":"did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","profile_version":"swiss-profile-anchor:1.0.0"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:13Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z3D9PcQ41EDZp5VCxWGUcVx9E9947KnEy8GJLk57bJXxLUSwsSK1yi37iE4PTe4Ti1Svcg1epAZLtok5VmjM6wFiA"}]}
                 """.contains(finalUpdatedDidLog));
 
-        assertDoesNotThrow(() -> {
-            assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
-            new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
+        var e = assertThrowsExactly(DidLogMetaPeekerException.class,() -> {
+            WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog); // should throw exception as did log has been deactivated
         });
+        assertTrue(e.getMessage().contains("Document has been deactivated"));
     }
 
     @Test
@@ -122,7 +128,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
-        StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+        StringBuilder didLogToDeactivate = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -131,22 +137,23 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+                    .deactivateDidLog(didLogToDeactivate.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
-        assertDeactivatedDidLogEntry(nextLogEntry.get());
+        var didLogDeactivated = new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString();
+        assertDeactivatedDidLogEntry(nextLogEntry.get(), didLogDeactivated);
 
         // Try updating the DID log
         var updaterExc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE)
                     .build()
-                    .updateDidLog(new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString(),
+                    .updateDidLog(didLogDeactivated,
                             // The versionTime for each log entry MUST be greater than the previous entry’s time.
                             // The versionTime of the last entry MUST be earlier than the current time.
                             ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2));
         });
-        assertEquals("DID already deactivated", updaterExc.getMessage());
+        assertTrue(updaterExc.getMessage().contains("Document has been deactivated"));
     }
 
     @Test
@@ -155,7 +162,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
-        StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
+        StringBuilder didLogToDeactivate = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -164,12 +171,12 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
+                    .deactivateDidLog(didLogToDeactivate.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
-        assertDeactivatedDidLogEntry(nextLogEntry.get());
+        var didLogDeactivated = didLogToDeactivate.append(nextLogEntry.get()).append(System.lineSeparator()).toString();
 
-        deactivatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
+        assertDeactivatedDidLogEntry(nextLogEntry.get(), didLogDeactivated);
 
         // trying to deactivate it again should fail
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
@@ -178,9 +185,9 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
-                    .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2))); // MUT
+                    .deactivateDidLog(didLogDeactivated, ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2))); // MUT
         });
-        assertEquals("DID already deactivated", exc.getMessage());
+        assertTrue(exc.getMessage().contains("Document has been deactivated."));
     }
 
     @DisplayName("Deactivating DID log without cryptographic suite throws IncompleteDidLogEntryBuilderException")

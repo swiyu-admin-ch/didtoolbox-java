@@ -239,17 +239,14 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
            "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
-        try (var did = new Did(super.didLogMeta.getDidDoc().getId())) {
+        try {
             var didLogEntry = this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
 
-            did.resolveAll(didLog.trim() + System.lineSeparator() + didLogEntry); // sanity check
-
+            // skip final resolve check, as resolver returns an error when resolving a deactivated did
             return didLogEntry;
         } catch (VcDataIntegrityCryptographicSuiteException exc) {
             throw new DidLogDeactivatorStrategyException(exc);
-        } catch (DidResolveException exc) {
-            throw new InvalidDidLogException("Deactivating the DID log resulted in unresolvable/unverifiable DID log", exc);
         }
     }
 }

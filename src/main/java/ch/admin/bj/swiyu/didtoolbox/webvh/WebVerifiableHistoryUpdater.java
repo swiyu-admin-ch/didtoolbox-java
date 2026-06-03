@@ -412,16 +412,10 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 throw new DidLogUpdaterStrategyException("Illegal updateKey detected");
             }
 
-        } else if (!this.allUpdateKeysDidMethodParameter().isEmpty()) {
-
-            for (var param : this.allUpdateKeysDidMethodParameter()) {
-                if (!this.getCryptoSuite().getVerificationKeyMultibase().equals(param.getUpdateKey())) {
-                    throw new DidLogUpdaterStrategyException("No matching verifying (public) ed25519 key supplied");
-                }
-            }
         }
 
         // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
+
         // and that the represented time MUST be before or equal to the current time.
         //
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -620,18 +614,15 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var updateKeysJsonArray = new JsonArray();
         var nextKeyHashesJsonArray = new JsonArray();
 
-        if (super.didLogMeta.isKeyPreRotationActivated()) {
-            var updateKeys = loadUpdateKeys();
-            updateKeys.add(this.cryptographicSuite.getVerificationKeyMultibase());
-            updateKeys.forEach(updateKeysJsonArray::add);
+        var nextUpdateKeys = loadUpdateKeys();
+        if (!nextUpdateKeys.isEmpty()) {
+            nextUpdateKeys.forEach(updateKeysJsonArray::add);
             didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
-
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray); // to deactivate key rotation
         }
 
-        if (this.shouldActivateKeyPreRotation()) {
+        if (this.shouldActivateKeyPreRotation() || didLogMeta.isKeyPreRotationActivated()) {
             loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray); // to deactivate key rotation
         }
 
         return didMethodParameters;

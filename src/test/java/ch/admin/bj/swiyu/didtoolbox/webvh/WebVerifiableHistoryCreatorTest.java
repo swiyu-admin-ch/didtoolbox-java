@@ -4,10 +4,7 @@ import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Assertions;
@@ -130,7 +127,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation(URL identifierRegistryUrl) {
+    void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation(URL identifierRegistryUrl) throws UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException {
 
         AtomicReference<String> didLogEntry = new AtomicReference<>();
 
@@ -139,7 +136,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
-                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // activate prerotation by adding one of the 'updateKeys'
+                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding one of the 'updateKeys'
                     .authentications(TEST_AUTHENTICATIONS)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
@@ -153,8 +150,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertEquals(NextKeyHashesDidMethodParameter.of(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString()).getNextKeyHash(),
-                params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST match the last added updateKey
+        assertEquals(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")).getUpdateKey(), params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString());
+        assertEquals(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")).getNextKeyHash(), params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString());
     }
 
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
@@ -192,7 +189,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys) with activated prerotation")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
-    void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation3(URL identifierRegistryUrl) {
+    void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation3(URL identifierRegistryUrl) throws UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException {
 
         // Now, try activating prerotation by adding a hash of whole another key to be used in the future
 
@@ -202,7 +199,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // it matches the signing key, thus it should not be added to 'updateKeys'
-                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // activate prerotation by adding one of the 'updateKeys'
+                    .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding one of the 'updateKeys'
                     .authentications(TEST_AUTHENTICATIONS)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
@@ -216,8 +213,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(1, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is one single keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertEquals(NextKeyHashesDidMethodParameter.of(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(0).getAsString()).getNextKeyHash(),
-                params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString()); // MUST match the last added (in this case, the only) updateKey
+        assertEquals(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")).getUpdateKey(), params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(0).getAsString());
+        assertEquals(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")).getNextKeyHash(), params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString());
     }
 
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants using Java Keystore (JKS)")
@@ -262,7 +259,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     .build()
-                    // CAUTION datetime is set explicitly here just to be able to run assertTrue("...".contains(didLogEntry));
+                    // CAUTION datetime is set explicitly here just to be able to get a deterministic output
                     .createDidLog(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z"))); // MUT
         });
 

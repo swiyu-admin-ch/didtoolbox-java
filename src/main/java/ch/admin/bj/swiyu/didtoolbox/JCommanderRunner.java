@@ -303,90 +303,18 @@ final class JCommanderRunner {
 
         VcDataIntegrityCryptographicSuite cryptoSuite = null; // no default, must be supplied
 
-        if (signingKeyPemFile != null && verifyingKeyPemFiles != null) {
-
-            String matchingUpdateKey = null;
-
-            if (didLogMeta.isKeyPreRotationActivated()) {
-
-                for (var pemFile : verifyingKeyPemFiles) {
-                    try {
-                        var multikey = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile.toPath());
-                        // Only pre-rotation keys are relevant here
-                        if (didLogMeta.isPreRotatedUpdateKey(multikey)) {
-                            // the signing key is supplied externally, but verifying key should be already among updateKeys
-                            cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
-                            if (multikey.equals(cryptoSuite.getVerificationKeyMultibase())) {
-                                // At this point, the matching verifying key is detected, so we are free to break from the loop
-                                matchingUpdateKey = multikey;
-                                break;
-                            }
-                        }
-                    } catch (VcDataIntegrityCryptographicSuiteException |
-                             DidSidekicksException ignoreMalformedPemFiles) {
-                    }
-                }
-
-            } else {
-
-                for (var pemFile : verifyingKeyPemFiles) {
-                    try {
-                        var publicKeyEd25519Multibase = PemUtils.readEd25519PublicKeyPemFileToMultibase(pemFile.toPath());
-                        // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
-                        if (publicKeyEd25519Multibase.equals(cryptoSuite.getVerificationKeyMultibase())) {
-                            // At this point, the matching verifying key is detected, so we are free to break from the loop
-                            matchingUpdateKey = publicKeyEd25519Multibase;
-                            break;
-                        }
-                    } catch (VcDataIntegrityCryptographicSuiteException |
-                             DidSidekicksException ignoreMalformedPemFiles) {
-                    }
-                }
-
-                if (matchingUpdateKey == null) {
-                    return printCommandError(jc, parsedCommandName, "No valid matching verifying (public) ed25519 key supplied");
-                }
-
-                if (didLogMeta.getParams().getUpdateKeys() == null || didLogMeta.getParams().getUpdateKeys().isEmpty()) {
-                    return printCommandError(jc, parsedCommandName, "Provided Did can no longer be updated");
-                }
-                for (var publicKeyEd25519Multibase : didLogMeta.getParams().getUpdateKeys()) {
-                    try {
-                        // the signing key is supplied externally, but verifying key should be already among updateKeys
-                        cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
-                        if (publicKeyEd25519Multibase.equals(cryptoSuite.getVerificationKeyMultibase())) {
-                            // At this point, the matching verifying key is detected, so we are free to break from the loop
-                            matchingUpdateKey = publicKeyEd25519Multibase;
-                            break;
-                        }
-                    } catch (VcDataIntegrityCryptographicSuiteException ignoreMalformedPemFiles) {
-                    }
-                }
-            }
-
-            if (matchingUpdateKey == null) {
-                return printCommandError(jc, parsedCommandName, "No matching signing (private) ed25519 key supplied");
-            }
-
+        if (signingKeyPemFile != null) {
+            cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
             cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
-
-            if (didLogMeta.isKeyPreRotationActivated() && !didLogMeta.isPreRotatedUpdateKey(cryptoSuite.getVerificationKeyMultibase())) {
-                return printCommandError(jc, parsedCommandName, "Illegal signing (private) ed25519 key supplied");
-            }
-
         } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
-
             cryptoSuite = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
-
-            if (didLogMeta.isKeyPreRotationActivated() && !didLogMeta.isPreRotatedUpdateKey(cryptoSuite.getVerificationKeyMultibase())) {
-                return printCommandError(jc, parsedCommandName, "Illegal signing (private) ed25519 key supplied");
-            }
-
         } else {
             return printCommandError(jc, parsedCommandName, "Incomplete source of the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
+        }
+        if (didLogMeta.isKeyPreRotationActivated() && !didLogMeta.isPreRotatedUpdateKey(cryptoSuite.getVerificationKeyMultibase())) {
+            return printCommandError(jc, parsedCommandName, "Illegal signing (private) ed25519 key supplied");
         }
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
