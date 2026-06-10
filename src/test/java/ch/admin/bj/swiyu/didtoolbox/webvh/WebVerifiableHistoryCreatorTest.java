@@ -3,6 +3,8 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
@@ -84,7 +86,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
     void testCreateDidLog(URL identifierRegistryUrl) {
-
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
 
@@ -104,7 +105,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
     void testCreateDidLogWithMultipleUpdateKeys(URL identifierRegistryUrl) {
-
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
@@ -158,9 +158,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
     void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation2(URL identifierRegistryUrl) {
-
         // Now, try activating prerotation by adding a hash of whole another key to be used in the future
-
         AtomicReference<String> didLogEntry = new AtomicReference<>();
 
         assertDoesNotThrow(() -> {
@@ -190,9 +188,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
     void testCreateDidLogWithMultipleUpdateKeysAndActivatedPrerotation3(URL identifierRegistryUrl) throws UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException {
-
         // Now, try activating prerotation by adding a hash of whole another key to be used in the future
-
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
@@ -221,7 +217,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
     void testCreateDidLogUsingJKS(URL identifierRegistryUrl) {
-
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
@@ -251,7 +246,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
     void testCreateDidLogUsingJksWithExternalVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
-
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
             didLogEntry.set(WebVerifiableHistoryCreator.builder()
@@ -285,7 +279,6 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building DID log entry without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
     @Test
     void testCreateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
-
         var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
             WebVerifiableHistoryCreator.builder()
                     // IMPORTANT A .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
@@ -307,10 +300,29 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains("No verification material"));
     }
 
+    @DisplayName("Trying to build a DID log entry with same update key and next key hash, should throw DidLogUpdaterStrategyException")
+    @Test
+    void testCreateDidLogWithSameUpdateAndRotationKeyExpectingException() {
+        var e = assertThrowsExactly(DidLogCreatorStrategyException.class, () -> {
+            WebVerifiableHistoryCreator.builder()
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .updateKeysDidMethodParameter(Set.of(
+                            UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))
+                    ))
+                    .nextKeyHashesDidMethodParameter(Set.of(
+                            NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")),
+                            NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem"))
+                    ))
+                    .build().createDidLog(new URL(TEST_DID_URL));
+        });
+        assertTrue(e.getMessage().contains("not allowed to be in both"));
+    }
+
     @DisplayName("Building did:webvh log entry from an existing DID document")
     @Test
     void testFromDidDoc() {
-
         var zdt = ZonedDateTime.now();
         assertDoesNotThrow(() -> {
             var url = identifierRegistryUrl().stream().toList();

@@ -26,7 +26,6 @@ import java.util.Set;
  * </ul>
  */
 public class DidLogMeta {
-
     @Getter
     final private String lastVersionId;
     @Getter
@@ -83,7 +82,6 @@ public class DidLogMeta {
      * @return {@code true} if and only if the supplied {@code multikey} is legal w.r.t. key pre-rotation. Otherwise, {@code false}.
      */
     public boolean isPreRotatedUpdateKey(String multikey) {
-
         if (this.isKeyPreRotationActivated() && multikey != null) {
             return this.getParams().getNextKeyHashes().contains(
                     NextKeyHashesDidMethodParameter.of(multikey).getNextKeyHash());
@@ -102,7 +100,6 @@ public class DidLogMeta {
      *                                               at least one of the supplied {@code pemFiles} contains no valid Ed25519 public key
      */
     public boolean arePreRotatedUpdateKeys(Set<UpdateKeysDidMethodParameter> params) throws UpdateKeysDidMethodParameterException {
-
         if (params != null && !params.isEmpty()) {
             for (var param : params) {
                 if (!this.isPreRotatedUpdateKey(param.getUpdateKey())) {

@@ -9,6 +9,7 @@ import com.google.gson.*;
 
 import java.net.URL;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class AbstractDidLogEntryBuilder {
     protected static final String SCID_PLACEHOLDER = "{SCID}";
@@ -180,6 +181,14 @@ public abstract class AbstractDidLogEntryBuilder {
         - The value of 'nextKeyHashes' MAY be set to an empty array ([]) to deactivate pre-rotation.
           For additional details about turning off pre-rotation, see the Pre-Rotation Key Hash Generation and Verification section of this specification.
          */
+        if (updateKeysParameter != null && nextKeyHashesDidMethodParameters != null) {
+            var updateKeyHashes = updateKeysParameter.stream().map(key -> NextKeyHashesDidMethodParameter.of(key.getUpdateKey()).getNextKeyHash()).collect(Collectors.toSet());
+            var nextKeyHashes = nextKeyHashesDidMethodParameters.stream().map(NextKeyHashesDidMethodParameter::getNextKeyHash).collect(Collectors.toSet());
+            updateKeyHashes.retainAll(nextKeyHashes);
+            if (!updateKeyHashes.isEmpty()) {
+                throw new DidLogCreatorStrategyException("Key is not allowed to be in both update keys and next key hashes.");
+            }
+        }
         var nextKeyHashesJsonArray = new JsonArray();
         // Once the nextKeys/nextKeyHashes parameters has been set to a non-empty array, Key Pre-Rotation is active.
         try {
@@ -224,7 +233,7 @@ public abstract class AbstractDidLogEntryBuilder {
         if (!path.isEmpty()) {
             did = "%s%s".formatted(did,
                     path.replace("/did.jsonl", "") // cleanup
-                            .replace("/", ":")); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation);
+                            .replace("/", ":")); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation
         }
 
         return did;
@@ -252,7 +261,6 @@ public abstract class AbstractDidLogEntryBuilder {
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //didDoc.addProperty("controller", did);
 
         var profileVersion = this.getProfileVersion();
         if (profileVersion != null) {

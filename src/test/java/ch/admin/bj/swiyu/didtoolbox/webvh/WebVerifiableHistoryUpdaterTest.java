@@ -25,19 +25,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
     private static void assertDidLogEntry(String didLogEntry) {
-
         assertNotNull(didLogEntry);
         assertTrue(JsonParser.parseString(didLogEntry).isJsonObject());
         var jsonObject = JsonParser.parseString(didLogEntry).getAsJsonObject();
 
         assertTrue(jsonObject.get("parameters").isJsonObject());
         assertFalse(jsonObject.get("parameters").isJsonNull());
-        //assertTrue(jsonObject.get("parameters").getAsJsonObject().isEmpty());
-        //var params = jsonObject.get("parameters").getAsJsonObject();
-        //assertTrue(params.has("method"));
-        //assertTrue(params.has("scid"));
-        //assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
-        //assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
 
         assertTrue(jsonObject.get("state").isJsonObject());
         var didDoc = jsonObject.get("state").getAsJsonObject();
@@ -83,7 +76,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
     @Test
     void testUpdateDidLogThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
-
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
             WebVerifiableHistoryUpdater.builder()
@@ -106,7 +98,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
     @Test
     void testUpdateDidLogThrowsDateTimeInThePastDidLogUpdaterStrategyException() {
-
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
             WebVerifiableHistoryUpdater.builder()
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
@@ -120,7 +111,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
     @Test
     void testUpdateDidLogWithKeyAlternationUsingExistingUpdateKey() {
-
         // Also features an updateKey matching VERIFICATION_METHOD_KEY_PROVIDER
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
@@ -129,7 +119,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         try {
-
             nextLogEntry = WebVerifiableHistoryUpdater.builder()
                     //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
                     .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
@@ -165,7 +154,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
     @DisplayName("Updating DID log by using another (pre-rotation) key")
     @Test
     void testUpdateDidLogWithKeyPrerotationInInitialDidLogEntry() {
-
         // The initial entry features 2 pre-rotation keys, both eligible for updating the DID log
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
                 Set.of(
@@ -205,13 +193,10 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         // While active, the properties nextKeyHashes and updateKeys MUST be present in all log entries.
         var params = JsonParser.parseString(nextLogEntry.get()).getAsJsonObject().get("parameters").getAsJsonObject();
         assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
-        //assertTrue(params.has(NamedDidMethodParameters.NEXT_KEY_HASHES));
 
         updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
-        //System.out.println(updatedDidLog);
 
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
-        // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {
             assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getLastVersionNumber()); // there should be another entry i.e. one more
             var did = new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(initialDidLogEntry).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
@@ -221,7 +206,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
     @Test
     void testUpdateDidLogWithKeyPrerotationThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
-
         // The initial entry features pre-rotation key(s), eligible for the DID log update
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
                 Set.of(
@@ -248,7 +232,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
 
     @Test
     void testUpdateDidLogWithKeyPrerotationThrowsIllegalUpdateKeyDidLogUpdaterStrategyException() {
-
         // The initial entry features pre-rotation key(s), eligible for the DID log update
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
                 Set.of(
@@ -271,13 +254,12 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                     // The versionTime of the last entry MUST be earlier than the current time.
                     .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1)); // MUT
         });
-        assertEquals("Illegal updateKey detected", exc.getMessage());
+        assertEquals("Illegal update key detected, not all verification keys are allowed to rotate to.", exc.getMessage());
     }
 
     @DisplayName("Updating DID log by alternating between various existing (alternate) keys")
     @Test
     void testUpdateDidLogWithKeyAlternation() {
-
         // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
         AtomicReference<String> initialDidLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -332,7 +314,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
     @DisplayName("Multiple update of DID log using various existing (alternate) keys")
     @Test
     void testMultipleUpdateDidLogWithKeyAlternation() {
-
         var verificationMethodKeyProvider = TEST_CRYPTO_SUITES[0]; // irrelevant
         // Also features an updateKey matching TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(verificationMethodKeyProvider);
@@ -343,7 +324,6 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                 TEST_CRYPTO_SUITE_JKS,
         };
 
-        //String nextLogEntry;
         AtomicReference<StringBuilder> updatedDidLog = new AtomicReference<>();
         int totalEntriesCount = 5;
         assertDoesNotThrow(() -> {
@@ -381,11 +361,9 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         });
     }
 
-    /* TODO@MP rewrite test to switch keys
     @DisplayName("Multiple update of DID log using various existing (pre-rotation) keys")
     @Test
     void testMultipleUpdateDidLogWithKeyPrerotation() {
-
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(Set.of(
                 TEST_KEY_FILES[0] // the (single) pre-rotation key to be used when building the next DID log entry
         ));
@@ -408,6 +386,9 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                         //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
                         // Using alternative and more potent method to supply pre-rotation keys.
                         // BTW Adding the same key (via another method) has no effect as eventually distinct key values are taken.
+                        .updateKeysDidMethodParameter(Set.of(
+                                UpdateKeysDidMethodParameter.of(TEST_KEY_FILES[i - 2].toPath())
+                        ))
                         .nextKeyHashesDidMethodParameter(Set.of(
                                 NextKeyHashesDidMethodParameter.of(
                                         TEST_KEY_FILES[i - 1].toPath() // get a whole another (single) pre-rotation key to be used when building the next DID log entry
@@ -433,12 +414,10 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             new Did(WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog).getDidDoc().getId()).resolveAll(finalUpdatedDidLog); // the ultimate test
         });
     }
-     */
 
     @DisplayName("Updating DID log without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
     @Test
-    public void testUpdateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
-
+    void testUpdateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
@@ -459,5 +438,23 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                     .updateDidLog(initialDidLogEntry); // MUT
         });
         assertTrue(exc.getMessage().contains("No update will take place as no verification material is supplied whatsoever"));
+    }
+
+    @Test
+    void testUpdateDidLogWithSameKeyInUpdateAndNextHashThrowsDidLogUpdaterStrategyException() {
+        var initialDidLog = buildWebVhDidLog(TEST_CRYPTO_SUITE);
+
+        var e = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
+            WebVerifiableHistoryUpdater.builder()
+                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .nextKeyHashesDidMethodParameter(Set.of(
+                            NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")),
+                            NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem"))
+                    ))
+                    .build().updateDidLog(initialDidLog);
+        });
+        assertEquals("Rotating to currently used update key is not allowed.", e.getMessage());
     }
 }

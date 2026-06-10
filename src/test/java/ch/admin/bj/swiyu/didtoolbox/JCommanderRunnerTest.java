@@ -79,7 +79,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         });
 
         assertFalse(output.isEmpty());
-        //System.out.println(output);
     }
 
     @Test
@@ -108,7 +107,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         });
 
         assertFalse(output.isEmpty());
-        //System.out.println(output);
     }
 
     @Test
@@ -134,7 +132,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         });
 
         assertFalse(output.isEmpty());
-        //System.out.println(output);
     }
 
     @Test
@@ -162,7 +159,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         });
 
         assertFalse(output.isEmpty());
-        //System.out.println(output);
     }
 
     @Test
@@ -192,7 +188,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         });
 
         assertFalse(output.isEmpty());
-        //System.out.println(output);
     }
 
     @Test
@@ -225,7 +220,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         assertFalse(output.isEmpty());
     }
 
-    /* TODO@MP fix this test
     @Test
     void testMultipleRunUpdateDidLogCommandWithKeyPrerotationUsingJks() {
 
@@ -241,10 +235,10 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         command1.jksAlias = "myalias"; // must match one the pre-rotation key(s) set by the initial entry
         // REMINDER Setting command1.verifyingKeyPemFiles is OPTIONAL, but the value MUST match one of the pre-rotation key(s) set by the initial entry
         //command1.verifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0]);
-        command1.nextVerifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0], TEST_KEY_FILES[1]); // TEST_KEY_FILES[1] may be now also be used in the future
+        command1.verifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0], new File(TEST_DATA_PATH_PREFIX + "public.pem"));
+        command1.nextVerifyingKeyPemFiles = Set.of(TEST_KEY_FILES[1]); // TEST_KEY_FILES[1] may be now also be used in the future
 
         assertDoesNotThrow(() -> {
-
             setKeyMaterial(command1); // essential
 
             new JCommanderRunner(jCommanderBuilder
@@ -269,7 +263,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         // CAUTION By leaving command2.nextVerifyingKeyPemFiles unset, "key pre-rotation" should be DEACTIVATED
 
         assertDoesNotThrow(() -> {
-
             setKeyMaterial(command2); // essential
 
             new JCommanderRunner(jCommanderBuilder
@@ -280,8 +273,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         });
 
         assertFalse(output.isEmpty());
-        //System.out.println(output);
-
         // CAUTION At this point, "key pre-rotation" is DEACTIVATED!
 
         var command3 = new UpdateDidLogCommand();
@@ -290,13 +281,9 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         output = new StringBuilder(); // reset output buffer
 
         // CAUTION At this point, no appropriate JKS available for setting command1.jks* values, so get keys from the file system
-
-        // Rotate back to keypair TEST_SIGNING_KEY_FILES[0]/TEST_KEY_FILES[0]
-        command3.signingKeyPemFile = TEST_SIGNING_KEY_FILES[0]; // MUST match one of the pre-rotation key(s) set by the initial entry
-        command3.verifyingKeyPemFiles = Set.of(TEST_KEY_FILES[0]); // MUST be among pre-rotation key(s) set by the initial entry
+        command3.signingKeyPemFile = TEST_SIGNING_KEY_FILES[1];
 
         assertDoesNotThrow(() -> {
-
             setKeyMaterial(command3); // essential
 
             new JCommanderRunner(jCommanderBuilder
@@ -307,7 +294,5 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         });
 
         assertFalse(output.isEmpty());
-        //System.out.println(output);
     }
-    */
 }
