@@ -27,15 +27,15 @@ import java.util.Set;
  */
 public class DidLogMeta {
     @Getter
-    final private String lastVersionId;
+    private final String lastVersionId;
     @Getter
     final int lastVersionNumber;
     @Getter
-    final private String dateTime;
+    private final String dateTime;
     @Getter
     private NamedDidMethodParameters params;
     @Getter
-    final private DidDoc didDoc;
+    private final DidDoc didDoc;
 
     DidLogMeta(String lastVersionId, int lastVersionNumber, String dateTime, Map<String, DidMethodParameter> paramsMap, DidDoc didDoc) {
         this.lastVersionId = lastVersionId;

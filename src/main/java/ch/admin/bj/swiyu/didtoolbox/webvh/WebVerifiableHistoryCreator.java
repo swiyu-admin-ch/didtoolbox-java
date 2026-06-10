@@ -257,7 +257,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         didDoc.getAuthentication().stream()
                 .map(vm -> did + "#" + Arrays.stream(vm.getId().split("#")).skip(1).collect(Collectors.joining()))
                 .forEach(authentication::add);
-        newDidDoc.add( DID_DOC_PROPERTY_AUTHENTICATION, authentication);
+        newDidDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
 
         var assertionMethod = new JsonArray();
         didDoc.getAssertionMethod().stream()

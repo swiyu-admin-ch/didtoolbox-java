@@ -4,7 +4,6 @@ import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
@@ -315,7 +314,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
                             NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")),
                             NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public.pem"))
                     ))
-                    .build().createDidLog(new URL(TEST_DID_URL));
+                    .build().createDidLog(URL.of(new URI(TEST_DID_URL), null));
         });
         assertTrue(e.getMessage().contains("not allowed to be in both"));
     }

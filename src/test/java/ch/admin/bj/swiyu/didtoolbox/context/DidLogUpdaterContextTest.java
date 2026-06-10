@@ -143,21 +143,21 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
         // build initial DID log entry
         // initial (by default, did:webvh:1.0) DID log entry (featuring a pre-rotation key)
         var initialDidLog = DidLogCreatorContext.builder()
-                        .cryptographicSuite(crytpoSuite)
-                        // IMPORTANT Calling this method activates key pre-rotation
-                        .nextKeyHashesDidMethodParameter(Set.of(
-                                // get a whole another pre-rotation key to be used when building the next DID log entry.
-                                // Bear in mind, after the key store "rotation", all its (static) helpers "point" to the next/another key in the store
-                                NextKeyHashesDidMethodParameter.of(currentUpdateKey)
-                                // REMINDER Indeed, you may keep adding more keys this way - beware that some of them
-                                //          MUST entirely match the "updateKeys" values in the DID log next entry
-                                //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
-                                //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
-                        ))
-                        .assertionMethods(TEST_ASSERTION_METHODS)
-                        .authentications(TEST_AUTHENTICATIONS)
-                        .build()
-                        .create(URL.of(new URI(TEST_DID_URL), null));// should not throw DidLogCreatorStrategyException
+                .cryptographicSuite(crytpoSuite)
+                // IMPORTANT Calling this method activates key pre-rotation
+                .nextKeyHashesDidMethodParameter(Set.of(
+                        // get a whole another pre-rotation key to be used when building the next DID log entry.
+                        // Bear in mind, after the key store "rotation", all its (static) helpers "point" to the next/another key in the store
+                        NextKeyHashesDidMethodParameter.of(currentUpdateKey)
+                        // REMINDER Indeed, you may keep adding more keys this way - beware that some of them
+                        //          MUST entirely match the "updateKeys" values in the DID log next entry
+                        //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
+                        //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
+                ))
+                .assertionMethods(TEST_ASSERTION_METHODS)
+                .authentications(TEST_AUTHENTICATIONS)
+                .build()
+                .create(URL.of(new URI(TEST_DID_URL), null));// should not throw DidLogCreatorStrategyException
         var didLog = new StringBuilder(initialDidLog).append(System.lineSeparator());
 
         assertTrue(JsonParser.parseString(didLog.toString()).getAsJsonObject().get("parameters").getAsJsonObject().has("updateKeys")); // denotes key pre-rotation

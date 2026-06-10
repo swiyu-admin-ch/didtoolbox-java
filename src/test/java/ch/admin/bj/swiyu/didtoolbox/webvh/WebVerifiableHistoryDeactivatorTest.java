@@ -116,7 +116,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
                 {"versionId":"2-QmQMuUUM8V7WjotLsDpwpe9ttnkPDfwMmHhCzrxpZxRZkB","versionTime":"2012-12-12T12:12:13Z","parameters":{"deactivated":true,"updateKeys":[]},"state":{"id":"did:webvh:QmdHF4ggqEDDHqaG88HNFxTSFyniV93A4nQfGNkxQ85PkX:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","profile_version":"swiss-profile-anchor:1.0.0"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:13Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"assertionMethod","proofValue":"z3D9PcQ41EDZp5VCxWGUcVx9E9947KnEy8GJLk57bJXxLUSwsSK1yi37iE4PTe4Ti1Svcg1epAZLtok5VmjM6wFiA"}]}
                 """.contains(finalUpdatedDidLog));
 
-        var e = assertThrowsExactly(DidLogMetaPeekerException.class,() -> {
+        var e = assertThrowsExactly(DidLogMetaPeekerException.class, () -> {
             WebVerifiableHistoryDidLogMetaPeeker.peek(finalUpdatedDidLog); // should throw exception as did log has been deactivated
         });
         assertTrue(e.getMessage().contains("Document has been deactivated"));
@@ -192,7 +192,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
 
     @DisplayName("Deactivating DID log without cryptographic suite throws IncompleteDidLogEntryBuilderException")
     @Test
-    public void testDeactivateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+    void testDeactivateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
 
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 

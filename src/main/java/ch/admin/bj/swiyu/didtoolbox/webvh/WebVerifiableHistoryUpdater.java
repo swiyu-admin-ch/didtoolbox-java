@@ -394,13 +394,13 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // While Key Pre-Rotation is active, all multikey formatted public keys added in a new 'updateKeys' list
         // MUST have their hashes listed in the 'nextKeyHashes' list from the previous log entry.
         if (super.didLogMeta.isKeyPreRotationActivated()) {
-            var updateKeys = this.allUpdateKeysDidMethodParameter();
-            if (updateKeys.isEmpty()) {
+            var newUpdateKeys = this.allUpdateKeysDidMethodParameter();
+            if (newUpdateKeys.isEmpty()) {
                 throw new DidLogUpdaterStrategyException("Must provide update keys during key pre-rotation");
             }
 
             try {
-                if (!super.didLogMeta.arePreRotatedUpdateKeys(updateKeys)) {
+                if (!super.didLogMeta.arePreRotatedUpdateKeys(newUpdateKeys)) {
                     throw new DidLogUpdaterStrategyException("Illegal update key detected, not all verification keys are allowed to rotate to.");
                 }
             } catch (UpdateKeysDidMethodParameterException e) {
@@ -414,7 +414,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
         // The versionTime of the last entry MUST be earlier than the current time.
         var lastEntryDateTime = ZonedDateTime.parse(super.didLogMeta.getDateTime());
-        if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
+        if (!lastEntryDateTime.isBefore(zdt)) {
             throw new DidLogUpdaterStrategyException("The versionTime of the last entry MUST be earlier than the current time");
         }
 
@@ -439,28 +439,22 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var verificationMethod = new JsonArray();
 
         if (!this.allAuthentications().isEmpty()) {
-
             JsonArray authentication = new JsonArray();
             for (var vm : this.allAuthentications()) {
-
                 authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
                         this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
-
             didDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
         }
 
         if (!this.allAssertionMethods().isEmpty()) {
-
             var assertionMethod = new JsonArray();
             for (var vm : this.allAssertionMethods()) {
-
                 assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
                         this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
-
             didDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);
         }
 

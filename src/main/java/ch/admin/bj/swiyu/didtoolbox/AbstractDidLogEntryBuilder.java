@@ -99,6 +99,7 @@ public abstract class AbstractDidLogEntryBuilder {
 
     /**
      * Returns the value for the `profile_version` attribute in the did document.
+     *
      * @return profile version
      */
     protected abstract ProfileVersion getProfileVersion();

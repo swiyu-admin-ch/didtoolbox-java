@@ -27,6 +27,7 @@ public class Main {
 
     /**
      * Entrypoint of the cli, prints output to the stdout.
+     *
      * @param args Arguments to CLI is called with
      */
     public static void main(String... args) {
@@ -39,6 +40,7 @@ public class Main {
 
     /**
      * Instantiates the main, allowing for custom console/output
+     *
      * @param console Console to print the output to
      */
     public Main(Console console) {
@@ -47,6 +49,7 @@ public class Main {
 
     /**
      * Runs the CLI
+     *
      * @param args cli arguments to be parsed and then executed
      * @return the exit code
      */

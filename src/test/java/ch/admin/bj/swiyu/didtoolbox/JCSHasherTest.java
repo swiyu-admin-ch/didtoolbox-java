@@ -159,7 +159,7 @@ class JCSHasherTest {
             fail(e);
         }
 
-        assertEquals( "QmNpLm7YWwp1TxQ2KspuGtYrhXgSa7KqfqEvSZoTkhgdct", actual);
+        assertEquals("QmNpLm7YWwp1TxQ2KspuGtYrhXgSa7KqfqEvSZoTkhgdct", actual);
     }
 
     @Test

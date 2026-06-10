@@ -8,8 +8,6 @@ import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.eid.didresolver.Did;
-import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
@@ -62,7 +60,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
      * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
      */
     @Getter(AccessLevel.PRIVATE)
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
 
     @Override
@@ -167,7 +165,6 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //didDoc.addProperty("controller", didTDW);
 
         /* https://identity.foundation/didwebvh/v1.0/#the-did-log-file:
         The DID log file contains a list of entries, one for each version of the DID
@@ -240,11 +237,9 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
            Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
          */
         try {
-            var didLogEntry = this.getCryptoSuite().addProof(
-                    didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-
             // skip final resolve check, as resolver returns an error when resolving a deactivated did
-            return didLogEntry;
+            return this.getCryptoSuite().addProof(didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
+
         } catch (VcDataIntegrityCryptographicSuiteException exc) {
             throw new DidLogDeactivatorStrategyException(exc);
         }

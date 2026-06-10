@@ -7,8 +7,6 @@ import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import ch.admin.eid.didresolver.Did;
-import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
@@ -61,7 +59,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
      * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
      */
     @Getter(AccessLevel.PRIVATE)
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
 
     private VcDataIntegrityCryptographicSuite getCryptoSuite() {
@@ -87,7 +85,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
      *
      * @deprecated Use {@link #deactivateDidLog(String)} instead
      */
-    @Deprecated
+    @Deprecated(since = "1.6.0")
     public String deactivate(String didLog) throws TdwDeactivatorException {
         try {
             return deactivateDidLog(didLog, ZonedDateTime.now());
@@ -115,7 +113,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
      *
      * @deprecated Use {@link #deactivateDidLog(File)} instead
      */
-    @Deprecated
+    @Deprecated(since = "1.6.0")
     String deactivate(File didLogFile) throws TdwDeactivatorException, IOException {
         try {
             return deactivateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
@@ -144,7 +142,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
      *
      * @deprecated Use {@link #deactivateDidLog(String, ZonedDateTime)} instead
      */
-    @Deprecated
+    @Deprecated(since = "1.6.0")
     public String deactivate(String didLog, ZonedDateTime zdt) throws TdwDeactivatorException {
         try {
             return deactivateDidLog(didLog, zdt);
@@ -202,7 +200,6 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //didDoc.addProperty("controller", didTDW);
 
         // The DID log entry is an input JSON array that when completed contains the following items:
         // [ versionId, versionTime, parameters, DIDDoc State, Data Integrity Proof ].

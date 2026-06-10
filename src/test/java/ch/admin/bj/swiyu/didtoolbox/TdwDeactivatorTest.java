@@ -15,8 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class TdwDeactivatorTest extends AbstractUtilTestBase {
 
     private static void assertDeactivatedDidLogEntry(String didLogEntry, String didLog) {
-
         assertNotNull(didLogEntry);
         assertTrue(JsonParser.parseString(didLogEntry).isJsonArray());
         JsonArray jsonArray = JsonParser.parseString(didLogEntry).getAsJsonArray();
@@ -114,7 +111,7 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
                 ["2-Qmci5evTbELsi7nQzp2mM6e7G7DUyobYGVmRAmR59SGijZ","2012-12-12T12:12:13Z",{"deactivated":true,"updateKeys":[]},{"value":{"id":"did:tdw:QmYY7o6wRFPBYfeKK4N7U4TGpXUbgwppG1zKVELxYSuDci:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085"}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:13Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"2-Qmci5evTbELsi7nQzp2mM6e7G7DUyobYGVmRAmR59SGijZ","proofValue":"z2zNDbYy1421CToqk5WAXsdAWBL2hHf1xPAm9TvrDA5dsHSgdpz4SBV29UnhanEhbc1RmpUwTYBHFRxC58YrXVCs1"}]]
                 """.contains(finalUpdatedDidLog));
 
-        var e = assertThrowsExactly(DidLogMetaPeekerException.class,() -> {
+        var e = assertThrowsExactly(DidLogMetaPeekerException.class, () -> {
             TdwDidLogMetaPeeker.peek(finalUpdatedDidLog); // should throw exception as did log has been deactivated
         });
         assertTrue(e.getMessage().contains("Document has been deactivated"));
@@ -190,7 +187,7 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
 
     @DisplayName("Deactivating DID log without cryptographic suite throws IncompleteDidLogEntryBuilderException")
     @Test
-    public void testDeactivateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+    void testDeactivateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
 
         var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE);
 
