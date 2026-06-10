@@ -121,7 +121,6 @@ public abstract class AbstractDidLogEntryBuilder {
      * @return a JSON object representing DID method parameters
      * @throws DidLogCreatorStrategyException if parsing any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
      */
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
                                          Set<UpdateKeysDidMethodParameter> updateKeysParameter,
                                          Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameters) throws DidLogCreatorStrategyException {
@@ -249,7 +248,6 @@ public abstract class AbstractDidLogEntryBuilder {
      * @return JSON object representing a valid DID document w.r.t. to supplied verification material
      * @throws IncompleteDidLogEntryBuilderException if no proper verification material is supplied
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     protected JsonObject createDidDoc(URL identifierRegistryUrl,
                                       Set<VerificationMethod> authentications,
                                       Set<VerificationMethod> assertionMethods) {

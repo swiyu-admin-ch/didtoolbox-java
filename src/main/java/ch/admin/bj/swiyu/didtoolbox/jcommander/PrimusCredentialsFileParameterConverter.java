@@ -11,7 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 public class PrimusCredentialsFileParameterConverter implements IStringConverter<PrimusKeyStoreLoader> {
-    @SuppressWarnings("PMD.EmptyCatchBlock")
     @Override
     public PrimusKeyStoreLoader convert(String value) {
 

@@ -174,7 +174,6 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      * @param password the password for recovering the key, or {@code null} if not required
      * @throws VcDataIntegrityCryptographicSuiteException ...
      */
-    @SuppressWarnings("PMD.CyclomaticComplexity")
     private static String getSecretKeyMultibaseFromKeyStore(KeyStore keyStore, String alias, String password)
             throws VcDataIntegrityCryptographicSuiteException {
 
@@ -267,9 +266,8 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      * @deprecated As the method {@link #addProof(String, String, String, ZonedDateTime)}
      * makes it redundant. Since 1.8.0
      */
-    @SuppressWarnings({"PMD.AvoidThrowingRawExceptionTypes"})
     @Override
-    @Deprecated
+    @Deprecated(since = "1.8.0")
     public byte[] generateSignature(byte[] message) {
         try {
             return Base58.decode(this.signingKey.signHex(HexFormat.of().formatHex(message)).toMultibase().substring(1));

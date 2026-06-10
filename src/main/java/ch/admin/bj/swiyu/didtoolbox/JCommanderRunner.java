@@ -24,7 +24,6 @@ import java.util.HashSet;
 /**
  * The class is introduced for the sake of being able to test the CLI with no hassle involved.
  */
-@SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.DoNotTerminateVM"})
 final class JCommanderRunner {
     private static final String TOOLBOX_DIR = ".didtoolbox";
 
@@ -94,7 +93,6 @@ final class JCommanderRunner {
         }
     }
 
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     int runCreateDidLogCommand(CreateDidLogCommand command)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException,
             VcDataIntegrityCryptographicSuiteException, DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException,
@@ -252,7 +250,6 @@ final class JCommanderRunner {
         return 0;
     }
 
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.UseConcurrentHashMap"})
     int runUpdateDidLogCommand(UpdateDidLogCommand command)
             throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
             NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException,
@@ -300,18 +297,18 @@ final class JCommanderRunner {
         var primusKeyAlias = command.primusKeyAlias;
         var primusKeyPassword = command.primusKeyPassword;
 
-        VcDataIntegrityCryptographicSuite cryptoSuite = null; // no default, must be supplied
-
+        VcDataIntegrityCryptographicSuite cryptoSuite;
         if (signingKeyPemFile != null) {
             cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(signingKeyPemFile.toPath());
         } else if (jksFile != null && jksAlias != null) {
             // CAUTION Different store and key passwords not supported for PKCS12 KeyStores
             cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Files.newInputStream(jksFile.toPath()), jksPassword, jksAlias, jksPassword); // supplied external key pair
-        } else if (primus != null && primusKeyAlias != null) { // && primusKeyPassword != null) {
+        } else if (primus != null && primusKeyAlias != null) {
             cryptoSuite = new PrimusEd25519VerificationMethodKeyProviderImpl(primus, primusKeyAlias, primusKeyPassword); // supplied external key pair
         } else {
             return printCommandError(jc, parsedCommandName, "Incomplete source of the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
         }
+
         if (didLogMeta.isKeyPreRotationActivated() && !didLogMeta.isPreRotatedUpdateKey(cryptoSuite.getVerificationKeyMultibase())) {
             return printCommandError(jc, parsedCommandName, "Illegal signing (private) ed25519 key supplied");
         }
@@ -333,7 +330,6 @@ final class JCommanderRunner {
         return 0;
     }
 
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.AvoidInstantiatingObjectsInLoops"})
     int runDeactivateDidLogCommand(DeactivateDidLogCommand command)
             throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
             NoSuchAlgorithmException, KeyException, DidLogDeactivatorStrategyException {
@@ -400,7 +396,6 @@ final class JCommanderRunner {
         return 0;
     }
 
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     int runPoPCreateCommand(CreateProofOfPossessionCommand command)
             throws IOException, ProofOfPossessionCreatorException {
         if (command.help) {

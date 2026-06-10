@@ -22,23 +22,20 @@ import java.util.Set;
  * @since 1.8.0
  */
 public class EdDsaJcs2022JWSSigner extends EdDsaJcs2022VcDataIntegrityCryptographicSuite implements JWSSigner {
-    private final String kid;
 
     /**
      * @see EdDsaJcs2022VcDataIntegrityCryptographicSuite#EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path)
      */
-    public EdDsaJcs2022JWSSigner(Path pkcs8PemPath, String kid) throws VcDataIntegrityCryptographicSuiteException {
+    public EdDsaJcs2022JWSSigner(Path pkcs8PemPath) throws VcDataIntegrityCryptographicSuiteException {
         super(pkcs8PemPath);
-        this.kid = kid;
     }
 
     /**
      * @see EdDsaJcs2022VcDataIntegrityCryptographicSuite#EdDsaJcs2022VcDataIntegrityCryptographicSuite(InputStream, String, String, String)
      */
-    public EdDsaJcs2022JWSSigner(InputStream jksFile, String password, String alias, String keyPassword, String kid)
+    public EdDsaJcs2022JWSSigner(InputStream jksFile, String password, String alias, String keyPassword)
             throws VcDataIntegrityCryptographicSuiteException {
         super(jksFile, password, alias, keyPassword);
-        this.kid = kid;
     }
 
     @Override

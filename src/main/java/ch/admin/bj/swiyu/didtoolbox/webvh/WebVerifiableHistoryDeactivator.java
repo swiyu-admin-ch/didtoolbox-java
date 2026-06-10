@@ -122,10 +122,8 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
     public String deactivateDidLog(String didLog, ZonedDateTime zdt) throws DidLogDeactivatorStrategyException {
-
         try {
             super.peek(didLog);
         } catch (DidLogMetaPeekerException e) {

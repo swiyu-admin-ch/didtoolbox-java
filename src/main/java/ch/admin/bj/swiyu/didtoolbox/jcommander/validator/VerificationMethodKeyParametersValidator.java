@@ -10,9 +10,8 @@ import java.nio.file.Path;
 import java.security.spec.InvalidKeySpecException;
 
 public class VerificationMethodKeyParametersValidator implements IParameterValidator {
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
-    public void validate(String name, String value) { // throws ParameterException {
+    public void validate(String name, String value) {
         String[] splitted = value.split(",");
         if (splitted.length != 2) {
             throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (EC P-256 public/verifying key in PEM format)) (found " + value + ")");

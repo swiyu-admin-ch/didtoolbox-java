@@ -21,7 +21,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 
-@SuppressWarnings({"PMD.DoNotTerminateVM", "PMD.CyclomaticComplexity"})
 public class Main {
     private final Console console;
 
@@ -53,7 +52,7 @@ public class Main {
      * @param args cli arguments to be parsed and then executed
      * @return the exit code
      */
-    public int run(String[] args) {
+    public int run(String... args) {
         var rootParameters = new RootCommandParameter();
         var createDidLogCommand = new CreateDidLogCommand();
         var updateDidLogCommand = new UpdateDidLogCommand();

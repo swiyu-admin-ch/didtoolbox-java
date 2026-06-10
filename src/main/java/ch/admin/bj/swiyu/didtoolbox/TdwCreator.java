@@ -329,7 +329,6 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
      * @throws DidLogCreatorStrategyException        if creation fails for whatever reason
      * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 

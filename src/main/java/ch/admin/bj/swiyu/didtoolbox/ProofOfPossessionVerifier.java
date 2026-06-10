@@ -99,7 +99,6 @@ public class ProofOfPossessionVerifier {
      * @throws ProofOfPossessionVerifierException is thrown in case the JWT is invalid, containing more details as to why
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7800">Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)</a>
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.PreserveStackTrace"})
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
         var algorithm = signedJWT.getHeader().getAlgorithm();
         if (!Set.of(JWSAlgorithm.ES256).contains(algorithm)) {
@@ -153,7 +152,7 @@ public class ProofOfPossessionVerifier {
             var jwkString = objectMapper.writeValueAsString(this.didDoc.getKey(keyIdSplit[1]));
             jwk = JWK.parse(jwkString);
         } catch (DidSidekicksException e) {
-            throw ProofOfPossessionVerifierException.keyMismatch(kid);
+            throw ProofOfPossessionVerifierException.keyMismatch(kid); //NOPMD stack trace of exception is not relevant
         } catch (ParseException | JsonProcessingException e) {
             throw ProofOfPossessionVerifierException.unparsable(e);
         }

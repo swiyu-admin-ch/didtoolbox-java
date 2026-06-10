@@ -122,7 +122,6 @@ final class FilesPrivacy {
      * @see Files#deleteIfExists(Path)
      * @see Files#createDirectory(Path, FileAttribute[])
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     static void createPrivateDirectory(Path path, boolean force) throws IOException {
 
         // Regardless of force flag, always take into account whether the parent directory is "writable" or not
@@ -197,7 +196,6 @@ final class FilesPrivacy {
      * @see Files#deleteIfExists(Path)
      * @see Files#createFile(Path, FileAttribute[])
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     static Path createPrivateFile(Path path, boolean force) throws IOException {
 
         // Regardless of force flag, always take into account whether the parent directory is "writable" or not

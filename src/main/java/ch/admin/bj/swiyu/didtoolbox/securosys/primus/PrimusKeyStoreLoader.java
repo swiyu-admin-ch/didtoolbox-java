@@ -77,7 +77,6 @@ public class PrimusKeyStoreLoader {
      * @throws NoSuchAlgorithmException
      * @throws PrimusKeyStoreInitializationException
      */
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     public PrimusKeyStoreLoader(File credentials)
             throws CertificateException, IOException, NoSuchAlgorithmException, PrimusKeyStoreInitializationException {
 

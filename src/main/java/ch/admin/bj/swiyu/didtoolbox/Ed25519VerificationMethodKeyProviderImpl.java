@@ -57,7 +57,6 @@ import java.util.Set;
  * @deprecated Use {@link ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite} instead, whenever possible. Since 1.8.0
  */
 @Deprecated
-@SuppressWarnings({"PMD.GodClass", "PMD.ExcessiveImports"})
 public class Ed25519VerificationMethodKeyProviderImpl implements VcDataIntegrityCryptographicSuite {
 
     final private static String DEFAULT_JCE_PROVIDER_NAME = BouncyCastleProvider.PROVIDER_NAME;

@@ -6,17 +6,16 @@ import com.beust.jcommander.ParameterException;
 
 import java.util.Map;
 
-@SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
 public class CommandParametersValidator implements IParametersValidator {
 
     @Override
-    public void validate(Map<String, Object> parameters) { // throws ParameterException {
+    public void validate(Map<String, Object> parameters) {
         validateAmbiguousParameters(parameters);
         validateBoundParameters(parameters);
         validatePrimusParameters(parameters);
     }
 
-    private static void validateAmbiguousParameters(Map<String, Object> parameters) { // throws ParameterException {
+    private static void validateAmbiguousParameters(Map<String, Object> parameters) {
         var isSigningKeyFileParamSupplied = (
                 parameters.get(CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE) != null
                         || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE) != null
