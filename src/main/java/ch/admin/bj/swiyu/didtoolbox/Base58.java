@@ -87,7 +87,8 @@ public final class Base58 {
         int outputStart = encoded.length;
         int inputStart = zeros;
         while (inputStart < in.length) {
-            encoded[--outputStart] = ALPHABET[divmod(in, inputStart, 256, 58)];
+            outputStart -= 1;
+            encoded[outputStart] = ALPHABET[divmod(in, inputStart, 256, 58)];
             if (in[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }
@@ -95,11 +96,14 @@ public final class Base58 {
 
         // Preserve exactly as many leading encoded zeros in output as there were leading zeros in input.
         while (outputStart < encoded.length && encoded[outputStart] == ENCODED_ZERO) {
-            ++outputStart;
+            outputStart += 1;
         }
 
-        while (--zeros >= 0) {
-            encoded[--outputStart] = ENCODED_ZERO;
+        zeros -= 1;
+        while (zeros >= 0) {
+            zeros -= 1;
+            outputStart -= 1;
+            encoded[outputStart] = ENCODED_ZERO;
         }
 
         // Return encoded string (including encoded leading zeros).
@@ -140,7 +144,8 @@ public final class Base58 {
         int outputStart = decoded.length;
         int inputStart = zeros;
         while (inputStart < input58.length) {
-            decoded[--outputStart] = divmod(input58, inputStart, 58, 256);
+            outputStart -= 1;
+            decoded[outputStart] = divmod(input58, inputStart, 58, 256);
             if (input58[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }

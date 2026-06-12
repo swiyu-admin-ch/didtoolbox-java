@@ -77,7 +77,7 @@ public class ProofOfPossessionCreator {
                 new com.nimbusds.jwt.JWTClaimsSet.Builder()
                         .claim("nonce", nonce)
                         .issuer(signer.getKid().split("#")[0])
-                        .issueTime(new Date())
+                        .issueTime(new Date()) //NOPMD ReplaceJavaUtilDate: function expects date
                         .expirationTime(Date.from(ZonedDateTime.now().plus(expiresIn).toInstant()))
                         .build());
 

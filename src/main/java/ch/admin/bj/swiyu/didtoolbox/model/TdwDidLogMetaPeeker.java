@@ -33,7 +33,6 @@ public final class TdwDidLogMetaPeeker {
      *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
-
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();
         AtomicReference<String> dateTime = new AtomicReference<>();
@@ -108,7 +107,7 @@ public final class TdwDidLogMetaPeeker {
         }
 
         if (jsonSyntaxEx.get() != null) {
-            throw new MalformedTdwDidLogMetaPeekerException("Malformed " + DidMethodEnum.TDW_0_3.asString() + " log entry (a JSON array expected)", jsonSyntaxEx.get());
+            throw new MalformedTdwDidLogMetaPeekerException("Malformed " + DidMethodEnum.TDW_0_3.toString() + " log entry (a JSON array expected)", jsonSyntaxEx.get());
         }
 
         var split = lastVersionId.get().split("-");

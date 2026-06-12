@@ -99,6 +99,7 @@ public class ProofOfPossessionVerifier {
      * @throws ProofOfPossessionVerifierException is thrown in case the JWT is invalid, containing more details as to why
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7800">Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)</a>
      */
+    @SuppressWarnings("PMD.CyclomaticComplexity") // function doesn't contain complicated logic
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
         var algorithm = signedJWT.getHeader().getAlgorithm();
         if (!Set.of(JWSAlgorithm.ES256).contains(algorithm)) {
@@ -134,22 +135,17 @@ public class ProofOfPossessionVerifier {
             throw ProofOfPossessionVerifierException.expired();
         }
 
-        // retrieve key
+        // retrieve key from JWT
         var kid = signedJWT.getHeader().getKeyID();
-        var keyIdSplit = kid.split("#");
-        if (keyIdSplit.length != 2) {
-            throw ProofOfPossessionVerifierException.malformedClaimKid("provided kid does not have fragment");
-        }
-
-        if (!keyIdSplit[0].equals(claimset.getIssuer())) {
+        if (!kid.startsWith(didDoc.getId())) {
             throw ProofOfPossessionVerifierException.malformedClaimKid("provided kid is not of issuer");
         }
 
-        // retrieve key
+        // retrieve key from DID log
         JWK jwk;
         try {
             var objectMapper = new ObjectMapper();
-            var jwkString = objectMapper.writeValueAsString(this.didDoc.getKey(keyIdSplit[1]));
+            var jwkString = objectMapper.writeValueAsString(this.didDoc.getKeyByMethodId(kid));
             jwk = JWK.parse(jwkString);
         } catch (DidSidekicksException e) {
             throw ProofOfPossessionVerifierException.keyMismatch(kid); //NOPMD stack trace of exception is not relevant
@@ -162,7 +158,7 @@ public class ProofOfPossessionVerifier {
             if (!signedJWT.verify(jwsVerifier)) {
                 throw ProofOfPossessionVerifierException.invalidSignature();
             }
-        } catch (JOSEException e) {
+        } catch (JOSEException e) { //NOPMD ExceptionAsFlowControl: false positive
             throw ProofOfPossessionVerifierException.failedToVerify(e);
         }
     }

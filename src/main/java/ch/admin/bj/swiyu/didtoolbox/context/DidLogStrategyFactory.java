@@ -10,7 +10,6 @@ import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryUpdater;
 /**
  * The factory delivering all possible strategies in regard to DID log manipulation, regardless of DID method.
  */
-@SuppressWarnings("PMD.NonExhaustiveSwitch")
 final class DidLogStrategyFactory {
 
     private DidLogStrategyFactory() {
@@ -47,9 +46,8 @@ final class DidLogStrategyFactory {
                         .nextKeyHashesDidMethodParameter(ctx.allNextKeyHashesDidMethodParameter())
                         .build();
             }
+            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
-
-        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 
     static DidLogUpdaterStrategy getUpdaterStrategy(DidLogUpdaterContext ctx) throws DidLogUpdaterStrategyException {
@@ -84,9 +82,8 @@ final class DidLogStrategyFactory {
                         .nextKeyHashesDidMethodParameter(ctx.allNextKeyHashesDidMethodParameter())
                         .build();
             }
+            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
-
-        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 
     static DidLogDeactivatorStrategy getDeactivatorStrategy(DidLogDeactivatorContext ctx) {
@@ -101,8 +98,7 @@ final class DidLogStrategyFactory {
                         .cryptographicSuite(ctx.getCryptoSuite())
                         .build();
             }
+            default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
         }
-
-        throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");
     }
 }

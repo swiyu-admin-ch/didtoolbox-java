@@ -13,7 +13,6 @@ import java.security.cert.CertificateException;
 public class PrimusCredentialsFileParameterConverter implements IStringConverter<PrimusKeyStoreLoader> {
     @Override
     public PrimusKeyStoreLoader convert(String value) {
-
         try {
             return new PrimusKeyStoreLoader(new File(value));
         } catch (PrimusKeyStoreInitializationException exc) {
@@ -21,13 +20,12 @@ public class PrimusCredentialsFileParameterConverter implements IStringConverter
                     + "However, Securosys Primus Key Store could not be initialized regardless of it. "
                     + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system", exc);
         } catch (CertificateException | IOException | NoSuchAlgorithmException ignore) {
-        }
-
-        try {
-            return new PrimusKeyStoreLoader();
-        } catch (PrimusKeyStoreInitializationException exc) {
-            throw new ParameterException("Securosys Primus Key Store could not be initialized regardless of it. "
-                    + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system", exc);
+            try {
+                return new PrimusKeyStoreLoader();
+            } catch (PrimusKeyStoreInitializationException exc) {
+                throw new ParameterException("Securosys Primus Key Store could not be initialized regardless of it. " // NOPMD PreserveStackTrace
+                        + "Please, ensure the required lib/primusX-java[8|11].jar libraries exist on the system", exc);
+            }
         }
     }
 }

@@ -273,7 +273,7 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
             return Base58.decode(this.signingKey.signHex(HexFormat.of().formatHex(message)).toMultibase().substring(1));
         } catch (DidSidekicksException e) {
             // The 'signHex' will never fail as long HexFormat.of().formatHex call ensures the message is supplied as hex-encoded string
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); // NOPMD AvoidThrowingRawExceptionTypes: see reason above
         }
     }
 

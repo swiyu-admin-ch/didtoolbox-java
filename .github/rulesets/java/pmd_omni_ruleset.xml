@@ -18,10 +18,23 @@
     <!--    <rule ref="category/java/codestyle.xml"> !Turn off!-->
     <rule ref="category/java/design.xml">
         <exclude name="LawOfDemeter"/>
+        <exclude name="GodClass"/>
     </rule>
     <rule ref="category/java/errorprone.xml"/>
     <rule ref="category/java/performance.xml"/>
     <!--    <rule ref="category/java/documentation.xml"> !Turn off!-->
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
+        <properties>
+            <property name="classReportLevel" value="80" />
+            <property name="methodReportLevel" value="20" />
+            <property name="cycloOptions" value="" />
+        </properties>
+    </rule>
+    <rule ref="category/java/design.xml/ExcessiveImports">
+        <properties>
+            <property name="minimum" value="40" />
+        </properties>
+    </rule>
 
     <exclude-pattern>.*/src/test/java/.*</exclude-pattern>
 </ruleset>

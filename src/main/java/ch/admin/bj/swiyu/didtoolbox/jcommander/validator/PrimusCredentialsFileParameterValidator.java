@@ -12,7 +12,7 @@ import java.security.cert.CertificateException;
 
 public class PrimusCredentialsFileParameterValidator implements IParameterValidator {
     @Override
-    public void validate(String name, String value) { // throws ParameterException {
+    public void validate(String name, String value) {
         var file = new File(value);
         if (!file.isFile() || !file.exists()) {
             throw new ParameterException("Parameter " + name + " should be a regular properties file featuring Securosys Primus credentials (found " + value + ")");
@@ -23,7 +23,7 @@ public class PrimusCredentialsFileParameterValidator implements IParameterValida
         } catch (PrimusKeyStoreInitializationException exc) {
             throw new ParameterException("Parameter value '" + value + "' do may feature all valid Securosys Primus credentials. "
                     + "However, Securosys Primus Key Store could not be initialized regardless of it due to: " + exc.getMessage(), exc);
-        } catch (CertificateException | IOException | NoSuchAlgorithmException ignore) {
+        } catch (CertificateException | IOException | NoSuchAlgorithmException ignore) { // NOPMD DidSidekicksException: exceptions are ignored
         }
     }
 }
