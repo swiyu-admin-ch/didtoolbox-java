@@ -131,7 +131,7 @@ final class FilesPrivacy {
             Files.deleteIfExists(path); // may throw DirectoryNotEmptyException, AccessDeniedException, SecurityException etc.
         }
 
-        var os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        var os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         if (os.contains("win") || null != Files.getFileAttributeView(path, AclFileAttributeView.class)) {
 
             Files.createDirectory(path, new FileAttribute<List<AclEntry>>() {
@@ -205,7 +205,7 @@ final class FilesPrivacy {
             Files.deleteIfExists(path); // may throw DirectoryNotEmptyException, AccessDeniedException, SecurityException etc.
         }
 
-        var os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        var os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         if (os.contains("win") || null != Files.getFileAttributeView(path, AclFileAttributeView.class)) {
 
             return Files.createFile(path, new FileAttribute<List<AclEntry>>() {

@@ -124,8 +124,8 @@ class ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException
 
 
 enum ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum {
-	{field} +TDW_0_3
-	{field} +WEBVH_1_0
+	{field} +did:tdw:0.3
+	{field} +did:webvh:1.0
 }
 
 

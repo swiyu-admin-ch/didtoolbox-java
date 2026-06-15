@@ -54,7 +54,7 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
         AtomicReference<String> didDocId = new AtomicReference<>();
 
         // CAUTION Trimming the existing DID log prevents ending up parsing empty lines
-        BufferedReader reader = new BufferedReader(new StringReader(didLog.trim()));
+        BufferedReader reader = new BufferedReader(new StringReader(didLog.trim())); // NOPMD CloseResource: closed later
 
         AtomicReference<WebVhDidLogEntry> didLogEntry = new AtomicReference<>();
         reader.lines().takeWhile(line -> {
@@ -82,8 +82,8 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
 
         try {
             reader.close();
-        } catch (IOException ignore) {
-            //
+        } catch (IOException ignore) { // NOPMD EmptyCatchBlock
+            // unable to close the reader doesn't cause for the program execution
         }
 
         if (jsonSyntaxEx.get() != null) {
@@ -95,7 +95,7 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
         }
 
         var split = lastVersionId.get().split("-");
-        if (split.length != 2) {
+        if (split.length != 2) { // NOPMD AvoidLiteralsInIfCondition: see line below for why 2
             throw new DidLogMetaPeekerException("Every versionId MUST be a dash-separated combination of version number and entry hash, found: " + lastVersionId.get());
         }
         int lastVersionNumber;

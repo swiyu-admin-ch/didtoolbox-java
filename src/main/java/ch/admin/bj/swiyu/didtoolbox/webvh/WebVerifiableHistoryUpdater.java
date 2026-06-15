@@ -375,6 +375,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @throws DidLogUpdaterStrategyException if update fails for whatever reason.
      */
     @Override
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.NcssCount", "PMD.CyclomaticComplexity"})
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
         try {
             super.peek(resolvableDidLog);
@@ -382,7 +383,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             throw new DidLogUpdaterStrategyException(e);
         }
 
-        if (getCryptoSuite() == null) {
+        if (this.getCryptoSuite() == null) {
             throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
         }
         if (!super.isVerificationMethodKeyProviderLegal(this.getCryptoSuite())) {
@@ -401,7 +402,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
                 if (!super.didLogMeta.arePreRotatedUpdateKeys(newUpdateKeys)) {
                     throw new DidLogUpdaterStrategyException("Illegal update key detected, not all verification keys are allowed to rotate to.");
                 }
-            } catch (UpdateKeysDidMethodParameterException e) {
+            } catch (UpdateKeysDidMethodParameterException e) { // NOPMD ExceptionAsFlowControl: false positive
                 throw new DidLogUpdaterStrategyException(e);
             }
         }
@@ -525,7 +526,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         try (var did = new Did(super.didLogMeta.getDidDoc().getId())) {
             var didLogEntry = this.getCryptoSuite().addProof(
                     didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-            var newDidLog = new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntry).toString();
+            var newDidLog = resolvableDidLog.trim() + System.lineSeparator() + didLogEntry;
             did.resolveAll(newDidLog); // sanity check
 
             return didLogEntry;

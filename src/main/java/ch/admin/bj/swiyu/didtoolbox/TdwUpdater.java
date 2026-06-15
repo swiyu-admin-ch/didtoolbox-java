@@ -23,6 +23,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * {@link TdwUpdater} is a {@link DidLogUpdaterStrategy} implementation in charge of
@@ -355,6 +356,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      */
     @Override
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.NcssCount", "PMD.CyclomaticComplexity"})
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
         try {
@@ -522,23 +524,12 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     }
 
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
-
         var updateKeysJsonArray = new JsonArray();
 
-        var newUpdateKeys = new HashSet<>(Set.of(this.allUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).toArray(String[]::new)));
-
+        var newUpdateKeys = this.allUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).collect(Collectors.toSet());
         if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)
                 && !this.allUpdateKeysDidMethodParameter().isEmpty()) { // need for change?
-
-            for (var param : this.allUpdateKeysDidMethodParameter()) {
-
-                var updateKey = param.getUpdateKey();
-
-                // it is a distinct list of keys, after all
-                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
-                    updateKeysJsonArray.add(updateKey);
-                }
-            }
+            newUpdateKeys.forEach(updateKeysJsonArray::add);
         }
 
         var didMethodParameters = new JsonObject();

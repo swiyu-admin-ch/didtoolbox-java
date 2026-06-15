@@ -94,6 +94,7 @@ final class JCommanderRunner {
         }
     }
 
+    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.NPathComplexity"})
     int runCreateDidLogCommand(CreateDidLogCommand command)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException,
             VcDataIntegrityCryptographicSuiteException, DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException,
@@ -161,33 +162,31 @@ final class JCommanderRunner {
             }
 
             var privateKeyFile = new File(outputDir, "id_ed25519");
-            if (!privateKeyFile.exists() || forceOverwrite) {
-
-                try {
-                    // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
-                    FilesPrivacy.createPrivateFile(privateKeyFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
-                } catch (DirectoryNotEmptyException ex) {
-                    throw new IllegalArgumentException(ex); // it should be a file, not a directory
-                } catch (FileAlreadyExistsException ex) {
-                    if (!privateKeyFile.exists()) {
-                        throw new IllegalArgumentException(ex);
-                    }
-                    throw ex;
-                } catch (AccessDeniedException ex) {
-                    return printCommandError(jc, parsedCommandName, "Access denied to private key PEM file " + privateKeyFile.getPath() + " due to: " + ex.getMessage());
-                } catch (Throwable thr) {
-                    return printCommandError(jc, parsedCommandName, "The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath());
-                }
-
-                try {
-                    dalekSigner.writePkcs8PemFile(privateKeyFile.toPath());
-                    dalekSigner.writePublicKeyPemFile(new File(outputDir, privateKeyFile.getName() + ".pub").toPath());
-                } catch (VcDataIntegrityCryptographicSuiteException ex) {
-                    return printCommandError(jc, parsedCommandName, "Failed to persist PEM file(s) due to: " + ex.getMessage());
-                }
-
-            } else {
+            if (privateKeyFile.exists() && !forceOverwrite) {
                 return printCommandError(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
+            }
+
+            try {
+                // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
+                FilesPrivacy.createPrivateFile(privateKeyFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
+            } catch (DirectoryNotEmptyException ex) {
+                throw new IllegalArgumentException(ex); // it should be a file, not a directory
+            } catch (FileAlreadyExistsException ex) {
+                if (!privateKeyFile.exists()) {
+                    throw new IllegalArgumentException(ex);
+                }
+                throw ex;
+            } catch (AccessDeniedException ex) {
+                return printCommandError(jc, parsedCommandName, "Access denied to private key PEM file " + privateKeyFile.getPath() + " due to: " + ex.getMessage());
+            } catch (Throwable thr) {
+                return printCommandError(jc, parsedCommandName, "The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath());
+            }
+
+            try {
+                dalekSigner.writePkcs8PemFile(privateKeyFile.toPath());
+                dalekSigner.writePublicKeyPemFile(new File(outputDir, privateKeyFile.getName() + ".pub").toPath());
+            } catch (VcDataIntegrityCryptographicSuiteException ex) {
+                return printCommandError(jc, parsedCommandName, "Failed to persist PEM file(s) due to: " + ex.getMessage());
             }
         }
 
