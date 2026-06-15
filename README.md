@@ -596,7 +596,7 @@ replace the existing [verification material](https://www.w3.org/TR/did-core/#ver
 
 ```shell
 java -jar didtoolbox.jar create \
-    -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did18fa7c77-9dd1-4e20-a147-fb1bec146085 > /tmp/my-did.jsonl
+    -u https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did18fa7c77-9dd1-4e20-a147-fb1bec146085 > /tmp/did.jsonl
 
 # bear in mind, the command above will store the generated (auth/assert) keys in the .didtoolbox directory
 

@@ -16,7 +16,7 @@ public class CreateProofOfPossessionCommand extends AbstractCommandBase {
     final public static String COMMAND_NAME = "create-pop";
 
     @Override
-    String getCommandName(){
+    String getCommandName() {
         return COMMAND_NAME;
     }
 

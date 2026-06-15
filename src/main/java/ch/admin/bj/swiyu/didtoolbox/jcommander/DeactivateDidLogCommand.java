@@ -23,7 +23,7 @@ import java.io.File;
 public class DeactivateDidLogCommand extends AbstractDidLogCommandBase {
 
     @Override
-    String getCommandName(){
+    String getCommandName() {
         return COMMAND_NAME;
     }
 

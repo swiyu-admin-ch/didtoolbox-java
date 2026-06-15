@@ -2,10 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.context;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.RandomEd25519KeyStore;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
@@ -139,59 +136,60 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
     @DisplayName("Multiple updates of DID log using various pre-rotation keys")
     @Test
-    void testMultipleUpdateDidLogWithKeyPrerotation() {
+    void testMultipleUpdateDidLogWithKeyPrerotation() throws Exception {
+        var crytpoSuite = RandomEd25519KeyStore.cryptographicSuite();
+        var currentUpdateKey = RandomEd25519KeyStore.rotate().getPublicKey();
 
-        assertDoesNotThrow(() -> {
+        // build initial DID log entry
+        // initial (by default, did:webvh:1.0) DID log entry (featuring a pre-rotation key)
+        var initialDidLog = DidLogCreatorContext.builder()
+                .cryptographicSuite(crytpoSuite)
+                // IMPORTANT Calling this method activates key pre-rotation
+                .nextKeyHashesDidMethodParameter(Set.of(
+                        // get a whole another pre-rotation key to be used when building the next DID log entry.
+                        // Bear in mind, after the key store "rotation", all its (static) helpers "point" to the next/another key in the store
+                        NextKeyHashesDidMethodParameter.of(currentUpdateKey)
+                        // REMINDER Indeed, you may keep adding more keys this way - beware that some of them
+                        //          MUST entirely match the "updateKeys" values in the DID log next entry
+                        //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
+                        //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
+                ))
+                .assertionMethods(TEST_ASSERTION_METHODS)
+                .authentications(TEST_AUTHENTICATIONS)
+                .build()
+                .create(URL.of(new URI(TEST_DID_URL), null));// should not throw DidLogCreatorStrategyException
+        var didLog = new StringBuilder(initialDidLog).append(System.lineSeparator());
 
-            // build initial DID log entry
-            var didLog = new StringBuilder(
-                    // initial (by default, did:webvh:1.0) DID log entry (featuring a pre-rotation key)
-                    DidLogCreatorContext.builder()
-                            .cryptographicSuite(RandomEd25519KeyStore.cryptographicSuite())
-                            // IMPORTANT Calling this method activates key pre-rotation
+        assertTrue(JsonParser.parseString(didLog.toString()).getAsJsonObject().get("parameters").getAsJsonObject().has("updateKeys")); // denotes key pre-rotation
+
+        // Update the DID log by adding as many entries as there are keys in the store.
+        // Keep "rotating" (pre-rotation) keys while updating
+        var i = 0;
+        while (i++ < RandomEd25519KeyStore.getCapacity()) {
+            crytpoSuite = RandomEd25519KeyStore.cryptographicSuite(); // get crypto suite before rotating keys
+            var nextUpdateKey = RandomEd25519KeyStore.rotate().getPublicKey();
+            didLog.append(
+                    // next DID log entry
+                    DidLogUpdaterContext.builder()
+                            // switch to the key defined by the "nextKeyHashes" from the previous entry (the key store is already "rotated" earlier)
+                            .cryptographicSuite(crytpoSuite)
+                            .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                            .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                            // Prepare ("rotate" to) another pre-rotation key to be used when building the next DID log entry
+                            .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(currentUpdateKey)))
                             .nextKeyHashesDidMethodParameter(Set.of(
-                                    // get a whole another pre-rotation key to be used when building the next DID log entry.
                                     // Bear in mind, after the key store "rotation", all its (static) helpers "point" to the next/another key in the store
-                                    NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
+                                    //RandomEd25519KeyStore.rotate().asNextKeyHashesDidMethodParameter()
+                                    NextKeyHashesDidMethodParameter.of(nextUpdateKey)
                                     // REMINDER Indeed, you may keep adding more keys this way - beware that some of them
                                     //          MUST entirely match the "updateKeys" values in the DID log next entry
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                                     //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
                             ))
-                            .assertionMethods(TEST_ASSERTION_METHODS)
-                            .authentications(TEST_AUTHENTICATIONS)
                             .build()
-                            .create(URL.of(new URI(TEST_DID_URL), null)) // should not throw DidLogCreatorStrategyException
+                            .update(didLog.toString()) // should not throw DidLogUpdaterStrategyException
             ).append(System.lineSeparator());
-
-            assertTrue(JsonParser.parseString(didLog.toString()).getAsJsonObject().get("parameters").getAsJsonObject().has("updateKeys")); // denotes key pre-rotation
-
-            // Update the DID log by adding as many entries as there are keys in the store.
-            // Keep "rotating" (pre-rotation) keys while updating
-            var i = 0;
-            while (i++ < RandomEd25519KeyStore.getCapacity()) {
-
-                didLog.append(
-                        // next DID log entry
-                        DidLogUpdaterContext.builder()
-                                // switch to the key defined by the "nextKeyHashes" from the previous entry (the key store is already "rotated" earlier)
-                                .cryptographicSuite(RandomEd25519KeyStore.cryptographicSuite())
-                                .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
-                                .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
-                                // Prepare ("rotate" to) another pre-rotation key to be used when building the next DID log entry
-                                .nextKeyHashesDidMethodParameter(Set.of(
-                                        // Bear in mind, after the key store "rotation", all its (static) helpers "point" to the next/another key in the store
-                                        //RandomEd25519KeyStore.rotate().asNextKeyHashesDidMethodParameter()
-                                        NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
-                                        // REMINDER Indeed, you may keep adding more keys this way - beware that some of them
-                                        //          MUST entirely match the "updateKeys" values in the DID log next entry
-                                        //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
-                                        //,NextKeyHashesDidMethodParameter.of(RandomEd25519KeyStore.rotate().getPublicKey())
-                                ))
-                                .build()
-                                .update(didLog.toString()) // should not throw DidLogUpdaterStrategyException
-                ).append(System.lineSeparator());
-            }
-        });
+            currentUpdateKey = nextUpdateKey;
+        }
     }
 }

@@ -268,7 +268,6 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @since 1.9.0
      */
     private Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogUpdaterStrategyException {
-
         var set = new HashSet<UpdateKeysDidMethodParameter>();
         if (this.updateKeys != null) { // collect all from deprecated class member
             for (var key : this.updateKeys) {
@@ -297,7 +296,6 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @since 1.9.0
      */
     private Set<NextKeyHashesDidMethodParameter> allNextKeyHashesDidMethodParameter() throws DidLogUpdaterStrategyException {
-
         var set = new HashSet<NextKeyHashesDidMethodParameter>();
         if (this.nextKeys != null) { // collect all from deprecated class member
             for (var key : this.nextKeys) {
@@ -380,44 +378,33 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
     @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
-
         try {
             super.peek(resolvableDidLog);
         } catch (DidLogMetaPeekerException e) {
             throw new DidLogUpdaterStrategyException(e);
         }
 
-        // CAUTION Only activated DIDs can be updated
-        if (super.didLogMeta.getParams().getDeactivated() != null && super.didLogMeta.getParams().getDeactivated()) {
-            throw new DidLogUpdaterStrategyException("DID already deactivated");
-        }
-
         if (getCryptoSuite() == null) {
             throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
-        } else if (!super.isVerificationMethodKeyProviderLegal(this.getCryptoSuite())) {
+        }
+        if (!super.isVerificationMethodKeyProviderLegal(this.getCryptoSuite())) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
         // While Key Pre-Rotation is active, all multikey formatted public keys added in a new 'updateKeys' list
         // MUST have their hashes listed in the 'nextKeyHashes' list from the previous log entry.
         if (super.didLogMeta.isKeyPreRotationActivated()) {
-            boolean arePreRotatedUpdateKeys;
+            var newUpdateKeys = this.allUpdateKeysDidMethodParameter();
+            if (newUpdateKeys.isEmpty()) {
+                throw new DidLogUpdaterStrategyException("Must provide update keys during key pre-rotation");
+            }
+
             try {
-                arePreRotatedUpdateKeys = super.didLogMeta.arePreRotatedUpdateKeys(this.allUpdateKeysDidMethodParameter());
+                if (!super.didLogMeta.arePreRotatedUpdateKeys(newUpdateKeys)) {
+                    throw new DidLogUpdaterStrategyException("Illegal update key detected, not all verification keys are allowed to rotate to.");
+                }
             } catch (UpdateKeysDidMethodParameterException e) {
                 throw new DidLogUpdaterStrategyException(e);
-            }
-
-            if (!arePreRotatedUpdateKeys) {
-                throw new DidLogUpdaterStrategyException("Illegal updateKey detected");
-            }
-
-        } else if (!this.allUpdateKeysDidMethodParameter().isEmpty()) {
-
-            for (var param : this.allUpdateKeysDidMethodParameter()) {
-                if (!this.getCryptoSuite().getVerificationKeyMultibase().equals(param.getUpdateKey())) {
-                    throw new DidLogUpdaterStrategyException("No matching verifying (public) ed25519 key supplied");
-                }
             }
         }
 
@@ -427,7 +414,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // The versionTime for each log entry MUST be greater than the previous entry’s time.
         // The versionTime of the last entry MUST be earlier than the current time.
         var lastEntryDateTime = ZonedDateTime.parse(super.didLogMeta.getDateTime());
-        if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
+        if (!lastEntryDateTime.isBefore(zdt)) {
             throw new DidLogUpdaterStrategyException("The versionTime of the last entry MUST be earlier than the current time");
         }
 
@@ -444,7 +431,6 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
         // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-        //didDoc.addProperty("controller", didTDW);
 
         if (this.allAuthentications().isEmpty() && this.allAssertionMethods().isEmpty()) {
             throw new IncompleteDidLogEntryBuilderException("No update will take place as no verification material is supplied whatsoever");
@@ -453,28 +439,22 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var verificationMethod = new JsonArray();
 
         if (!this.allAuthentications().isEmpty()) {
-
             JsonArray authentication = new JsonArray();
             for (var vm : this.allAuthentications()) {
-
                 authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
                         this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
-
             didDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
         }
 
         if (!this.allAssertionMethods().isEmpty()) {
-
             var assertionMethod = new JsonArray();
             for (var vm : this.allAssertionMethods()) {
-
                 assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
                         this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
             }
-
             didDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);
         }
 
@@ -488,7 +468,6 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         A version of the DID is an update to the contents of the resolved DIDDoc for the DID, and/or a change to the
         parameters that control the generation and verification of the DID.
         Each entry is a JSON object consisting of the following properties.
-        { "versionId": "", "versionTime": "", "parameters": {}, "state": {}, "proof" : [] }
          */
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
@@ -572,9 +551,9 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
     private Set<String> loadNextUpdateKeys() throws DidLogUpdaterStrategyException {
         var keys = new HashSet<String>();
 
-        this.allNextKeyHashesDidMethodParameter().forEach(nextKeyHashSource -> {
-            keys.add(nextKeyHashSource.getNextKeyHash());
-        });
+        this.allNextKeyHashesDidMethodParameter().forEach(nextKeyHashSource ->
+                keys.add(nextKeyHashSource.getNextKeyHash())
+        );
 
         return keys;
     }
@@ -620,18 +599,22 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         var updateKeysJsonArray = new JsonArray();
         var nextKeyHashesJsonArray = new JsonArray();
 
-        if (super.didLogMeta.isKeyPreRotationActivated()) {
-            var updateKeys = loadUpdateKeys();
-            updateKeys.add(this.cryptographicSuite.getVerificationKeyMultibase());
-            updateKeys.forEach(updateKeysJsonArray::add);
+        var nextUpdateKeys = loadUpdateKeys();
+        if (!nextUpdateKeys.isEmpty()) {
+            nextUpdateKeys.forEach(updateKeysJsonArray::add);
             didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
-
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray); // to deactivate key rotation
         }
 
-        if (this.shouldActivateKeyPreRotation()) {
-            loadNextUpdateKeys().forEach(nextKeyHashesJsonArray::add);
-            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray);
+        if (this.shouldActivateKeyPreRotation() || didLogMeta.isKeyPreRotationActivated()) {
+            var currentUpdateKeys = didLogMeta.getParams().getUpdateKeys().stream().map(s -> NextKeyHashesDidMethodParameter.of(s).getNextKeyHash()).collect(Collectors.toSet());
+            var nextKeyHashes = loadNextUpdateKeys();
+            for (var nextKeyHash : nextKeyHashes) {
+                if (currentUpdateKeys.contains(nextKeyHash)) {
+                    throw new DidLogUpdaterStrategyException("Rotating to currently used update key is not allowed.");
+                }
+            }
+            nextKeyHashes.forEach(nextKeyHashesJsonArray::add);
+            didMethodParameters.add(NamedDidMethodParameters.NEXT_KEY_HASHES, nextKeyHashesJsonArray); // to deactivate key rotation
         }
 
         return didMethodParameters;

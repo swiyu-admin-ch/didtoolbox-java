@@ -43,13 +43,13 @@ class BlackboxIT {
         // create proof of possession
         var didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:webvh log
         didDoc.getId();
-        var argsCreatePoP = new String[] {"create-pop", "-d", didLogFilePath, "-k", didDoc.getId() + "#assert-key-01", "-s", "./src/test/data/assert-key-01", "-n", nonce};
+        var argsCreatePoP = new String[]{"create-pop", "-d", didLogFilePath, "-k", didDoc.getId() + "#assert-key-01", "-s", "./src/test/data/assert-key-01", "-n", nonce};
         assertEquals(0, main.run(argsCreatePoP));
         var jwt = cliOutput.toString();
         cliOutput.reset();
 
         // verify proof of possession
-        var argsVerifyPoP = new String[] {"verify-pop", "-d", didLogFilePath, "-n", nonce, "-j", jwt};
+        var argsVerifyPoP = new String[]{"verify-pop", "-d", didLogFilePath, "-n", nonce, "-j", jwt};
         assertEquals(0, main.run(argsVerifyPoP));
         var out = cliOutput.toString();
         assertTrue(out.contains("JWT is valid"));

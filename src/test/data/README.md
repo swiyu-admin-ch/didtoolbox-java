@@ -1,6 +1,7 @@
 # Test data
 
-Here is a short procedure on how to store a Ed25519 private key into the Java KeyStore (JKS) of type PKCS12, suitable for testing purposes.
+Here is a short procedure on how to store a Ed25519 private key into the Java KeyStore (JKS) of type PKCS12, suitable
+for testing purposes.
 
 Nothing but a few conventional CLI tool are required: `openssl` and `keytool`.
 
@@ -32,7 +33,8 @@ keytool -importkeystore \
     -alias         myalias
 ```
 
-By merely repeating the procedure described above, you may keep adding further (PKCS12 keystore) entries into the JKS store.
+By merely repeating the procedure described above, you may keep adding further (PKCS12 keystore) entries into the JKS
+store.
 To list all entries available in the JKS (use -v for verbose output), simply rely on the `keytool -list` command, e.g.:
 
 ```shell
@@ -55,4 +57,5 @@ myalias3, Mar 21, 2025, PrivateKeyEntry,
 Certificate fingerprint (SHA-256): EB:82:96:8D:B3:68:C5:AE:D9:59:39:46:16:30:3B:CC:7C:06:48:D6:45:BA:72:01:38:12:61:45:B1:93:F6:00
 ```
 
-:warning: **DISCLAIMER The entire key material stored in this directory is exclusively intended FOR TESTING PURPOSES and should NOT be therefore used for any other purposes.**
+:warning: **DISCLAIMER The entire key material stored in this directory is exclusively intended FOR TESTING PURPOSES and
+should NOT be therefore used for any other purposes.**
