@@ -103,8 +103,8 @@ public final class TdwDidLogMetaPeeker {
 
         try {
             reader.close();
-        } catch (IOException ignore) { // NOPMD EmptyCatchBlock: failing to close the resource doesn't affect program execution
-            //
+        } catch (IOException ignore) { // NOPMD EmptyCatchBlock
+            // unable to close the reader doesn't cause for the program execution
         }
 
         if (jsonSyntaxEx.get() != null) {

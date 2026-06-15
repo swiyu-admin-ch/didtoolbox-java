@@ -23,7 +23,8 @@ public class PrimusCredentialsFileParameterValidator implements IParameterValida
         } catch (PrimusKeyStoreInitializationException exc) {
             throw new ParameterException("Parameter value '" + value + "' do may feature all valid Securosys Primus credentials. "
                     + "However, Securosys Primus Key Store could not be initialized regardless of it due to: " + exc.getMessage(), exc);
-        } catch (CertificateException | IOException | NoSuchAlgorithmException ignore) { // NOPMD DidSidekicksException: exceptions are ignored
+        } catch (CertificateException | IOException | // NOPMD DidSidekicksException: exceptions are ignored
+                 NoSuchAlgorithmException ignore) {
         }
     }
 }

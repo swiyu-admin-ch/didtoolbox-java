@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.ParseException;
-import java.util.Locale;
 
 /**
  * The enumeration describing/modelling all the supported DID specifications
@@ -24,7 +23,7 @@ public enum DidMethodEnum {
     /**
      * Refers to <a href="https://identity.foundation/didwebvh/v1.0/">The did:webvh DID Method v1.0</a>
      */
-    WEBVH_1_0("webvh","1.0") {
+    WEBVH_1_0("webvh", "1.0") {
         @Override
         public boolean isWebVh10() {
             return true;

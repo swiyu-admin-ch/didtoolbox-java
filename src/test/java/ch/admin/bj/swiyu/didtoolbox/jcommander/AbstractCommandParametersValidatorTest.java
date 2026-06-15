@@ -4,8 +4,6 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;

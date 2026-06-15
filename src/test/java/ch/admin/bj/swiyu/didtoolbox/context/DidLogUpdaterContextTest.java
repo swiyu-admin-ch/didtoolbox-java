@@ -2,7 +2,10 @@ package ch.admin.bj.swiyu.didtoolbox.context;
 
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.RandomEd25519KeyStore;
-import ch.admin.bj.swiyu.didtoolbox.model.*;
+import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
@@ -13,7 +16,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("PMD")
 class DidLogUpdaterContextTest extends AbstractUtilTestBase {

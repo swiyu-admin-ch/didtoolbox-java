@@ -7,8 +7,6 @@ import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMe
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import ch.admin.eid.did_sidekicks.Ed25519VerifyingKey;
 import com.beust.jcommander.JCommander;
 
 import java.io.File;
@@ -367,8 +365,8 @@ final class JCommanderRunner {
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
             try {
                 return new PrimusEd25519VerificationMethodKeyProviderImpl(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword); // supplied external key pair
-            } catch (UnrecoverableEntryException | KeyStoreException | NoSuchAlgorithmException |KeyException e) {
-                throw new VcDataIntegrityCryptographicSuiteException("Failed to initialize primus:" + e.getMessage(),e);
+            } catch (UnrecoverableEntryException | KeyStoreException | NoSuchAlgorithmException | KeyException e) {
+                throw new VcDataIntegrityCryptographicSuiteException("Failed to initialize primus:" + e.getMessage(), e);
             }
         }
         return null;

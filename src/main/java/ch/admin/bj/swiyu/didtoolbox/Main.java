@@ -4,7 +4,6 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
-import ch.admin.bj.swiyu.didtoolbox.jcommander.RootCommandParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethodException;

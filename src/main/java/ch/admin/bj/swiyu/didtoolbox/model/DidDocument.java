@@ -1,6 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
-import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 
 import java.util.Set;

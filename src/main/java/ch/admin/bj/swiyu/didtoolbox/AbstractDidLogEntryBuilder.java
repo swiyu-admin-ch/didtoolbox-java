@@ -5,7 +5,10 @@ import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderExceptio
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.net.URL;
 import java.util.HashSet;
