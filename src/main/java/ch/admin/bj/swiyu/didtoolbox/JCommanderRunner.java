@@ -4,6 +4,7 @@ import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusProofOfPossessionJWSSigner;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
@@ -94,7 +95,7 @@ final class JCommanderRunner {
 
     @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.NPathComplexity"})
     int runCreateDidLogCommand(CreateDidLogCommand command)
-            throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException,
+            throws IOException,
             VcDataIntegrityCryptographicSuiteException, DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException,
             UpdateKeysDidMethodParameterException, VerificationMethodException {
         if (command.help) {
@@ -204,8 +205,8 @@ final class JCommanderRunner {
     }
 
     int runUpdateDidLogCommand(UpdateDidLogCommand command)
-            throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException,
+            throws IOException, VcDataIntegrityCryptographicSuiteException,
+            DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException,
             UpdateKeysDidMethodParameterException, VerificationMethodException {
         if (command.help) {
             jc.usage(parsedCommandName);
@@ -268,8 +269,7 @@ final class JCommanderRunner {
     }
 
     int runDeactivateDidLogCommand(DeactivateDidLogCommand command)
-            throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            NoSuchAlgorithmException, KeyException, DidLogDeactivatorStrategyException {
+            throws IOException, VcDataIntegrityCryptographicSuiteException, DidLogDeactivatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return 0;
@@ -295,7 +295,7 @@ final class JCommanderRunner {
     }
 
     int runPoPCreateCommand(CreateProofOfPossessionCommand command)
-            throws IOException, ProofOfPossessionCreatorException {
+            throws IOException, ProofOfPossessionCreatorException, UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return 0;
@@ -306,12 +306,20 @@ final class JCommanderRunner {
 
         var nonce = command.nonce;
         var didLogFile = command.didLog;
-        var privateKey = command.signingKeyPemFile;
         var kid = command.kid;
 
         var didLog = Files.readString(didLogFile.toPath());
 
-        ProofOfPossessionJWSSigner signer = new EcP256ProofOfPossessionJWSSigner(privateKey.toPath(), kid);
+        ProofOfPossessionJWSSigner signer = null;
+        if (command.signingKeyPemFile != null) {
+            signer = new EcP256ProofOfPossessionJWSSigner(command.signingKeyPemFile.toPath(), kid);
+        } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null && command.primusKeyPassword != null) {
+            signer = new PrimusProofOfPossessionJWSSigner(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, kid);
+        }
+
+        if (signer == null) {
+            return printCommandError(jc, parsedCommandName, "No valid source of signing EC P-256 key supplied. Use one of the relevant options to supply keys");
+        }
 
         var proof = new ProofOfPossessionCreator(signer).create(nonce, validDuration);
         try {

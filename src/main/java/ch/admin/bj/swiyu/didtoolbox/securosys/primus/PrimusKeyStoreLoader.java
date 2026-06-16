@@ -22,9 +22,9 @@ import java.util.Properties;
  */
 public class PrimusKeyStoreLoader {
 
-    final public static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
-    final private static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
-    final private static String PROVIDER_NAME_GETTER = "getProviderName";
+    public final static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
+    private final static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
+    private final static String PROVIDER_NAME_GETTER = "getProviderName";
     @Getter(AccessLevel.PACKAGE)
     final private KeyStore keyStore;
 
