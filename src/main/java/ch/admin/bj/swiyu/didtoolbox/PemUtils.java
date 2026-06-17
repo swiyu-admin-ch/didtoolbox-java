@@ -20,7 +20,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-@SuppressWarnings({"PMD.TooManyMethods"})
 public final class PemUtils {
 
     private PemUtils() {

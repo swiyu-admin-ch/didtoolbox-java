@@ -85,8 +85,10 @@ public final class Base58 {
         var in = Arrays.copyOf(input, input.length); // since we modify it in-place
         char[] encoded = new char[in.length * 2]; // upper bound
         int outputStart = encoded.length;
-        for (int inputStart = zeros; inputStart < in.length; ) {
-            encoded[--outputStart] = ALPHABET[divmod(in, inputStart, 256, 58)];
+        int inputStart = zeros;
+        while (inputStart < in.length) {
+            outputStart -= 1;
+            encoded[outputStart] = ALPHABET[divmod(in, inputStart, 256, 58)];
             if (in[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }
@@ -94,11 +96,14 @@ public final class Base58 {
 
         // Preserve exactly as many leading encoded zeros in output as there were leading zeros in input.
         while (outputStart < encoded.length && encoded[outputStart] == ENCODED_ZERO) {
-            ++outputStart;
+            outputStart += 1;
         }
 
-        while (--zeros >= 0) {
-            encoded[--outputStart] = ENCODED_ZERO;
+        zeros -= 1;
+        while (zeros >= 0) {
+            zeros -= 1;
+            outputStart -= 1;
+            encoded[outputStart] = ENCODED_ZERO;
         }
 
         // Return encoded string (including encoded leading zeros).
@@ -111,7 +116,6 @@ public final class Base58 {
      * @param input the base58-encoded string to decode
      * @return the decoded data bytes
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public static byte[] decode(String input) {
         if (input.isEmpty()) {
             return new byte[0];
@@ -138,8 +142,10 @@ public final class Base58 {
         // Convert base-58 digits to base-256 digits.
         byte[] decoded = new byte[input.length()];
         int outputStart = decoded.length;
-        for (int inputStart = zeros; inputStart < input58.length; ) {
-            decoded[--outputStart] = divmod(input58, inputStart, 58, 256);
+        int inputStart = zeros;
+        while (inputStart < input58.length) {
+            outputStart -= 1;
+            decoded[outputStart] = divmod(input58, inputStart, 58, 256);
             if (input58[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }

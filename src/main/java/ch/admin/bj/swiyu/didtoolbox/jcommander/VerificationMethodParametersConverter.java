@@ -12,17 +12,15 @@ import java.util.List;
 public class VerificationMethodParametersConverter implements IStringConverter<List<VerificationMethodParameters>> {
     @Override
     public List<VerificationMethodParameters> convert(String value) {
-        String[] splitted = value.split(",");
         List<VerificationMethodParameters> fileList = new ArrayList<>();
-        if (splitted.length == 2) {
 
-            String kid = splitted[0];
+        String[] split = value.split(",");
+        if (split.length == 2) { //NOPMD AvoidLiteralsInIfCondition
+            String kid = split[0];
 
             String jwk;
             try {
-
-                jwk = JwkUtils.loadECPublicJWKasJSON(Path.of(splitted[1]), kid);
-
+                jwk = JwkUtils.loadECPublicJWKasJSON(Path.of(split[1]), kid);
             } catch (IOException | InvalidKeySpecException e) {
                 throw new IllegalArgumentException(e);
             }

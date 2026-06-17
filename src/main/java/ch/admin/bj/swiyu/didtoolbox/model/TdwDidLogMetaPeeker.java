@@ -32,16 +32,15 @@ public final class TdwDidLogMetaPeeker {
      *                                   The {@link MalformedTdwDidLogMetaPeekerException} variant
      *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings("PMD.CognitiveComplexity")
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
-
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();
         AtomicReference<String> dateTime = new AtomicReference<>();
         AtomicReference<String> didDocId = new AtomicReference<>();
 
         // CAUTION Trimming the existing DID log prevents ending up parsing empty lines
-        BufferedReader reader = new BufferedReader(new StringReader(didLog.trim()));
+        BufferedReader reader = new BufferedReader(new StringReader(didLog.trim())); // NOPMD CloseResource: resource is closed later in the function
 
         AtomicReference<Object[]> didLogEntryElements = new AtomicReference<>();
         reader.lines().takeWhile(line -> {
@@ -52,7 +51,7 @@ public final class TdwDidLogMetaPeeker {
                 return false; // short-circuit the stream
             }
 
-            if (didLogEntryElements.get().length != 5) {
+            if (didLogEntryElements.get().length != 5) { // NOPMD AvoidLiteralsInIfCondition: DID TDW log entries are arrays consisting of 5 elements
                 jsonSyntaxEx.set(new JsonSyntaxException("Expected at 5 DID log entry elements but got " + didLogEntryElements.get().length));
                 return false; // short-circuit the stream
             }
@@ -104,16 +103,16 @@ public final class TdwDidLogMetaPeeker {
 
         try {
             reader.close();
-        } catch (IOException ignore) {
-            //
+        } catch (IOException ignore) { // NOPMD EmptyCatchBlock
+            // unable to close the reader doesn't cause for the program execution
         }
 
         if (jsonSyntaxEx.get() != null) {
-            throw new MalformedTdwDidLogMetaPeekerException("Malformed " + DidMethodEnum.TDW_0_3.asString() + " log entry (a JSON array expected)", jsonSyntaxEx.get());
+            throw new MalformedTdwDidLogMetaPeekerException("Malformed " + DidMethodEnum.TDW_0_3.toString() + " log entry (a JSON array expected)", jsonSyntaxEx.get());
         }
 
         var split = lastVersionId.get().split("-");
-        if (split.length != 2) {
+        if (split.length != 2) { // NOPMD AvoidLiteralsInIfCondition: see line below for why 2
             throw new DidLogMetaPeekerException("Every versionId MUST be a dash-separated combination of version number and entry hash, found: " + lastVersionId.get());
         }
         int lastVersionNumber;

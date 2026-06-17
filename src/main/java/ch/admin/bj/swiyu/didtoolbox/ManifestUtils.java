@@ -16,21 +16,19 @@ final class ManifestUtils {
     private ManifestUtils() {
     }
 
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops"})
     private static String getManifestMainAttributeValue(String name) {
         try {
-            var iter = Main.class.getClassLoader().getResources("META-INF/MANIFEST.MF").asIterator();
+            var iter = Thread.currentThread().getContextClassLoader().getResources("META-INF/MANIFEST.MF").asIterator();
             while (iter.hasNext()) {
                 var elem = iter.next();
-                var manifest = new Manifest(elem.openStream()); // may also throw java.io.IOException
+                var manifest = new Manifest(elem.openStream()); // may also throw java.io.IOException //NOPMD cannot avoid instantiating new objects
                 var mainClassAttr = manifest.getMainAttributes().getValue("Main-Class");
                 // match it to local the JAR, as there might also be some others out there, like Securosys Primus libs
                 if (mainClassAttr != null && mainClassAttr.equals(Main.class.getName())) {
                     return manifest.getMainAttributes().getValue(name);
                 }
             }
-        } catch (IOException e) {
-            //
+        } catch (IOException e) { // NOPMD EmptyCatchBlock: handled with below return
         }
 
         return "undefined";

@@ -10,8 +10,7 @@ import java.nio.file.Files;
 
 public class DidLogFileParameterValidator implements IParameterValidator {
     @Override
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.PreserveStackTrace"})
-    public void validate(String name, String value) { // throws ParameterException {
+    public void validate(String name, String value) {
 
         final var didLogFile = new File(value);
         if (!didLogFile.isFile() || !didLogFile.exists() || didLogFile.length() == 0) {
@@ -31,9 +30,10 @@ public class DidLogFileParameterValidator implements IParameterValidator {
             try {
                 WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
             } catch (MalformedWebVerifiableHistoryDidLogMetaPeekerException exc) { // not a did:webvh log at all
-                throw buildParameterException(name, value, new IllegalArgumentException("Malformed DID log or unsupported DID method", exc)); // none of the (known) kind
+                // none of the (known) kind
+                throw buildParameterException(name, value, new IllegalArgumentException("Malformed DID log or unsupported DID method", exc)); //NOPMD PreserveStackTrace: is not relevant
             } catch (DidLogMetaPeekerException exc) { // not a valid did:webvh log
-                throw buildParameterException(name, value, exc);
+                throw buildParameterException(name, value, exc); //NOPMD PreserveStackTrace: is not relevant
             }
         } catch (DidLogMetaPeekerException ex) { // not a valid did:tdw log
             throw buildParameterException(name, value, ex);

@@ -6,17 +6,17 @@ import com.beust.jcommander.ParameterException;
 
 import java.util.Map;
 
-@SuppressWarnings({"PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
 public class CommandParametersValidator implements IParametersValidator {
 
     @Override
-    public void validate(Map<String, Object> parameters) { // throws ParameterException {
+    public void validate(Map<String, Object> parameters) {
         validateAmbiguousParameters(parameters);
         validateBoundParameters(parameters);
         validatePrimusParameters(parameters);
     }
 
-    private static void validateAmbiguousParameters(Map<String, Object> parameters) { // throws ParameterException {
+    @SuppressWarnings("PMD.NPathComplexity")
+    private static void validateAmbiguousParameters(Map<String, Object> parameters) {
         var isSigningKeyFileParamSupplied = (
                 parameters.get(CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE) != null
                         || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE) != null
@@ -39,7 +39,8 @@ public class CommandParametersValidator implements IParametersValidator {
         }
     }
 
-    private static void validateBoundParameters(Map<String, Object> parameters) { // throws ParameterException {
+    @SuppressWarnings("PMD.NPathComplexity")
+    private static void validateBoundParameters(Map<String, Object> parameters) {
         var isJksFileParamSupplied = (parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_FILE) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_JKS_FILE) != null);
         var isJksAliasParamSupplied = parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_ALIAS) != null;
         var isJksPasswordParamSupplied = parameters.get(CommandParameterNames.PARAM_NAME_LONG_JKS_PASSWORD) != null;
@@ -61,7 +62,7 @@ public class CommandParametersValidator implements IParametersValidator {
         }
     }
 
-    private static void validatePrimusParameters(Map<String, Object> parameters) { // throws ParameterException {
+    private static void validatePrimusParameters(Map<String, Object> parameters) {
 
         if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) != null) {
 
@@ -75,13 +76,12 @@ public class CommandParametersValidator implements IParametersValidator {
                 throw new ParameterException("Incomplete Primus parameters supplied");
             }
 
-        } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD) != null) {
-
-            if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) == null) {
-                throw new ParameterException("Incomplete Primus parameters supplied");
-            } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS) == null) {
-                throw new ParameterException("Incomplete Primus parameters supplied");
-            }
+        } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD) != null && (
+                (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) == null) ||
+                        (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS) == null)
+        )) {
+            throw new ParameterException("Incomplete Primus parameters supplied");
         }
+
     }
 }

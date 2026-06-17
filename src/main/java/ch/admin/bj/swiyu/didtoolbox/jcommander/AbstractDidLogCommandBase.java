@@ -11,7 +11,7 @@ import java.io.File;
 /**
  * The base class for all Command classes in the package that focus on DID logs.
  */
-abstract class AbstractDidLogCommandBase extends AbstractCommandBase {
+public abstract class AbstractDidLogCommandBase extends AbstractCommandBase {
 
     @Override
     abstract String getCommandName();

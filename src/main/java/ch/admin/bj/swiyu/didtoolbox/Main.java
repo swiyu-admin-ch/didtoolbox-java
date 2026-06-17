@@ -4,7 +4,6 @@ import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
-import ch.admin.bj.swiyu.didtoolbox.jcommander.RootCommandParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethodException;
@@ -21,7 +20,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 
-@SuppressWarnings({"PMD.DoNotTerminateVM", "PMD.CyclomaticComplexity"})
 public class Main {
     private final Console console;
 
@@ -53,7 +51,7 @@ public class Main {
      * @param args cli arguments to be parsed and then executed
      * @return the exit code
      */
-    public int run(String[] args) {
+    public int run(String... args) {
         var rootParameters = new RootCommandParameter();
         var createDidLogCommand = new CreateDidLogCommand();
         var updateDidLogCommand = new UpdateDidLogCommand();

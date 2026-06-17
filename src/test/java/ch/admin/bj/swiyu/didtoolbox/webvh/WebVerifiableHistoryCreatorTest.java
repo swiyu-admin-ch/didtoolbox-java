@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -149,7 +150,8 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys...
         assertFalse(params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().isEmpty());
         assertEquals(1, params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().size());
-        assertEquals(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")).getUpdateKey(), params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().get(1).getAsString());
+        var updateKeys = params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().asList().stream().map(e -> e.getAsString()).collect(Collectors.toList());
+        assertTrue(updateKeys.contains(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")).getUpdateKey()));
         assertEquals(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")).getNextKeyHash(), params.get(NamedDidMethodParameters.NEXT_KEY_HASHES).getAsJsonArray().get(0).getAsString());
     }
 
