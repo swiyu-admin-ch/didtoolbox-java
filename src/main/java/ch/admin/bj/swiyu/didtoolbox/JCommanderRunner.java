@@ -4,11 +4,12 @@ import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
-import ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusProofOfPossessionJWSSigner;
+import ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigner;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.beust.jcommander.JCommander;
+import com.nimbusds.jose.JOSEException;
 
 import java.io.File;
 import java.io.IOException;
@@ -295,7 +296,7 @@ final class JCommanderRunner {
     }
 
     int runPoPCreateCommand(CreateProofOfPossessionCommand command)
-            throws IOException, ProofOfPossessionCreatorException, UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
+            throws IOException, ProofOfPossessionCreatorException, UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, JOSEException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return 0;
@@ -314,7 +315,7 @@ final class JCommanderRunner {
         if (command.signingKeyPemFile != null) {
             signer = new EcP256ProofOfPossessionJWSSigner(command.signingKeyPemFile.toPath(), kid);
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null && command.primusKeyPassword != null) {
-            signer = new PrimusProofOfPossessionJWSSigner(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, kid);
+            signer = HsmProofOfPossessionJWSSigner.newPrimusSigner(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, kid);
         }
 
         if (signer == null) {
