@@ -18,7 +18,7 @@ import java.util.Set;
 /**
  * {@link HsmProofOfPossessionJWSSigner} provides multiple constructors for different HSM providers intended to be used with {@link ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator}.
  */
-public class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWSSigner {
+public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWSSigner {
     private final String kid;
     private final JWSSigner signer;
 
@@ -51,7 +51,7 @@ public class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWSSigner
      * @param kid of the key inside the JWT
      * @return
      */
-    public static HsmProofOfPossessionJWSSigner newPkcs11Signer(String cfgPath, String keystoreSecret, String keyId, String kid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, JOSEException {
+    public static HsmProofOfPossessionJWSSigner newPkcs11Signer(String cfgPath, String keystoreSecret, String keyId, String kid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, JOSEException { // NOPMD UseObjectForClearerAPI
         Provider provider = Security.getProvider("SunPKCS11");
         provider = provider.configure(cfgPath);
         Security.addProvider(provider);

@@ -314,7 +314,7 @@ final class JCommanderRunner {
         ProofOfPossessionJWSSigner signer = null;
         if (command.signingKeyPemFile != null) {
             signer = new EcP256ProofOfPossessionJWSSigner(command.signingKeyPemFile.toPath(), kid);
-        } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null && command.primusKeyPassword != null) {
+        } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
             signer = HsmProofOfPossessionJWSSigner.newPrimusSigner(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, kid);
         }
 

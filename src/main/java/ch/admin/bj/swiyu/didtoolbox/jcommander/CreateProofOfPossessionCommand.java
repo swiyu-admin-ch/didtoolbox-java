@@ -23,12 +23,12 @@ public class CreateProofOfPossessionCommand extends AbstractCommandBase {
     }
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},
-            description = "Possession which will be proven by the JWT",
+            description = "Possession which will be proven by the JWT.",
             required = true)
     public String nonce;
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_DID_LOG_FILE, CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE},
-            description = "The file containing a valid DID log to update",
+            description = "The file containing the kid used to sign the proof.",
             required = true)
     public File didLog;
 
