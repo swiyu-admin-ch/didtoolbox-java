@@ -8,7 +8,6 @@ import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +22,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * {@link TdwUpdater} is a {@link DidLogUpdaterStrategy} implementation in charge of
@@ -55,7 +55,6 @@ import java.util.Set;
  * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
  * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
  */
-@SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods"})
 @Builder
 @Getter
 public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
@@ -355,8 +354,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @throws DidLogUpdaterStrategyException        if update fails for whatever reason.
      * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
      */
-    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     @Override
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.NcssCount", "PMD.CyclomaticComplexity"})
     public String updateDidLog(String resolvableDidLog, ZonedDateTime zdt) throws DidLogUpdaterStrategyException {
 
         try {
@@ -523,25 +522,13 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         return didLogEntryWithProof.toString();
     }
 
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.EmptyCatchBlock"})
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
-
         var updateKeysJsonArray = new JsonArray();
 
-        var newUpdateKeys = new HashSet<>(Set.of(this.allUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).toArray(String[]::new)));
-
+        var newUpdateKeys = this.allUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).collect(Collectors.toSet());
         if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)
                 && !this.allUpdateKeysDidMethodParameter().isEmpty()) { // need for change?
-
-            for (var param : this.allUpdateKeysDidMethodParameter()) {
-
-                var updateKey = param.getUpdateKey();
-
-                // it is a distinct list of keys, after all
-                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) {
-                    updateKeysJsonArray.add(updateKey);
-                }
-            }
+            newUpdateKeys.forEach(updateKeysJsonArray::add);
         }
 
         var didMethodParameters = new JsonObject();

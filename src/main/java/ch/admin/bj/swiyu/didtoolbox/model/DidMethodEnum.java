@@ -14,7 +14,7 @@ public enum DidMethodEnum {
     /**
      * Refers to <a href="https://identity.foundation/didwebvh/v0.3/">Trust DID Web - did:tdw - v0.3</a>
      */
-    TDW_0_3("did:tdw:0.3") {
+    TDW_0_3("tdw", "0.3") {
         @Override
         public boolean isTdw03() {
             return true;
@@ -23,7 +23,7 @@ public enum DidMethodEnum {
     /**
      * Refers to <a href="https://identity.foundation/didwebvh/v1.0/">The did:webvh DID Method v1.0</a>
      */
-    WEBVH_1_0("did:webvh:1.0") {
+    WEBVH_1_0("webvh", "1.0") {
         @Override
         public boolean isWebVh10() {
             return true;
@@ -33,24 +33,24 @@ public enum DidMethodEnum {
     /**
      * String representation of {@link DidMethodEnum#TDW_0_3}
      */
-    public final static String TDW_0_3_STRING = "did:tdw:0.3";
+    @Deprecated(since = "2.2.0")
+    public static final String TDW_0_3_STRING = "did:tdw:0.3";
 
     /**
      * String representation of {@link DidMethodEnum#WEBVH_1_0}
      */
-    public final static String WEBVH_1_0_STRING = "did:webvh:1.0";
+    @Deprecated(since = "2.2.0")
+    public static final String WEBVH_1_0_STRING = "did:webvh:1.0";
 
     private final String didMethod;
     @Getter
     private final String prefix;
 
-    DidMethodEnum(String didMethod) {
-        this.didMethod = didMethod;
-        var split = didMethod.split(":", 3);
-        if (split.length != 3) {
-            throw new IllegalArgumentException("A DID method must be supplied in format: 'did:<method-name>:<version>'");
-        }
-        this.prefix = split[0] + ":" + split[1];
+    private static final String DID_PREFIX = "did:";
+
+    DidMethodEnum(String method, String version) {
+        this.didMethod = DID_PREFIX + method + ":" + version;
+        this.prefix = DID_PREFIX + method;
     }
 
     /**
@@ -65,9 +65,9 @@ public enum DidMethodEnum {
             return null;
         }
 
-        if (str.toLowerCase().equals(DidMethodEnum.TDW_0_3.asString())) {
+        if (str.equalsIgnoreCase(DidMethodEnum.TDW_0_3.toString())) {
             return DidMethodEnum.TDW_0_3;
-        } else if (str.toLowerCase().equals(DidMethodEnum.WEBVH_1_0.asString())) {
+        } else if (str.equalsIgnoreCase(DidMethodEnum.WEBVH_1_0.toString())) {
             return DidMethodEnum.WEBVH_1_0;
         }
 
@@ -82,8 +82,14 @@ public enum DidMethodEnum {
         return false;
     }
 
+    @Deprecated(since = "2.2.0")
     public String asString() {
-        return didMethod;
+        return this.toString();
+    }
+
+    @Override
+    public String toString() {
+        return this.didMethod;
     }
 
     public static DidMethodEnum detectDidMethod(File didLogFile) throws DidLogMetaPeekerException, IOException {

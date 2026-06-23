@@ -1,6 +1,9 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
+import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
@@ -122,10 +125,8 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
      * @return a whole new  <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
     public String deactivateDidLog(String didLog, ZonedDateTime zdt) throws DidLogDeactivatorStrategyException {
-
         try {
             super.peek(didLog);
         } catch (DidLogMetaPeekerException e) {

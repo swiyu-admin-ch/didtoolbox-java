@@ -3,10 +3,7 @@ package ch.admin.bj.swiyu.didtoolbox;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A convenient helper introduced for the sake of comfortably restricting access to any file or a directory,
@@ -122,7 +119,6 @@ final class FilesPrivacy {
      * @see Files#deleteIfExists(Path)
      * @see Files#createDirectory(Path, FileAttribute[])
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     static void createPrivateDirectory(Path path, boolean force) throws IOException {
 
         // Regardless of force flag, always take into account whether the parent directory is "writable" or not
@@ -135,7 +131,7 @@ final class FilesPrivacy {
             Files.deleteIfExists(path); // may throw DirectoryNotEmptyException, AccessDeniedException, SecurityException etc.
         }
 
-        var os = System.getProperty("os.name").toLowerCase();
+        var os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         if (os.contains("win") || null != Files.getFileAttributeView(path, AclFileAttributeView.class)) {
 
             Files.createDirectory(path, new FileAttribute<List<AclEntry>>() {
@@ -197,7 +193,6 @@ final class FilesPrivacy {
      * @see Files#deleteIfExists(Path)
      * @see Files#createFile(Path, FileAttribute[])
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     static Path createPrivateFile(Path path, boolean force) throws IOException {
 
         // Regardless of force flag, always take into account whether the parent directory is "writable" or not
@@ -210,7 +205,7 @@ final class FilesPrivacy {
             Files.deleteIfExists(path); // may throw DirectoryNotEmptyException, AccessDeniedException, SecurityException etc.
         }
 
-        var os = System.getProperty("os.name").toLowerCase();
+        var os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         if (os.contains("win") || null != Files.getFileAttributeView(path, AclFileAttributeView.class)) {
 
             return Files.createFile(path, new FileAttribute<List<AclEntry>>() {

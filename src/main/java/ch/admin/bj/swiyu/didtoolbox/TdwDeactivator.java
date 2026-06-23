@@ -163,7 +163,6 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
      * @return a whole new <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     @Override
     public String deactivateDidLog(String didLog, ZonedDateTime zdt) throws DidLogDeactivatorStrategyException {
 

@@ -5,6 +5,7 @@ import com.beust.jcommander.Parameter;
 /**
  * The base class for all Command classes in the package.
  */
+@SuppressWarnings("PMD.PublicMemberInNonPublicType")
 abstract class AbstractCommandBase {
 
     abstract String getCommandName();

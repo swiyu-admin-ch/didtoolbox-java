@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;

@@ -5,9 +5,13 @@ import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderExceptio
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -121,7 +125,6 @@ public abstract class AbstractDidLogEntryBuilder {
      * @return a JSON object representing DID method parameters
      * @throws DidLogCreatorStrategyException if parsing any of supplied PEM files (via {@code updateKeys}/{@code nextKeys} param) fails
      */
-    @SuppressWarnings({"PMD.AvoidInstantiatingObjectsInLoops", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
     protected JsonObject createDidParams(VerificationMethodKeyProvider verificationMethodKeyProvider,
                                          Set<UpdateKeysDidMethodParameter> updateKeysParameter,
                                          Set<NextKeyHashesDidMethodParameter> nextKeyHashesDidMethodParameters) throws DidLogCreatorStrategyException {
@@ -131,7 +134,7 @@ public abstract class AbstractDidLogEntryBuilder {
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
         JsonObject didMethodParameters = new JsonObject();
-        didMethodParameters.addProperty("method", getDidMethod().asString());
+        didMethodParameters.addProperty("method", getDidMethod().toString());
         didMethodParameters.addProperty("scid", SCID_PLACEHOLDER);
 
         /*
@@ -146,20 +149,13 @@ public abstract class AbstractDidLogEntryBuilder {
         an entry replaces the previously active list. If an entry does not have the updateKeys item,
         the currently active list continues to apply.
          */
-        var updateKeysJsonArray = new JsonArray();
-
-        updateKeysJsonArray.add(verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
-
+        var updatkeKeys = new HashSet<String>(); // must be a distinct list
+        updatkeKeys.add(verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
         if (updateKeysParameter != null) {
-            for (var param : updateKeysParameter) { // ...and then add the rest, if any
-
-                var updateKey = param.getUpdateKey();
-
-                if (!updateKeysJsonArray.contains(new JsonPrimitive(updateKey))) { // it is a distinct list of keys, after all
-                    updateKeysJsonArray.add(updateKey);
-                }
-            }
+            updateKeysParameter.forEach(key -> updatkeKeys.add(key.getUpdateKey()));
         }
+        var updateKeysJsonArray = new JsonArray();
+        updatkeKeys.forEach(updateKeysJsonArray::add);
 
         didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
 
@@ -249,7 +245,6 @@ public abstract class AbstractDidLogEntryBuilder {
      * @return JSON object representing a valid DID document w.r.t. to supplied verification material
      * @throws IncompleteDidLogEntryBuilderException if no proper verification material is supplied
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     protected JsonObject createDidDoc(URL identifierRegistryUrl,
                                       Set<VerificationMethod> authentications,
                                       Set<VerificationMethod> assertionMethods) {

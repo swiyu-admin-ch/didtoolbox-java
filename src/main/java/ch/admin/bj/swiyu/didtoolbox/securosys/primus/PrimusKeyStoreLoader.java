@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -77,22 +78,22 @@ public class PrimusKeyStoreLoader {
      * @throws NoSuchAlgorithmException
      * @throws PrimusKeyStoreInitializationException
      */
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public PrimusKeyStoreLoader(File credentials)
             throws CertificateException, IOException, NoSuchAlgorithmException, PrimusKeyStoreInitializationException {
-
         this();
+
+        var host = System.getenv(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.name());
 
         Properties props = null;
         if (credentials != null) {
             props = new Properties();
             props.load(Files.newInputStream(credentials.toPath()));
+            if (host != null) {
+                host = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.toProperty());
+            }
         }
 
-        var host = System.getenv(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.name());
-        if (host == null && props != null) {
-            host = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.toProperty());
-        }
         if (host == null) {
             throw new IOException("Securosys Primus HSM host cannot be resolved. "
                     + "You may supply it either via property file or by setting the relevant system environment variable: "
@@ -103,18 +104,18 @@ public class PrimusKeyStoreLoader {
         if (portAsString == null && props != null) {
             portAsString = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.toProperty());
         }
-        var port = -1;
+
+        int port;
         try {
-            if (portAsString != null) {
-                port = Short.parseShort(portAsString);
+            if (portAsString == null) {
+                throw new IOException("Securosys Primus HSM port cannot be resolved. "
+                        + "You may supply it either via property file or by setting the relevant system environment variable: "
+                        + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.name());
             }
+
+            port = Short.parseShort(portAsString);
         } catch (NumberFormatException ignored) {
             throw new IOException("Securosys Primus HSM port is invalid.");
-        }
-        if (port < 0) {
-            throw new IOException("Securosys Primus HSM port cannot be resolved. "
-                    + "You may supply it either via property file or by setting the relevant system environment variable: "
-                    + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.name());
         }
 
         var user = System.getenv(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_USER.name());
@@ -189,7 +190,7 @@ public class PrimusKeyStoreLoader {
         }
 
         private String toProperty() {
-            return this.name().toLowerCase();
+            return this.name().toLowerCase(Locale.ROOT);
         }
 
         private String toCredentialFileLine(String value) {

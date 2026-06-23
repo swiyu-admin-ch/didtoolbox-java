@@ -63,7 +63,7 @@ public class NamedDidMethodParameters {
         try {
             return DidMethodEnum.parse(this.method);
         } catch (ParseException ignore) {
+            return null;
         }
-        return null;
     }
 }

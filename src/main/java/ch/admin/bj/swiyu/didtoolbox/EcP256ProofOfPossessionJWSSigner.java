@@ -22,7 +22,7 @@ public class EcP256ProofOfPossessionJWSSigner implements ProofOfPossessionJWSSig
     protected ECKey signingKey;
 
     public EcP256ProofOfPossessionJWSSigner(String keyId) throws JOSEException {
-        this.signingKey = new ECKeyGenerator(Curve.P_256).keyUse(KeyUse.SIGNATURE).keyID(keyId).issueTime(new Date()).generate();
+        this.signingKey = new ECKeyGenerator(Curve.P_256).keyUse(KeyUse.SIGNATURE).keyID(keyId).issueTime(new Date()).generate(); //NOPMD ReplaceJavaUtilDate function expects date class
     }
 
     public EcP256ProofOfPossessionJWSSigner(Path path, String keyId) throws IOException {
@@ -50,7 +50,7 @@ public class EcP256ProofOfPossessionJWSSigner implements ProofOfPossessionJWSSig
         try {
             return new ECDSASigner(signingKey.toECPrivateKey()).sign(new JWSHeader(JWSAlgorithm.ES256), bytes);
         } catch (JOSEException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); //NOPMD AvoidThrowingRawExceptionTypes should not be thrown
         }
     }
 }
