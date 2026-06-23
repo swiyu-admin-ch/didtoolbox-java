@@ -15,10 +15,7 @@ import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 
 import java.io.IOException;
-import java.security.KeyException;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
 
 public class Main {
     private final Console console;
@@ -108,8 +105,8 @@ public class Main {
                         commandRunner.runPoPVerifyCommand(verifyProofOfPossessionCommand);
                 default -> printCommandError(jc, null, "Invalid command: " + parsedCommandName);
             };
-        } catch (IOException | UnrecoverableEntryException | VcDataIntegrityCryptographicSuiteException |
-                 KeyStoreException | NoSuchAlgorithmException | KeyException | DidLogDeactivatorStrategyException |
+        } catch (IOException | VcDataIntegrityCryptographicSuiteException |
+                 KeyStoreException | DidLogDeactivatorStrategyException |
                  ProofOfPossessionCreatorException | DidLogCreatorStrategyException |
                  NextKeyHashesDidMethodParameterException | UpdateKeysDidMethodParameterException |
                  VerificationMethodException | DidLogUpdaterStrategyException e) {

@@ -7,6 +7,9 @@ import com.beust.jcommander.Parameters;
 
 import java.io.File;
 
+import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY;
+import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.PARAM_NAME_SHORT_GENERATE_NEW_VERIFYING_KEY;
+
 @Parameters(
         commandNames = {UpdateDidLogCommand.COMMAND_NAME},
         commandDescription = "Update a DID log by replacing the existing verification material in DID document. " +
@@ -35,4 +38,9 @@ public class UpdateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
             validateWith = DidLogFileParameterValidator.class,
             required = true)
     public File didLogFile;
+
+    // TODO@MP improve documentation, add constants for flags
+    @Parameter(names = {PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY, PARAM_NAME_SHORT_GENERATE_NEW_VERIFYING_KEY},
+            description = "Requires the signing key pem file flag (-s). Generates a new ed25519 key pair to be used as 'pre-rotation' key. The generated key pair is stored in the `./.didtoolbox`. CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot be used together with the generate update key next flag ('-gw)")
+    public boolean shouldGenerateVerifyingKeyPem;
 }

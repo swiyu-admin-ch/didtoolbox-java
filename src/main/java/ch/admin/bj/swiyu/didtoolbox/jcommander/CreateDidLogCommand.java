@@ -29,13 +29,9 @@ public class CreateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
         return COMMAND_NAME;
     }
 
-    final public static String COMMAND_NAME = "create";
+    public static final String COMMAND_NAME = "create";
 
-    final public static DidMethodEnum DEFAULT_METHOD_VERSION = DidMethodEnum.WEBVH_1_0;
-
-    @Parameter(names = {"--force-overwrite", "-f"},
-            description = "Overwrite existing PEM key files, if any")
-    public boolean forceOverwrite;
+    public static final DidMethodEnum DEFAULT_METHOD_VERSION = DidMethodEnum.WEBVH_1_0;
 
     @Parameter(names = {"--identifier-registry-url", "-u"},
             description = "A HTTP(S) DID URL (to did.jsonl) to create a DID log for",

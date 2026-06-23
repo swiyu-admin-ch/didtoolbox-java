@@ -8,28 +8,29 @@ import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrit
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.security.KeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The class is introduced for the sake of being able to test the CLI with no hassle involved.
  */
 @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidCatchingGenericException"})
-final class JCommanderRunner {
+public final class JCommanderRunner {
     private static final String TOOLBOX_DIR = ".didtoolbox";
+    private static final String KEYFILE = "id_ed25519";
+    private static final String PUBLIC_KEY_SUFFIX = ".pub";
 
     private final JCommander jc;
     private final String parsedCommandName;
 
-    JCommanderRunner(JCommander jc, String parsedCommandName) {
+    public JCommanderRunner(JCommander jc, String parsedCommandName) {
         this.jc = jc;
         this.parsedCommandName = parsedCommandName;
     }
@@ -37,11 +38,13 @@ final class JCommanderRunner {
     private static int printCommandError(JCommander jc, String commandName, String message) {
         jc.getConsole().println(message);
         jc.getConsole().println("");
+
         if (commandName != null) {
             jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " " + commandName + " -h");
         } else {
             jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
         }
+
         return 1;
     }
 
@@ -93,10 +96,8 @@ final class JCommanderRunner {
     }
 
     @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.NPathComplexity"})
-    int runCreateDidLogCommand(CreateDidLogCommand command)
-            throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, IOException,
-            VcDataIntegrityCryptographicSuiteException, DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException,
-            UpdateKeysDidMethodParameterException, VerificationMethodException {
+    int runCreateDidLogCommand(CreateDidLogCommand command) throws IOException, VcDataIntegrityCryptographicSuiteException,
+            DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException, UpdateKeysDidMethodParameterException, VerificationMethodException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return 0;
@@ -135,58 +136,29 @@ final class JCommanderRunner {
                     JwkUtils.generatePublicEC256("auth-key-01", Path.of(".didtoolbox/auth-key-01").toFile(), forceOverwrite)));
         }
 
-        var verifyingKeyPemFiles = command.verifyingKeyPemFiles;
-        var nextKeyPemFiles = command.nextVerifyingKeyPemFiles;
-
         VcDataIntegrityCryptographicSuite cryptoSuite = getCryptoGraphicSuite(command);
         if (cryptoSuite == null) {
             var dalekSigner = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
             cryptoSuite = dalekSigner;
 
-            var outputDir = new File(TOOLBOX_DIR);
-            if (!outputDir.exists() || forceOverwrite) {
-                try {
-                    FilesPrivacy.createPrivateDirectory(outputDir.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
-                } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
-                    if (!outputDir.exists()) {
-                        throw new IllegalArgumentException(ex); // the delete-create logic is not implemented properly
-                    }
-                    // ignore otherwise
-                } catch (AccessDeniedException ex) {
-                    return printCommandError(jc, parsedCommandName, "Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
-                } catch (Throwable thr) {
-                    return printCommandError(jc, parsedCommandName, "Failed to (re)create " + outputDir.getPath() + " directory due to: " + thr.getMessage());
+            // avoid generating files, only to overwrite them right after
+            if (!command.shouldGenerateNextVerifyingKeyPem) {
+                var result = storeKeysInStorage(dalekSigner, command.forceOverwrite);
+                if (result != 0) {
+                    return result;
                 }
-            }
-
-            var privateKeyFile = new File(outputDir, "id_ed25519");
-            if (privateKeyFile.exists() && !forceOverwrite) {
-                return printCommandError(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
-            }
-
-            try {
-                // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
-                FilesPrivacy.createPrivateFile(privateKeyFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
-            } catch (DirectoryNotEmptyException ex) {
-                throw new IllegalArgumentException(ex); // it should be a file, not a directory
-            } catch (FileAlreadyExistsException ex) {
-                if (!privateKeyFile.exists()) {
-                    throw new IllegalArgumentException(ex);
-                }
-                throw ex;
-            } catch (AccessDeniedException ex) {
-                return printCommandError(jc, parsedCommandName, "Access denied to private key PEM file " + privateKeyFile.getPath() + " due to: " + ex.getMessage());
-            } catch (Throwable thr) {
-                return printCommandError(jc, parsedCommandName, "The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath());
-            }
-
-            try {
-                dalekSigner.writePkcs8PemFile(privateKeyFile.toPath());
-                dalekSigner.writePublicKeyPemFile(new File(outputDir, privateKeyFile.getName() + ".pub").toPath());
-            } catch (VcDataIntegrityCryptographicSuiteException ex) {
-                return printCommandError(jc, parsedCommandName, "Failed to persist PEM file(s) due to: " + ex.getMessage());
             }
         }
+
+        if (command.shouldGenerateNextVerifyingKeyPem) {
+            var result = swapKeys(command, command.nextVerifyingKeyPemFiles);
+            if (result != 0) {
+                return result;
+            }
+        }
+
+        var verifyingKeyPemFiles = command.verifyingKeyPemFiles;
+        var nextKeyPemFiles = command.nextVerifyingKeyPemFiles;
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
         jc.getConsole().println(DidLogCreatorContext.builder()
@@ -204,8 +176,8 @@ final class JCommanderRunner {
     }
 
     int runUpdateDidLogCommand(UpdateDidLogCommand command)
-            throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            NoSuchAlgorithmException, KeyException, DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException,
+            throws IOException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
+            DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException,
             UpdateKeysDidMethodParameterException, VerificationMethodException {
         if (command.help) {
             jc.usage(parsedCommandName);
@@ -238,6 +210,22 @@ final class JCommanderRunner {
             return printCommandError(jc, parsedCommandName, "No update will take place as no verification material is supplied whatsoever");
         }
 
+        if (command.shouldGenerateNextVerifyingKeyPem || command.shouldGenerateVerifyingKeyPem) {
+            if (command.shouldGenerateNextVerifyingKeyPem && command.shouldGenerateVerifyingKeyPem) {
+                throw new ParameterException("not allowed to use the two flags"); // TODO@MP improve error message
+            }
+
+            int result;
+            if (command.shouldGenerateNextVerifyingKeyPem) {
+                result = swapKeys(command, command.nextVerifyingKeyPemFiles);
+            } else {
+                result = swapKeys(command, command.verifyingKeyPemFiles);
+            }
+            if (result != 0) {
+                return result;
+            }
+        }
+
         var verifyingKeyPemFiles = command.verifyingKeyPemFiles;
         var nextVerifyingKeyPemFiles = command.nextVerifyingKeyPemFiles; // if set, denotes key pre-rotation
 
@@ -268,8 +256,8 @@ final class JCommanderRunner {
     }
 
     int runDeactivateDidLogCommand(DeactivateDidLogCommand command)
-            throws IOException, UnrecoverableEntryException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            NoSuchAlgorithmException, KeyException, DidLogDeactivatorStrategyException {
+            throws IOException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
+            DidLogDeactivatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return 0;
@@ -370,5 +358,75 @@ final class JCommanderRunner {
             }
         }
         return null;
+    }
+
+    public int swapKeys(AbstractKeyMaterialDidLogCommand command, Set<File> target) throws FileAlreadyExistsException {
+        var dalekSigner = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+        var result = storeKeysInStorage(dalekSigner, command.forceOverwrite);
+        if (result != 0) {
+            return result;
+        }
+
+        var path = TOOLBOX_DIR + File.separator + KEYFILE + PUBLIC_KEY_SUFFIX;
+        File pk = new File(path);
+        target.add(pk);
+
+        return 0;
+    }
+
+    /**
+     * Stores the public and private key of the cryptoSuite on the local file system in ```.didtoolbox``` directory.
+    *
+     * @param cryptoSuite of the keypair to be stored
+     * @param forceOverwrite allows to overwrite already existing key files
+     * @return
+     * @throws FileAlreadyExistsException
+     */
+    public int storeKeysInStorage(EdDsaJcs2022VcDataIntegrityCryptographicSuite cryptoSuite, boolean forceOverwrite) throws FileAlreadyExistsException {
+        var outputDir = new File(TOOLBOX_DIR);
+        if (!outputDir.exists() || forceOverwrite) {
+            try {
+                FilesPrivacy.createPrivateDirectory(outputDir.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
+            } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
+                if (!outputDir.exists()) {
+                    throw new IllegalArgumentException(ex); // the delete-create logic is not implemented properly
+                }
+                // ignore otherwise
+            } catch (AccessDeniedException ex) {
+                return printCommandError(jc, parsedCommandName, "Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
+            } catch (Throwable thr) {
+                return printCommandError(jc, parsedCommandName, "Failed to (re)create " + outputDir.getPath() + " directory due to: " + thr.getMessage());
+            }
+        }
+
+        var privateKeyFile = new File(outputDir, KEYFILE);
+        if (privateKeyFile.exists() && !forceOverwrite) {
+            return printCommandError(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
+        }
+
+        try {
+            // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
+            FilesPrivacy.createPrivateFile(privateKeyFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
+        } catch (DirectoryNotEmptyException ex) {
+            throw new IllegalArgumentException(ex); // it should be a file, not a directory
+        } catch (FileAlreadyExistsException ex) {
+            if (!privateKeyFile.exists()) {
+                throw new IllegalArgumentException(ex);
+            }
+            throw ex;
+        } catch (AccessDeniedException ex) {
+            return printCommandError(jc, parsedCommandName, "Access denied to private key PEM file " + privateKeyFile.getPath() + " due to: " + ex.getMessage());
+        } catch (Throwable thr) {
+            return printCommandError(jc, parsedCommandName, "The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath());
+        }
+
+        try {
+            cryptoSuite.writePkcs8PemFile(privateKeyFile.toPath());
+            cryptoSuite.writePublicKeyPemFile(new File(outputDir, privateKeyFile.getName() + PUBLIC_KEY_SUFFIX).toPath());
+        } catch (VcDataIntegrityCryptographicSuiteException ex) {
+            return printCommandError(jc, parsedCommandName, "Failed to persist PEM file(s) due to: " + ex.getMessage());
+        }
+
+        return 0;
     }
 }
