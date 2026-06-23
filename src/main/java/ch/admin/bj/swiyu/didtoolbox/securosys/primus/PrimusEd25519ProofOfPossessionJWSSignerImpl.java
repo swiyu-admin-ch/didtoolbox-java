@@ -19,6 +19,7 @@ import java.util.Set;
  * <p>
  * To be used in conjunction with {@link ProofOfPossessionCreator#ProofOfPossessionCreator(ProofOfPossessionJWSSigner)}.
  */
+@Deprecated(since = "1.9.0")
 public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519VerificationMethodKeyProviderImpl implements ProofOfPossessionJWSSigner {
     final private String kid;
 
