@@ -23,19 +23,21 @@ import java.util.Set;
  */
 @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidCatchingGenericException"})
 public final class JCommanderRunner {
-    private static final String TOOLBOX_DIR = ".didtoolbox";
-    private static final String KEYFILE = "id_ed25519";
-    private static final String PUBLIC_KEY_SUFFIX = ".pub";
-
     private final JCommander jc;
     private final String parsedCommandName;
+    private final String basePath;
 
-    public JCommanderRunner(JCommander jc, String parsedCommandName) {
+    public JCommanderRunner(JCommander jc, String parsedCommandName, String basePath) {
         this.jc = jc;
         this.parsedCommandName = parsedCommandName;
+        this.basePath = basePath;
     }
 
-    private static int printCommandError(JCommander jc, String commandName, String message) {
+    public JCommanderRunner(JCommander jc, String parsedCommandName) {
+        this(jc, parsedCommandName, "");
+    }
+
+    private int printCommandError(JCommander jc, String commandName, String message) {
         jc.getConsole().println(message);
         jc.getConsole().println("");
 
@@ -56,7 +58,7 @@ public final class JCommanderRunner {
      * @param didLogFile        {@code File} object containing a valid DID log
      * @return a {@code DidLogMeta} object, never {@code null}
      */
-    private static DidLogMeta fetchDidLogMeta(JCommander jc,
+    private DidLogMeta fetchDidLogMeta(JCommander jc,
                                               String parsedCommandName,
                                               File didLogFile) {
         DidLogMeta didLogMeta = null;
@@ -81,8 +83,8 @@ public final class JCommanderRunner {
         return didLogMeta;
     }
 
-    private static void createPrivateKeyDirectoryIfDoesNotExist(String pathname) throws DidLogCreatorStrategyException {
-        var outputDir = Path.of(pathname);
+    private static void createPrivateKeyDirectoryIfDoesNotExist(String pathName) throws DidLogCreatorStrategyException {
+        var outputDir = Path.of(pathName);
         if (!outputDir.toFile().exists()) {
             try {
                 FilesPrivacy.createPrivateDirectory(outputDir, false); // may throw DirectoryNotEmptyException, SecurityException etc.
@@ -90,7 +92,7 @@ public final class JCommanderRunner {
                 // the directory (if exists) must be empty with write access granted
                 throw new IllegalArgumentException(ex);
             } catch (Throwable thr) {
-                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathname + " due to: " + thr.getMessage(), thr);
+                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathName + " due to: " + thr.getMessage(), thr);
             }
         }
     }
@@ -119,9 +121,9 @@ public final class JCommanderRunner {
                 assertionMethods.add(VerificationMethod.of(param.key, param.jwk));
             }
         } else {
-            createPrivateKeyDirectoryIfDoesNotExist(TOOLBOX_DIR);
+            createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
             assertionMethods.add(VerificationMethod.of("assert-key-01",
-                    JwkUtils.generatePublicEC256("assert-key-01", Path.of(".didtoolbox/assert-key-01").toFile(), forceOverwrite)));
+                    JwkUtils.generatePublicEC256("assert-key-01", new File(getOutputDir(), "assert-key-01"), forceOverwrite)));
         }
 
         var authentications = new HashSet<VerificationMethod>();
@@ -131,9 +133,9 @@ public final class JCommanderRunner {
                 authentications.add(VerificationMethod.of(param.key, param.jwk));
             }
         } else {
-            createPrivateKeyDirectoryIfDoesNotExist(TOOLBOX_DIR);
+            createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
             authentications.add(VerificationMethod.of("auth-key-01",
-                    JwkUtils.generatePublicEC256("auth-key-01", Path.of(".didtoolbox/auth-key-01").toFile(), forceOverwrite)));
+                    JwkUtils.generatePublicEC256("auth-key-01", new File(getOutputDir(), "auth-key-01"), forceOverwrite)));
         }
 
         VcDataIntegrityCryptographicSuite cryptoSuite = getCryptoGraphicSuite(command);
@@ -143,7 +145,7 @@ public final class JCommanderRunner {
 
             // avoid generating files, only to overwrite them right after
             if (!command.shouldGenerateNextVerifyingKeyPem) {
-                var result = storeKeysInStorage(dalekSigner, command.forceOverwrite);
+                var result = storeKeysOnDisk(dalekSigner, command.forceOverwrite);
                 if (result != 0) {
                     return result;
                 }
@@ -151,7 +153,7 @@ public final class JCommanderRunner {
         }
 
         if (command.shouldGenerateNextVerifyingKeyPem) {
-            var result = swapKeys(command, command.nextVerifyingKeyPemFiles);
+            var result = generateAndSaveNewKey(command.forceOverwrite, command.nextVerifyingKeyPemFiles);
             if (result != 0) {
                 return result;
             }
@@ -178,7 +180,7 @@ public final class JCommanderRunner {
     int runUpdateDidLogCommand(UpdateDidLogCommand command)
             throws IOException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
             DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException,
-            UpdateKeysDidMethodParameterException, VerificationMethodException {
+            UpdateKeysDidMethodParameterException, VerificationMethodException, DidLogCreatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return 0;
@@ -217,9 +219,9 @@ public final class JCommanderRunner {
 
             int result;
             if (command.shouldGenerateNextVerifyingKeyPem) {
-                result = swapKeys(command, command.nextVerifyingKeyPemFiles);
+                result = generateAndSaveNewKey(command.forceOverwrite, command.nextVerifyingKeyPemFiles);
             } else {
-                result = swapKeys(command, command.verifyingKeyPemFiles);
+                result = generateAndSaveNewKey(command.forceOverwrite, command.verifyingKeyPemFiles);
             }
             if (result != 0) {
                 return result;
@@ -360,16 +362,22 @@ public final class JCommanderRunner {
         return null;
     }
 
-    public int swapKeys(AbstractKeyMaterialDidLogCommand command, Set<File> target) throws FileAlreadyExistsException {
+    /**
+     *
+     * @param forceOverwrite
+     * @param target
+     * @return
+     * @throws FileAlreadyExistsException if it fails to create or overwrite the file
+     */
+    public int generateAndSaveNewKey(boolean forceOverwrite, Set<File> target) throws FileAlreadyExistsException, DidLogCreatorStrategyException {
+        createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
         var dalekSigner = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        var result = storeKeysInStorage(dalekSigner, command.forceOverwrite);
+        var result = storeKeysOnDisk(dalekSigner, forceOverwrite);
         if (result != 0) {
             return result;
         }
 
-        var path = TOOLBOX_DIR + File.separator + KEYFILE + PUBLIC_KEY_SUFFIX;
-        File pk = new File(path);
-        target.add(pk);
+        target.add(getPublicKeyFile());
 
         return 0;
     }
@@ -379,11 +387,11 @@ public final class JCommanderRunner {
     *
      * @param cryptoSuite of the keypair to be stored
      * @param forceOverwrite allows to overwrite already existing key files
-     * @return
+     * @return the result code, 1 if something went wrong
      * @throws FileAlreadyExistsException
      */
-    public int storeKeysInStorage(EdDsaJcs2022VcDataIntegrityCryptographicSuite cryptoSuite, boolean forceOverwrite) throws FileAlreadyExistsException {
-        var outputDir = new File(TOOLBOX_DIR);
+    public int storeKeysOnDisk(EdDsaJcs2022VcDataIntegrityCryptographicSuite cryptoSuite, boolean forceOverwrite) throws FileAlreadyExistsException {
+        var outputDir = getOutputDir();
         if (!outputDir.exists() || forceOverwrite) {
             try {
                 FilesPrivacy.createPrivateDirectory(outputDir.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
@@ -399,7 +407,7 @@ public final class JCommanderRunner {
             }
         }
 
-        var privateKeyFile = new File(outputDir, KEYFILE);
+        var privateKeyFile = getPrivateKeyFile();
         if (privateKeyFile.exists() && !forceOverwrite) {
             return printCommandError(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
         }
@@ -422,11 +430,24 @@ public final class JCommanderRunner {
 
         try {
             cryptoSuite.writePkcs8PemFile(privateKeyFile.toPath());
-            cryptoSuite.writePublicKeyPemFile(new File(outputDir, privateKeyFile.getName() + PUBLIC_KEY_SUFFIX).toPath());
+            cryptoSuite.writePublicKeyPemFile(getPublicKeyFile().toPath());
         } catch (VcDataIntegrityCryptographicSuiteException ex) {
             return printCommandError(jc, parsedCommandName, "Failed to persist PEM file(s) due to: " + ex.getMessage());
         }
 
         return 0;
+    }
+
+    // add base path to constructor or something, ta make it easier for tests.
+    private File getOutputDir() {
+        return new File(this.basePath + File.separator + ".didtoolbox");
+    }
+
+    private File getPrivateKeyFile() {
+        return new File(getOutputDir(), "id_ed25519");
+    }
+
+    private File getPublicKeyFile() {
+        return new File(getOutputDir(), "id_ed25519.pub");
     }
 }

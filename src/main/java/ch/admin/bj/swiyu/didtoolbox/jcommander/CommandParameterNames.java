@@ -25,6 +25,9 @@ public interface CommandParameterNames {
     public String PARAM_NAME_LONG_VERIFYING_KEY_FILES = "--verifying-key-files";
     public String PARAM_NAME_SHORT_VERIFYING_KEY_FILES = "-v";
 
+    public String PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY = "--generate-new-verifying-key";
+    public String PARAM_NAME_SHORT_GENERATE_NEW_VERIFYING_KEY = "-gv";
+
     @Deprecated(since = "1.4.1")
     public String PARAM_NAME_LONG_VERIFYING_KEY_FILE = "--verifying-key-file";
     @Deprecated(since = "1.4.1")
@@ -32,6 +35,9 @@ public interface CommandParameterNames {
 
     public String PARAM_NAME_LONG_NEXT_VERIFYING_KEY_FILES = "--verifying-key-files-next";
     public String PARAM_NAME_SHORT_NEXT_VERIFYING_KEY_FILES = "-w";
+
+    public String PARAM_NAME_LONG_GENERATE_NEXT_VERIFYING_KEY = "--generate-next-verifying-key";
+    public String PARAM_NAME_SHORT_GENERATE_NEXT_VERIFYING_KEY = "-gw";
 
     public String PARAM_NAME_LONG_ASSERTION_METHOD_KEYS = "--assert";
     public String PARAM_NAME_SHORT_ASSERTION_METHOD_KEYS = "-a";
@@ -50,10 +56,4 @@ public interface CommandParameterNames {
 
     public String PARAM_NAME_LONG_JWT = "--jwt";
     public String PARAM_NAME_SHORT_JWT = "-j";
-
-    public String PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY = "--generate-new-verifying-key";
-    public String PARAM_NAME_SHORT_GENERATE_NEW_VERIFYING_KEY = "-gv";
-
-    public String PARAM_NAME_LONG_GENERATE_NEXT_VERIFYING_KEY = "--generate-next-verifying-key";
-    public String PARAM_NAME_SHORT_GENERATE_NEXT_VERIFYING_KEY = "-gw";
 }

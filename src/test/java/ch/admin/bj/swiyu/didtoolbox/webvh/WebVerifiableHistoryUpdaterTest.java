@@ -74,8 +74,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         assertTrue(proofJsonObj.has("proofValue"));
     }
 
-    // TODO@MP fix test
-    //@Test
+    @Test
     void testUpdateDidLogThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 

@@ -22,9 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SuppressWarnings("PMD")
 class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
-    // TODO@MP fix test
     @DisplayName("Inducing 'Update Key Mismatch' error while updating DID log")
-    //@Test
+    @Test
     void testUpdateThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
 
         // did:tdw
