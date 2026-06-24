@@ -18,6 +18,9 @@ import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
+import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY;
+import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.PARAM_NAME_LONG_GENERATE_NEXT_VERIFYING_KEY;
+
 /**
  * The class is introduced for the sake of being able to test the CLI with no hassle involved.
  */
@@ -37,45 +40,27 @@ public final class JCommanderRunner {
         this(jc, parsedCommandName, "");
     }
 
-    private int printCommandError(JCommander jc, String commandName, String message) {
-        jc.getConsole().println(message);
-        jc.getConsole().println("");
-
-        if (commandName != null) {
-            jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " " + commandName + " -h");
-        } else {
-            jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
-        }
-
-        return 1;
-    }
-
     /**
      * Simple helper for extracting DID method parameters in a specification-agnostic fashion.
      *
-     * @param jc                {@code JCommander} object to use to display appropriate message in case of error
-     * @param parsedCommandName name of the existing command to display in case of err
      * @param didLogFile        {@code File} object containing a valid DID log
      * @return a {@code DidLogMeta} object, never {@code null}
      */
-    private DidLogMeta fetchDidLogMeta(JCommander jc,
-                                              String parsedCommandName,
-                                              File didLogFile) {
-        DidLogMeta didLogMeta = null;
+    private DidLogMeta fetchDidLogMeta( File didLogFile) throws CommandException {
+        DidLogMeta didLogMeta;
         try {
             didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:tdw log
         } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
             try {
                 didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:webvh log
             } catch (DidLogMetaPeekerException | IOException exc1) { // not a did:webvh log
-                printCommandError(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
+                throw new CommandException("The supplied file contains unsupported DID log format: " + didLogFile.getName(), exc1); // NOPMD PreserveStackTrace: false positive
             }
         } catch (IOException exc) { // not a did:tdw log
-            printCommandError(jc, parsedCommandName, "The supplied file contains unsupported DID log format: " + didLogFile.getName());
+            throw new CommandException("The supplied file contains unsupported DID log format: " + didLogFile.getName(), exc);
         }
 
-        if (didLogMeta == null ||
-                didLogMeta.getParams() == null ||
+        if (didLogMeta.getParams() == null ||
                 didLogMeta.getParams().getDidMethodEnum() == null) {
             throw new IllegalArgumentException("Incomplete metadata");
         }
@@ -97,12 +82,11 @@ public final class JCommanderRunner {
         }
     }
 
-    @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.NPathComplexity"})
-    int runCreateDidLogCommand(CreateDidLogCommand command) throws IOException, VcDataIntegrityCryptographicSuiteException,
-            DidLogCreatorStrategyException, NextKeyHashesDidMethodParameterException, UpdateKeysDidMethodParameterException, VerificationMethodException {
+    @SuppressWarnings({"PMD.CognitiveComplexity"})
+    void runCreateDidLogCommand(CreateDidLogCommand command) throws VerificationMethodException, DidLogCreatorStrategyException, IOException, VcDataIntegrityCryptographicSuiteException, CommandException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException {
         if (command.help) {
             jc.usage(parsedCommandName);
-            return 0;
+            return;
         }
 
         var identifierRegistryUrl = command.identifierRegistryUrl;
@@ -145,18 +129,12 @@ public final class JCommanderRunner {
 
             // avoid generating files, only to overwrite them right after
             if (!command.shouldGenerateNextVerifyingKeyPem) {
-                var result = storeKeysOnDisk(dalekSigner, command.forceOverwrite);
-                if (result != 0) {
-                    return result;
-                }
+                storeKeysOnDisk(dalekSigner, command.forceOverwrite);
             }
         }
 
         if (command.shouldGenerateNextVerifyingKeyPem) {
-            var result = generateAndSaveNewKey(command.forceOverwrite, command.nextVerifyingKeyPemFiles);
-            if (result != 0) {
-                return result;
-            }
+            generateAndSaveNewKey(command.forceOverwrite, command.nextVerifyingKeyPemFiles);
         }
 
         var verifyingKeyPemFiles = command.verifyingKeyPemFiles;
@@ -174,21 +152,18 @@ public final class JCommanderRunner {
                 .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeyPemFiles))
                 .build()
                 .create(identifierRegistryUrl));
-        return 0;
     }
 
-    int runUpdateDidLogCommand(UpdateDidLogCommand command)
-            throws IOException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            DidLogUpdaterStrategyException, NextKeyHashesDidMethodParameterException,
-            UpdateKeysDidMethodParameterException, VerificationMethodException, DidLogCreatorStrategyException {
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.NPathComplexity"})
+    void runUpdateDidLogCommand(UpdateDidLogCommand command) throws CommandException, VerificationMethodException, IOException, DidLogCreatorStrategyException, VcDataIntegrityCryptographicSuiteException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, DidLogUpdaterStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
-            return 0;
+            return;
         }
 
         var didLogFile = command.didLogFile;
 
-        var didLogMeta = fetchDidLogMeta(jc, parsedCommandName, didLogFile);
+        var didLogMeta = fetchDidLogMeta(didLogFile);
 
         // CAUTION At this point, it should be all in place to update to be able to update the supplied DID log
 
@@ -209,22 +184,18 @@ public final class JCommanderRunner {
         }
 
         if (authentications.isEmpty() && assertionMethods.isEmpty()) {
-            return printCommandError(jc, parsedCommandName, "No update will take place as no verification material is supplied whatsoever");
+            throw new CommandException("No update will take place as no verification material is supplied whatsoever");
         }
 
         if (command.shouldGenerateNextVerifyingKeyPem || command.shouldGenerateVerifyingKeyPem) {
             if (command.shouldGenerateNextVerifyingKeyPem && command.shouldGenerateVerifyingKeyPem) {
-                throw new ParameterException("not allowed to use the two flags"); // TODO@MP improve error message
+                throw new ParameterException("Not allowed to use the both flags ('%s', '%s' together".formatted(PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY, PARAM_NAME_LONG_GENERATE_NEXT_VERIFYING_KEY));
             }
 
-            int result;
             if (command.shouldGenerateNextVerifyingKeyPem) {
-                result = generateAndSaveNewKey(command.forceOverwrite, command.nextVerifyingKeyPemFiles);
+                generateAndSaveNewKey(command.forceOverwrite, command.nextVerifyingKeyPemFiles);
             } else {
-                result = generateAndSaveNewKey(command.forceOverwrite, command.verifyingKeyPemFiles);
-            }
-            if (result != 0) {
-                return result;
+                generateAndSaveNewKey(command.forceOverwrite, command.verifyingKeyPemFiles);
             }
         }
 
@@ -233,11 +204,11 @@ public final class JCommanderRunner {
 
         VcDataIntegrityCryptographicSuite cryptoSuite = getCryptoGraphicSuite(command);
         if (cryptoSuite == null) {
-            return printCommandError(jc, parsedCommandName, "Incomplete source of the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
+            throw new CommandException("Incomplete source of the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys");
         }
 
         if (didLogMeta.isKeyPreRotationActivated() && !didLogMeta.isPreRotatedUpdateKey(cryptoSuite.getVerificationKeyMultibase())) {
-            return printCommandError(jc, parsedCommandName, "Illegal signing (private) ed25519 key supplied");
+            throw new CommandException("Illegal signing (private) ed25519 key supplied");
         }
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
@@ -254,23 +225,20 @@ public final class JCommanderRunner {
                         .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextVerifyingKeyPemFiles))
                         .build()
                         .update(didLogFile));
-        return 0;
     }
 
-    int runDeactivateDidLogCommand(DeactivateDidLogCommand command)
-            throws IOException, VcDataIntegrityCryptographicSuiteException, KeyStoreException,
-            DidLogDeactivatorStrategyException {
+    void runDeactivateDidLogCommand(DeactivateDidLogCommand command) throws CommandException, VcDataIntegrityCryptographicSuiteException, IOException, DidLogDeactivatorStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
-            return 0;
+            return;
         }
 
         var didLogFile = command.didLogFile;
-        var didLogMeta = fetchDidLogMeta(jc, parsedCommandName, didLogFile);
+        var didLogMeta = fetchDidLogMeta(didLogFile);
 
         VcDataIntegrityCryptographicSuite cryptoSuite = getCryptoGraphicSuite(command);
         if (cryptoSuite == null) {
-            return printCommandError(jc, parsedCommandName, "No valid source of signing/verifying ed25519 keys supplied. Use one of the relevant options to supply keys");
+            throw new CommandException("No valid source of signing/verifying ed25519 keys supplied. Use one of the relevant options to supply keys");
         }
 
         // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
@@ -281,14 +249,12 @@ public final class JCommanderRunner {
                         .cryptographicSuite(cryptoSuite)
                         .build()
                         .deactivate(didLogFile));
-        return 0;
     }
 
-    int runPoPCreateCommand(CreateProofOfPossessionCommand command)
-            throws IOException, ProofOfPossessionCreatorException {
+    void runPoPCreateCommand(CreateProofOfPossessionCommand command) throws IOException, ProofOfPossessionCreatorException, CommandException {
         if (command.help) {
             jc.usage(parsedCommandName);
-            return 0;
+            return;
         }
 
         // Duration after which the JWT expires
@@ -308,17 +274,16 @@ public final class JCommanderRunner {
             var verifier = new ProofOfPossessionVerifier(didLog);
             verifier.verify(proof, nonce);
         } catch (ProofOfPossessionVerifierException e) {
-            return printCommandError(jc, parsedCommandName, "Failed to verify generated proof: %s".formatted(e.getLocalizedMessage()));
+            throw new CommandException("Failed to verify generated proof: %s".formatted(e.getLocalizedMessage()), e);
         }
 
         jc.getConsole().println(proof.serialize());
-        return 0;
     }
 
-    int runPoPVerifyCommand(VerifyProofOfPossessionCommand command) throws IOException {
+    void runPoPVerifyCommand(VerifyProofOfPossessionCommand command) throws IOException, CommandException {
         if (command.help) {
             jc.usage(parsedCommandName);
-            return 0;
+            return;
         }
 
         var didLogFile = command.didLogFile;
@@ -332,9 +297,8 @@ public final class JCommanderRunner {
                     .verify(jwt, nonce);
             jc.getConsole().println("Provided JWT is valid.");
         } catch (ProofOfPossessionVerifierException e) {
-            return printCommandError(jc, parsedCommandName, "Provided JWT is invalid: " + e.getLocalizedMessage());
+            throw new CommandException("Provided JWT is invalid: " + e.getLocalizedMessage(), e);
         }
-        return 0;
     }
 
     /**
@@ -369,17 +333,11 @@ public final class JCommanderRunner {
      * @return
      * @throws FileAlreadyExistsException if it fails to create or overwrite the file
      */
-    public int generateAndSaveNewKey(boolean forceOverwrite, Set<File> target) throws FileAlreadyExistsException, DidLogCreatorStrategyException {
+    void generateAndSaveNewKey(boolean forceOverwrite, Set<File> target) throws DidLogCreatorStrategyException, FileAlreadyExistsException, CommandException {
         createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
         var dalekSigner = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        var result = storeKeysOnDisk(dalekSigner, forceOverwrite);
-        if (result != 0) {
-            return result;
-        }
-
+        storeKeysOnDisk(dalekSigner, forceOverwrite);
         target.add(getPublicKeyFile());
-
-        return 0;
     }
 
     /**
@@ -390,7 +348,8 @@ public final class JCommanderRunner {
      * @return the result code, 1 if something went wrong
      * @throws FileAlreadyExistsException
      */
-    public int storeKeysOnDisk(EdDsaJcs2022VcDataIntegrityCryptographicSuite cryptoSuite, boolean forceOverwrite) throws FileAlreadyExistsException {
+    @SuppressWarnings("PMD.CognitiveComplexity")
+    void storeKeysOnDisk(EdDsaJcs2022VcDataIntegrityCryptographicSuite cryptoSuite, boolean forceOverwrite) throws CommandException, FileAlreadyExistsException {
         var outputDir = getOutputDir();
         if (!outputDir.exists() || forceOverwrite) {
             try {
@@ -401,15 +360,15 @@ public final class JCommanderRunner {
                 }
                 // ignore otherwise
             } catch (AccessDeniedException ex) {
-                return printCommandError(jc, parsedCommandName, "Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage());
+                throw new CommandException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage(), ex);
             } catch (Throwable thr) {
-                return printCommandError(jc, parsedCommandName, "Failed to (re)create " + outputDir.getPath() + " directory due to: " + thr.getMessage());
+                throw new CommandException("Failed to (re)create " + outputDir.getPath() + " directory due to: " + thr.getMessage(), thr);
             }
         }
 
         var privateKeyFile = getPrivateKeyFile();
         if (privateKeyFile.exists() && !forceOverwrite) {
-            return printCommandError(jc, parsedCommandName, "The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
+            throw new CommandException("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + privateKeyFile.getPath());
         }
 
         try {
@@ -423,19 +382,17 @@ public final class JCommanderRunner {
             }
             throw ex;
         } catch (AccessDeniedException ex) {
-            return printCommandError(jc, parsedCommandName, "Access denied to private key PEM file " + privateKeyFile.getPath() + " due to: " + ex.getMessage());
+            throw new CommandException("Access denied to private key PEM file " + privateKeyFile.getPath() + " due to: " + ex.getMessage(), ex);
         } catch (Throwable thr) {
-            return printCommandError(jc, parsedCommandName, "The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath());
+            throw new CommandException("The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath(), thr);
         }
 
         try {
             cryptoSuite.writePkcs8PemFile(privateKeyFile.toPath());
             cryptoSuite.writePublicKeyPemFile(getPublicKeyFile().toPath());
         } catch (VcDataIntegrityCryptographicSuiteException ex) {
-            return printCommandError(jc, parsedCommandName, "Failed to persist PEM file(s) due to: " + ex.getMessage());
+            throw new CommandException("Failed to persist PEM file(s) due to: " + ex.getMessage(), ex);
         }
-
-        return 0;
     }
 
     // add base path to constructor or something, ta make it easier for tests.
@@ -449,5 +406,16 @@ public final class JCommanderRunner {
 
     private File getPublicKeyFile() {
         return new File(getOutputDir(), "id_ed25519.pub");
+    }
+
+    @SuppressWarnings("PMD.MissingSerialVersionUID")
+    public class CommandException extends Exception {
+        CommandException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        CommandException(String message) {
+            super(message);
+        }
     }
 }

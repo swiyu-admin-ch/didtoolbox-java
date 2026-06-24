@@ -20,7 +20,6 @@ import java.net.URL;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,6 +35,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     private final JCommander.Builder jCommanderBuilder = JCommander.newBuilder().console(new Console() {
         @Override
         public void print(CharSequence charSequence) {
+            // empty as it's not used
         }
 
         @Override
@@ -193,7 +193,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         command.jksAlias = "myalias"; // must match one the pre-rotation key(s) set by the initial entry
         // REMINDER Setting command.verifyingKeyPemFiles is optional, but the value MUST match one of the pre-rotation key(s) set by the initial entry
 
-        assertDoesNotThrow(() -> {
+        assertThrowsExactly(JCommanderRunner.CommandException.class, () -> {
             setKeyMaterial(command); // essential
 
             new JCommanderRunner(jCommanderBuilder
@@ -203,7 +203,8 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
             ).runUpdateDidLogCommand(command); // MUT
         });
 
-        assertFalse(output.isEmpty());
+        // Expect no output, as command failed
+        assertTrue(output.isEmpty());
     }
 
     @Test
@@ -306,7 +307,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         // Try to create new directory
         var newKeys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
         // Returns 1 when something went wrong (files already exists in this case)
-        assertEquals(1, runner.storeKeysOnDisk(newKeys, false));
+        assertThrowsExactly(JCommanderRunner.CommandException.class, () -> runner.storeKeysOnDisk(newKeys, false));
 
         var privateKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
@@ -320,7 +321,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
         var keys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
         var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
-        assertEquals(0, runner.storeKeysOnDisk(keys, true));
+        assertDoesNotThrow(() ->runner.storeKeysOnDisk(keys, true));
 
         var privateKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
@@ -340,7 +341,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         // Try to create new directory
         var newKeys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
         // Returns 1 when something went wrong (files already exists in this case)
-        assertEquals(0, runner.storeKeysOnDisk(newKeys, true));
+        assertDoesNotThrow(() -> runner.storeKeysOnDisk(newKeys, true));
 
         var privateKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
@@ -355,9 +356,9 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
         Set<File> keys = new HashSet<>();
         assertDoesNotThrow(() -> runner.generateAndSaveNewKey(false, keys));
-        assertTrue(keys.size() == 1);
+        assertEquals(1, keys.size());
 
-        keys.stream().forEach(file -> {
+        keys.forEach(file -> {
             assertTrue(file.exists());
         });
     }
@@ -373,16 +374,16 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> runner.storeKeysOnDisk(oldKeys, false));
 
         Set<File> keys = new HashSet<>();
-        assertEquals(1, runner.generateAndSaveNewKey(false, keys));
-        assertTrue(keys.size() == 0);
+        assertThrowsExactly(JCommanderRunner.CommandException.class, () ->runner.generateAndSaveNewKey(false, keys));
+        assertEquals(0, keys.size());
 
-        keys.stream().forEach(file -> {
+        keys.forEach(file -> {
             assertTrue(file.exists());
         });
     }
 
     @Test
-    void generateAndSaveNewKey_withOverwrite_success(@TempDir Path tmpDir) throws FileAlreadyExistsException, DidLogCreatorStrategyException, VcDataIntegrityCryptographicSuiteException {
+    void generateAndSaveNewKey_withOverwrite_success(@TempDir Path tmpDir) throws Exception {
         // Check that .didtoolbox doesn't exist yet
         assertFalse(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
@@ -392,10 +393,10 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         assertDoesNotThrow(() -> runner.storeKeysOnDisk(oldKeys, false));
 
         Set<File> keys = new HashSet<>();
-        assertEquals(0, runner.generateAndSaveNewKey(true, keys));
-        assertTrue(keys.size() == 1);
+        assertDoesNotThrow(() ->runner.generateAndSaveNewKey(true, keys));
+        assertEquals(1, keys.size());
 
-        keys.stream().forEach(file -> {
+        keys.forEach(file -> {
             assertTrue(file.exists());
         });
 

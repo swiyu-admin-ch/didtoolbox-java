@@ -38,9 +38,8 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
             variableArity = true)
     public Set<File> nextVerifyingKeyPemFiles = new HashSet<>();
 
-    // TODO@MP improve documentation
     @Parameter(names = {PARAM_NAME_LONG_GENERATE_NEXT_VERIFYING_KEY, PARAM_NAME_SHORT_GENERATE_NEXT_VERIFYING_KEY},
-            description = "Generates a new ed25519 key pair to be used as the next signing key. The generated key pair is stored in the `.didtoolbox`. CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot be used together with the generate verifying key next flag ('-gv')")
+            description = "Generates a new ed25519 key pair to be used as the next signing key. The generated key pair is stored in the `.didtoolbox` directory. CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot be used together with the generate verifying key next flag ('-gv')")
     public boolean shouldGenerateNextVerifyingKeyPem;
 
     @Parameter(names = {PARAM_NAME_LONG_ASSERTION_METHOD_KEYS, PARAM_NAME_SHORT_ASSERTION_METHOD_KEYS},
