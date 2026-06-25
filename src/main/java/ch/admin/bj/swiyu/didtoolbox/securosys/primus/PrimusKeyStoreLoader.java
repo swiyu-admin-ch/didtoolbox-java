@@ -4,10 +4,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
+        import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.*;
-import java.security.cert.CertificateException;
+        import java.security.cert.CertificateException;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -21,12 +21,11 @@ import java.util.Properties;
  * <code>com.securosys.primus.jce.PrimusProvider</code>.
  */
 public class PrimusKeyStoreLoader {
-
-    final public static String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
-    final private static String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
-    final private static String PROVIDER_NAME_GETTER = "getProviderName";
+    public static final String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
+    private static final String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
+    private static final String PROVIDER_NAME_GETTER = "getProviderName";
     @Getter(AccessLevel.PACKAGE)
-    final private KeyStore keyStore;
+    private final KeyStore keyStore;
 
     /**
      * The empty constructor.
@@ -78,25 +77,25 @@ public class PrimusKeyStoreLoader {
      * @throws NoSuchAlgorithmException
      * @throws PrimusKeyStoreInitializationException
      */
-    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     public PrimusKeyStoreLoader(File credentials)
             throws CertificateException, IOException, NoSuchAlgorithmException, PrimusKeyStoreInitializationException {
-        this();
 
-        var host = System.getenv(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.name());
+        this();
 
         Properties props = null;
         if (credentials != null) {
             props = new Properties();
             props.load(Files.newInputStream(credentials.toPath()));
-            if (host != null) {
-                host = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.toProperty());
-            }
         }
 
+        var host = System.getenv(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.name());
+        if (host == null && props != null) {
+            host = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.toProperty());
+        }
         if (host == null) {
             throw new IOException("Securosys Primus HSM host cannot be resolved. "
-                    + "You may supply it either via property file or by setting the relevant system environment variable: "
+                    + "You may supply it either via property file or by setting the relevant system environment variable: " // NOPMD
                     + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.name());
         }
 
@@ -104,18 +103,18 @@ public class PrimusKeyStoreLoader {
         if (portAsString == null && props != null) {
             portAsString = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.toProperty());
         }
-
-        int port;
+        var port = -1;
         try {
-            if (portAsString == null) {
-                throw new IOException("Securosys Primus HSM port cannot be resolved. "
-                        + "You may supply it either via property file or by setting the relevant system environment variable: "
-                        + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.name());
+            if (portAsString != null) {
+                port = Short.parseShort(portAsString);
             }
-
-            port = Short.parseShort(portAsString);
         } catch (NumberFormatException ignored) {
             throw new IOException("Securosys Primus HSM port is invalid.");
+        }
+        if (port < 0) {
+            throw new IOException("Securosys Primus HSM port cannot be resolved. "
+                    + "You may supply it either via property file or by setting the relevant system environment variable: "
+                    + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.name());
         }
 
         var user = System.getenv(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_USER.name());

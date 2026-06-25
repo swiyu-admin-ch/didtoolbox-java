@@ -1,13 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.*;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameterException;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameterException;
-import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethodException;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.UnixStyleUsageFormatter;
