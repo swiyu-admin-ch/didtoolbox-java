@@ -419,7 +419,7 @@ public final class JCommanderRunner {
     }
 
     @SuppressWarnings("PMD.MissingSerialVersionUID")
-    public class CommandException extends Exception {
+    public static class CommandException extends Exception {
         CommandException(String message, Throwable cause) {
             super(message, cause);
         }
