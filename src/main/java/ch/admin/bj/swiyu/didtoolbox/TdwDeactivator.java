@@ -48,6 +48,20 @@ import java.time.temporal.ChronoUnit;
 @Builder
 public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
+    @Deprecated(since = "2.1.0")
+    public static TdwDeactivatorBuilder builder() {
+        return new TdwDeactivatorBuilder();
+    }
+
+    /**
+     * Constructs a builder for deactivating did tdw logs with the provided crypto Suite
+     * @param suite used to create the log entry signature
+     * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
+     */
+    public static TdwDeactivatorBuilder builder(VcDataIntegrityCryptographicSuite suite) {
+        return new TdwDeactivatorBuilder().cryptographicSuite(suite);
+    }
+
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},
      * but gets no precedence over it (if both called against the same object).

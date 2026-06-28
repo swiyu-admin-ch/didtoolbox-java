@@ -65,6 +65,20 @@ import java.util.stream.Collectors;
 @Getter
 public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
 
+    @Deprecated(since = "2.1.0")
+    public static WebVerifiableHistoryCreatorBuilder builder() {
+        return new WebVerifiableHistoryCreatorBuilder();
+    }
+
+    /**
+     * Constructs a builder for creating did webvh logs with the provided crypto Suite
+     * @param suite used to create the log entry signature
+     * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
+     */
+    public static WebVerifiableHistoryCreatorBuilder builder(VcDataIntegrityCryptographicSuite suite) {
+        return new WebVerifiableHistoryCreatorBuilder().cryptographicSuite(suite);
+    }
+
     /**
      * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
      * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>

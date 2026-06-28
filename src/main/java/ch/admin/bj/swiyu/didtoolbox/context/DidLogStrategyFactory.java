@@ -24,8 +24,7 @@ final class DidLogStrategyFactory {
                     throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
                 }
 
-                return TdwCreator.builder()
-                        .cryptographicSuite(ctx.getCryptoSuite())
+                return TdwCreator.builder(ctx.getCryptoSuite())
                         .assertionMethods(ctx.allAssertionMethods())
                         .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
@@ -34,8 +33,7 @@ final class DidLogStrategyFactory {
                         .build();
             }
             case WEBVH_1_0 -> {
-                return WebVerifiableHistoryCreator.builder()
-                        .cryptographicSuite(ctx.getCryptoSuite())
+                return WebVerifiableHistoryCreator.builder(ctx.getCryptoSuite())
                         .assertionMethods(ctx.allAssertionMethods())
                         .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
@@ -58,8 +56,7 @@ final class DidLogStrategyFactory {
                     throw new IllegalArgumentException(String.format("The key pre-rotation is currently not supported for %s DID logs", ctx.getDidMethod()));
                 }
 
-                return TdwUpdater.builder()
-                        .cryptographicSuite(ctx.getCryptoSuite())
+                return TdwUpdater.builder(ctx.getCryptoSuite())
                         .assertionMethods(ctx.allAssertionMethods())
                         .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
@@ -70,8 +67,7 @@ final class DidLogStrategyFactory {
                         .build();
             }
             case WEBVH_1_0 -> {
-                return WebVerifiableHistoryUpdater.builder()
-                        .cryptographicSuite(ctx.getCryptoSuite())
+                return WebVerifiableHistoryUpdater.builder(ctx.getCryptoSuite())
                         .assertionMethods(ctx.allAssertionMethods())
                         .authentications(ctx.allAuthentications())
                         // Using alternative and more potent method to supply the parameter.
@@ -89,13 +85,11 @@ final class DidLogStrategyFactory {
     static DidLogDeactivatorStrategy getDeactivatorStrategy(DidLogDeactivatorContext ctx) {
         switch (ctx.getDidMethod()) {
             case TDW_0_3 -> {
-                return TdwDeactivator.builder()
-                        .cryptographicSuite(ctx.getCryptoSuite())
+                return TdwDeactivator.builder(ctx.getCryptoSuite())
                         .build();
             }
             case WEBVH_1_0 -> {
-                return WebVerifiableHistoryDeactivator.builder()
-                        .cryptographicSuite(ctx.getCryptoSuite())
+                return WebVerifiableHistoryDeactivator.builder(ctx.getCryptoSuite())
                         .build();
             }
             default -> throw new IllegalArgumentException("The supplied DID log features an unsupported DID method");

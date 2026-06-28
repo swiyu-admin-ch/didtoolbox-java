@@ -63,8 +63,8 @@ import java.util.Set;
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
  *
  *             // Using already existing key material
- *             didLogEntryWithExternalKeys = DidLogCreatorContext.builder()
- *                 .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem")))
+ *             didLogEntryWithExternalKeys = DidLogCreatorContext.builder(
+ *                     new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem")))
  *                 .assertionMethods(Set.of(VerificationMethod.of(
  *                     "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
  *                 )))
@@ -87,6 +87,20 @@ import java.util.Set;
 @Builder
 @Getter
 public class DidLogCreatorContext {
+
+    @Deprecated(since = "2.1.0")
+    public static DidLogCreatorContextBuilder builder() {
+        return new DidLogCreatorContextBuilder();
+    }
+
+    /**
+     * Constructs a builder for creating did logs with the provided crypto Suite
+     * @param cryptoSuite used to create the log entry signature
+     * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
+     */
+    public static DidLogCreatorContextBuilder builder(DidMethodEnum method, VcDataIntegrityCryptographicSuite cryptoSuite) {
+        return new DidLogCreatorContextBuilder().didMethod(method).cryptographicSuite(cryptoSuite);
+    }
 
     /**
      * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
