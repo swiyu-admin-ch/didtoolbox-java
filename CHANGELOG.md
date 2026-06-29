@@ -3,12 +3,12 @@
 ## Next
 
 ### Added
-- Proof of Possession generation support for signing key inside Primus Cluster
-- Can generate new update and next keys when creating and updating a did log.
+- Proof of Possessions can be signed with keys from Primus Cluster
+- Generation of new update keys with and without prerotation when updating a did log
 
 ### Changed
-- No longer allows updating the keys in a did log to current keys.
-- Next key hashes can no longer be current keys.
+- New update keys must not be active update keys
+- Next key hashes must not match a current update key
 
 ### Fixed
 
