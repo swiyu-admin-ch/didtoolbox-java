@@ -87,6 +87,11 @@ Usage: didtoolbox [options] [command] [command options]
           --force-overwrite, -f
             Overwrite existing PEM key files, if any
             Default: false
+          --generate-next-verifying-key, -gw
+            Generates a new ed25519 key pair to be used as the next signing key. The generated key pair is stored in the `.didtoolbox` directory. 
+            CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot be used together with the generate 
+            verifying key next flag ('-gv')
+            Default: false
           --help, -h
             Display help for the DID toolbox command
         * --identifier-registry-url, -u
@@ -122,9 +127,11 @@ Usage: didtoolbox [options] [command] [command options]
             conjunction with any of --jks-* or --primus-* CLI parameters
           --verifying-key-files, -v
             One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
+            Default: []
           --verifying-key-files-next, -w
             One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key 
             pre-rotation'. Analogously, deactivating 'key pre-rotation' goes simply by omitting this option altogether
+            Default: []
 
     update      Update a DID log by replacing the existing verification material in DID document. To supply a signing/verifying key pair, always rely 
             on one of the three available command parameter sets exclusively, each of then denoting a whole another source of such key material: PEM 
@@ -143,6 +150,19 @@ Usage: didtoolbox [options] [command] [command options]
             P-256 public/verifying key
         * --did-log-file, -d
             The file containing a valid DID log to update
+          --force-overwrite, -f
+            Overwrite existing PEM key files, if any
+            Default: false
+          --generate-new-verifying-key, -gv
+            Requires the signing key pem file flag (-s). Generates a new ed25519 key pair to be used as 'pre-rotation' key. The generated key pair is 
+            stored in the `.didtoolbox` directory. CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot 
+            be used together with the generate update key next flag ('-gw)
+            Default: false
+          --generate-next-verifying-key, -gw
+            Generates a new ed25519 key pair to be used as the next signing key. The generated key pair is stored in the `.didtoolbox` directory. 
+            CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot be used together with the generate 
+            verifying key next flag ('-gv')
+            Default: false
           --help, -h
             Display help for the DID toolbox command
           --jks-alias
@@ -171,9 +191,11 @@ Usage: didtoolbox [options] [command] [command options]
             conjunction with any of --jks-* or --primus-* CLI parameters
           --verifying-key-files, -v
             One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
+            Default: []
           --verifying-key-files-next, -w
             One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key 
             pre-rotation'. Analogously, deactivating 'key pre-rotation' goes simply by omitting this option altogether
+            Default: []
 
     deactivate      Deactivate (revoke) a DID log. To supply a signing/verifying key pair, always rely on one of the three available command 
             parameter sets exclusively, each of then denoting a whole another source of such key material: PEM files, a Java KeyStore (PKCS12) or a 
@@ -218,13 +240,13 @@ Usage: didtoolbox [options] [command] [command options]
 
         Options:
         * --did-log-file, -d
-            The file containing a valid DID log to update
+            The file containing the kid used to sign the proof.
           --help, -h
             Display help for the DID toolbox command
         * --kid, -k
             KID of the key within the DID log to use.
         * --nonce, -n
-            Possession which will be proven by the JWT
+            Possession which will be proven by the JWT.
           --primus-credentials, -p
             A safely stored credentials file required when using private keys available in the Securosys Primus (HSM) Keystore. It should feature a 
             quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and securosys_primus_password. 
@@ -252,7 +274,7 @@ Usage: didtoolbox [options] [command] [command options]
             JWT to be verified
         * --nonce, -n
             Text representation of the possession to be included in the proof
-
+            
 $ java -jar didtoolbox.jar -V
 
 didtoolbox 2.1.0

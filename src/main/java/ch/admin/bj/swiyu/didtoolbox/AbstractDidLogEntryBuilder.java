@@ -298,10 +298,12 @@ public abstract class AbstractDidLogEntryBuilder {
     }
 
     protected boolean isVerificationMethodKeyProviderLegal(VerificationMethodKeyProvider verificationMethodKeyProvider) {
+        // Update keys must only match during key pre-rotation.
+        // Otherwise will take effect in the next update.
         if (this.didLogMeta.isKeyPreRotationActivated()) {
             return this.didLogMeta.isPreRotatedUpdateKey(verificationMethodKeyProvider.getVerificationKeyMultibase());
-        } else {
-            return verificationMethodKeyProvider.isKeyMultibaseInSet(this.didLogMeta.getParams().getUpdateKeys());
         }
+        var updateKeys = this.didLogMeta.getParams().getUpdateKeys();
+        return updateKeys.contains(verificationMethodKeyProvider.getVerificationKeyMultibase());
     }
 }

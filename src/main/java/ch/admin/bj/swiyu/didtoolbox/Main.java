@@ -7,6 +7,9 @@ import com.beust.jcommander.UnixStyleUsageFormatter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+
 public class Main {
     private final Console console;
 
@@ -84,7 +87,7 @@ public class Main {
 
         var commandRunner = new JCommanderRunner(jc, parsedCommandName);
         try {
-            return switch (parsedCommandName) {
+            switch (parsedCommandName) {
                 case CreateDidLogCommand.COMMAND_NAME -> commandRunner.runCreateDidLogCommand(createDidLogCommand);
                 case UpdateDidLogCommand.COMMAND_NAME -> commandRunner.runUpdateDidLogCommand(updateDidLogCommand);
                 case DeactivateDidLogCommand.COMMAND_NAME ->
@@ -95,8 +98,9 @@ public class Main {
                         commandRunner.runPoPVerifyCommand(verifyProofOfPossessionCommand);
                 default -> printCommandError(jc, null, "Invalid command: " + parsedCommandName);
             };
-        } catch (Exception e) { // NOPMD: catch for all exceptions to print an error message.
-            return printCommandError(jc, parsedCommandName, "Running command '" + parsedCommandName + "' failed due to: " + e.getLocalizedMessage());
+            return 0;
+        } catch (Exception e) { // NOPMD AvoidCatchingGenericException: catch generic exception to always print proper error message
+            return printCommandError(jc, parsedCommandName, "Failed to run '" + parsedCommandName + "' command due to: " + e.getLocalizedMessage());
         }
     }
 

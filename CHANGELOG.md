@@ -3,8 +3,12 @@
 ## Next
 
 ### Added
+- Proof of Possession generation support for signing key inside Primus Cluster
+- Can generate new update and next keys when creating and updating a did log.
 
 ### Changed
+- No longer allows updating the keys in a did log to current keys.
+- Next key hashes can no longer be current keys.
 
 ### Fixed
 
@@ -18,7 +22,7 @@
 
 ### Fixed
 - Removed unsupported algorithm from proof of possession whitelist
-- Properly populate prerotation parameters when updating a did log through the CLI
+- Properly populate pre-rotation parameters when updating a did log through the CLI
 - Removed context from updated did logs
 
 ## Older Versions
