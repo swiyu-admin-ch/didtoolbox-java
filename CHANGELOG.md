@@ -3,16 +3,22 @@
 ## Next
 
 ### Added
-- Proof of Possessions can be signed with keys from Primus Cluster
-- Generation of new update keys with and without prerotation when updating a did log
 
 ### Changed
-- New update keys must not be active update keys
-- Next key hashes must not match a current update key
 
 ### Fixed
 
 ### Removed
+
+## 2.2.0 - 2026-05-27
+
+### Added
+- Proof of Possessions can be signed with keys from Primus Cluster
+- Generation of new update keys with and without pre-rotation when updating a did log
+
+### Changed
+- New update keys must not be active update keys
+- Next key hashes must not match a current update key
 
 ## 2.1.0 - 2026-05-27
 
