@@ -1,6 +1,6 @@
 # DID Toolbox changelog
 
-## Next
+## 2.2.0 - 2026-06-29
 
 ### Added
 - Proof of Possessions can be signed with keys from Primus Cluster
@@ -9,10 +9,6 @@
 ### Changed
 - New update keys must not be active update keys
 - Next key hashes must not match a current update key
-
-### Fixed
-
-### Removed
 
 ## 2.1.0 - 2026-05-27
 
