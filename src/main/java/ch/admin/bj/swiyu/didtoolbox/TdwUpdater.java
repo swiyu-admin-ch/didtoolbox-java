@@ -66,6 +66,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
 
     /**
      * Constructs a builder for updating did tdw logs with the provided crypto Suite
+     *
      * @param cryptoSuite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */
@@ -316,7 +317,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      *
      * @deprecated Use {@link #updateDidLog(File)} instead
      */
-    @Deprecated
+    @Deprecated(since = "1.6.0")
     String update(File didLogFile) throws TdwUpdaterException, IOException {
         try {
             return updateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
@@ -346,7 +347,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      *
      * @deprecated Use {@link #updateDidLog(File)} instead
      */
-    @Deprecated
+    @Deprecated(since = "1.6.0")
     String update(String resolvableDidLog, ZonedDateTime zdt) throws TdwUpdaterException {
         try {
             return updateDidLog(resolvableDidLog, zdt);
@@ -528,7 +529,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             //          .validate(didLogEntryWithProof.toString());
             //      would not be necessary here, as it is already part of the `resolve` method.
             // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-            did.resolveAll(new StringBuilder(resolvableDidLog.trim()).append(System.lineSeparator()).append(didLogEntryWithProof).toString()); // sanity check
+            did.resolveAll(resolvableDidLog.trim() + System.lineSeparator() + didLogEntryWithProof); // sanity check
         } catch (DidResolveException e) {
             throw new InvalidDidLogException("Updating the DID log resulted in unresolvable/unverifiable DID log", e);
         }

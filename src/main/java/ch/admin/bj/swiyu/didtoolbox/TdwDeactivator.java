@@ -55,6 +55,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
 
     /**
      * Constructs a builder for deactivating did tdw logs with the provided crypto Suite
+     *
      * @param suite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */

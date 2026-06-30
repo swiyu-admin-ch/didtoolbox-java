@@ -72,6 +72,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
 
     /**
      * Constructs a builder for creating did webvh logs with the provided crypto Suite
+     *
      * @param suite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */

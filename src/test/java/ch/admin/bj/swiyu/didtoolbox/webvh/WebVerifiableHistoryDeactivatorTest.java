@@ -65,8 +65,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
     void testDeactivateThrowsDeactivationKeyMismatchWebVerifiableHistoryDeactivatorException() {
 
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            WebVerifiableHistoryDeactivator.builder()
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite()) // any suite other than TEST_CRYPTO_SUITE
+            WebVerifiableHistoryDeactivator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())// any suite other than TEST_CRYPTO_SUITE
                     .build()
                     .deactivateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE)); // MUT
         });
@@ -77,8 +76,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
     void testDeactivateThrowsDateTimeInThePastWebVerifiableHistoryDeactivatorException() {
 
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            WebVerifiableHistoryDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
+            WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE_JKS)
                     .build()
                     .deactivateDidLog( // MUT
                             buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS),
@@ -97,8 +95,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(WebVerifiableHistoryDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another suite
+            nextLogEntry.set(WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE_JKS)// using a whole another suite
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -132,21 +129,19 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(WebVerifiableHistoryDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            nextLogEntry.set(WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
                     .deactivateDidLog(didLogToDeactivate.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
-        var didLogDeactivated = new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString();
+        var didLogDeactivated = initialDidLogEntry + System.lineSeparator() + nextLogEntry.get();
         assertDeactivatedDidLogEntry(nextLogEntry.get(), didLogDeactivated);
 
         // Try updating the DID log
         var updaterExc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            WebVerifiableHistoryUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE)
                     .build()
                     .updateDidLog(didLogDeactivated,
                             // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -166,8 +161,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(WebVerifiableHistoryDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            nextLogEntry.set(WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -180,8 +174,7 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
 
         // trying to deactivate it again should fail
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            nextLogEntry.set(WebVerifiableHistoryDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            nextLogEntry.set(WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -200,8 +193,8 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
         StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            WebVerifiableHistoryDeactivator.builder()
-                    // IMPORTANT A .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied) to provoke the exception
+            // IMPORTANT provide null as crypto suite intentionally (no cryptographic suite supplied) to provoke the exception
+            WebVerifiableHistoryDeactivator.builder(null)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.

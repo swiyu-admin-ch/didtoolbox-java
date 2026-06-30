@@ -1,6 +1,9 @@
 package ch.admin.bj.swiyu.didtoolbox.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.*;
+import ch.admin.bj.swiyu.didtoolbox.AbstractDidLogEntryBuilder;
+import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.context.*;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
@@ -56,6 +59,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
 
     /**
      * Constructs a builder for deactivating did wbevh logs with the provided crypto Suite
+     *
      * @param suite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */

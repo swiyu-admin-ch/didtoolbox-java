@@ -61,9 +61,8 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
     void testDeactivateThrowsDeactivationKeyMismatchDidLogDeactivatorStrategyException() {
 
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            TdwDeactivator.builder()
-                    // IMPORTANT Use any suite other than TEST_CRYPTO_SUITE (to provoke the exception)
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            // IMPORTANT Use any suite other than TEST_CRYPTO_SUITE (to provoke the exception)
+            TdwDeactivator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .deactivateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE)); // MUT
         });
@@ -74,8 +73,7 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
     void testDeactivateThrowsDateTimeInThePastDidLogDeactivatorStrategyException() {
 
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            TdwDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
+            TdwDeactivator.builder(TEST_CRYPTO_SUITE_JKS)
                     .build()
                     .deactivateDidLog( // MUT
                             buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS),
@@ -94,8 +92,7 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(TdwDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another suite
+            nextLogEntry.set(TdwDeactivator.builder(TEST_CRYPTO_SUITE_JKS) // using a whole another suite
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -127,21 +124,19 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(TdwDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            nextLogEntry.set(TdwDeactivator.builder(TEST_CRYPTO_SUITE)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
                     .deactivateDidLog(didLogToDeactivate.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
-        var didLogDeactivated = new StringBuilder(initialDidLogEntry).append(System.lineSeparator()).append(nextLogEntry.get()).toString();
+        var didLogDeactivated = initialDidLogEntry + System.lineSeparator() + nextLogEntry.get();
         assertDeactivatedDidLogEntry(nextLogEntry.get(), didLogDeactivated);
 
         // Try updating the DID log
         var updaterExc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            TdwUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            TdwUpdater.builder(TEST_CRYPTO_SUITE)
                     .build()
                     .updateDidLog(didLogDeactivated,
                             // The versionTime for each log entry MUST be greater than the previous entry’s time.
@@ -161,8 +156,7 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
 
         AtomicReference<String> nextLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(TdwDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            nextLogEntry.set(TdwDeactivator.builder(TEST_CRYPTO_SUITE)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -175,8 +169,7 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
 
         // trying to deactivate it again should fail
         var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () -> {
-            nextLogEntry.set(TdwDeactivator.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            nextLogEntry.set(TdwDeactivator.builder(TEST_CRYPTO_SUITE)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
@@ -195,8 +188,8 @@ class TdwDeactivatorTest extends AbstractUtilTestBase {
         StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            TdwDeactivator.builder()
-                    // IMPORTANT .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied) to provoke the exception
+            // IMPORTANT provide null as crypto suite intentionally (no cryptographic suite supplied) to provoke the exception
+            TdwDeactivator.builder(null)
                     .build()
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.

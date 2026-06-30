@@ -78,17 +78,15 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
     void testUpdateDidLogThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
-            WebVerifiableHistoryUpdater.builder()
-                    // anything but TEST_CRYPTO_SUITE
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            // anything but TEST_CRYPTO_SUITE
+            WebVerifiableHistoryUpdater.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .updateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            WebVerifiableHistoryUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using a whole another verification key provider
+            WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE)// using a whole another verification key provider
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public.pem")))) // ...with NO matching key supplied!
                     .build()
                     .updateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
@@ -99,8 +97,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
     @Test
     void testUpdateDidLogThrowsDateTimeInThePastDidLogUpdaterStrategyException() {
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            WebVerifiableHistoryUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
+            WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE_JKS)
                     .build()
                     .updateDidLog( // MUT
                             buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS),
@@ -119,9 +116,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         try {
-            nextLogEntry = WebVerifiableHistoryUpdater.builder()
-                    //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
+            nextLogEntry = WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE_JKS)// using a whole another verification key provider
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     // CAUTION No need for explicit call of method: .updateKeys(Set.of(new File("src/test/data/public.pem")))
@@ -170,11 +165,10 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(WebVerifiableHistoryUpdater.builder()
+            nextLogEntry.set(WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE_JKS)// using a whole another verification key provider
                     // 1st key supplied implicitly via VerificationMethodKeyProvider:
                     //     Given the setup of initialDidLogEntry (see above), either of TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS and
                     //     TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER must work
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     // 2nd updateKey supplied explicitly (from file)
@@ -217,9 +211,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            WebVerifiableHistoryUpdater.builder()
-                    // IMPORTANT Any cryptographic suite delivering keys different from those from the initial entry
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            // IMPORTANT Any cryptographic suite delivering keys different from those from the initial entry
+            WebVerifiableHistoryUpdater.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     .build()
@@ -243,8 +236,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            WebVerifiableHistoryUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_ANOTHER) // using a whole another verification key provider
+            WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE_ANOTHER)// using a whole another verification key provider
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     // IMPORTANT The key does not match TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER thus ILLEGAL
@@ -274,9 +266,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry.get()).append(System.lineSeparator());
 
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(WebVerifiableHistoryUpdater.builder()
-                    // using already available verification method key provider
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
+            // using already available verification method key provider
+            nextLogEntry.set(WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE_JKS)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
@@ -335,8 +326,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                 // Alternate between available key providers
                 var cryptoSuite = cryptoSuites[i % 2];
 
-                var nextLogEntry = WebVerifiableHistoryUpdater.builder()
-                        .cryptographicSuite(cryptoSuite) // different for odd and even entries (key alternation)
+                var nextLogEntry = WebVerifiableHistoryUpdater.builder(cryptoSuite)// different for odd and even entries (key alternation)
                         .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                         // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
@@ -378,8 +368,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             // Update DID log by adding as many entries as there are keys. Keep "rotating" keys while updating
             for (int i = 2; i < TEST_KEY_FILES.length + 1; i++) {
 
-                String nextLogEntry = WebVerifiableHistoryUpdater.builder()
-                        .cryptographicSuite(TEST_CRYPTO_SUITES[i - 2]) // rotate to the key defined by the previous entry
+                String nextLogEntry = WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITES[i - 2])// rotate to the key defined by the previous entry
                         .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                         // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
@@ -421,8 +410,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            WebVerifiableHistoryUpdater.builder()
-                    // IMPORTANT .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
+            // IMPORTANT provide null as crypto suite intentionally (no cryptographic suite supplied)
+            WebVerifiableHistoryUpdater.builder(null)
                     .authentications(TEST_AUTHENTICATIONS)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
@@ -431,8 +420,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
 
         exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            WebVerifiableHistoryUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE)
                     // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
                     .build()
                     .updateDidLog(initialDidLogEntry); // MUT
@@ -445,8 +433,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         var initialDidLog = buildWebVhDidLog(TEST_CRYPTO_SUITE);
 
         var e = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            WebVerifiableHistoryUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE)
                     .authentications(TEST_AUTHENTICATIONS)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .nextKeyHashesDidMethodParameter(Set.of(

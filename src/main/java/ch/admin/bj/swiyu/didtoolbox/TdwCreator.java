@@ -13,7 +13,6 @@ import com.google.gson.JsonParser;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +65,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
 
     /**
      * Constructs a builder for creating did tdw logs with the provided crypto Suite
+     *
      * @param suite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */
