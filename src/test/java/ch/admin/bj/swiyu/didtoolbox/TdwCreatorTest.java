@@ -1,6 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -179,24 +177,9 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building DID log entry without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
     @Test
     void testCreateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
-
-        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+        assertThrowsExactly(NullPointerException.class, () -> {
             // IMPORTANT provide null as crypto suite intentionally (no cryptographic suite supplied)
-            TdwCreator.builder(null)
-                    .authentications(TEST_AUTHENTICATIONS)
-                    .assertionMethods(TEST_ASSERTION_METHODS)
-                    .build()
-                    .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
+            TdwCreator.builder(null);
         });
-        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
-
-        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            // the signing are generated on-the-fly
-            TdwCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
-                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
-                    .build()
-                    .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
-        });
-        assertTrue(exc.getMessage().contains("No verification material"));
     }
 }

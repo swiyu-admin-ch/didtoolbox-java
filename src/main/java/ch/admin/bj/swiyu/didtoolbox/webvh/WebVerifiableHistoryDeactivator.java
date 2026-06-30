@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
      * @param suite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */
-    public static WebVerifiableHistoryDeactivatorBuilder builder(VcDataIntegrityCryptographicSuite suite) {
+    public static WebVerifiableHistoryDeactivatorBuilder builder(@NonNull VcDataIntegrityCryptographicSuite suite) {
         return new WebVerifiableHistoryDeactivatorBuilder().cryptographicSuite(suite);
     }
 

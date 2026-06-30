@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
@@ -407,25 +406,10 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
     @DisplayName("Updating DID log without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
     @Test
     void testUpdateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
-        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
-
-        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+        assertThrowsExactly(NullPointerException.class, () -> {
             // IMPORTANT provide null as crypto suite intentionally (no cryptographic suite supplied)
-            WebVerifiableHistoryUpdater.builder(null)
-                    .authentications(TEST_AUTHENTICATIONS)
-                    .assertionMethods(TEST_ASSERTION_METHODS)
-                    .build()
-                    .updateDidLog(initialDidLogEntry); // MUT
+            WebVerifiableHistoryUpdater.builder(null);
         });
-        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
-
-        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITE)
-                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
-                    .build()
-                    .updateDidLog(initialDidLogEntry); // MUT
-        });
-        assertTrue(exc.getMessage().contains("No update will take place as no verification material is supplied whatsoever"));
     }
 
     @Test

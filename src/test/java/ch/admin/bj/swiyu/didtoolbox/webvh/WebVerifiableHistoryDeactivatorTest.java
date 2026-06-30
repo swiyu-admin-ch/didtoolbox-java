@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox.webvh;
 import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.model.ProfileVersion;
@@ -186,20 +185,9 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
     @DisplayName("Deactivating DID log without cryptographic suite throws IncompleteDidLogEntryBuilderException")
     @Test
     void testDeactivateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
-
-        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
-
-        // CAUTION The line separator is appended intentionally - to be able to reproduce the case with multiple line separators
-        StringBuilder deactivatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
-
-        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+        assertThrowsExactly(NullPointerException.class, () -> {
             // IMPORTANT provide null as crypto suite intentionally (no cryptographic suite supplied) to provoke the exception
-            WebVerifiableHistoryDeactivator.builder(null)
-                    .build()
-                    // The versionTime for each log entry MUST be greater than the previous entry’s time.
-                    // The versionTime of the last entry MUST be earlier than the current time.
-                    .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2)); // MUT
+            WebVerifiableHistoryDeactivator.builder(null);
         });
-        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
     }
 }

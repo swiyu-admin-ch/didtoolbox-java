@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,7 +73,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
      * @param cryptoSuite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */
-    public static WebVerifiableHistoryUpdaterBuilder builder(VcDataIntegrityCryptographicSuite cryptoSuite) {
+    public static WebVerifiableHistoryUpdaterBuilder builder(@NonNull VcDataIntegrityCryptographicSuite cryptoSuite) {
         return new WebVerifiableHistoryUpdaterBuilder().cryptographicSuite(cryptoSuite);
     }
 

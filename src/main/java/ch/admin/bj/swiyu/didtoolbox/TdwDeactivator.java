@@ -12,6 +12,7 @@ import com.google.gson.JsonObject;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +60,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
      * @param suite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */
-    public static TdwDeactivatorBuilder builder(VcDataIntegrityCryptographicSuite suite) {
+    public static TdwDeactivatorBuilder builder(@NonNull VcDataIntegrityCryptographicSuite suite) {
         return new TdwDeactivatorBuilder().cryptographicSuite(suite);
     }
 

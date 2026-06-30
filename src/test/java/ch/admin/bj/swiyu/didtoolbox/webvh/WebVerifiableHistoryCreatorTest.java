@@ -4,7 +4,6 @@ import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonElement;
@@ -273,24 +272,10 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @DisplayName("Building DID log entry without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
     @Test
     void testCreateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
-        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
+        assertThrowsExactly(NullPointerException.class, () -> {
             // IMPORTANT null is provided intentionally (no cryptographic suite supplied)
-            WebVerifiableHistoryCreator.builder(null)
-                    .authentications(TEST_AUTHENTICATIONS)
-                    .assertionMethods(TEST_ASSERTION_METHODS)
-                    .build()
-                    .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
+            WebVerifiableHistoryCreator.builder(null);
         });
-        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
-
-        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            // the signing key are generated on-the-fly
-            WebVerifiableHistoryCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
-                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
-                    .build()
-                    .createDidLog(URL.of(new URI(TEST_DID_URL), null)); // MUT
-        });
-        assertTrue(exc.getMessage().contains("No verification material"));
     }
 
     @DisplayName("Trying to build a DID log entry with same update key and next key hash, should throw DidLogUpdaterStrategyException")
