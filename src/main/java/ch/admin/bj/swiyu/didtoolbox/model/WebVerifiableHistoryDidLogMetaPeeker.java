@@ -47,6 +47,7 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
      *                                   if thrown in case a fully malformed DID log (in terms of specification) was supplied
      */
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
+        // TODO EIDOMNI-1039: check size limit
 
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();

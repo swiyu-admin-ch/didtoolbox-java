@@ -21,6 +21,7 @@ import java.util.Properties;
  * <code>com.securosys.primus.jce.PrimusProvider</code>.
  */
 public class PrimusKeyStoreLoader {
+    // TODO EIDOMNI-1038 improve security of by reducing the lifetime of sensitive data
     public static final String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
     private static final String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
     private static final String PROVIDER_NAME_GETTER = "getProviderName";

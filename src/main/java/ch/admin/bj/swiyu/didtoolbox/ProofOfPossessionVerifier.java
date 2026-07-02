@@ -101,6 +101,12 @@ public class ProofOfPossessionVerifier {
      */
     @SuppressWarnings("PMD.CyclomaticComplexity") // function doesn't contain complicated logic
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
+        // TODO OMNI-1036:
+        // - change order to 1st verify signature
+        // - remove expected nonce from error message
+        // - use id of document instead of kid
+        // - use secure string comparison method
+        // - add check for nbf if present
         var algorithm = signedJWT.getHeader().getAlgorithm();
         if (!Set.of(JWSAlgorithm.ES256).contains(algorithm)) {
             throw ProofOfPossessionVerifierException.unsupportedAlgorithm(algorithm.toString());

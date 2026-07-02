@@ -12,6 +12,7 @@ public class IdentifierRegistryUrlParameterValidator implements IParameterValida
     @Override
     public void validate(String name, String value) { // throws ParameterException {
         URL url;
+        // TODO EIDOMNI-1037 enforce https
         try {
             url = URL.of(new URI(value), null);
         } catch (URISyntaxException | MalformedURLException exc) {

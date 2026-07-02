@@ -34,6 +34,7 @@ public final class TdwDidLogMetaPeeker {
      */
     @SuppressWarnings("PMD.CognitiveComplexity")
     public static DidLogMeta peek(String didLog) throws DidLogMetaPeekerException {
+        // TODO EIDOMNI-1039: check size limit
         AtomicReference<Exception> jsonSyntaxEx = new AtomicReference<>();
         AtomicReference<String> lastVersionId = new AtomicReference<>();
         AtomicReference<String> dateTime = new AtomicReference<>();
