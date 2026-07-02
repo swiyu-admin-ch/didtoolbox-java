@@ -32,14 +32,31 @@ public final class JCommanderRunner {
     private final String parsedCommandName;
     private final String basePath;
 
+    /**
+     * Creates a JCommandRunner intended to run the provided command.
+     *
+     * @param jc
+     * @param parsedCommandName
+     * @param basePath path to the directory to save generated keys in
+     */
     public JCommanderRunner(JCommander jc, String parsedCommandName, String basePath) {
+        if (basePath.isEmpty()) {
+            throw new IllegalArgumentException("Provided 'basePath' is empty, expected a value.");
+        }
         this.jc = jc;
         this.parsedCommandName = parsedCommandName;
         this.basePath = basePath;
     }
 
+    /**
+     * Creates a JCommandRunner intended to run the provided command.
+     * Stores generated key material in the `./.didtoolbox` directory
+     *
+     * @param jc
+     * @param parsedCommandName
+     */
     public JCommanderRunner(JCommander jc, String parsedCommandName) {
-        this(jc, parsedCommandName, "");
+        this(jc, parsedCommandName, "./.didtoolbox");
     }
 
     /**
@@ -407,7 +424,7 @@ public final class JCommanderRunner {
 
     // add base path to constructor or something, ta make it easier for tests.
     private File getOutputDir() {
-        return new File(this.basePath + File.separator + ".didtoolbox");
+        return new File(this.basePath);
     }
 
     private File getPrivateKeyFile() {

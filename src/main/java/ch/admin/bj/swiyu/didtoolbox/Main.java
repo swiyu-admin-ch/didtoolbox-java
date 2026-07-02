@@ -7,9 +7,6 @@ import com.beust.jcommander.UnixStyleUsageFormatter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 
-import java.io.IOException;
-import java.security.KeyStoreException;
-
 public class Main {
     private final Console console;
 
