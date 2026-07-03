@@ -1,6 +1,6 @@
 # DID Toolbox changelog
 
-## 2.2.1 - 
+## 2.2.1 - 2026-07-03
 
 ### Fixed
 - Fix incorrect path for generated keys causing `AccessDeniedException`
