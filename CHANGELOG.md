@@ -10,6 +10,11 @@
 
 ### Removed
 
+## 2.2.1 - 2026-07-03
+
+### Fixed
+- Fix incorrect path for generated keys causing `AccessDeniedException`
+
 ## 2.2.0 - 2026-05-27
 
 ### Added

@@ -1,6 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.AbstractKeyMaterialDidLogCommand;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.CreateDidLogCommand;
 import ch.admin.bj.swiyu.didtoolbox.jcommander.UpdateDidLogCommand;
@@ -17,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashSet;
@@ -277,17 +275,17 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     @Test
     void storeKeysOnDisk_noForceOverwrite_success(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException {
         // check that .didtoolbox doesn't exist yet
-        assertFalse(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
+        assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
         var keys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
 
-        var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
+        var runner = new JCommanderRunner(new JCommander(), "", new File(tmpDir.toString(), ".didtoolbox").getPath());
         assertDoesNotThrow(() -> runner.storeKeysOnDisk(keys, false));
 
-        assertTrue(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
-        var privateKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
+        assertTrue(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
+        var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         assertTrue(privateKey.exists());
-        var publicKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519.pub");
+        var publicKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519.pub");
         assertTrue(publicKey.exists());
 
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
@@ -295,12 +293,12 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void storeKeysOnDisk_noForceOverwriteAlreadyExists_fails(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException, FileAlreadyExistsException {
+    void storeKeysOnDisk_noForceOverwriteAlreadyExists_fails(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException {
         // Check that .didtoolbox doesn't exist yet
-        assertFalse(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
+        assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
         var keys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
+        var runner = new JCommanderRunner(new JCommander(), "", new File(tmpDir.toString(), ".didtoolbox").getPath());
         // Create filled .didtoolbox directory
         assertDoesNotThrow(() -> runner.storeKeysOnDisk(keys, false));
 
@@ -309,32 +307,33 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         // Returns 1 when something went wrong (files already exists in this case)
         assertThrowsExactly(JCommanderRunner.CommandException.class, () -> runner.storeKeysOnDisk(newKeys, false));
 
-        var privateKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
+        var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
         assertEquals(cryptoSuite.getVerificationKeyMultibase(), keys.getVerificationKeyMultibase()); // should be old keys
     }
 
     @Test
-    void storeKeysOnDisk_withOverwrite_success(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException, FileAlreadyExistsException {
+    void storeKeysOnDisk_withOverwrite_success(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException {
         // Check that .didtoolbox doesn't exist yet
-        assertFalse(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
+        assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
         var keys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
-        assertDoesNotThrow(() ->runner.storeKeysOnDisk(keys, true));
+        var runner = new JCommanderRunner(new JCommander(), "", new File(tmpDir.toString(), ".didtoolbox").getPath());
+        assertDoesNotThrow(() -> runner.storeKeysOnDisk(keys, true));
 
-        var privateKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
+        var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
         assertEquals(cryptoSuite.getVerificationKeyMultibase(), keys.getVerificationKeyMultibase()); // should be old keys
     }
 
     @Test
-    void storeKeysOnDisk_withOverwriteAlreadyExisting_success(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException, FileAlreadyExistsException {
+    void storeKeysOnDisk_withOverwriteAlreadyExisting_success(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException {
         // Check that .didtoolbox doesn't exist yet
-        assertFalse(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
+        assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
         var keys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
+        var runner = new JCommanderRunner(new JCommander(), "", new File(tmpDir.toString(), ".didtoolbox").getPath());
+
         // Create filled .didtoolbox directory
         assertDoesNotThrow(() -> runner.storeKeysOnDisk(keys, false));
 
@@ -343,7 +342,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         // Returns 1 when something went wrong (files already exists in this case)
         assertDoesNotThrow(() -> runner.storeKeysOnDisk(newKeys, true));
 
-        var privateKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
+        var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
         assertEquals(cryptoSuite.getVerificationKeyMultibase(), newKeys.getVerificationKeyMultibase()); // should be old keys
     }
@@ -351,7 +350,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     @Test
     void generateAndSaveNewKey_noOverwrite_success(@TempDir Path tmpDir) {
         // Check that .didtoolbox doesn't exist yet
-        assertFalse(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
+        assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
         var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
         Set<File> keys = new HashSet<>();
@@ -364,17 +363,17 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void generateAndSaveNewKey_noOverwriteAlreadyExisting_fails(@TempDir Path tmpDir) throws FileAlreadyExistsException, DidLogCreatorStrategyException {
+    void generateAndSaveNewKey_noOverwriteAlreadyExisting_fails(@TempDir Path tmpDir) {
         // Check that .didtoolbox doesn't exist yet
-        assertFalse(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
+        assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
         var oldKeys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
+        var runner = new JCommanderRunner(new JCommander(), "", new File(tmpDir.toString(), ".didtoolbox").getPath());
         // Create filled .didtoolbox directory
         assertDoesNotThrow(() -> runner.storeKeysOnDisk(oldKeys, false));
 
         Set<File> keys = new HashSet<>();
-        assertThrowsExactly(JCommanderRunner.CommandException.class, () ->runner.generateAndSaveNewKey(false, keys));
+        assertThrowsExactly(JCommanderRunner.CommandException.class, () -> runner.generateAndSaveNewKey(false, keys));
         assertEquals(0, keys.size());
 
         keys.forEach(file -> {
@@ -385,22 +384,23 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     @Test
     void generateAndSaveNewKey_withOverwrite_success(@TempDir Path tmpDir) throws Exception {
         // Check that .didtoolbox doesn't exist yet
-        assertFalse(new File( tmpDir.toString() + File.separator + ".didtoolbox").exists());
+        assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
         var oldKeys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        var runner = new JCommanderRunner(new JCommander(), "", tmpDir.toString());
+        var runner = new JCommanderRunner(new JCommander(), "", new File(tmpDir.toString(), ".didtoolbox").getPath());
+
         // Create filled .didtoolbox directory
         assertDoesNotThrow(() -> runner.storeKeysOnDisk(oldKeys, false));
 
         Set<File> keys = new HashSet<>();
-        assertDoesNotThrow(() ->runner.generateAndSaveNewKey(true, keys));
+        assertDoesNotThrow(() -> runner.generateAndSaveNewKey(true, keys));
         assertEquals(1, keys.size());
 
         keys.forEach(file -> {
             assertTrue(file.exists());
         });
 
-        var privateKey = new File( tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
+        var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
         assertNotEquals(cryptoSuite.getVerificationKeyMultibase(), oldKeys.getVerificationKeyMultibase()); // keys have changed
     }
