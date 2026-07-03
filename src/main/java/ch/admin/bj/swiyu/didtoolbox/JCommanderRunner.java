@@ -28,6 +28,8 @@ import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.PARA
  */
 @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidCatchingGenericException"})
 public final class JCommanderRunner {
+    private static final String DEFAULT_BASE_PATH = "./.didtoolbox";
+
     private final JCommander jc;
     private final String parsedCommandName;
     private final String basePath;
@@ -56,7 +58,7 @@ public final class JCommanderRunner {
      * @param parsedCommandName
      */
     public JCommanderRunner(JCommander jc, String parsedCommandName) {
-        this(jc, parsedCommandName, "./.didtoolbox");
+        this(jc, parsedCommandName, DEFAULT_BASE_PATH);
     }
 
     /**
