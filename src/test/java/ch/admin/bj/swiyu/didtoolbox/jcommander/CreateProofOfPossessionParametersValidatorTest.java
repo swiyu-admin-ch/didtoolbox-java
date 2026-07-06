@@ -33,13 +33,13 @@ class CreateProofOfPossessionParametersValidatorTest {
     @Test
     void testPemFileParameters() {
         String[] requiredParams = {
-            CreateProofOfPossessionCommand.COMMAND_NAME,
-            CommandParameterNames.PARAM_NAME_SHORT_NONCE,
-            "myNonce",
-            CommandParameterNames.PARAM_NAME_SHORT_KID,
-            "my_example_kid",
-            CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE,
-            dummyDidLogFile.getPath()
+                CreateProofOfPossessionCommand.COMMAND_NAME,
+                CommandParameterNames.PARAM_NAME_SHORT_NONCE,
+                "myNonce",
+                CommandParameterNames.PARAM_NAME_SHORT_KID,
+                "my_example_kid",
+                CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE,
+                dummyDidLogFile.getPath()
         };
         String[] fileParam = {CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, dummyPEMFile.getPath()};
 

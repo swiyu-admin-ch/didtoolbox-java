@@ -162,9 +162,7 @@ public final class JCommanderRunner {
         var nextKeyPemFiles = command.nextVerifyingKeyPemFiles;
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
-        jc.getConsole().println(DidLogCreatorContext.builder()
-                .didMethod(didMethod)
-                .cryptographicSuite(cryptoSuite)
+        jc.getConsole().println(DidLogCreatorContext.builder(didMethod, cryptoSuite)
                 .assertionMethods(assertionMethods)
                 .authentications(authentications)
                 // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
@@ -234,10 +232,7 @@ public final class JCommanderRunner {
 
         // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
         jc.getConsole().println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
-                DidLogUpdaterContext.builder()
-                        .didMethod(didLogMeta.getParams().getDidMethodEnum())
-                        //.didMethod(DidMethodEnum.detectDidMethod(didLogFile)) // No need to parse the DID log twice
-                        .cryptographicSuite(cryptoSuite)
+                DidLogUpdaterContext.builder(didLogMeta.getParams().getDidMethodEnum(), cryptoSuite)
                         .assertionMethods(assertionMethods)
                         .authentications(authentications)
                         // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
@@ -264,10 +259,7 @@ public final class JCommanderRunner {
 
         // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
         jc.getConsole().println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
-                DidLogDeactivatorContext.builder()
-                        .didMethod(didLogMeta.getParams().getDidMethodEnum())
-                        //.didMethod(DidMethodEnum.detectDidMethod(didLogFile)) // No need to parse the DID log twice
-                        .cryptographicSuite(cryptoSuite)
+                DidLogDeactivatorContext.builder(didLogMeta.getParams().getDidMethodEnum(), cryptoSuite)
                         .build()
                         .deactivate(didLogFile));
     }

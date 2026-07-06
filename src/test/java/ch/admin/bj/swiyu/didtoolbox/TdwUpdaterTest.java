@@ -1,11 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException;
-import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.bj.swiyu.didtoolbox.model.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
@@ -15,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -29,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SuppressWarnings("PMD")
 class TdwUpdaterTest extends AbstractUtilTestBase {
 
-    public static Collection<Object[]> keys() {
+    static Collection<Object[]> keys() {
         return Arrays.asList(new String[][]{
                 /*
                 All lines in the private/public matrix were generated using openssl command by running the following script:
@@ -62,10 +59,6 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         JsonArray jsonArray = JsonParser.parseString(didLogEntry).getAsJsonArray();
 
         assertTrue(jsonArray.get(2).isJsonObject());
-        var params = jsonArray.get(2).getAsJsonObject();
-        //assertTrue(params.has("method"));
-        //assertTrue(params.has("scid"));
-        //assertTrue(params.has("updateKeys"));
 
         assertTrue(jsonArray.get(3).isJsonObject());
         assertTrue(jsonArray.get(3).getAsJsonObject().has("value"));
@@ -98,17 +91,15 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
-            TdwUpdater.builder()
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite()) // any suite
+            TdwUpdater.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())// any suite
                     .build()
                     .updateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
         assertEquals("Update key mismatch", exc.getMessage());
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            TdwUpdater.builder()
-                    // IMPORTANT Use a whole another cryptographic suite (to provoke the exception)
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            // IMPORTANT Use a whole another cryptographic suite (to provoke the exception)
+            TdwUpdater.builder(TEST_CRYPTO_SUITE)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // ...with NO matching key supplied!
                     .build()
                     .updateDidLog(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
@@ -120,8 +111,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     void testUpdateThrowsDateTimeInThePastDidLogUpdaterStrategyException() {
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            TdwUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS)
+            TdwUpdater.builder(TEST_CRYPTO_SUITE_JKS)
                     .build()
                     .updateDidLog( // MUT
                             buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS),
@@ -141,9 +131,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         StringBuilder updatedDidLog = new StringBuilder(initialDidLogEntry).append(System.lineSeparator());
 
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(TdwUpdater.builder()
-                    //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER)
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
+            nextLogEntry.set(TdwUpdater.builder(TEST_CRYPTO_SUITE_JKS)// using a whole another verification key provider
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     // CAUTION No need for explicit call of method: .updateKeys(Set.of(new File("src/test/data/public.pem")))
@@ -193,9 +181,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         var finalPublicKeyPemFile = publicKeyPemFile.get();
         assertDoesNotThrow(() -> {
-            nextLogEntry.set(TdwUpdater.builder()
-                    //.verificationMethodKeyProvider(EXAMPLE_VERIFICATION_METHOD_KEY_PROVIDER) // using a whole another verification key provider
-                    .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using a whole another verification key provider
+            nextLogEntry.set(TdwUpdater.builder(TEST_CRYPTO_SUITE_JKS)// using a whole another verification key provider
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"), finalPublicKeyPemFile))
@@ -229,7 +215,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
     @DisplayName("Multiple update of DID log using various existing keys")
     @ParameterizedTest(name = "Using signing key: {0}")
     @MethodSource("keys")
-    void testMultipleUpdates(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) {
+    void testMultipleUpdates(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) throws IOException, VerificationMethodException, UpdateKeysDidMethodParameterException, DidLogUpdaterStrategyException {
 
         AtomicReference<Path> publicKeyPemFile = new AtomicReference<>();
         assertDoesNotThrow(() -> {
@@ -254,8 +240,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
             updatedDidLog.set(new StringBuilder(initialDidLogEntry.get()).append(System.lineSeparator()));
             for (int i = 2; i < totalEntriesCount + 1; i++) { // update DID log by adding several new entries
 
-                nextLogEntry.set(TdwUpdater.builder()
-                        .cryptographicSuite(TEST_CRYPTO_SUITE_JKS) // using another verification key provider
+                nextLogEntry.set(TdwUpdater.builder(TEST_CRYPTO_SUITE_JKS) // using another verification key provider
                         .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .authentications(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"), finalPublicKeyPemFile))
@@ -282,27 +267,10 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
     @DisplayName("Updating DID log without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
     @Test
-    public void testUpdateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
-
-        var initialDidLogEntry = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE);
-
-        var exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            TdwUpdater.builder()
-                    // IMPORTANT .cryptographicSuite() call is omitted intentionally (no cryptographic suite supplied)
-                    .authentications(TEST_AUTHENTICATIONS)
-                    .assertionMethods(TEST_ASSERTION_METHODS)
-                    .build()
-                    .updateDidLog(initialDidLogEntry); // MUT
+    void testUpdateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+        assertThrowsExactly(NullPointerException.class, () -> {
+            // IMPORTANT crypto suite is null intentionally (no cryptographic suite supplied)
+            TdwUpdater.builder(null);
         });
-        assertTrue(exc.getMessage().contains("No cryptographic suite supplied"));
-
-        exc = assertThrowsExactly(IncompleteDidLogEntryBuilderException.class, () -> {
-            TdwUpdater.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
-                    // IMPORTANT Both .authenticationKeys() and .authenticationKeys() calls are omitted intentionally (no verification material supplied)
-                    .build()
-                    .updateDidLog(initialDidLogEntry); // MUT
-        });
-        assertTrue(exc.getMessage().contains("No update will take place as no verification material is supplied whatsoever"));
     }
 }

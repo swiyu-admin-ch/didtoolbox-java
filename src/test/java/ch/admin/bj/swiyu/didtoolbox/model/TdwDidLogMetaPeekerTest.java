@@ -24,8 +24,8 @@ class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
                 "[,\"\",{},{},[{}]]",
                 "[\"\",,{},{},[{}]]",
                 """
-                        [\"\",\"\",,{},[{}]]
-                        [\"\",\"\",,{},[{}]]
+                        ["","",,{},[{}]]
+                        ["","",,{},[{}]]
                         """,
                 "[\"\",\"\",{},,[{}]]"
                 // malformed "DataIntegrityProof" is irrelevant in this context, as it will be verified by resolver afterwards

@@ -67,8 +67,7 @@ import java.util.Set;
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
  *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem"));
  *
- *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder()
- *                 .cryptographicSuite(cryptographicSuite)
+ *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder(cryptographicSuite)
  *                 .assertionMethods(Set.of(VerificationMethod.of(
  *                     "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
  *                 )))
@@ -76,9 +75,9 @@ import java.util.Set;
  *                 .create(identifierRegistryUrl);
  *
  *             // Now update the previously generated initial single-entry DID log
- *             updatedDidLogEntryWithReplacedVerificationMaterial = DidLogUpdaterContext.builder()
- *                 .didMethod(DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys))
- *                 .cryptographicSuite(cryptographicSuite) // the same used during creation
+ *             updatedDidLogEntryWithReplacedVerificationMaterial = DidLogUpdaterContext.builder(
+ *                     DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys),
+ *                     cryptographicSuite)
  *                 .assertionMethods(Set.of(VerificationMethod.of(
  *                     "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
  *                 )))
@@ -101,6 +100,16 @@ import java.util.Set;
 @Builder
 @Getter
 public class DidLogUpdaterContext {
+
+    @Deprecated(since = "2.1.0")
+    public static DidLogUpdaterContextBuilder builder() {
+        return new DidLogUpdaterContextBuilder();
+    }
+
+    // TODO@MP provide proper java docs
+    public static DidLogUpdaterContextBuilder builder(DidMethodEnum method, VcDataIntegrityCryptographicSuite cryptoSuite) {
+        return new DidLogUpdaterContextBuilder().didMethod(method).cryptographicSuite(cryptoSuite);
+    }
 
     private static final String SCID_PLACEHOLDER = "{SCID}";
 

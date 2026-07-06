@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +52,21 @@ import java.time.temporal.ChronoUnit;
  */
 @Builder
 public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
+
+    @Deprecated(since = "2.1.0")
+    public static WebVerifiableHistoryDeactivatorBuilder builder() {
+        return new WebVerifiableHistoryDeactivatorBuilder();
+    }
+
+    /**
+     * Constructs a builder for deactivating did wbevh logs with the provided crypto Suite
+     *
+     * @param suite used to create the log entry signature
+     * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
+     */
+    public static WebVerifiableHistoryDeactivatorBuilder builder(@NonNull VcDataIntegrityCryptographicSuite suite) {
+        return new WebVerifiableHistoryDeactivatorBuilder().cryptographicSuite(suite);
+    }
 
     /**
      * Replaces the depr. {@link #verificationMethodKeyProvider},

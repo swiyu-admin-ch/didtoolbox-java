@@ -7,7 +7,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * Class to test different HSM proof of possession jws signer implementations.
@@ -19,8 +19,9 @@ class HsmProofOfPossessionJWSSignerTest {
      * Requires specific system precondition configured in the provided dockerfile found in src/test/data/pkcs11.
      * Simply run
      * {@code
-     *  docker run -it -v .:/app -v $HOME/.m2:/home/mvn/.m2 $(docker build -q ./src/test/data/pkcs11/) mvn test
+     * docker run -it -v .:/app -v $HOME/.m2:/home/mvn/.m2 $(docker build -q ./src/test/data/pkcs11/) mvn test
      * }
+     *
      * @throws Exception in case of failure
      */
     @Test

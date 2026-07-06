@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +61,22 @@ import java.util.stream.Collectors;
 @Builder
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
+
+    @Deprecated(since = "2.1.0")
+    public static WebVerifiableHistoryUpdaterBuilder builder() {
+        return new WebVerifiableHistoryUpdaterBuilder();
+    }
+
+    /**
+     * Constructs a builder for updating did webvh logs with the provided crypto Suite
+     *
+     * @param cryptoSuite used to create the log entry signature
+     * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
+     */
+    public static WebVerifiableHistoryUpdaterBuilder builder(@NonNull VcDataIntegrityCryptographicSuite cryptoSuite) {
+        return new WebVerifiableHistoryUpdaterBuilder().cryptographicSuite(cryptoSuite);
+    }
+
     /**
      * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
      * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
