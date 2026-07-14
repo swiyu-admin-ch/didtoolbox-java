@@ -1,13 +1,19 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
 import ch.admin.bj.swiyu.didtoolbox.PemUtils;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.Ed25519SigningKey;
+import ch.admin.eid.did_sidekicks.Ed25519VerifyingKey;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import org.bouncycastle.jcajce.interfaces.EdDSAPublicKey;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.EdECPublicKey;
 
 /**
  * <a href="https://www.w3.org/TR/did-1.0/#verification-material">Verification material</a> is any information that is used by a process that applies a
@@ -57,9 +63,21 @@ public interface VerificationMaterial {
      * @throws IOException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
      *                     private values removed, never {@code null}
      */
-    static VerificationMaterial of(String kid, Path ecPublicKeyPemPath) throws IOException {
-        var ecPublicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicKeyPemPath));
-        return () -> new ECKey.Builder(Curve.P_256, ecPublicKey).keyID(kid).build().toPublicJWK().toJSONString();
+    static VerificationMaterial of(String kid, Path ecPublicKeyPemPath) throws IOException, DidSidekicksException {
+        var publicKey = PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicKeyPemPath));
+        if (publicKey instanceof ECPublicKey) {
+            return () -> new ECKey.Builder(Curve.P_256, (ECPublicKey) publicKey).keyID(kid).build().toPublicJWK().toJSONString();
+        }
+
+        if (publicKey instanceof EdECPublicKey) {
+            try (var dsaPublicKey = Ed25519VerifyingKey.Companion.readPublicKeyPemFile(ecPublicKeyPemPath.toString())) {
+                var jwk = JsonParser.parseString(dsaPublicKey.toJwk());
+                jwk.getAsJsonObject().addProperty("kid", kid);
+                return jwk::toString;
+            }
+        }
+
+        throw new IllegalArgumentException("provided pem is not supported.");
     }
 
     /**

@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -28,6 +29,7 @@ public interface VerificationMethod {
      * <a href="https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020">JsonWebKey2020</a>, which is
      * the type of the verification method for the signature suite {@code JsonWebSignature2020}.
      */
+    @Deprecated(since = "2.3.0")
     String VM_TYPE_JSON_WEB_KEY_2020 = "JsonWebKey2020";
 
     /**
@@ -48,6 +50,8 @@ public interface VerificationMethod {
      * @throws VerificationMethodException if the supplied {@code publicKeyJwk} does not represent a proper
      *                                     <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a> as described above
      */
+    // Upon removal, move logic to constructor without type parameter
+    @Deprecated(since = "2.3.0")
     static VerificationMethod of(String kid, String type, String publicKeyJwk) throws VerificationMethodException {
 
         JsonObject jsonObj;
@@ -57,12 +61,37 @@ public interface VerificationMethod {
             throw new VerificationMethodException("The supplied string does not represent a public key JWK", exc);
         }
 
-        var kty = jsonObj.get("kty");
         var crv = jsonObj.get("crv");
         var x = jsonObj.get("x");
         var y = jsonObj.get("y");
-        if (kty == null || crv == null || x == null || y == null) {
-            throw new VerificationMethodException("The supplied string representing a public key JWK does not feature all the required parameters ('kty', 'crv', 'x' or 'y'");
+
+        var kty = jsonObj.get("kty");
+        if (kty == null || !kty.isJsonPrimitive()) {
+            throw new VerificationMethodException("Expected property 'kty' to be a string.");
+        }
+        switch (kty.getAsString()) {
+            case "OKP" -> {
+                if (crv == null || !crv.isJsonPrimitive() || !"Ed25519".equals(crv.getAsString())) {
+                    throw new VerificationMethodException("Only curve 'Ed25519' is supported for key type OKP.");
+                }
+                if (x == null || !x.isJsonPrimitive() || x.getAsString().isEmpty()) {
+                    throw new VerificationMethodException("Property 'x' must be set to a string.");
+                }
+            }
+            case "EC" -> {
+                if (crv == null || !crv.isJsonPrimitive() || !"P-256".equals(crv.getAsString())) {
+                    throw new VerificationMethodException("Only curve 'P-256' is supported for key type EC.");
+                }
+                if (x == null || !x.isJsonPrimitive() || x.getAsString().isEmpty()) {
+                    throw new VerificationMethodException("Property 'x' must be set to a string.");
+                }
+                if (y == null || !y.isJsonPrimitive() || y.getAsString().isEmpty()) {
+                    throw new VerificationMethodException("Property 'y' must be set to a string.");
+                }
+            }
+            default -> {
+                throw new VerificationMethodException("Key type %s not supported.".formatted(kty.getAsString()));
+            }
         }
 
         return new VerificationMethod() {
@@ -130,14 +159,20 @@ public interface VerificationMethod {
      * @throws VerificationMethodException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
      * @see #of(String, String, String)
      */
+    // Upon removal, move logic to constructor without type parameter
+    @Deprecated(since = "2.3.0")
     static VerificationMethod of(String kid, String type, Path ecPublicKeyPemPath) throws VerificationMethodException {
 
         VerificationMaterial vm;
         try {
             vm = VerificationMaterial.of(kid, ecPublicKeyPemPath);
-        } catch (IOException exc) {
+        } catch (IOException | DidSidekicksException exc) {
             throw new VerificationMethodException(exc);
         }
+
+        // Assigning vm to new variable, as the vm cannot be final, as it has "2" assignments
+        // even though only 1 of them can work.
+        var verificationMaterial = vm;
 
         return new VerificationMethod() {
             @Override
@@ -152,7 +187,7 @@ public interface VerificationMethod {
 
             @Override
             public VerificationMaterial getVerificationMaterial() {
-                return vm;
+                return verificationMaterial;
             }
 
             @Override
@@ -196,6 +231,8 @@ public interface VerificationMethod {
      * @return a valid {@link VerificationMethod} implementation object, never {@code null}
      * @see VerificationMaterial#of(String, ECPublicKey)
      */
+    // Upon removal, move logic to constructor without type parameter
+    @Deprecated(since = "2.3.0")
     static VerificationMethod of(String kid, String type, ECPublicKey ecPublicKey) {
         return new VerificationMethod() {
             @Override
@@ -252,6 +289,7 @@ public interface VerificationMethod {
      *
      * @return a string that references exactly one verification method type
      */
+    @Deprecated(since = "2.3.0")
     String getType();
 
     /**
