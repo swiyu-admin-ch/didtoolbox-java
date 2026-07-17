@@ -108,12 +108,9 @@ public interface VerificationMethod {
 
             @Override
             public VerificationMaterial getVerificationMaterial() {
-                return new VerificationMaterial() {
-                    @Override
-                    public String getPublicKeyJwk() {
-                        jsonObj.addProperty("kid", kid);
-                        return jsonObj.toString();
-                    }
+                return () -> {
+                    jsonObj.addProperty("kid", kid);
+                    return jsonObj.toString();
                 };
             }
 
@@ -151,55 +148,28 @@ public interface VerificationMethod {
      * {@link VerificationMaterial} implementation object of type {@code type}
      * (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020}).
      *
-     * @param kid                non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
-     * @param type               string representation of a <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type
-     *                           (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020})
-     * @param ecPublicKeyPemPath file featuring a proper public EC key in PEM format
+     * @param kid              non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
+     * @param type             string representation of a <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type
+     *                         (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020})
+     * @param publicKeyPemPath file featuring a proper P-256 or Ed25519 public key in PEM format
      * @return a valid {@link VerificationMethod} implementation object, never {@code null}
      * @throws VerificationMethodException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
      * @see #of(String, String, String)
      */
     // Upon removal, move logic to constructor without type parameter
     @Deprecated(since = "2.3.0")
-    static VerificationMethod of(String kid, String type, Path ecPublicKeyPemPath) throws VerificationMethodException {
+    static VerificationMethod of(String kid, String type, Path publicKeyPemPath) throws VerificationMethodException {
 
         VerificationMaterial vm;
         try {
-            vm = VerificationMaterial.of(kid, ecPublicKeyPemPath);
+            vm = VerificationMaterial.of(kid, publicKeyPemPath);
         } catch (IOException | DidSidekicksException exc) {
             throw new VerificationMethodException(exc);
         }
 
         // Assigning vm to new variable, as the vm cannot be final, as it has "2" assignments
         // even though only 1 of them can work.
-        var verificationMaterial = vm;
-
-        return new VerificationMethod() {
-            @Override
-            public String getIdFragment() {
-                return kid;
-            }
-
-            @Override
-            public String getType() {
-                return type;
-            }
-
-            @Override
-            public VerificationMaterial getVerificationMaterial() {
-                return verificationMaterial;
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                return this.defaultEquals(obj);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(this.getIdFragment());
-            }
-        };
+        return of(vm);
     }
 
     /**
@@ -273,6 +243,54 @@ public interface VerificationMethod {
      */
     static VerificationMethod of(String kid, ECPublicKey ecPublicKey) {
         return VerificationMethod.of(kid, VM_TYPE_JSON_WEB_KEY_2020, ecPublicKey);
+    }
+
+    /**
+     * Returns a verification method of the provided material. The fragment is the kid extracted from the material as JWK.
+     *
+     * @param verificationMaterial to be wrapped
+     * @return
+     * @throws VerificationMethodException if the provided verificationMaterial returns an invalid JWK or is missing the property 'kid'
+     */
+    static VerificationMethod of(VerificationMaterial verificationMaterial) throws VerificationMethodException {
+        JsonObject jsonObj;
+        try {
+            jsonObj = JsonParser.parseString(verificationMaterial.getPublicKeyJwk()).getAsJsonObject();
+        } catch (JsonSyntaxException exc) {
+            throw new VerificationMethodException("The supplied string does not represent a public key JWK", exc);
+        }
+        var rawKid = jsonObj.get("kid");
+        if (rawKid == null || !rawKid.isJsonPrimitive()) {
+            throw new VerificationMethodException("Expected JWK to bo present in the JWK as string");
+        }
+        var kid = rawKid.getAsString();
+
+        return new VerificationMethod() {
+            @Override
+            public String getIdFragment() {
+                return kid;
+            }
+
+            @Override
+            public String getType() {
+                return VM_TYPE_JSON_WEB_KEY_2020;
+            }
+
+            @Override
+            public VerificationMaterial getVerificationMaterial() {
+                return verificationMaterial;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                return this.defaultEquals(obj);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(this.getIdFragment());
+            }
+        };
     }
 
     /**

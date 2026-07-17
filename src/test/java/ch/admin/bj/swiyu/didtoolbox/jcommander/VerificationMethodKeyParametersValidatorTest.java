@@ -82,7 +82,7 @@ class VerificationMethodKeyParametersValidatorTest {
                 },
                 {
                         "my-assert-key-02,non-existing-file",
-                        "option must be a regular file containing EC P-256 public/verifying key in PEM format"
+                        "option must be a regular file containing an EC P-256 or Ed25519 public/verifying key in PEM format"
                 },
         };
 

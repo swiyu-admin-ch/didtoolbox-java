@@ -63,7 +63,7 @@ public class Main {
         try {
             jc.parse(args);
         } catch (ParameterException e) {
-            return printCommandError(jc, null, e.getLocalizedMessage());
+            return printCommandError(jc, null, "Failed to parse command arguments: " + e.getLocalizedMessage());
         }
 
         if (rootParameters.version) {

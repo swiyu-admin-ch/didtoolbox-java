@@ -76,7 +76,7 @@ class VerificationMethodTest {
     }
 
     @Test
-    void verificationMethOfPath_withNonPemfile_throwsError(@TempDir Path tempdir) throws FileNotFoundException {
+    void verificationMethodOfPath_withNonPemfile_throwsError(@TempDir Path tempdir) throws FileNotFoundException {
         var file = new File(tempdir.toString(), "test.txt");
         try (var out = new PrintWriter(file)) {
             out.write("Foo");
@@ -85,4 +85,21 @@ class VerificationMethodTest {
         var ex = assertThrowsExactly(IllegalArgumentException.class, () -> VerificationMethod.of("fragment", file.toPath()));
         assertTrue(ex.getMessage().contains("no PEM-encoded public key"));
     }
+
+    @Test
+    void verificationMethodOfVerificationMaterial_withValidMaterial_returnsVerificationMethod() throws VerificationMethodException {
+        VerificationMaterial verificationMaterial = () -> "{ \"kty\": \"EC\", \"crv\": \"P-256\", \"x\": \"ZcDtTSv1dP94JR9zTqFSO4hRPPByCQ0ctYGZdHyeHws\", \"y\": \"lOlpaJZbQDyJFRCBOEMQLzPeoG02pa3G5Ux5tIYMXHo\", \"kid\": \"auth-key-01\" }";
+        var verificationMethod = VerificationMethod.of(verificationMaterial);
+        assertEquals("auth-key-01", verificationMethod.getIdFragment());
+    }
+
+    @Test
+    void verificationMethodOfVerificationMaterial_withInvalidMaterial_throwsError() {
+        VerificationMaterial emptyJWK = () -> "{}";
+        assertThrowsExactly(VerificationMethodException.class, () -> VerificationMethod.of(emptyJWK));
+
+       VerificationMaterial jwKWithInvalidKid = () -> "{ \"kid\": [\"foo\"] }";
+        assertThrowsExactly(VerificationMethodException.class, () -> VerificationMethod.of(jwKWithInvalidKid));
+    }
+
 }

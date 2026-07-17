@@ -94,7 +94,8 @@ public class DidLogCreatorContext {
     }
 
     /**
-     * Constructs a builder for creating did logs with the provided crypto Suite
+     * Constructs a builder for creating did logs with the provided crypto suite
+     * @param method version of the did log (WEBVH or TDW)
      * @param cryptoSuite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */

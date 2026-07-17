@@ -89,21 +89,6 @@ public final class JCommanderRunner {
         return didLogMeta;
     }
 
-    private static void createPrivateKeyDirectoryIfDoesNotExist(String pathName) throws DidLogCreatorStrategyException {
-        var outputDir = Path.of(pathName);
-        if (!outputDir.toFile().exists()) {
-            try {
-                FilesPrivacy.createPrivateDirectory(outputDir, false); // may throw DirectoryNotEmptyException, SecurityException etc.
-            } catch (DirectoryNotEmptyException | FileAlreadyExistsException | AccessDeniedException ex) {
-                // the directory (if exists) must be empty with write access granted
-                throw new IllegalArgumentException(ex);
-            } catch (Throwable thr) {
-                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathName + " due to: " + thr.getMessage(), thr);
-            }
-        }
-    }
-
-    @SuppressWarnings({"PMD.CognitiveComplexity"})
     void runCreateDidLogCommand(CreateDidLogCommand command) throws VerificationMethodException, DidLogCreatorStrategyException, IOException, VcDataIntegrityCryptographicSuiteException, CommandException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException {
         if (command.help) {
             jc.usage(parsedCommandName);
@@ -117,31 +102,9 @@ public final class JCommanderRunner {
             didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
         }
 
-        var forceOverwrite = command.forceOverwrite;
-
-        var assertionMethods = new HashSet<VerificationMethod>();
-        var assertionMethodKeys = command.assertionMethodKeys;
-        if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
-            for (VerificationMethodParameters param : assertionMethodKeys) {
-                assertionMethods.add(VerificationMethod.of(param.key, param.jwk));
-            }
-        } else {
-            createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
-            assertionMethods.add(VerificationMethod.of("assert-key-01",
-                    JwkUtils.generatePublicEC256("assert-key-01", new File(getOutputDir(), "assert-key-01"), forceOverwrite)));
-        }
-
-        var authentications = new HashSet<VerificationMethod>();
-        var authenticationKeys = command.authenticationKeys;
-        if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
-            for (VerificationMethodParameters param : authenticationKeys) {
-                authentications.add(VerificationMethod.of(param.key, param.jwk));
-            }
-        } else {
-            createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
-            authentications.add(VerificationMethod.of("auth-key-01",
-                    JwkUtils.generatePublicEC256("auth-key-01", new File(getOutputDir(), "auth-key-01"), forceOverwrite)));
-        }
+        // TODO@MP check if error messages are clear enough as is
+        var assertionMethods = command.getAssertionMethods(getOutputDir().toPath());
+        var authentications = command.getAuthentications(getOutputDir().toPath());
 
         VcDataIntegrityCryptographicSuite cryptoSuite = getCryptoGraphicSuite(command);
         if (cryptoSuite == null) {
@@ -351,11 +314,10 @@ public final class JCommanderRunner {
      *
      * @param forceOverwrite
      * @param target
-     * @return
      * @throws FileAlreadyExistsException if it fails to create or overwrite the file
      */
-    void generateAndSaveNewKey(boolean forceOverwrite, Set<File> target) throws DidLogCreatorStrategyException, FileAlreadyExistsException, CommandException {
-        createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
+    void generateAndSaveNewKey(boolean forceOverwrite, Set<File> target) throws IOException, CommandException {
+        FilesPrivacy.createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().toPath());
         var dalekSigner = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
         storeKeysOnDisk(dalekSigner, forceOverwrite);
         target.add(getPublicKeyFile());
@@ -366,7 +328,6 @@ public final class JCommanderRunner {
     *
      * @param cryptoSuite of the keypair to be stored
      * @param forceOverwrite allows to overwrite already existing key files
-     * @return the result code, 1 if something went wrong
      * @throws FileAlreadyExistsException
      */
     @SuppressWarnings("PMD.CognitiveComplexity")

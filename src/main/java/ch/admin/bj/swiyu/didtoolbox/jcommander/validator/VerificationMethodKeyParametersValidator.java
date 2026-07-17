@@ -32,13 +32,13 @@ public class VerificationMethodKeyParametersValidator implements IParameterValid
         String jwkFile = split[1];
         var f = Path.of(jwkFile);
         if (!Files.isReadable(f)) {
-            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing EC P-256 public/verifying key in PEM format (found " + jwkFile + ")");
+            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing an EC P-256 or Ed25519 public/verifying key in PEM format (found " + jwkFile + ")");
         }
 
         try {
             JwkUtils.loadECPublicJWKasJSON(f, kid);
-        } catch (IOException | InvalidKeySpecException exc) {
-            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 public/verifying key in PEM format: " + exc.getLocalizedMessage(), exc);
+        } catch (IOException exc) {
+            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 or Ed25519 public/verifying key in PEM format: " + exc.getLocalizedMessage(), exc);
         }
     }
 }

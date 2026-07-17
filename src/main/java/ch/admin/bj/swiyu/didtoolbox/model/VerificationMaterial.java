@@ -2,14 +2,14 @@ package ch.admin.bj.swiyu.didtoolbox.model;
 
 import ch.admin.bj.swiyu.didtoolbox.PemUtils;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
-import ch.admin.eid.did_sidekicks.Ed25519SigningKey;
 import ch.admin.eid.did_sidekicks.Ed25519VerifyingKey;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
-import org.bouncycastle.jcajce.interfaces.EdDSAPublicKey;
+import lombok.NonNull;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.interfaces.ECPublicKey;
@@ -45,32 +45,64 @@ public interface VerificationMaterial {
      * @return a valid {@link VerificationMaterial} implementation object representing Elliptic Curve JWK with any
      * private values removed, never {@code null}
      */
-    static VerificationMaterial of(String kid, ECPublicKey ecPublicKey) {
+    static VerificationMaterial of(String kid, @NonNull ECPublicKey ecPublicKey) {
         return () -> new ECKey.Builder(Curve.P_256, ecPublicKey).keyID(kid).build().toPublicJWK().toJSONString();
     }
 
     /**
      * Yet another static factory method of the interface.
      * <p>
-     * For the supplied public Elliptic Curve key {@code ecPublicKey},
+     * For the supplied pem file {@code publicKeyPemFile},
      * a valid {@link VerificationMaterial} implementation object is returned featuring {@link #getPublicKeyJwk()} method
-     * that always returns JSON representation of the Elliptic Curve JWK with any private values removed.
-     * The cryptographic curve is always P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7).
+     * that always returns JSON representation of the JWK with any private values removed.
+     * The cryptographic curve is either P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7) or Ed25519.
      *
-     * @param kid                non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
-     * @param ecPublicKeyPemPath file featuring a proper public EC key in PEM format
+     * @param kid              non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
+     * @param publicKeyPemPath file featuring a proper public ES256 or Ed25519 key in PEM format
      * @return a valid {@link VerificationMaterial} implementation object representing Elliptic Curve JWK with any
      * @throws IOException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
      *                     private values removed, never {@code null}
      */
-    static VerificationMaterial of(String kid, Path ecPublicKeyPemPath) throws IOException, DidSidekicksException {
-        var publicKey = PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicKeyPemPath));
+    static VerificationMaterial of(String kid, @NonNull Path publicKeyPemPath) throws IOException, DidSidekicksException {
+        var publicKey = PemUtils.parsePemPublicKey(Files.newBufferedReader(publicKeyPemPath));
         if (publicKey instanceof ECPublicKey) {
             return () -> new ECKey.Builder(Curve.P_256, (ECPublicKey) publicKey).keyID(kid).build().toPublicJWK().toJSONString();
         }
 
         if (publicKey instanceof EdECPublicKey) {
-            try (var dsaPublicKey = Ed25519VerifyingKey.Companion.readPublicKeyPemFile(ecPublicKeyPemPath.toString())) {
+            try (var dsaPublicKey = Ed25519VerifyingKey.Companion.readPublicKeyPemFile(publicKeyPemPath.toString())) {
+                var jwk = JsonParser.parseString(dsaPublicKey.toJwk());
+                jwk.getAsJsonObject().addProperty("kid", kid);
+                return jwk::toString;
+            }
+        }
+
+        throw new IllegalArgumentException("provided pem is not supported.");
+    }
+
+    /**
+     * Yet another static factory method of the interface.
+     * <p>
+     * For the supplied pem file as string {@code pem},
+     * a valid {@link VerificationMaterial} implementation object is returned featuring {@link #getPublicKeyJwk()} method
+     * that always returns JSON representation of the JWK with any private values removed.
+     * The cryptographic curve is either P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7) or Ed25519.
+     *
+     * @param kid non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
+     * @param pem a proper public ES256 or Ed25519 key in PEM format
+     * @return a valid {@link VerificationMaterial} implementation object representing Elliptic Curve JWK with any
+     * @throws IOException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
+     *                     private values removed, never {@code null}
+     */
+    // TODO@MP find way to reduce duplicate logic with above method taking in a file Path as argument.
+    static VerificationMaterial of(String kid, @NonNull String pem) throws IOException, DidSidekicksException {
+        var publicKey = PemUtils.parsePemPublicKey(new StringReader(pem));
+        if (publicKey instanceof ECPublicKey) {
+            return () -> new ECKey.Builder(Curve.P_256, (ECPublicKey) publicKey).keyID(kid).build().toPublicJWK().toJSONString();
+        }
+
+        if (publicKey instanceof EdECPublicKey) {
+            try (var dsaPublicKey = Ed25519VerifyingKey.Companion.fromPublicKeyPem(pem)) {
                 var jwk = JsonParser.parseString(dsaPublicKey.toJwk());
                 jwk.getAsJsonObject().addProperty("kid", kid);
                 return jwk::toString;

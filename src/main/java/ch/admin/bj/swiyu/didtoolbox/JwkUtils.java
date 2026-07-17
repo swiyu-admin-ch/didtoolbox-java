@@ -1,20 +1,18 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import com.google.gson.JsonParser;
-import com.nimbusds.jose.JOSEException;
+import ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial;
+import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod;
+import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethodException;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
+import lombok.NonNull;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.bouncycastle.util.io.pem.PemObject;
 
 import java.io.*;
 import java.nio.file.*;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 
 /**
@@ -54,7 +52,7 @@ public final class JwkUtils {
      * @throws IOException             if the file couldn't be read
      * @throws InvalidKeySpecException if the given key specification is inappropriate for the EC key factory to produce a public key
      */
-    public static String loadECPublicJWKasJSON(Path ecPublicPemPath, String kid) throws IOException, InvalidKeySpecException {
+    public static String loadECPublicJWKasJSON(Path ecPublicPemPath, String kid) throws IOException {
         if (!Files.isReadable(ecPublicPemPath)) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", ecPublicPemPath));
         }
@@ -63,28 +61,52 @@ public final class JwkUtils {
             throw new IllegalArgumentException(String.format("The supplied key ID (kid) of the JWK '%s' must be a regular case-sensitive string featuring no URIs reserved characters", kid));
         }
 
-        var publicKey = (ECPublicKey) PemUtils.parsePemPublicKey(Files.newBufferedReader(ecPublicPemPath));
+        try {
+            var jwk = VerificationMaterial.of(kid, ecPublicPemPath);
+            return jwk.getPublicKeyJwk();
+        } catch (DidSidekicksException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
 
-        return new ECKey.Builder(Curve.P_256, publicKey).keyID(kid).build().toPublicJWK().toJSONString();
+    /**
+     * Use generatePublicEC256VerificationMaterial instead of this method.
+     *
+     * Generates a new key pair (in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format)
+     * using standard digital signature algorithm
+     * <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.4">ECDSA using P-256 curve and SHA-256 hash function</a>.
+     * The key pair is exported in
+     * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format.
+     * Needless to say, the helper ensures the private key file access is restricted to current user only.
+     *
+     * @param kid            the ID of the JWK, that can be used to match a specific key
+     * @param keyPairPemFile the file where a generated key pair will be stored
+     *                       (in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format)
+     * @param forceOverwrite the flag controlling whether the existing PEM files should be overwritten or not
+     * @return a new public EC JWK (in JSON format).
+     * @throws IOException if persisting a key pair fails
+     */
+    @Deprecated(since = "2.3.0")
+    public static String generatePublicEC256(String kid, @NonNull File keyPairPemFile, boolean forceOverwrite) throws IOException {
+        return generatePublicEC256VerificationMethod(kid, keyPairPemFile, forceOverwrite).getVerificationMaterial().getPublicKeyJwk();
     }
 
     /**
      * Generates a new key pair (in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format)
      * using standard digital signature algorithm
      * <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.4">ECDSA using P-256 curve and SHA-256 hash function</a>.
-     * If {@code keyPairPemFile} is supplied, the key pair is exported in
+     * The key pair is exported in
      * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format.
      * Needless to say, the helper ensures the private key file access is restricted to current user only.
      *
      * @param kid            the ID of the JWK, that can be used to match a specific key
-     * @param keyPairPemFile if not {@code null}, the file where a generated key pair will be stored
+     * @param keyPairPemFile the file where a generated key pair will be stored
      *                       (in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format)
      * @param forceOverwrite the flag controlling whether the existing PEM files should be overwritten or not
-     * @return a new public EC JWK (in JSON format).
+     * @return VerificationMaterial
      * @throws IOException if persisting a key pair fails
      */
-    public static String generatePublicEC256(String kid, File keyPairPemFile, boolean forceOverwrite) throws IOException {
-
+    public static VerificationMethod generatePublicEC256VerificationMethod(String kid, @NonNull File keyPairPemFile, boolean forceOverwrite) throws IOException {
         KeyPairGenerator keyPairGenerator;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProviderSingleton.getInstance());
@@ -107,38 +129,95 @@ public final class JwkUtils {
         }
         String publicKeyPem = stringWriter.toString();
 
-        JWK publicJwk;
+        VerificationMethod verificationMethod;
         try {
-            // CAUTION By using com.nimbusds.jose.jwk.gen.ECKeyGenerator (see https://connect2id.com/products/nimbus-jose-jwt/examples/jws-with-ec-signature)
-            //         to create a com.nimbusds.jose.jwk.JWK object you may end up having incomplete EC PRIVATE KEY export later on.
-            publicJwk = JWK.parseFromPEMEncodedObjects(publicKeyPem).toECKey();
-        } catch (JOSEException e) {
+            verificationMethod = VerificationMethod.of(VerificationMaterial.of(kid, publicKeyPem));
+        } catch (DidSidekicksException | VerificationMethodException | IOException e) {
             throw new IllegalArgumentException(e);
         }
 
-        var publicJwkJsonObject = JsonParser.parseString(publicJwk.toJSONString()).getAsJsonObject();
-        publicJwkJsonObject.addProperty("kid", kid);
+        writePemFilesToDisk(keyPairPemFile, publicKeyPem, keyPairPem, forceOverwrite);
 
-        if (keyPairPemFile != null) {
+        return verificationMethod;
+    }
 
-            if (!keyPairPemFile.exists() || forceOverwrite) {
-
-                createPrivateFile(keyPairPemFile, forceOverwrite);
-
-                try (Writer w = Files.newBufferedWriter(keyPairPemFile.toPath())) {
-                    w.write(keyPairPem);
-                    w.flush();
-                }
-
-                // Creates (keyPairPemFile || ".pub") file
-                exportEcPublicKeyToPem(publicJwk, keyPairPemFile);
-
-            } else {
-                throw new IOException("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + keyPairPemFile.getPath());
-            }
+    /**
+     * Generates a new key pair (in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format)
+     * using standard digital signature algorithm
+     * <a href="https://www.rfc-editor.org/rfc/rfc8032.html#section-5">EDDSA using Ed25519</a>.
+     * The key pair is exported in
+     * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format.
+     * Needless to say, the helper ensures the private key file access is restricted to current user only.
+     *
+     * @param kid            the ID of the JWK, that can be used to match a specific key
+     * @param keyPairPemFile the file where a generated key pair will be stored
+     *                       (in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format)
+     * @param forceOverwrite the flag controlling whether the existing PEM files should be overwritten or not
+     * @return VerificationMaterial
+     * @throws IOException if persisting a key pair fails
+     */
+    public static VerificationMethod generatePublicEd25519VerificationMethod(String kid, File keyPairPemFile, boolean forceOverwrite) throws IOException {
+        KeyPairGenerator keyPairGenerator;
+        try {
+            keyPairGenerator = KeyPairGenerator.getInstance("Ed25519");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(e);
         }
 
-        return publicJwkJsonObject.toString();
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+        StringWriter stringWriter = new StringWriter();
+        try (JcaPEMWriter pemWriter = new JcaPEMWriter(stringWriter)) {
+            pemWriter.writeObject(keyPair); // CAUTION The whole key pair is expected to be written here, not only the private key
+        }
+        String keyPairPem = stringWriter.toString();
+
+        stringWriter = new StringWriter();
+        try (JcaPEMWriter pemWriter = new JcaPEMWriter(stringWriter)) {
+            pemWriter.writeObject(keyPair.getPublic());
+        }
+        String publicKeyPem = stringWriter.toString();
+
+        VerificationMethod verificationMethod;
+        try {
+            verificationMethod = VerificationMethod.of(VerificationMaterial.of(kid, publicKeyPem));
+        } catch (DidSidekicksException | VerificationMethodException | IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        writePemFilesToDisk(keyPairPemFile, publicKeyPem, keyPairPem, forceOverwrite);
+
+        return verificationMethod;
+    }
+
+    /**
+     *
+     * @param keyPairPemFile
+     * @param publicPem
+     * @param privatePem
+     * @param forceOverwrite
+     * @throws IOException
+     */
+    private static void writePemFilesToDisk(File keyPairPemFile, String publicPem, String privatePem, boolean forceOverwrite) throws IOException {
+        if (keyPairPemFile.exists() && !forceOverwrite) {
+            throw new IOException("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged: " + keyPairPemFile.getPath());
+        }
+
+        var publicKeyFile = Path.of(keyPairPemFile.getPath() + ".pub");
+        if (publicKeyFile.toFile().exists() && !forceOverwrite) {
+            throw new IOException("Public key file already exists");
+        }
+
+        createPrivateFile(keyPairPemFile, forceOverwrite);
+        try (Writer w = Files.newBufferedWriter(keyPairPemFile.toPath())) {
+            w.write(privatePem);
+            w.flush();
+        }
+
+        try (var writer = Files.newBufferedWriter(publicKeyFile)) {
+            writer.write(publicPem);
+            writer.flush();
+        }
     }
 
     /**
@@ -161,16 +240,4 @@ public final class JwkUtils {
         }
     }
 
-    /**
-     * PEM export helper.
-     */
-    private static void exportEcPublicKeyToPem(JWK jwk, File keyPairPemFile) throws IOException {
-        try (var pemWriterPub = new JcaPEMWriter(Files.newBufferedWriter(Path.of(keyPairPemFile.getPath() + ".pub")))) {
-            // as specified by https://www.rfc-editor.org/rfc/rfc5208
-            pemWriterPub.writeObject(new PemObject("PUBLIC KEY", jwk.toECKey().toPublicKey().getEncoded()));
-            pemWriterPub.flush();
-        } catch (JOSEException e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
 }

@@ -106,7 +106,12 @@ public class DidLogUpdaterContext {
         return new DidLogUpdaterContextBuilder();
     }
 
-    // TODO@MP provide proper java docs
+    /**
+     * Constructs a builder for updating did logs with the provided crypto suite
+     * @param method version of the did log (WEBVH or TDW)
+     * @param cryptoSuite used to create the log entry signature
+     * @return the builder, it's recommended to call 'assertionMethods' or 'authentications' on it.
+     */
     public static DidLogUpdaterContextBuilder builder(DidMethodEnum method, VcDataIntegrityCryptographicSuite cryptoSuite) {
         return new DidLogUpdaterContextBuilder().didMethod(method).cryptographicSuite(cryptoSuite);
     }

@@ -70,7 +70,7 @@ public abstract class AbstractDidLogEntryBuilder {
     }
 
     /**
-     * Setup the class members w.r.t. outcome of the supplied DID log resolution process.
+     * Set up the class members w.r.t. outcome of the supplied DID log resolution process.
      *
      * @param didLog to "peek" into
      * @throws DidLogMetaPeekerException if "peeking" failed for whatever reason
@@ -149,13 +149,13 @@ public abstract class AbstractDidLogEntryBuilder {
         an entry replaces the previously active list. If an entry does not have the updateKeys item,
         the currently active list continues to apply.
          */
-        var updatkeKeys = new HashSet<String>(); // must be a distinct list
-        updatkeKeys.add(verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
+        var updateKeys = new HashSet<String>(); // must be a distinct list
+        updateKeys.add(verificationMethodKeyProvider.getVerificationKeyMultibase()); // first and foremost...
         if (updateKeysParameter != null) {
-            updateKeysParameter.forEach(key -> updatkeKeys.add(key.getUpdateKey()));
+            updateKeysParameter.forEach(key -> updateKeys.add(key.getUpdateKey()));
         }
         var updateKeysJsonArray = new JsonArray();
-        updatkeKeys.forEach(updateKeysJsonArray::add);
+        updateKeys.forEach(updateKeysJsonArray::add);
 
         didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, updateKeysJsonArray);
 
@@ -299,7 +299,7 @@ public abstract class AbstractDidLogEntryBuilder {
 
     protected boolean isVerificationMethodKeyProviderLegal(VerificationMethodKeyProvider verificationMethodKeyProvider) {
         // Update keys must only match during key pre-rotation.
-        // Otherwise will take effect in the next update.
+        // Otherwise, will take effect in the next update.
         if (this.didLogMeta.isKeyPreRotationActivated()) {
             return this.didLogMeta.isPreRotatedUpdateKey(verificationMethodKeyProvider.getVerificationKeyMultibase());
         }

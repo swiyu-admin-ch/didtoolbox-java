@@ -56,4 +56,10 @@ public interface CommandParameterNames {
 
     public String PARAM_NAME_LONG_JWT = "--jwt";
     public String PARAM_NAME_SHORT_JWT = "-j";
+
+    public String PARAM_NAME_LONG_FORCE = "--force";
+    public String PARAM_NAME_SHORT_FORCE = "-f";
+
+    public String PARAM_NAME_LONG_CRYPTOGRAPHIC_ALGORITHM = "--cryptography";
+    public String PARAM_NAME_SHORT_CRYPTOGRAPHIC_ALGORITHM = "-c";
 }

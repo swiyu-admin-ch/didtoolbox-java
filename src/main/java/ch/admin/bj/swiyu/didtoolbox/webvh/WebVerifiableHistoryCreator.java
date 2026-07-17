@@ -499,7 +499,6 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         return createDidLog(createDidDoc(identifierRegistryUrl, this.allAuthentications(), this.allAssertionMethods()), zdt);
     }
 
-    //@SuppressWarnings({"PMD.CyclomaticComplexity"})
     private String createDidLog(JsonObject didDoc, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
         if (getCryptoSuite() == null) {
