@@ -3,6 +3,7 @@
 ## Next
 
 ### Added
+- Support for Ed25519 keys as verification material in create DID logs command
 
 ### Changed
 

@@ -191,7 +191,8 @@ public final class JwkUtils {
     }
 
     /**
-     *
+     * Writes the contents of privatePem to the provided file and the contents of publicPem to the file with + '.pub'.
+     * If one of the files already exists the function will return an IOException, unless forceOverwrite is true.
      * @param keyPairPemFile
      * @param publicPem
      * @param privatePem

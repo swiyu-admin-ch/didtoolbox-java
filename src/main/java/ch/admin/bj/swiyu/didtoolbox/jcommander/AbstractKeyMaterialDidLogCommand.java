@@ -62,7 +62,6 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
             variableArity = true)
     public Set<VerificationMethodParameters> authenticationKeys;
 
-    // TODO check how well it works to use as cli parameter and make improvements as necessary
     @Parameter(names = {PARAM_NAME_LONG_CRYPTOGRAPHIC_ALGORITHM, PARAM_NAME_SHORT_CRYPTOGRAPHIC_ALGORITHM},
             description = "Specify which king of keys to generate as assertion and authorization keys when none are provided. Available are ECP-256 and EdDSA25519")
     public CryptographicAlgorithm cryptoAlgorithm = CryptographicAlgorithm.ECP256;

@@ -65,8 +65,8 @@ public interface VerificationMaterial {
      */
     static VerificationMaterial of(String kid, @NonNull Path publicKeyPemPath) throws IOException, DidSidekicksException {
         var publicKey = PemUtils.parsePemPublicKey(Files.newBufferedReader(publicKeyPemPath));
-        if (publicKey instanceof ECPublicKey) {
-            return () -> new ECKey.Builder(Curve.P_256, (ECPublicKey) publicKey).keyID(kid).build().toPublicJWK().toJSONString();
+        if (publicKey instanceof ECPublicKey ecPublicKey) {
+            return () -> new ECKey.Builder(Curve.P_256, ecPublicKey).keyID(kid).build().toPublicJWK().toJSONString();
         }
 
         if (publicKey instanceof EdECPublicKey) {
@@ -94,11 +94,10 @@ public interface VerificationMaterial {
      * @throws IOException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
      *                     private values removed, never {@code null}
      */
-    // TODO@MP find way to reduce duplicate logic with above method taking in a file Path as argument.
     static VerificationMaterial of(String kid, @NonNull String pem) throws IOException, DidSidekicksException {
         var publicKey = PemUtils.parsePemPublicKey(new StringReader(pem));
-        if (publicKey instanceof ECPublicKey) {
-            return () -> new ECKey.Builder(Curve.P_256, (ECPublicKey) publicKey).keyID(kid).build().toPublicJWK().toJSONString();
+        if (publicKey instanceof ECPublicKey ecPublicKey) {
+            return () -> new ECKey.Builder(Curve.P_256, ecPublicKey).keyID(kid).build().toPublicJWK().toJSONString();
         }
 
         if (publicKey instanceof EdECPublicKey) {

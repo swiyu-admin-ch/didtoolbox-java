@@ -102,7 +102,6 @@ public final class JCommanderRunner {
             didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
         }
 
-        // TODO@MP check if error messages are clear enough as is
         var assertionMethods = command.getAssertionMethods(getOutputDir().toPath());
         var authentications = command.getAuthentications(getOutputDir().toPath());
 

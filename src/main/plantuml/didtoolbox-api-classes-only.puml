@@ -24,7 +24,8 @@ interface ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider {
 
 
 class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext {
-	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder <<deprecated>> 
+	{method}  {static} +builder ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum , paramVcDataIntegrityCryptographicSuite2 : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext$DidLogCreatorContextBuilder
 	{method} +create ( paramURL1 : java.net.URL ) : String
 }
 
@@ -58,7 +59,8 @@ class ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategyException {
 
 
 class ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext {
-	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder <<deprecated>> 
+	{method}  {static} +builder ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum , paramVcDataIntegrityCryptographicSuite2 : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
 	{method} +deactivate ( paramString1 : String ) : String
 	{method} +deactivate ( paramFile1 : java.io.File ) : String
 }
@@ -85,7 +87,8 @@ class ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategyException {
 
 
 class ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext {
-	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
+	{method}  {static} +builder () : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder <<deprecated>> 
+	{method}  {static} +builder ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum , paramVcDataIntegrityCryptographicSuite2 : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
 	{method} +update ( paramString1 : String ) : String
 	{method} +update ( paramFile1 : java.io.File ) : String
 }
@@ -172,6 +175,7 @@ class ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameterException {
 
 interface ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial {
 	{method}  {abstract} +getPublicKeyJwk () : String
+	{method}  {static} +of ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial
 	{method}  {static} +of ( paramString1 : String , paramPath2 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial
 	{method}  {static} +of ( paramString1 : String , paramECPublicKey2 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial
 }
@@ -180,14 +184,15 @@ interface ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial {
 interface ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod {
 	{method} +defaultEquals ( paramObject1 : Object ) : boolean
 	{method}  {abstract} +getIdFragment () : String
-	{method}  {abstract} +getType () : String
+	{method}  {abstract} +getType () : String <<deprecated>> 
 	{method}  {abstract} +getVerificationMaterial () : ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial
+	{method}  {static} +of ( paramVerificationMaterial1 : ch.admin.bj.swiyu.didtoolbox.model.VerificationMaterial ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 	{method}  {static} +of ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 	{method}  {static} +of ( paramString1 : String , paramPath2 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 	{method}  {static} +of ( paramString1 : String , paramECPublicKey2 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
-	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramString3 : String ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
-	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramPath3 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
-	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramECPublicKey3 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramString3 : String ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod <<deprecated>> 
+	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramPath3 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod <<deprecated>> 
+	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramECPublicKey3 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod <<deprecated>> 
 }
 
 
