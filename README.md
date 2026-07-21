@@ -79,15 +79,16 @@ Usage: didtoolbox [options] [command] [command options]
 
         Options:
           --assert, -a
-            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing an EC P-256 
-            or Ed25519 public/verifying key
+            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing an P-256 or 
+            Ed25519 public/verifying key
           --auth, -t
-            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC 
-            P-256 or Ed25519 public/verifying key
-          --cryptography, -c
-            Specify which king of keys to generate as assertion and authorization keys when none are provided. Available are ECP-256 and EdDSA25519
-            Default: EcP-256
-            Possible Values: [Ed25519, EcP-256]
+            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing P-256 
+            or Ed25519 public/verifying key
+          --cryptographic-algorithm, -c
+            Specify which type of keys to generate as assertion and authorization keys when none are provided through other means. Available are 
+            P-256 and Ed25519
+            Default: P-256
+            Possible Values: [Ed25519, P-256]
           --force, -f
             Overwrite existing PEM key files, if any
             Default: false
@@ -147,15 +148,16 @@ Usage: didtoolbox [options] [command] [command options]
 
         Options:
           --assert, -a
-            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing an EC P-256 
-            or Ed25519 public/verifying key
+            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing an P-256 or 
+            Ed25519 public/verifying key
           --auth, -t
-            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC 
-            P-256 or Ed25519 public/verifying key
-          --cryptography, -c
-            Specify which king of keys to generate as assertion and authorization keys when none are provided. Available are ECP-256 and EdDSA25519
-            Default: EcP-256
-            Possible Values: [Ed25519, EcP-256]
+            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing P-256 
+            or Ed25519 public/verifying key
+          --cryptographic-algorithm, -c
+            Specify which type of keys to generate as assertion and authorization keys when none are provided through other means. Available are 
+            P-256 and Ed25519
+            Default: P-256
+            Possible Values: [Ed25519, P-256]
         * --did-log-file, -d
             The file containing a valid DID log to update
           --force, -f
@@ -268,7 +270,7 @@ Usage: didtoolbox [options] [command] [command options]
             An optional password required for recovering the key pair (stored in Securosys Primus (HSM) Keystore). This CLI parameter should always 
             be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
           --signing-key-file, -s
-            An EC P-256 private key file matching the specified key within the DID log
+            A P-256 private key file matching the specified key within the DID log
 
     verify-pop      Verifies the validity of the provided proof of possession JWT.
       Usage: verify-pop [options]
@@ -282,9 +284,8 @@ Usage: didtoolbox [options] [command] [command options]
             JWT to be verified
         * --nonce, -n
             Text representation of the possession to be included in the proof
-            
-$ java -jar didtoolbox.jar -V
 
+$ java -jar didtoolbox.jar -V
 didtoolbox 2.1.0
 ```
 

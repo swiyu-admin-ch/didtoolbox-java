@@ -78,11 +78,11 @@ class VerificationMethodKeyParametersValidatorTest {
                 },
                 {
                         "no-comma-separator",
-                        "should supply a comma-separated list (in format key-name,public-key-file (EC P-256 public/verifying key in PEM format))",
+                        "should supply a comma-separated list (in format key-name,public-key-file (P-256 or Ed25519 public/verifying key in PEM format))",
                 },
                 {
                         "my-assert-key-02,non-existing-file",
-                        "option must be a regular file containing an EC P-256 or Ed25519 public/verifying key in PEM format"
+                        "option must be a regular file containing an P-256 or Ed25519 public/verifying key in PEM format"
                 },
         };
 

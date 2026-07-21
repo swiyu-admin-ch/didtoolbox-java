@@ -37,7 +37,7 @@ class VerificationMaterialTest {
     }
 
     @Test
-    void of_pathToEcP256PemFile_returnsVerificationMaterial() {
+    void of_pathToP256PemFile_returnsVerificationMaterial() {
         var path = Path.of("src/test/data/assert-key-01.pub");
         assertDoesNotThrow(() -> {
             var verificationMaterial = VerificationMaterial.of("example_kid", path);
@@ -52,6 +52,12 @@ class VerificationMaterialTest {
             var verificationMaterial = VerificationMaterial.of("example_kid", path);
             assertKid("example_kid", verificationMaterial);
         });
+    }
+
+    @Test
+    void of_pathToUnsupportedPemFile_throwsIllegalArgumentException() {
+        var path = Path.of("src/test/data/rsa");
+        assertThrowsExactly(IllegalArgumentException.class, () -> VerificationMaterial.of("example_kid", path));
     }
 
     @Test

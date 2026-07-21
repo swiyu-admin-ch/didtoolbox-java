@@ -249,7 +249,7 @@ public final class JCommanderRunner {
         }
 
         if (signer == null) {
-            throw new CommandException("No valid source of signing EC P-256 key supplied. Use one of the relevant options to supply keys");
+            throw new CommandException("No valid source of signing P-256 key supplied. Use one of the relevant options to supply keys");
         }
 
         var proof = new ProofOfPossessionCreator(signer).create(nonce, validDuration);

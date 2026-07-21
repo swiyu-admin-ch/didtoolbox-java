@@ -14,7 +14,7 @@ public class VerificationMethodKeyParametersValidator implements IParameterValid
     public void validate(String name, String value) {
         String[] split = value.split(",");
         if (split.length != 2) { // NOPMD AvoidLiteralsInIfCondition
-            throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (EC P-256 public/verifying key in PEM format)) (found " + value + ")");
+            throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (P-256 or Ed25519 public/verifying key in PEM format)) (found " + value + ")");
         }
 
         String kid = split[0];
@@ -32,13 +32,13 @@ public class VerificationMethodKeyParametersValidator implements IParameterValid
         String jwkFile = split[1];
         var f = Path.of(jwkFile);
         if (!Files.isReadable(f)) {
-            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing an EC P-256 or Ed25519 public/verifying key in PEM format (found " + jwkFile + ")");
+            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing an P-256 or Ed25519 public/verifying key in PEM format (found " + jwkFile + ")");
         }
 
         try {
             JwkUtils.loadECPublicJWKasJSON(f, kid);
         } catch (IOException exc) {
-            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an EC P-256 or Ed25519 public/verifying key in PEM format: " + exc.getLocalizedMessage(), exc);
+            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an P-256 or Ed25519 public/verifying key in PEM format: " + exc.getLocalizedMessage(), exc);
         }
     }
 }

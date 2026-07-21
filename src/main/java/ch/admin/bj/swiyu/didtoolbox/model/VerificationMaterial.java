@@ -58,7 +58,7 @@ public interface VerificationMaterial {
      * The cryptographic curve is either P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7) or Ed25519.
      *
      * @param kid              non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
-     * @param publicKeyPemPath file featuring a proper public ES256 or Ed25519 key in PEM format
+     * @param publicKeyPemPath file featuring a proper public P-256 or Ed25519 key in PEM format
      * @return a valid {@link VerificationMaterial} implementation object representing Elliptic Curve JWK with any
      * @throws IOException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
      *                     private values removed, never {@code null}

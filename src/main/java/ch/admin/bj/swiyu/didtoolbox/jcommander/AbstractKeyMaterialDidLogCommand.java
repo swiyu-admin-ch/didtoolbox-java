@@ -49,22 +49,22 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
     public boolean shouldGenerateNextVerifyingKeyPem;
 
     @Parameter(names = {PARAM_NAME_LONG_ASSERTION_METHOD_KEYS, PARAM_NAME_SHORT_ASSERTION_METHOD_KEYS},
-            description = "One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing an EC P-256 or Ed25519 public/verifying key",
+            description = "One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing an P-256 or Ed25519 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
     public Set<VerificationMethodParameters> assertionMethodKeys;
 
     @Parameter(names = {PARAM_NAME_LONG_AUTHENTICATION_METHOD_KEYS, PARAM_NAME_SHORT_AUTHENTICATION_METHOD_KEYS},
-            description = "One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC P-256 or Ed25519 public/verifying key",
+            description = "One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing P-256 or Ed25519 public/verifying key",
             listConverter = VerificationMethodParametersConverter.class,
             validateWith = VerificationMethodKeyParametersValidator.class,
             variableArity = true)
     public Set<VerificationMethodParameters> authenticationKeys;
 
     @Parameter(names = {PARAM_NAME_LONG_CRYPTOGRAPHIC_ALGORITHM, PARAM_NAME_SHORT_CRYPTOGRAPHIC_ALGORITHM},
-            description = "Specify which king of keys to generate as assertion and authorization keys when none are provided. Available are ECP-256 and EdDSA25519")
-    public CryptographicAlgorithm cryptoAlgorithm = CryptographicAlgorithm.ECP256;
+            description = "Specify which type of keys to generate as assertion and authorization keys when none are provided through other means. Available are P-256 and Ed25519")
+    public CryptographicAlgorithm cryptoAlgorithm = CryptographicAlgorithm.P256;
 
     @Parameter(names = {PARAM_NAME_LONG_FORCE, PARAM_NAME_SHORT_FORCE},
             description = "Overwrite existing PEM key files, if any")
@@ -121,8 +121,8 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
         var file = new File(directory.toString(), name);
 
         return switch (this.cryptoAlgorithm) {
-            case CryptographicAlgorithm.ECP256 ->
-                    JwkUtils.generatePublicEC256VerificationMethod(name, file, this.forceOverwrite);
+            case CryptographicAlgorithm.P256 ->
+                    JwkUtils.generatePublicP256VerificationMethod(name, file, this.forceOverwrite);
             case ED25519 -> JwkUtils.generatePublicEd25519VerificationMethod(name, file, this.forceOverwrite);
         };
     }

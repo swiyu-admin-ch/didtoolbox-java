@@ -1,5 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -34,6 +37,50 @@ class AbstractKeyMaterialDidLogCommandTest {
             assertEquals("assert-key-01", method.get().getIdFragment());
         });
         assertEquals(2, tmpDir.toFile().listFiles().length);
+    }
+
+    @Test
+    void getAssertionMethods_typeP256_generateKeys(@TempDir Path tmpDir) {
+        var command = new Command();
+        command.cryptoAlgorithm = CryptographicAlgorithm.P256;
+
+        assertDoesNotThrow(() -> {
+            var keys = command.getAssertionMethods(tmpDir);
+            assertEquals(1, keys.size());
+            var method = keys.stream().findFirst();
+            assertTrue(method.isPresent());
+            assertEquals("assert-key-01", method.get().getIdFragment());
+        });
+        assertEquals(2, tmpDir.toFile().listFiles().length);
+
+        assertDoesNotThrow(() -> {
+            var jwk = JwkUtils.loadECPublicJWKasJSON(new File(tmpDir.toString(), "assert-key-01.pub"), "foo");
+            var jsonJwk = JsonParser.parseString(jwk).getAsJsonObject();
+            var crv = jsonJwk.get("crv");
+            assertEquals("P-256", crv.getAsString());
+        });
+    }
+
+    @Test
+    void getAssertionMethods_typeEd25519_generateKeys(@TempDir Path tmpDir) {
+        var command = new Command();
+        command.cryptoAlgorithm = CryptographicAlgorithm.ED25519;
+
+        assertDoesNotThrow(() -> {
+            var keys = command.getAssertionMethods(tmpDir);
+            assertEquals(1, keys.size());
+            var method = keys.stream().findFirst();
+            assertTrue(method.isPresent());
+            assertEquals("assert-key-01", method.get().getIdFragment());
+        });
+        assertEquals(2, tmpDir.toFile().listFiles().length);
+
+        assertDoesNotThrow(() -> {
+            var jwk = JwkUtils.loadECPublicJWKasJSON(new File(tmpDir.toString(), "assert-key-01.pub"), "foo");
+            var jsonJwk = JsonParser.parseString(jwk).getAsJsonObject();
+            var crv = jsonJwk.get("crv");
+            assertEquals("Ed25519", crv.getAsString());
+        });
     }
 
     @Test

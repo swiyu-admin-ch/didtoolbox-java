@@ -71,7 +71,7 @@ class JwkUtilsTest {
         var file = new File(tmpDir.toString(), "pem");
         String kid = "auth-key-01";
         assertDoesNotThrow(() -> {
-            var verificationMethod = JwkUtils.generatePublicEC256VerificationMethod(kid, file, false);
+            var verificationMethod = JwkUtils.generatePublicP256VerificationMethod(kid, file, false);
             assertGeneratePublicEC256(verificationMethod, kid);
         });
         assertTrue(file.exists());
@@ -83,7 +83,7 @@ class JwkUtilsTest {
         var file = new File(tmpDir.toString(), "pem");
         String kid = "auth-key-01";
         assertDoesNotThrow(() -> {
-            var verificationMethod = JwkUtils.generatePublicEC256VerificationMethod(kid, file, false);
+            var verificationMethod = JwkUtils.generatePublicP256VerificationMethod(kid, file, false);
             assertGeneratePublicEC256(verificationMethod, kid);
         });
         assertTrue(file.exists());
@@ -98,7 +98,7 @@ class JwkUtilsTest {
             tempFile.deleteOnExit();
 
             var kid = "auth-key-01";
-            assertGeneratePublicEC256(JwkUtils.generatePublicEC256VerificationMethod(kid, tempFile, true), kid); // MUT
+            assertGeneratePublicEC256(JwkUtils.generatePublicP256VerificationMethod(kid, tempFile, true), kid); // MUT
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
@@ -121,7 +121,7 @@ class JwkUtilsTest {
         File finalTempFile = tempFile;
         var exc = assertThrowsExactly(IOException.class, () -> {
             // kid is irrelevant here
-            JwkUtils.generatePublicEC256VerificationMethod("kid", finalTempFile, false); // MUT
+            JwkUtils.generatePublicP256VerificationMethod("kid", finalTempFile, false); // MUT
         });
         assertTrue(exc.getMessage().contains("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged"));
 
@@ -145,7 +145,7 @@ class JwkUtilsTest {
             tempFile.deleteOnExit();
 
             var kid = "auth-key-01";
-            assertGeneratePublicEC256(JwkUtils.generatePublicEC256VerificationMethod(kid, tempFile, true), kid); // MUT
+            assertGeneratePublicEC256(JwkUtils.generatePublicP256VerificationMethod(kid, tempFile, true), kid); // MUT
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));

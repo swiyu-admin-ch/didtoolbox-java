@@ -25,9 +25,9 @@ public final class JwkUtils {
     }
 
     /**
-     * Loads a public EC P-256 key from the specified PEM file and returns its JWK JSON representation
+     * Loads a public P-256 key from the specified PEM file and returns its JWK JSON representation
      *
-     * @param ecPublicPemFile the EC P-256 public key in PEM format
+     * @param ecPublicPemFile the P-256 public key in PEM format
      * @param kid             the ID (kid) of the JWK that can be used to match this key.
      *                        A regular case-sensitive string featuring no URIs reserved characters is expected.
      *                        Otherwise, {@link IllegalArgumentException} is thrown
@@ -42,9 +42,9 @@ public final class JwkUtils {
     }
 
     /**
-     * Loads a public EC P-256 key from the specified PEM file and returns its JWK JSON representation
+     * Loads a public P-256 key from the specified PEM file and returns its JWK JSON representation
      *
-     * @param ecPublicPemPath to file featuring an EC P-256 public key in PEM format
+     * @param ecPublicPemPath to file featuring an P-256 public key in PEM format
      * @param kid             the ID (kid) of the JWK that can be used to match this key.
      *                        A regular case-sensitive string featuring no URIs reserved characters is expected.
      *                        Otherwise, {@link IllegalArgumentException} is thrown
@@ -70,7 +70,7 @@ public final class JwkUtils {
     }
 
     /**
-     * Use generatePublicEC256VerificationMaterial instead of this method.
+     * Use generatePublicP256VerificationMaterial instead of this method.
      *
      * Generates a new key pair (in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format)
      * using standard digital signature algorithm
@@ -88,7 +88,7 @@ public final class JwkUtils {
      */
     @Deprecated(since = "2.3.0")
     public static String generatePublicEC256(String kid, @NonNull File keyPairPemFile, boolean forceOverwrite) throws IOException {
-        return generatePublicEC256VerificationMethod(kid, keyPairPemFile, forceOverwrite).getVerificationMaterial().getPublicKeyJwk();
+        return generatePublicP256VerificationMethod(kid, keyPairPemFile, forceOverwrite).getVerificationMaterial().getPublicKeyJwk();
     }
 
     /**
@@ -106,7 +106,7 @@ public final class JwkUtils {
      * @return VerificationMaterial
      * @throws IOException if persisting a key pair fails
      */
-    public static VerificationMethod generatePublicEC256VerificationMethod(String kid, @NonNull File keyPairPemFile, boolean forceOverwrite) throws IOException {
+    public static VerificationMethod generatePublicP256VerificationMethod(String kid, @NonNull File keyPairPemFile, boolean forceOverwrite) throws IOException {
         KeyPairGenerator keyPairGenerator;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProviderSingleton.getInstance());
