@@ -148,21 +148,8 @@ public final class JCommanderRunner {
 
         // CAUTION At this point, it should be all in place to update to be able to update the supplied DID log
 
-        var assertionMethods = new HashSet<VerificationMethod>();
-        var updateCommandAssertionMethodKeys = command.assertionMethodKeys;
-        if (updateCommandAssertionMethodKeys != null && !updateCommandAssertionMethodKeys.isEmpty()) {
-            for (VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
-                assertionMethods.add(VerificationMethod.of(param.key, param.jwk));
-            }
-        }
-
-        var authentications = new HashSet<VerificationMethod>();
-        var updateCommandAuthenticationKeys = command.authenticationKeys;
-        if (updateCommandAuthenticationKeys != null && !updateCommandAuthenticationKeys.isEmpty()) {
-            for (VerificationMethodParameters param : updateCommandAuthenticationKeys) {
-                authentications.add(VerificationMethod.of(param.key, param.jwk));
-            }
-        }
+        var assertionMethods = command.getAssertionMethods(getOutputDir().toPath());
+        var authentications = command.getAuthentications(getOutputDir().toPath());
 
         if (authentications.isEmpty() && assertionMethods.isEmpty()) {
             throw new CommandException("No update will take place as no verification material is supplied whatsoever");
