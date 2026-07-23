@@ -11,6 +11,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -108,7 +109,7 @@ public class ProofOfPossessionVerifier {
         // - use secure string comparison method
         // - add check for nbf if present
         var algorithm = signedJWT.getHeader().getAlgorithm();
-        if (!Set.of(JWSAlgorithm.ES256).contains(algorithm)) {
+        if (!Set.of(JWSAlgorithm.ES256, JWSAlgorithm.EdDSA).contains(algorithm)) {
             throw ProofOfPossessionVerifierException.unsupportedAlgorithm(algorithm.toString());
         }
 
@@ -159,8 +160,18 @@ public class ProofOfPossessionVerifier {
             throw ProofOfPossessionVerifierException.unparsable(e);
         }
 
+
         try {
-            JWSVerifier jwsVerifier = new ECDSAVerifier(jwk.toECKey());
+            JWSVerifier jwsVerifier;
+            // if else pattern because final Class instances cannot be used as cases for a switch statement
+            if (JWSAlgorithm.EdDSA.equals(algorithm)) {
+               jwsVerifier = new Ed25519Verifier(jwk.toOctetKeyPair());
+            } else if (JWSAlgorithm.ES256.equals(algorithm)) {
+               jwsVerifier = new ECDSAVerifier(jwk.toECKey());
+            } else {
+                throw new RuntimeException("Tried to construct a JWS verifier of an algorithm that's not supported and should have been caught earlier.");
+            };
+
             if (!signedJWT.verify(jwsVerifier)) {
                 throw ProofOfPossessionVerifierException.invalidSignature();
             }

@@ -1,9 +1,16 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSSigner;
+import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.jca.JCAContext;
+import com.nimbusds.jose.util.Base64URL;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.interfaces.ECPublicKey;
+import java.util.Set;
 
 /**
  * Built on top of both {@link VcDataIntegrityCryptographicSuite} and {@link JWSSigner},
@@ -18,7 +25,44 @@ public interface ProofOfPossessionJWSSigner extends JWSSigner {
         return null;
     }
 
-    public String getKid();
+    @Override
+    default Set<JWSAlgorithm> supportedJWSAlgorithms() {
+        return Set.of(this.getAlgorithm());
+    }
 
-    public JWSAlgorithm getAlgorithm();
+    String getKid();
+
+    JWSAlgorithm getAlgorithm();
+
+    static ProofOfPossessionJWSSigner of(Path path, String kid) throws IOException, VcDataIntegrityCryptographicSuiteException {
+        try {
+            var keyPair = PemUtils.parsePemKeyPair(Files.newBufferedReader(path));
+            if (keyPair.getPublic() instanceof ECPublicKey) {
+                return new EcP256ProofOfPossessionJWSSigner(keyPair, kid);
+            }
+        } catch (IllegalArgumentException ignore) {
+        }
+        var signer = new EdDsaJcs2022JWSSigner(path);
+        return of(signer, kid, JWSAlgorithm.EdDSA);
+    }
+
+    static ProofOfPossessionJWSSigner of(JWSSigner signer, String kid, JWSAlgorithm alg) {
+        return new ProofOfPossessionJWSSigner(){
+            @Override
+            public Base64URL sign(JWSHeader header, byte[] signingInput) throws JOSEException {
+                return signer.sign(header, signingInput);
+            }
+
+            @Override
+            public String getKid() {
+                return kid;
+            }
+
+            @Override
+            public JWSAlgorithm getAlgorithm() {
+                return alg;
+            }
+        };
+    }
+
 }

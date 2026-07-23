@@ -11,6 +11,7 @@ import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptograph
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.Ed25519Verifier;
 
 import java.io.File;
 import java.io.IOException;
@@ -213,7 +214,7 @@ public final class JCommanderRunner {
                         .deactivate(didLogFile));
     }
 
-    void runPoPCreateCommand(CreateProofOfPossessionCommand command) throws IOException, ProofOfPossessionCreatorException, CommandException, UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, JOSEException, KeyException {
+    void runPoPCreateCommand(CreateProofOfPossessionCommand command) throws IOException, ProofOfPossessionCreatorException, CommandException, UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, JOSEException, KeyException, VcDataIntegrityCryptographicSuiteException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return;
@@ -222,27 +223,24 @@ public final class JCommanderRunner {
         // Duration after which the JWT expires
         Duration validDuration = Duration.ofDays(1);
 
-        var nonce = command.nonce;
-        var didLogFile = command.didLog;
-        var kid = command.kid;
-
-        var didLog = Files.readString(didLogFile.toPath());
+        var didLog = Files.readString(command.didLog.toPath());
 
         ProofOfPossessionJWSSigner signer = null;
         if (command.signingKeyPemFile != null) {
-            signer = new EcP256ProofOfPossessionJWSSigner(command.signingKeyPemFile.toPath(), kid);
+            signer = ProofOfPossessionJWSSigner.of(command.signingKeyPemFile.toPath(), command.kid);
+            // signer = new EcP256ProofOfPossessionJWSSigner(command.signingKeyPemFile.toPath(), kid);
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
-            signer = HsmProofOfPossessionJWSSigner.newPrimusSigner(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, kid);
+            signer = HsmProofOfPossessionJWSSigner.newPrimusSigner(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, command.kid);
         }
 
         if (signer == null) {
             throw new CommandException("No valid source of signing P-256 key supplied. Use one of the relevant options to supply keys");
         }
 
-        var proof = new ProofOfPossessionCreator(signer).create(nonce, validDuration);
+        var proof = new ProofOfPossessionCreator(signer).create(command.nonce, validDuration);
         try {
             var verifier = new ProofOfPossessionVerifier(didLog);
-            verifier.verify(proof, nonce);
+            verifier.verify(proof, command.nonce);
         } catch (ProofOfPossessionVerifierException e) {
             throw new CommandException("Failed to verify generated proof: %s".formatted(e.getLocalizedMessage()), e);
         }

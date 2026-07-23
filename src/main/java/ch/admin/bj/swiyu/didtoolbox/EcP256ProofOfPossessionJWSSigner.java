@@ -6,28 +6,25 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyPair;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
-import java.util.Date;
 import java.util.Set;
 
 public class EcP256ProofOfPossessionJWSSigner implements ProofOfPossessionJWSSigner {
     protected ECKey signingKey;
 
-    public EcP256ProofOfPossessionJWSSigner(String keyId) throws JOSEException {
-        this.signingKey = new ECKeyGenerator(Curve.P_256).keyUse(KeyUse.SIGNATURE).keyID(keyId).issueTime(new Date()).generate(); //NOPMD ReplaceJavaUtilDate function expects date class
+    public EcP256ProofOfPossessionJWSSigner(Path path, String kid) throws IOException {
+        this(PemUtils.parsePemKeyPair(Files.newBufferedReader(path)), kid);
     }
 
-    public EcP256ProofOfPossessionJWSSigner(Path path, String keyId) throws IOException {
-        var keyPair = PemUtils.parsePemKeyPair(Files.newBufferedReader(path));
-        this.signingKey = new ECKey.Builder(Curve.P_256, (ECPublicKey) keyPair.getPublic()).keyID(keyId).privateKey((ECPrivateKey) keyPair.getPrivate()).build();
+    public EcP256ProofOfPossessionJWSSigner(KeyPair keyPair, String kid) {
+        this.signingKey = new ECKey.Builder(Curve.P_256, (ECPublicKey) keyPair.getPublic()).keyID(kid).privateKey((ECPrivateKey) keyPair.getPrivate()).build();
     }
 
     @Override
