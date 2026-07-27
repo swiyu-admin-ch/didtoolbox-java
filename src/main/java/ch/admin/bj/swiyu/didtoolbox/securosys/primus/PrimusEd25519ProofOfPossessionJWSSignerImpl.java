@@ -5,12 +5,10 @@ import ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
 
-import java.security.KeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
 import java.util.Set;
 
 /**
@@ -21,6 +19,7 @@ import java.util.Set;
  */
 public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519VerificationMethodKeyProviderImpl implements ProofOfPossessionJWSSigner {
     final private String kid;
+    JCAContext jcaContext = new JCAContext();
 
     /**
      * @see PrimusEd25519VerificationMethodKeyProviderImpl#PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, String, String)
@@ -49,5 +48,10 @@ public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519Ve
     @Override
     public Base64URL sign(JWSHeader jwsHeader, byte[] bytes) throws JOSEException {
         return Base64URL.encode(super.generateSignature(bytes));
+    }
+
+    @Override
+    public JCAContext getJCAContext() {
+        return jcaContext;
     }
 }

@@ -11,14 +11,12 @@ import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptograph
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.crypto.Ed25519Verifier;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.security.*;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.Set;
 
 import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY;
@@ -137,7 +135,7 @@ public final class JCommanderRunner {
     }
 
     @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.NPathComplexity"})
-    void runUpdateDidLogCommand(UpdateDidLogCommand command) throws CommandException, VerificationMethodException, IOException, DidLogCreatorStrategyException, VcDataIntegrityCryptographicSuiteException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, DidLogUpdaterStrategyException {
+    void runUpdateDidLogCommand(UpdateDidLogCommand command) throws CommandException, VerificationMethodException, IOException, VcDataIntegrityCryptographicSuiteException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, DidLogUpdaterStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return;
@@ -228,9 +226,8 @@ public final class JCommanderRunner {
         ProofOfPossessionJWSSigner signer = null;
         if (command.signingKeyPemFile != null) {
             signer = ProofOfPossessionJWSSigner.of(command.signingKeyPemFile.toPath(), command.kid);
-            // signer = new EcP256ProofOfPossessionJWSSigner(command.signingKeyPemFile.toPath(), kid);
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
-            signer = HsmProofOfPossessionJWSSigner.newPrimusSigner(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, command.kid);
+            signer = ProofOfPossessionJWSSigner.of(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, command.kid);
         }
 
         if (signer == null) {

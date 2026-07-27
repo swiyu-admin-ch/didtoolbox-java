@@ -113,32 +113,22 @@ public class ProofOfPossessionVerifier {
             throw ProofOfPossessionVerifierException.unsupportedAlgorithm(algorithm.toString());
         }
 
-        // check nonce
-        String nonceClaim;
+        // ParseException is thrown here, if something's wrong with the provided JWT
+        JWTClaimsSet claimSet;
         try {
-            nonceClaim = signedJWT.getJWTClaimsSet().getStringClaim("nonce");
+            claimSet = signedJWT.getJWTClaimsSet();
+            // check nonce
+            String nonceClaim = claimSet.getStringClaim("nonce");
+            if (!nonce.equals(nonceClaim)) {
+                throw ProofOfPossessionVerifierException.invalidNonce(nonceClaim, nonce);
+            }
         } catch (ParseException e) {
             throw ProofOfPossessionVerifierException.unparsable(e);
-        }
-        if (!nonce.equals(nonceClaim)) {
-            throw ProofOfPossessionVerifierException.invalidNonce(nonceClaim, nonce);
         }
 
         // check timestamp
-        // ParseException is thrown here, if something's wrong with the provided JWT
-        JWTClaimsSet claimset;
-        try {
-            claimset = signedJWT.getJWTClaimsSet();
-        } catch (ParseException e) {
-            throw ProofOfPossessionVerifierException.unparsable(e);
-        }
-
-        var expirationTime = claimset.getExpirationTime();
-        if (expirationTime == null) {
-            throw ProofOfPossessionVerifierException.expired();
-        }
-        var now = Instant.now();
-        if (now.isAfter(expirationTime.toInstant())) {
+        var expirationTime = claimSet.getExpirationTime();
+        if (expirationTime == null || Instant.now().isAfter(expirationTime.toInstant())) {
             throw ProofOfPossessionVerifierException.expired();
         }
 

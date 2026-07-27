@@ -45,7 +45,7 @@ public abstract class AbstractUtilTestBase {
     final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE_JKS;
 
     /**
-     * Sharing the very same keys ({@link #TEST_PRIVATE_KEY_MULTIBASE}, {@link #TEST_PUBLIC_KEY_MULTIBASE}) with {@link #TEST_POP_JWS_SIGNER}
+     * Sharing the very same keys ({@link #TEST_PRIVATE_KEY_MULTIBASE}, {@link #TEST_PUBLIC_KEY_MULTIBASE})
      */
     final protected static VcDataIntegrityCryptographicSuite TEST_CRYPTO_SUITE;
 
@@ -74,10 +74,7 @@ public abstract class AbstractUtilTestBase {
     /**
      * Sharing the very same keys ({@link #TEST_PRIVATE_KEY_MULTIBASE}, {@link #TEST_PUBLIC_KEY_MULTIBASE}) with {@link #TEST_CRYPTO_SUITE}
      */
-    final protected static ProofOfPossessionJWSSigner TEST_POP_JWS_SIGNER;
     final static String TEST_POP_JWS_KID = "did:webvh:SCID:example.com#key-1";
-
-    final static String TEST_POP_JWS_KID_ANOTHER = "did:webvh:SCID:example.com#key-2";
 
     /**
      * Collection of signing/verifying Ed25519 keys in various (appropriate) format intended for testing purposes only
@@ -160,9 +157,8 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
 
         try {
             // Using (example) keys from https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-0
-            var suite = new EdDsaJcs2022ProofOfPossessionJWSSignerImpl(TEST_PRIVATE_KEY_MULTIBASE, TEST_POP_JWS_KID);
-            TEST_POP_JWS_SIGNER = suite;
-            TEST_CRYPTO_SUITE = suite;
+            var suite =
+            TEST_CRYPTO_SUITE = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(TEST_PRIVATE_KEY_MULTIBASE);;
 
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
             var suiteJks = new EdDsaJcs2022JWSSigner(

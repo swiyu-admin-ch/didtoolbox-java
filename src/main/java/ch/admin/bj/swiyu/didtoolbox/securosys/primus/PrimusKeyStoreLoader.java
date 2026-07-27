@@ -25,7 +25,7 @@ public class PrimusKeyStoreLoader {
     public static final String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
     private static final String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
     private static final String PROVIDER_NAME_GETTER = "getProviderName";
-    @Getter(AccessLevel.PACKAGE)
+    @Getter(AccessLevel.PUBLIC)
     private final KeyStore keyStore;
 
     /**
@@ -221,7 +221,7 @@ public class PrimusKeyStoreLoader {
      * @throws KeyException
      */
     @SuppressWarnings("PMD.UnusedAssignment")
-    KeyPair loadKeyPair(String alias, String password)
+    public KeyPair loadKeyPair(String alias, String password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 
         var keyStore = this.getKeyStore();

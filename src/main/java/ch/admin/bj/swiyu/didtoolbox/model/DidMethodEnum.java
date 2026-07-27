@@ -74,10 +74,12 @@ public enum DidMethodEnum {
         throw new ParseException("Unknown or unsupported DID method: " + str, 0);
     }
 
+    @Deprecated(since = "2.3.0")
     public boolean isTdw03() {
         return false;
     }
 
+    @Deprecated(since = "2.3.0")
     public boolean isWebVh10() {
         return false;
     }

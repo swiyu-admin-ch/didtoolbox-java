@@ -1,13 +1,12 @@
 package ch.admin.bj.swiyu.didtoolbox.securosys.primus;
 
-import ch.admin.bj.swiyu.didtoolbox.EdDsaJcs2022JWSSigner;
 import ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner;
-import ch.admin.eid.did_sidekicks.Ed25519SigningKey;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.util.Base64URL;
 
@@ -15,9 +14,6 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.EdECPrivateKey;
-import java.security.spec.ECPrivateKeySpec;
-import java.util.Set;
 
 /**
  * {@link HsmProofOfPossessionJWSSigner} provides multiple constructors for different HSM providers intended to be used with {@link ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator}.
@@ -41,7 +37,7 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
      */
     public static HsmProofOfPossessionJWSSigner newPrimusSigner(PrimusKeyStoreLoader primus, String alias, String password, String kid) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, JOSEException {
         var pk = (ECPrivateKey) primus.loadKeyPair(alias, password).getPrivate();
-        if (pk instanceof ECPrivateKey ecPrivateKey) {
+        if (pk instanceof ECPrivateKey) {
             var signer = new ECDSASigner(pk);
             signer.getJCAContext().setProvider(primus.getKeyStore().getProvider());
             return new HsmProofOfPossessionJWSSigner(signer, kid);
@@ -84,5 +80,10 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
     @Override
     public Base64URL sign(JWSHeader jwsHeader, byte[] bytes) throws JOSEException {
         return signer.sign(jwsHeader, bytes);
+    }
+
+    @Override
+    public JCAContext getJCAContext() {
+        return this.signer.getJCAContext();
     }
 }
