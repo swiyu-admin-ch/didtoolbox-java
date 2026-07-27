@@ -122,7 +122,7 @@ public class ProofOfPossessionVerifier {
             if (!nonce.equals(nonceClaim)) {
                 throw ProofOfPossessionVerifierException.invalidNonce(nonceClaim, nonce);
             }
-        } catch (ParseException e) {
+        } catch (ParseException e) { // NOPMD ExceptionAsFlowControl: false positive
             throw ProofOfPossessionVerifierException.unparsable(e);
         }
 
@@ -153,13 +153,13 @@ public class ProofOfPossessionVerifier {
 
         try {
             JWSVerifier jwsVerifier;
-            // if else pattern because final Class instances cannot be used as cases for a switch statement
+            // if else pattern because final class instances cannot be used as cases for a switch statement
             if (JWSAlgorithm.EdDSA.equals(algorithm)) {
                jwsVerifier = new Ed25519Verifier(jwk.toOctetKeyPair());
             } else if (JWSAlgorithm.ES256.equals(algorithm)) {
                jwsVerifier = new ECDSAVerifier(jwk.toECKey());
             } else {
-                throw new RuntimeException("Tried to construct a JWS verifier of an algorithm that's not supported and should have been caught earlier.");
+                throw new RuntimeException("Tried to construct a JWS verifier of an algorithm that's not supported and should have been caught earlier."); // NOPMD: code is unreachable
             };
 
             if (!signedJWT.verify(jwsVerifier)) {

@@ -29,8 +29,48 @@ public interface VerificationMethod {
      * <a href="https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020">JsonWebKey2020</a>, which is
      * the type of the verification method for the signature suite {@code JsonWebSignature2020}.
      */
-    @Deprecated(since = "2.3.0")
+    @Deprecated(since = "2.3.0") // NOPMD AvoidDuplicateLiterals
     String VM_TYPE_JSON_WEB_KEY_2020 = "JsonWebKey2020";
+
+    /**
+     * As <a href="https://www.w3.org/TR/did-1.0/#dfn-verificationmethod">specified</a>
+     * and w.r.t. <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.5">RFC3986</a>
+     *
+     * @return a string that conforms to the <a href="https://www.w3.org/TR/did-1.0/#did-url-syntax">DID URL Syntax</a>
+     */
+    String getIdFragment();
+
+    /**
+     * As <a href="https://www.w3.org/TR/did-1.0/#dfn-verificationmethod">specified</a>
+     * and w.r.t. <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.5">RFC3986</a>
+     *
+     * @return a string that references exactly one verification method type
+     */
+    @Deprecated(since = "2.3.0")
+    String getType();
+
+    /**
+     * As <a href="https://www.w3.org/TR/did-1.0/#verification-material">specified</a>:
+     * <p>
+     * <a href="https://www.w3.org/TR/did-1.0/#verification-material">Verification material</a> is any information that is used by a process that applies a
+     * <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a>.
+     *
+     * @return a valid {@link VerificationMaterial} implementation object, never {@code null}
+     */
+    VerificationMaterial getVerificationMaterial();
+
+    /**
+     * Effectively, this is the default {@link Object#equals(Object)} implementation introduced for the sake of preventing:
+     * <pre>Default method 'equals' overrides a member of 'java.lang.Object'</pre>
+     *
+     * @param obj the reference object with which to compare.
+     * @return {@code true} if this object is the same as the obj
+     * argument; {@code false} otherwise.
+     */
+    default boolean defaultEquals(Object obj) {
+        return (obj instanceof VerificationMethod other) &&
+                this.getIdFragment().equals(other.getIdFragment());
+    }
 
     /**
      * Yet another static factory method of the interface.
@@ -53,7 +93,6 @@ public interface VerificationMethod {
     // Upon removal, move logic to constructor without type parameter
     @Deprecated(since = "2.3.0")
     static VerificationMethod of(String kid, String type, String publicKeyJwk) throws VerificationMethodException {
-
         JsonObject jsonObj;
         try {
             jsonObj = JsonParser.parseString(publicKeyJwk).getAsJsonObject();
@@ -61,41 +100,9 @@ public interface VerificationMethod {
             throw new VerificationMethodException("The supplied string does not represent a public key JWK", exc);
         }
 
-        var crv = jsonObj.get("crv");
-        var x = jsonObj.get("x");
-        var y = jsonObj.get("y");
-
-        var kty = jsonObj.get("kty");
-        if (kty == null || !kty.isJsonPrimitive()) {
-            throw new VerificationMethodException("Expected property 'kty' to be a string.");
-        }
-        switch (kty.getAsString()) {
-            case "OKP" -> {
-                if (crv == null || !crv.isJsonPrimitive() || !"Ed25519".equals(crv.getAsString())) {
-                    throw new VerificationMethodException("Only curve 'Ed25519' is supported for key type OKP.");
-                }
-                if (x == null || !x.isJsonPrimitive() || x.getAsString().isEmpty()) {
-                    throw new VerificationMethodException("Property 'x' must be set to a string.");
-                }
-            }
-            case "EC" -> {
-                if (crv == null || !crv.isJsonPrimitive() || !"P-256".equals(crv.getAsString())) {
-                    throw new VerificationMethodException("Only curve 'P-256' is supported for key type EC.");
-                }
-                if (x == null || !x.isJsonPrimitive() || x.getAsString().isEmpty()) {
-                    throw new VerificationMethodException("Property 'x' must be set to a string.");
-                }
-                if (y == null || !y.isJsonPrimitive() || y.getAsString().isEmpty()) {
-                    throw new VerificationMethodException("Property 'y' must be set to a string.");
-                }
-            }
-            default -> {
-                throw new VerificationMethodException("Key type %s not supported.".formatted(kty.getAsString()));
-            }
-        }
+        validateJwk(jsonObj);
 
         return new VerificationMethod() {
-
             @Override
             public String getIdFragment() {
                 return kid;
@@ -294,43 +301,41 @@ public interface VerificationMethod {
     }
 
     /**
-     * As <a href="https://www.w3.org/TR/did-1.0/#dfn-verificationmethod">specified</a>
-     * and w.r.t. <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.5">RFC3986</a>
-     *
-     * @return a string that conforms to the <a href="https://www.w3.org/TR/did-1.0/#did-url-syntax">DID URL Syntax</a>
+     * Validates that the JWK has the required fields and that the alg is supported by the ecosystem.
+     * @param jwk to validate
+     * @throws VerificationMethodException if the JWK is invalid or not supported
      */
-    String getIdFragment();
+    private static void validateJwk(JsonObject jwk) throws VerificationMethodException {
+        var crv = jwk.get("crv");
+        if (crv == null || !crv.isJsonPrimitive()) {
+            throw new VerificationMethodException("Property 'crv' is required");
+        }
 
-    /**
-     * As <a href="https://www.w3.org/TR/did-1.0/#dfn-verificationmethod">specified</a>
-     * and w.r.t. <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.5">RFC3986</a>
-     *
-     * @return a string that references exactly one verification method type
-     */
-    @Deprecated(since = "2.3.0")
-    String getType();
-
-    /**
-     * As <a href="https://www.w3.org/TR/did-1.0/#verification-material">specified</a>:
-     * <p>
-     * <a href="https://www.w3.org/TR/did-1.0/#verification-material">Verification material</a> is any information that is used by a process that applies a
-     * <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a>.
-     *
-     * @return a valid {@link VerificationMaterial} implementation object, never {@code null}
-     */
-    VerificationMaterial getVerificationMaterial();
-
-    /**
-     * Effectively, this is the default {@link Object#equals(Object)} implementation introduced for the sake of preventing:
-     * <pre>Default method 'equals' overrides a member of 'java.lang.Object'</pre>
-     *
-     * @param obj the reference object with which to compare.
-     * @return {@code true} if this object is the same as the obj
-     * argument; {@code false} otherwise.
-     */
-    default boolean defaultEquals(Object obj) {
-
-        return (obj instanceof VerificationMethod other) &&
-                this.getIdFragment().equals(other.getIdFragment());
+        var kty = jwk.get("kty");
+        if (kty == null) {
+            throw new VerificationMethodException("Property 'kty' is required.");
+        }
+        switch (kty.getAsString()) {
+            case "OKP" -> {
+                if (!CryptographicAlgorithm.ED25519.toString().equals(crv)) {
+                    throw new VerificationMethodException("Only curve 'Ed25519' is supported for key type OKP.");
+                }
+            }
+            case "EC" -> {
+                if (!CryptographicAlgorithm.P256.equals(crv.getAsString())) {
+                    throw new VerificationMethodException("Only curve 'P-256' is supported for key type EC.");
+                }
+                var y = jwk.get("y");
+                if (y == null || y.getAsString().isEmpty()) {
+                    throw new VerificationMethodException("Property 'y' must be set to a string.");
+                }
+            }
+            default -> throw new VerificationMethodException("Key type %s not supported.".formatted(kty.getAsString()));
+        }
+        // Both JWK cases require x
+        var x = jwk.get("x");
+        if (x == null || x.getAsString().isEmpty()) {
+            throw new VerificationMethodException("Property 'x' must be set to a string.");
+        }
     }
 }

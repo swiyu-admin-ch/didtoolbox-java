@@ -134,7 +134,6 @@ public final class JCommanderRunner {
                 .create(identifierRegistryUrl));
     }
 
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.NPathComplexity"})
     void runUpdateDidLogCommand(UpdateDidLogCommand command) throws CommandException, VerificationMethodException, IOException, VcDataIntegrityCryptographicSuiteException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, DidLogUpdaterStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);

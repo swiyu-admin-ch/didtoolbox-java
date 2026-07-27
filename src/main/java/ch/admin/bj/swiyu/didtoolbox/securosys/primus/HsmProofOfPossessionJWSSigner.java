@@ -56,7 +56,7 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
      * @param kid of the key inside the JWT
      * @return
      */
-    public static HsmProofOfPossessionJWSSigner newPkcs11Signer(String cfgPath, String keystoreSecret, String keyId, String kid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, JOSEException { // NOPMD UseObjectForClearerAPI
+    public static HsmProofOfPossessionJWSSigner newPkcs11Signer(String cfgPath, String keystoreSecret, String keyId, String kid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, JOSEException {
         Provider provider = Security.getProvider("SunPKCS11");
         provider = provider.configure(cfgPath);
         Security.addProvider(provider);

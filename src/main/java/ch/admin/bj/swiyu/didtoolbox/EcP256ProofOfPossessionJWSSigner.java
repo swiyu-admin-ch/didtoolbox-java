@@ -20,7 +20,7 @@ import java.util.Set;
 
 public class EcP256ProofOfPossessionJWSSigner implements ProofOfPossessionJWSSigner {
     protected ECKey signingKey;
-    private JWSSigner signer;
+    private final JWSSigner signer;
 
     public EcP256ProofOfPossessionJWSSigner(Path path, String kid) throws IOException, JOSEException {
         this(PemUtils.parsePemKeyPair(Files.newBufferedReader(path)), kid);
@@ -48,7 +48,7 @@ public class EcP256ProofOfPossessionJWSSigner implements ProofOfPossessionJWSSig
 
     @Override
     public Base64URL sign(JWSHeader jwsHeader, byte[] bytes) throws JOSEException {
-        return new ECDSASigner(signingKey.toECPrivateKey()).sign(new JWSHeader(JWSAlgorithm.ES256), bytes);
+        return this.signer.sign(jwsHeader, bytes);
     }
 
     @Override
