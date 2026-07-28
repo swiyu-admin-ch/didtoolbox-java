@@ -8,10 +8,8 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
 
-import java.security.KeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
+import java.security.interfaces.EdECPrivateKey;
 import java.util.Set;
 
 /**
@@ -30,6 +28,11 @@ public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519Ve
     public PrimusEd25519ProofOfPossessionJWSSignerImpl(PrimusKeyStoreLoader primus, String alias, String password, String kid)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
         super(primus, alias, password);
+        this.kid = kid;
+    }
+
+    public PrimusEd25519ProofOfPossessionJWSSignerImpl(KeyPair keyPair, String kid, PrimusKeyStoreLoader primus) {
+        super(keyPair, primus);
         this.kid = kid;
     }
 

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.EdECPrivateKey;
 
 /**
  * {@link HsmProofOfPossessionJWSSigner} provides multiple constructors for different HSM providers intended to be used with {@link ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator}.
@@ -36,14 +37,20 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
      * @param kid      of the key inside the JWT
      */
     public static HsmProofOfPossessionJWSSigner newPrimusSigner(PrimusKeyStoreLoader primus, String alias, String password, String kid) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, JOSEException {
-        Key pk = primus.getKeyStore().getKey(alias, password.toCharArray());
-        if (pk instanceof ECPrivateKey privateEcKey) {
-            var signer = new ECDSASigner(privateEcKey);
-            signer.getJCAContext().setProvider(primus.getKeyStore().getProvider());
-            return new HsmProofOfPossessionJWSSigner(signer, kid);
-        } else {
-            var signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, alias, password, kid);
-            return new HsmProofOfPossessionJWSSigner(signer, kid);
+        KeyPair kp = primus.loadKeyPair(alias, password);
+        switch (kp.getPrivate()) {
+            case ECPrivateKey ecPrivateKey -> {
+                var signer = new ECDSASigner(ecPrivateKey);
+                signer.getJCAContext().setProvider(primus.getKeyStore().getProvider());
+                return new HsmProofOfPossessionJWSSigner(signer, kid);
+            }
+            case EdECPrivateKey a -> {
+                var signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(kp, kid, primus);
+                return new HsmProofOfPossessionJWSSigner(signer, kid);
+            }
+            default -> {
+                throw new IllegalArgumentException();
+            }
         }
     }
 
