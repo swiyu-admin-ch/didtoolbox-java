@@ -30,15 +30,15 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
     /**
      * Relies on Securosys Primus HSM cluster as source for signing.
      *
-     * @param primus the HSM cluster
+     * @param primus   the HSM cluster
      * @param password to load the key
-     * @param alias of the key inside the HSM cluster
-     * @param kid of the key inside the JWT
+     * @param alias    of the key inside the HSM cluster
+     * @param kid      of the key inside the JWT
      */
     public static HsmProofOfPossessionJWSSigner newPrimusSigner(PrimusKeyStoreLoader primus, String alias, String password, String kid) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, JOSEException {
-        var pk = (ECPrivateKey) primus.loadKeyPair(alias, password).getPrivate();
-        if (pk instanceof ECPrivateKey) {
-            var signer = new ECDSASigner(pk);
+        Key pk = primus.getKeyStore().getKey(alias, password.toCharArray());
+        if (pk instanceof ECPrivateKey privateEcKey) {
+            var signer = new ECDSASigner(privateEcKey);
             signer.getJCAContext().setProvider(primus.getKeyStore().getProvider());
             return new HsmProofOfPossessionJWSSigner(signer, kid);
         } else {
@@ -50,10 +50,10 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
     /**
      * Relies on PKCS11 for signing.
      *
-     * @param cfgPath Path to the configuration file
+     * @param cfgPath        Path to the configuration file
      * @param keystoreSecret
      * @param keyId
-     * @param kid of the key inside the JWT
+     * @param kid            of the key inside the JWT
      * @return
      */
     public static HsmProofOfPossessionJWSSigner newPkcs11Signer(String cfgPath, String keystoreSecret, String keyId, String kid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, JOSEException {
@@ -62,7 +62,7 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
         Security.addProvider(provider);
         var hsmKeyStore = KeyStore.getInstance("PKCS11", provider);
         hsmKeyStore.load(null, keystoreSecret.toCharArray());
-        var privateKey =  ECKey.load(hsmKeyStore, keyId, keystoreSecret.toCharArray());
+        var privateKey = ECKey.load(hsmKeyStore, keyId, keystoreSecret.toCharArray());
         var signer = new ECDSASigner(privateKey);
         return new HsmProofOfPossessionJWSSigner(signer, kid);
     }

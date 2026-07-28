@@ -8,7 +8,10 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
 
-import java.security.*;
+import java.security.KeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
 import java.util.Set;
 
 /**
@@ -18,8 +21,8 @@ import java.util.Set;
  * To be used in conjunction with {@link ProofOfPossessionCreator#ProofOfPossessionCreator(ProofOfPossessionJWSSigner)}.
  */
 public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519VerificationMethodKeyProviderImpl implements ProofOfPossessionJWSSigner {
-    final private String kid;
-    JCAContext jcaContext = new JCAContext();
+    private final String kid;
+    private final JCAContext jcaContext = new JCAContext();
 
     /**
      * @see PrimusEd25519VerificationMethodKeyProviderImpl#PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, String, String)

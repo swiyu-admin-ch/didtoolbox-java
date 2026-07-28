@@ -4,10 +4,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.io.*;
-        import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.*;
-        import java.security.cert.CertificateException;
+import java.security.cert.CertificateException;
 import java.util.Locale;
 import java.util.Properties;
 
