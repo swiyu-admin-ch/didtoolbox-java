@@ -317,12 +317,12 @@ public interface VerificationMethod {
         }
         switch (kty.getAsString()) {
             case "OKP" -> {
-                if (!CryptographicAlgorithm.ED25519.toString().equals(crv)) {
+                if (!CryptographicAlgorithm.ED25519.toString().equals(crv.getAsString())) {
                     throw new VerificationMethodException("Only curve 'Ed25519' is supported for key type OKP.");
                 }
             }
             case "EC" -> {
-                if (!CryptographicAlgorithm.P256.equals(crv.getAsString())) {
+                if (!CryptographicAlgorithm.P256.toString().equals(crv.getAsString())) {
                     throw new VerificationMethodException("Only curve 'P-256' is supported for key type EC.");
                 }
                 var y = jwk.get("y");

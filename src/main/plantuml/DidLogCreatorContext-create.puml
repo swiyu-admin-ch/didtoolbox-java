@@ -5,6 +5,7 @@ participant ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 participant ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
 participant ch.admin.bj.swiyu.didtoolbox.TdwCreator
 participant ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+participant ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
 participant ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator
 participant ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorStrategy
 
@@ -39,6 +40,18 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
 					activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : validateJwk
+						activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm : toString
+							activate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+								ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : java.lang.String
+							deactivate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm : toString
+							activate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+								ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : java.lang.String
+							deactivate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : void
+						deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
@@ -51,6 +64,18 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
 					activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : validateJwk
+						activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm : toString
+							activate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+								ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : java.lang.String
+							deactivate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm : toString
+							activate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+								ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : java.lang.String
+							deactivate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : void
+						deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
@@ -75,6 +100,18 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
 					activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : validateJwk
+						activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm : toString
+							activate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+								ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : java.lang.String
+							deactivate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm : toString
+							activate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+								ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : java.lang.String
+							deactivate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : void
+						deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
@@ -87,6 +124,18 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext
 				activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : of
 					activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : validateJwk
+						activate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm : toString
+							activate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+								ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : java.lang.String
+							deactivate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm : toString
+							activate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+								ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : java.lang.String
+							deactivate ch.admin.bj.swiyu.didtoolbox.model.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : void
+						deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 						ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					deactivate ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext : ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod
