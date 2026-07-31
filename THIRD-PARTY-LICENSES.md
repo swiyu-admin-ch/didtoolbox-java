@@ -12,7 +12,7 @@ This is the list of all third-party dependencies grouped by their license type. 
 * **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.22.1 - https://github.com/FasterXML/jackson)
 * **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
 * **Gson** (com.google.code.gson:gson:2.14.0 - https://github.com/google/gson)
-* **Tink Cryptography API** (com.google.crypto.tink:tink:1.22.0 - http://github.com/tink-crypto/tink-java)
+* **Tink Cryptography API** (com.google.crypto.tink:tink:1.23.0 - http://github.com/tink-crypto/tink-java)
 * **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.48.0 - https://errorprone.info/error_prone_annotations)
 * **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.9.1 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
 * **Byte Buddy (without dependencies)** (net.bytebuddy:byte-buddy:1.17.7 - https://bytebuddy.net/byte-buddy)
@@ -28,23 +28,23 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## BSD-3-Clause:
 
-* **Protocol Buffers [Core]** (com.google.protobuf:protobuf-java:4.33.0 - https://developers.google.com/protocol-buffers/protobuf-java/)
+* **Protocol Buffers [Core]** (com.google.protobuf:protobuf-java:4.33.6 - https://developers.google.com/protocol-buffers/protobuf-java/)
 
 ## Bouncy Castle Licence:
 
-* **Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs** (org.bouncycastle:bcpkix-jdk18on:1.84 - https://www.bouncycastle.org/download/bouncy-castle-java/)
-* **Bouncy Castle Provider** (org.bouncycastle:bcprov-jdk18on:1.84 - https://www.bouncycastle.org/download/bouncy-castle-java/)
-* **Bouncy Castle ASN.1 Extension and Utility APIs** (org.bouncycastle:bcutil-jdk18on:1.84 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs** (org.bouncycastle:bcpkix-jdk18on:1.85 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle Provider** (org.bouncycastle:bcprov-jdk18on:1.85 - https://www.bouncycastle.org/download/bouncy-castle-java/)
+* **Bouncy Castle ASN.1 Extension and Utility APIs** (org.bouncycastle:bcutil-jdk18on:1.85 - https://www.bouncycastle.org/download/bouncy-castle-java/)
 
 ## Eclipse Public License v2.0:
 
 * **junit-pioneer** (org.junit-pioneer:junit-pioneer:2.3.0 - https://junit-pioneer.org/)
-* **JUnit Jupiter (Aggregator)** (org.junit.jupiter:junit-jupiter:6.1.1 - https://junit.org/)
-* **JUnit Jupiter API** (org.junit.jupiter:junit-jupiter-api:6.1.1 - https://junit.org/)
-* **JUnit Jupiter Engine** (org.junit.jupiter:junit-jupiter-engine:6.1.1 - https://junit.org/)
-* **JUnit Jupiter Params** (org.junit.jupiter:junit-jupiter-params:6.1.1 - https://junit.org/)
-* **JUnit Platform Commons** (org.junit.platform:junit-platform-commons:6.1.1 - https://junit.org/)
-* **JUnit Platform Engine API** (org.junit.platform:junit-platform-engine:6.1.1 - https://junit.org/)
+* **JUnit Jupiter (Aggregator)** (org.junit.jupiter:junit-jupiter:6.1.2 - https://junit.org/)
+* **JUnit Jupiter API** (org.junit.jupiter:junit-jupiter-api:6.1.2 - https://junit.org/)
+* **JUnit Jupiter Engine** (org.junit.jupiter:junit-jupiter-engine:6.1.2 - https://junit.org/)
+* **JUnit Jupiter Params** (org.junit.jupiter:junit-jupiter-params:6.1.2 - https://junit.org/)
+* **JUnit Platform Commons** (org.junit.platform:junit-platform-commons:6.1.2 - https://junit.org/)
+* **JUnit Platform Engine API** (org.junit.platform:junit-platform-engine:6.1.2 - https://junit.org/)
 
 ## LGPL-2.1-or-later:
 

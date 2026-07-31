@@ -1,16 +1,10 @@
 # DID Toolbox changelog
 
-## Next
+## 2.3.0 - 2026-07-31
 
 ### Added
 - Support for Ed25519 keys as verification material in create and update DID logs command.
-- Support for Ed25519 for signing verifying proof of possession JWTs.
-
-### Changed
-
-### Fixed
-
-### Removed
+- Ed25519 support for signing verifying proof of possession JWTs.
 
 ## 2.2.1 - 2026-07-03
 
