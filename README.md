@@ -79,16 +79,21 @@ Usage: didtoolbox [options] [command] [command options]
 
         Options:
           --assert, -a
-            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC P-256 
-            public/verifying key
+            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing an P-256 or 
+            Ed25519 public/verifying key
           --auth, -t
-            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC 
-            P-256 public/verifying key
-          --force-overwrite, -f
+            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing P-256 
+            or Ed25519 public/verifying key
+          --cryptographic-algorithm, -c
+            Specify which type of keys to generate as assertion and authorization keys when none are provided through other means. Available are 
+            P-256 and Ed25519
+            Default: P-256
+            Possible Values: [Ed25519, P-256]
+          --force, -f
             Overwrite existing PEM key files, if any
             Default: false
           --generate-next-verifying-key, -gw
-            Generates a new ed25519 key pair to be used as the next signing key. The generated key pair is stored in the `.didtoolbox` directory. 
+            Generates a new Ed25519 key pair to be used as the next signing key. The generated key pair is stored in the `.didtoolbox` directory. 
             CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot be used together with the generate 
             verifying key next flag ('-gv')
             Default: false
@@ -126,10 +131,10 @@ Usage: didtoolbox [options] [command] [command options]
             The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. This CLI parameter cannot be used in 
             conjunction with any of --jks-* or --primus-* CLI parameters
           --verifying-key-files, -v
-            One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
+            One or more Ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
             Default: []
           --verifying-key-files-next, -w
-            One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key 
+            One or more Ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key 
             pre-rotation'. Analogously, deactivating 'key pre-rotation' goes simply by omitting this option altogether
             Default: []
 
@@ -143,14 +148,19 @@ Usage: didtoolbox [options] [command] [command options]
 
         Options:
           --assert, -a
-            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC P-256 
-            public/verifying key
+            One or more assertion method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing an P-256 or 
+            Ed25519 public/verifying key
           --auth, -t
-            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing EC 
-            P-256 public/verifying key
+            One or more authentication method parameter(s) - each parameter consists of a (comma-separated) key name and a PEM file containing P-256 
+            or Ed25519 public/verifying key
+          --cryptographic-algorithm, -c
+            Specify which type of keys to generate as assertion and authorization keys when none are provided through other means. Available are 
+            P-256 and Ed25519
+            Default: P-256
+            Possible Values: [Ed25519, P-256]
         * --did-log-file, -d
             The file containing a valid DID log to update
-          --force-overwrite, -f
+          --force, -f
             Overwrite existing PEM key files, if any
             Default: false
           --generate-new-verifying-key, -gv
@@ -159,7 +169,7 @@ Usage: didtoolbox [options] [command] [command options]
             be used together with the generate update key next flag ('-gw)
             Default: false
           --generate-next-verifying-key, -gw
-            Generates a new ed25519 key pair to be used as the next signing key. The generated key pair is stored in the `.didtoolbox` directory. 
+            Generates a new Ed25519 key pair to be used as the next signing key. The generated key pair is stored in the `.didtoolbox` directory. 
             CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot be used together with the generate 
             verifying key next flag ('-gv')
             Default: false
@@ -190,10 +200,10 @@ Usage: didtoolbox [options] [command] [command options]
             The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. This CLI parameter cannot be used in 
             conjunction with any of --jks-* or --primus-* CLI parameters
           --verifying-key-files, -v
-            One or more ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
+            One or more Ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
             Default: []
           --verifying-key-files-next, -w
-            One or more ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key 
+            One or more Ed25519 public key file(s) to be used as 'pre-rotation' keys. In PEM format. Using the CLI option activates 'key 
             pre-rotation'. Analogously, deactivating 'key pre-rotation' goes simply by omitting this option altogether
             Default: []
 
@@ -260,7 +270,7 @@ Usage: didtoolbox [options] [command] [command options]
             An optional password required for recovering the key pair (stored in Securosys Primus (HSM) Keystore). This CLI parameter should always 
             be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
           --signing-key-file, -s
-            An EC P-256 private key file matching the specified key within the DID log
+            A P-256 private key file matching the specified key within the DID log
 
     verify-pop      Verifies the validity of the provided proof of possession JWT.
       Usage: verify-pop [options]
@@ -274,9 +284,8 @@ Usage: didtoolbox [options] [command] [command options]
             JWT to be verified
         * --nonce, -n
             Text representation of the possession to be included in the proof
-            
-$ java -jar didtoolbox.jar -V
 
+$ java -jar didtoolbox.jar -V
 didtoolbox 2.1.0
 ```
 

@@ -16,6 +16,10 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
 				ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
 			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
+			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : getCryptoSuite
+			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
+				ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
+			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.TdwDeactivator : builder
 			activate ch.admin.bj.swiyu.didtoolbox.TdwDeactivator
 				ch.admin.bj.swiyu.didtoolbox.TdwDeactivator --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.TdwDeactivator$TdwDeactivatorBuilder
@@ -28,10 +32,6 @@ activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator
 				ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator$WebVerifiableHistoryDeactivatorBuilder
 			deactivate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : getCryptoSuite
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
 			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory --> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
 		deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
 		ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy : deactivateDidLog

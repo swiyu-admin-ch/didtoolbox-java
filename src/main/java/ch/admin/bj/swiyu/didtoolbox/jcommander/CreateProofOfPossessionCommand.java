@@ -38,7 +38,7 @@ public class CreateProofOfPossessionCommand extends AbstractCommandBase {
     public String kid;
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE},
-            description = "An EC P-256 private key file matching the specified key within the DID log",
+            description = "A P-256 private key file matching the specified key within the DID log",
             converter = PemFileParameterConverter.class,
             validateWith = PemFileParameterValidator.class,
             required = false)

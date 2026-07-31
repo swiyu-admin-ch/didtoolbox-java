@@ -1,6 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import java.time.Duration;
@@ -70,18 +72,18 @@ public class ProofOfPossessionCreator {
      */
     public SignedJWT create(String nonce, Duration expiresIn) throws ProofOfPossessionCreatorException {
         // Prepare header and claims set of the JWT
-        var signedJWT = new com.nimbusds.jwt.SignedJWT(
-                new com.nimbusds.jose.JWSHeader.Builder(signer.getAlgorithm())
+        var signedJWT = new SignedJWT(
+                new JWSHeader.Builder(signer.getAlgorithm())
                         .keyID(this.signer.getKid())
                         .build(),
-                new com.nimbusds.jwt.JWTClaimsSet.Builder()
+                new JWTClaimsSet.Builder()
                         .claim("nonce", nonce)
                         .issuer(signer.getKid().split("#")[0])
                         .issueTime(new Date()) //NOPMD ReplaceJavaUtilDate: function expects date
                         .expirationTime(Date.from(ZonedDateTime.now().plus(expiresIn).toInstant()))
                         .build());
 
-        // JOSEException is throw here, if the keys are invalid or don't match
+        // JOSEException is thrown here, if the keys are invalid or don't match
         try {
             signedJWT.sign(this.signer);
         } catch (JOSEException e) {

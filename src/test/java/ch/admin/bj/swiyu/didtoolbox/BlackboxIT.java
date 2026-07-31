@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import com.beust.jcommander.internal.DefaultConsole;
 import org.junit.jupiter.api.Test;
@@ -106,17 +107,7 @@ class BlackboxIT {
         didLog = cliOutput.toString();
         cliOutput.reset();
 
-        // FIXME: the current didresolver does not yet throw an exception when trying to resolve a deactivated did.
-        // The below line should work once the didresolver exhibits the desired behavior.
-        // assertThrows(() -> WebVerifiableHistoryDidLogMetaPeeker.peek(didLog), DidLogMetaPeekerException.class);
-        // Current workaround is to try and update a deactivated did log, which fails.
-        var didLogFilePathV3 = tempDir + "/didlogV3.jsonl";
-        try (var writer = new PrintWriter(didLogFilePathV3, StandardCharsets.UTF_8)) {
-            writer.write(didLog);
-        }
-        var updateDeactivatedDidLog = new String[]{"update", "-d", didLogFilePathV3, "-s", "./src/test/data/private.pem", "-v", "./src/test/data/public.pem", "-a", "assert-key-03,./src/test/data/assert-key-01.pub", "-t", "auth-key-03,./src/test/data/auth-key-01.pub"};
-        assertEquals(1, main.run(updateDeactivatedDidLog));
-        var out = cliOutput.toString();
-        assertTrue(out.contains("can no longer be updated"));
+        final var finalDidLog = didLog;
+        assertThrows(DidLogMetaPeekerException.class, () -> WebVerifiableHistoryDidLogMetaPeeker.peek(finalDidLog));
     }
 }

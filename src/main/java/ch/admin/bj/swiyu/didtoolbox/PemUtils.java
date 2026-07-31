@@ -64,8 +64,8 @@ public final class PemUtils {
         var pemObj = parser.readObject();
 
         // if EC private key given, it arrives here as a keypair
-        if (pemObj instanceof PEMKeyPair) {
-            return new JcaPEMKeyConverter().getKeyPair((PEMKeyPair) pemObj);
+        if (pemObj instanceof PEMKeyPair pemKeyPair) {
+            return new JcaPEMKeyConverter().getKeyPair(pemKeyPair);
         }
 
         throw new IllegalArgumentException("The supplied reader features no PEM-encoded key pair");
@@ -75,8 +75,8 @@ public final class PemUtils {
         final PEMParser parser = new PEMParser(pemPrivateKeyReader);
         var pemObj = parser.readObject();
 
-        if (pemObj instanceof PrivateKeyInfo) {
-            return new JcaPEMKeyConverter().getPrivateKey((PrivateKeyInfo) pemObj);
+        if (pemObj instanceof PrivateKeyInfo privatePemObj) {
+            return new JcaPEMKeyConverter().getPrivateKey(privatePemObj);
         }
 
         throw new IllegalArgumentException("The supplied reader features no PEM-encoded private key");
@@ -86,8 +86,8 @@ public final class PemUtils {
         final PEMParser parser = new PEMParser(pemPublicKeyReader);
         var pemObj = parser.readObject();
 
-        if (pemObj instanceof SubjectPublicKeyInfo) {
-            return new JcaPEMKeyConverter().getPublicKey((SubjectPublicKeyInfo) pemObj);
+        if (pemObj instanceof SubjectPublicKeyInfo privatePemObj) {
+            return new JcaPEMKeyConverter().getPublicKey(privatePemObj);
         }
 
         throw new IllegalArgumentException("The supplied reader features no PEM-encoded public key");
@@ -100,10 +100,4 @@ public final class PemUtils {
         }
     }
 
-    static String fromEd25519PublicKeyPemToMultibase(String pemPublicKey) throws DidSidekicksException {
-
-        try (var publicKey = Ed25519VerifyingKey.Companion.fromPublicKeyPem(pemPublicKey)) {
-            return publicKey.toMultibase();
-        }
-    }
 }

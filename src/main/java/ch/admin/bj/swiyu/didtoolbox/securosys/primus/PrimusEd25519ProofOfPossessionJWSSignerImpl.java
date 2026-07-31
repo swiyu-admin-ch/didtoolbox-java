@@ -5,12 +5,11 @@ import ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
 
-import java.security.KeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
+import java.security.interfaces.EdECPrivateKey;
 import java.util.Set;
 
 /**
@@ -19,9 +18,9 @@ import java.util.Set;
  * <p>
  * To be used in conjunction with {@link ProofOfPossessionCreator#ProofOfPossessionCreator(ProofOfPossessionJWSSigner)}.
  */
-@Deprecated(since = "1.9.0")
 public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519VerificationMethodKeyProviderImpl implements ProofOfPossessionJWSSigner {
-    final private String kid;
+    private final String kid;
+    private final JCAContext jcaContext = new JCAContext();
 
     /**
      * @see PrimusEd25519VerificationMethodKeyProviderImpl#PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, String, String)
@@ -32,6 +31,11 @@ public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519Ve
         this.kid = kid;
     }
 
+    public PrimusEd25519ProofOfPossessionJWSSignerImpl(KeyPair keyPair, String kid, PrimusKeyStoreLoader primus) {
+        super(keyPair, primus);
+        this.kid = kid;
+    }
+
     @Override
     public String getKid() {
         return this.kid;
@@ -39,7 +43,7 @@ public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519Ve
 
     @Override
     public JWSAlgorithm getAlgorithm() {
-        return JWSAlgorithm.Ed25519;
+        return JWSAlgorithm.EdDSA;
     }
 
     @Override
@@ -50,5 +54,10 @@ public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519Ve
     @Override
     public Base64URL sign(JWSHeader jwsHeader, byte[] bytes) throws JOSEException {
         return Base64URL.encode(super.generateSignature(bytes));
+    }
+
+    @Override
+    public JCAContext getJCAContext() {
+        return jcaContext;
     }
 }

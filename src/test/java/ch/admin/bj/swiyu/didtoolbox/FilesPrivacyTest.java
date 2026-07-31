@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.nio.file.*;
@@ -174,5 +175,23 @@ class FilesPrivacyTest {
             assertTrue(Files.isReadable(tempPath));
             assertTrue(Files.isWritable(tempPath));
         });
+    }
+
+    @Test
+    void createPrivateKeyDirectoryIfDoesNotExist_directoryDoesntExist_createsDirectory(@TempDir Path tmpDir) {
+        var directory = new File(tmpDir.toString(), "dir");
+        assertFalse(directory.exists());
+
+        assertDoesNotThrow(() -> FilesPrivacy.createPrivateKeyDirectoryIfDoesNotExist(directory.toPath()));
+        assertTrue(directory.exists());
+    }
+
+    @Test
+    void createPrivateKeyDirectoryIfDoesNotExist_directoryAlreadyExist_doesNothing(@TempDir Path tmpDir) {
+        var directory = new File(tmpDir.toString());
+        assertTrue(directory.exists());
+
+        assertDoesNotThrow(() -> FilesPrivacy.createPrivateKeyDirectoryIfDoesNotExist(directory.toPath()));
+        assertTrue(directory.exists());
     }
 }

@@ -127,8 +127,8 @@ public class Main {
                     suite.writePublicKeyPemFile(publicPEM);
                     final PEMParser parser = new PEMParser(Files.newBufferedReader(publicPEM));
                     var pemObj = parser.readObject();
-                    if (pemObj instanceof SubjectPublicKeyInfo) {
-                        keys[index] = new JcaPEMKeyConverter().getPublicKey((SubjectPublicKeyInfo) pemObj);
+                    if (pemObj instanceof SubjectPublicKeyInfo subjectPublicKeyInfo) {
+                        keys[index] = new JcaPEMKeyConverter().getPublicKey(subjectPublicKeyInfo);
                     } else {
                         throw new IllegalArgumentException("The supplied reader features no PEM-encoded public key");
                     }

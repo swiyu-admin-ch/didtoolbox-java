@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.security.*;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.Set;
 
 import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY;
@@ -89,21 +88,6 @@ public final class JCommanderRunner {
         return didLogMeta;
     }
 
-    private static void createPrivateKeyDirectoryIfDoesNotExist(String pathName) throws DidLogCreatorStrategyException {
-        var outputDir = Path.of(pathName);
-        if (!outputDir.toFile().exists()) {
-            try {
-                FilesPrivacy.createPrivateDirectory(outputDir, false); // may throw DirectoryNotEmptyException, SecurityException etc.
-            } catch (DirectoryNotEmptyException | FileAlreadyExistsException | AccessDeniedException ex) {
-                // the directory (if exists) must be empty with write access granted
-                throw new IllegalArgumentException(ex);
-            } catch (Throwable thr) {
-                throw new DidLogCreatorStrategyException("Failed to create private directory " + pathName + " due to: " + thr.getMessage(), thr);
-            }
-        }
-    }
-
-    @SuppressWarnings({"PMD.CognitiveComplexity"})
     void runCreateDidLogCommand(CreateDidLogCommand command) throws VerificationMethodException, DidLogCreatorStrategyException, IOException, VcDataIntegrityCryptographicSuiteException, CommandException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException {
         if (command.help) {
             jc.usage(parsedCommandName);
@@ -117,31 +101,8 @@ public final class JCommanderRunner {
             didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
         }
 
-        var forceOverwrite = command.forceOverwrite;
-
-        var assertionMethods = new HashSet<VerificationMethod>();
-        var assertionMethodKeys = command.assertionMethodKeys;
-        if (assertionMethodKeys != null && !assertionMethodKeys.isEmpty()) {
-            for (VerificationMethodParameters param : assertionMethodKeys) {
-                assertionMethods.add(VerificationMethod.of(param.key, param.jwk));
-            }
-        } else {
-            createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
-            assertionMethods.add(VerificationMethod.of("assert-key-01",
-                    JwkUtils.generatePublicEC256("assert-key-01", new File(getOutputDir(), "assert-key-01"), forceOverwrite)));
-        }
-
-        var authentications = new HashSet<VerificationMethod>();
-        var authenticationKeys = command.authenticationKeys;
-        if (authenticationKeys != null && !authenticationKeys.isEmpty()) {
-            for (VerificationMethodParameters param : authenticationKeys) {
-                authentications.add(VerificationMethod.of(param.key, param.jwk));
-            }
-        } else {
-            createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
-            authentications.add(VerificationMethod.of("auth-key-01",
-                    JwkUtils.generatePublicEC256("auth-key-01", new File(getOutputDir(), "auth-key-01"), forceOverwrite)));
-        }
+        var assertionMethods = command.getAssertionMethods(getOutputDir().toPath());
+        var authentications = command.getAuthentications(getOutputDir().toPath());
 
         VcDataIntegrityCryptographicSuite cryptoSuite = getCryptoGraphicSuite(command);
         if (cryptoSuite == null) {
@@ -173,8 +134,7 @@ public final class JCommanderRunner {
                 .create(identifierRegistryUrl));
     }
 
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.NPathComplexity"})
-    void runUpdateDidLogCommand(UpdateDidLogCommand command) throws CommandException, VerificationMethodException, IOException, DidLogCreatorStrategyException, VcDataIntegrityCryptographicSuiteException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, DidLogUpdaterStrategyException {
+    void runUpdateDidLogCommand(UpdateDidLogCommand command) throws CommandException, VerificationMethodException, IOException, VcDataIntegrityCryptographicSuiteException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, DidLogUpdaterStrategyException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return;
@@ -186,21 +146,8 @@ public final class JCommanderRunner {
 
         // CAUTION At this point, it should be all in place to update to be able to update the supplied DID log
 
-        var assertionMethods = new HashSet<VerificationMethod>();
-        var updateCommandAssertionMethodKeys = command.assertionMethodKeys;
-        if (updateCommandAssertionMethodKeys != null && !updateCommandAssertionMethodKeys.isEmpty()) {
-            for (VerificationMethodParameters param : updateCommandAssertionMethodKeys) {
-                assertionMethods.add(VerificationMethod.of(param.key, param.jwk));
-            }
-        }
-
-        var authentications = new HashSet<VerificationMethod>();
-        var updateCommandAuthenticationKeys = command.authenticationKeys;
-        if (updateCommandAuthenticationKeys != null && !updateCommandAuthenticationKeys.isEmpty()) {
-            for (VerificationMethodParameters param : updateCommandAuthenticationKeys) {
-                authentications.add(VerificationMethod.of(param.key, param.jwk));
-            }
-        }
+        var assertionMethods = command.getAssertionMethods(getOutputDir().toPath());
+        var authentications = command.getAuthentications(getOutputDir().toPath());
 
         if (authentications.isEmpty() && assertionMethods.isEmpty()) {
             throw new CommandException("No update will take place as no verification material is supplied whatsoever");
@@ -264,7 +211,7 @@ public final class JCommanderRunner {
                         .deactivate(didLogFile));
     }
 
-    void runPoPCreateCommand(CreateProofOfPossessionCommand command) throws IOException, ProofOfPossessionCreatorException, CommandException, UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, JOSEException, KeyException {
+    void runPoPCreateCommand(CreateProofOfPossessionCommand command) throws IOException, ProofOfPossessionCreatorException, CommandException, UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, JOSEException, KeyException, VcDataIntegrityCryptographicSuiteException {
         if (command.help) {
             jc.usage(parsedCommandName);
             return;
@@ -273,27 +220,23 @@ public final class JCommanderRunner {
         // Duration after which the JWT expires
         Duration validDuration = Duration.ofDays(1);
 
-        var nonce = command.nonce;
-        var didLogFile = command.didLog;
-        var kid = command.kid;
-
-        var didLog = Files.readString(didLogFile.toPath());
+        var didLog = Files.readString(command.didLog.toPath());
 
         ProofOfPossessionJWSSigner signer = null;
         if (command.signingKeyPemFile != null) {
-            signer = new EcP256ProofOfPossessionJWSSigner(command.signingKeyPemFile.toPath(), kid);
+            signer = ProofOfPossessionJWSSigner.of(command.signingKeyPemFile.toPath(), command.kid);
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
-            signer = HsmProofOfPossessionJWSSigner.newPrimusSigner(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, kid);
+            signer = ProofOfPossessionJWSSigner.of(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, command.kid);
         }
 
         if (signer == null) {
-            throw new CommandException("No valid source of signing EC P-256 key supplied. Use one of the relevant options to supply keys");
+            throw new CommandException("No valid source of signing P-256 key supplied. Use one of the relevant options to supply keys");
         }
 
-        var proof = new ProofOfPossessionCreator(signer).create(nonce, validDuration);
+        var proof = new ProofOfPossessionCreator(signer).create(command.nonce, validDuration);
         try {
             var verifier = new ProofOfPossessionVerifier(didLog);
-            verifier.verify(proof, nonce);
+            verifier.verify(proof, command.nonce);
         } catch (ProofOfPossessionVerifierException e) {
             throw new CommandException("Failed to verify generated proof: %s".formatted(e.getLocalizedMessage()), e);
         }
@@ -351,11 +294,10 @@ public final class JCommanderRunner {
      *
      * @param forceOverwrite
      * @param target
-     * @return
      * @throws FileAlreadyExistsException if it fails to create or overwrite the file
      */
-    void generateAndSaveNewKey(boolean forceOverwrite, Set<File> target) throws DidLogCreatorStrategyException, FileAlreadyExistsException, CommandException {
-        createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().getPath());
+    void generateAndSaveNewKey(boolean forceOverwrite, Set<File> target) throws IOException, CommandException {
+        FilesPrivacy.createPrivateKeyDirectoryIfDoesNotExist(getOutputDir().toPath());
         var dalekSigner = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
         storeKeysOnDisk(dalekSigner, forceOverwrite);
         target.add(getPublicKeyFile());
@@ -366,7 +308,6 @@ public final class JCommanderRunner {
     *
      * @param cryptoSuite of the keypair to be stored
      * @param forceOverwrite allows to overwrite already existing key files
-     * @return the result code, 1 if something went wrong
      * @throws FileAlreadyExistsException
      */
     @SuppressWarnings("PMD.CognitiveComplexity")

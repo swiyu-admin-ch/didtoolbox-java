@@ -9,7 +9,7 @@ import java.util.*;
  * A convenient helper introduced for the sake of comfortably restricting access to any file or a directory,
  * regardless of the underlying file system.
  */
-final class FilesPrivacy {
+public final class FilesPrivacy {
     private FilesPrivacy() {
     }
 
@@ -97,6 +97,34 @@ final class FilesPrivacy {
             throw new IllegalArgumentException(e);
         }
     }
+
+    /**
+     * Creates a new directory if it does not yet exists the same as {@link Files#createDirectory(Path, FileAttribute[])} would do,
+     * only with access restricted the current user.
+     *
+     * @param path  the directory to create
+     * @throws DirectoryNotEmptyException    (in case {@code force} is engaged) if the file is a directory and could not otherwise be deleted
+     *                                       because the directory is not empty <i>(optional specific
+     *                                       exception)</i>
+     * @throws FileAlreadyExistsException    (in case {@code force} is NOT engaged) if a directory could not otherwise be created because a file of
+     *                                       that name already exists <i>(optional specific exception)</i>
+     * @throws UnsupportedOperationException if the array contains an attribute that cannot be set atomically
+     *                                       when creating the directory
+     * @throws IOException                   if an I/O error occurs or the parent directory does not exist
+     * @throws SecurityException             In the case of the default provider, and a security manager is
+     *                                       installed, the SecurityManager#checkWrite(String)
+     *                                       method is invoked to check write access to the new directory.
+     * @see Files#deleteIfExists(Path)
+     * @see Files#createDirectory(Path, FileAttribute[])
+     */
+    public static void createPrivateKeyDirectoryIfDoesNotExist(Path path) throws IOException {
+        if (path.toFile().exists())  {
+            return;
+        }
+
+        createPrivateDirectory(path, false); // may throw DirectoryNotEmptyException, SecurityException etc.
+    }
+
 
     /**
      * Creates a new directory just as {@link Files#createDirectory(Path, FileAttribute[])} would do,

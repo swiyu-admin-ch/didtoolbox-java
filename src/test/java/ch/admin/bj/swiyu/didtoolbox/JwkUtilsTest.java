@@ -1,10 +1,12 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +23,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @SuppressWarnings({"PMD"})
 class JwkUtilsTest {
 
-    private static void assertGeneratePublicEC256(String json, String kid) {
-        assertNotNull(json);
+    private static void assertGeneratePublicEC256(VerificationMethod verificationMethod, String kid) {
+        assertEquals(kid, verificationMethod.getIdFragment());
+
+        var json = verificationMethod.getVerificationMaterial().getPublicKeyJwk();
         var publicJwkJsonObject = JsonParser.parseString(json).getAsJsonObject();
         assertTrue(publicJwkJsonObject.has("kty"));
         assertEquals("EC", publicJwkJsonObject.get("kty").getAsString());
@@ -63,22 +67,38 @@ class JwkUtilsTest {
     }
 
     @Test
-    void testGeneratePublicEC256() {
+    void testGeneratePublicEC256_withNoPreexistingFiles_createsFiles(@TempDir Path tmpDir) {
+        var file = new File(tmpDir.toString(), "pem");
+        String kid = "auth-key-01";
         assertDoesNotThrow(() -> {
-            // No PEM files are exported here
-            assertGeneratePublicEC256(JwkUtils.generatePublicEC256("auth-key-01", null, false), null); // MUT
+            var verificationMethod = JwkUtils.generatePublicP256VerificationMethod(kid, file, false);
+            assertGeneratePublicEC256(verificationMethod, kid);
         });
+        assertTrue(file.exists());
+        assertTrue(new File(tmpDir.toString(), "pem.pub").exists());
     }
 
     @Test
-    void testGeneratePublicEC256WithOutputOverwriteExisting() {
+    void generatePublicEd25519_withNoPreexistingFiles_createsFiles(@TempDir Path tmpDir) {
+        var file = new File(tmpDir.toString(), "pem");
+        String kid = "auth-key-01";
+        assertDoesNotThrow(() -> {
+            var verificationMethod = JwkUtils.generatePublicP256VerificationMethod(kid, file, false);
+            assertGeneratePublicEC256(verificationMethod, kid);
+        });
+        assertTrue(file.exists());
+        assertTrue(new File(tmpDir.toString(), "pem.pub").exists());
+    }
+
+    @Test
+    void generatePublicEC256VerificationMethod_withPreexistingFileAndForce_overwritesFiles() {
         assertDoesNotThrow(() -> {
             var tempFile = File.createTempFile("mypublic", "");
             // Exists at the moment of key generation, and should therefore be overwritten if forceOverwritten == true
             tempFile.deleteOnExit();
 
             var kid = "auth-key-01";
-            assertGeneratePublicEC256(JwkUtils.generatePublicEC256(kid, tempFile, true), kid); // MUT
+            assertGeneratePublicEC256(JwkUtils.generatePublicP256VerificationMethod(kid, tempFile, true), kid); // MUT
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
@@ -92,20 +112,16 @@ class JwkUtilsTest {
     }
 
     @Test
-    void testGeneratePublicEC256WithOutputNoOverwriteExistingThrowsException() {
+    void generatePublicEC256VerificationMethod_withOutputNoOverwriteExisting_throwsException() throws IOException {
         File tempFile = null;
-        try {
-            tempFile = File.createTempFile("mypublic", "");
-            // Exists at the moment of key generation, and should NOT be overwritten if forceOverwritten == false
-            tempFile.deleteOnExit();
-        } catch (Exception e) {
-            fail(e);
-        }
+        tempFile = File.createTempFile("mypublic", "");
+        // Exists at the moment of key generation, and should NOT be overwritten if forceOverwritten == false
+        tempFile.deleteOnExit();
 
         File finalTempFile = tempFile;
         var exc = assertThrowsExactly(IOException.class, () -> {
             // kid is irrelevant here
-            JwkUtils.generatePublicEC256(null, finalTempFile, false); // MUT
+            JwkUtils.generatePublicP256VerificationMethod("kid", finalTempFile, false); // MUT
         });
         assertTrue(exc.getMessage().contains("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged"));
 
@@ -129,7 +145,7 @@ class JwkUtilsTest {
             tempFile.deleteOnExit();
 
             var kid = "auth-key-01";
-            assertGeneratePublicEC256(JwkUtils.generatePublicEC256(kid, tempFile, true), kid); // MUT
+            assertGeneratePublicEC256(JwkUtils.generatePublicP256VerificationMethod(kid, tempFile, true), kid); // MUT
 
             // Verification of the exported PEM files
             assertNotEquals(0, Files.size(tempFile.toPath()));
