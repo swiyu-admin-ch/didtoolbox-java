@@ -21,7 +21,7 @@ This is the list of all third-party dependencies grouped by their license type. 
 * **org.apiguardian:apiguardian-api** (org.apiguardian:apiguardian-api:1.1.2 - https://github.com/apiguardian-team/apiguardian)
 * **jcommander** (org.jcommander:jcommander:3.0 - https://jcommander.org)
 * **IntelliJ IDEA Annotations** (org.jetbrains:annotations:13.0 - http://www.jetbrains.org)
-* **Kotlin Stdlib** (org.jetbrains.kotlin:kotlin-stdlib:1.9.23 - https://kotlinlang.org/)
+* **Kotlin Stdlib** (org.jetbrains.kotlin:kotlin-stdlib:2.4.10 - https://kotlinlang.org/)
 * **JSpecify annotations** (org.jspecify:jspecify:1.0.0 - http://jspecify.org/)
 * **Objenesis** (org.objenesis:objenesis:3.3 - http://objenesis.org/objenesis)
 * **org.opentest4j:opentest4j** (org.opentest4j:opentest4j:1.3.0 - https://github.com/ota4j-team/opentest4j)
