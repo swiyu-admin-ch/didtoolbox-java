@@ -44,7 +44,7 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
                 signer.getJCAContext().setProvider(primus.getKeyStore().getProvider());
                 return new HsmProofOfPossessionJWSSigner(signer, kid);
             }
-            case EdECPrivateKey a -> {
+            case EdECPrivateKey ignored -> {
                 var signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(kp, kid, primus);
                 return new HsmProofOfPossessionJWSSigner(signer, kid);
             }
