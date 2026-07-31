@@ -120,8 +120,8 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
         FilesPrivacy.createPrivateKeyDirectoryIfDoesNotExist(directory);
         var file = new File(directory.toString(), name);
 
-        return switch (this.cryptoAlgorithm) {
-            case CryptographicAlgorithm.P256 ->
+        return switch (this.cryptoAlgorithm) { // NOPMD TooFewBranchesForSwitch
+            case P256 ->
                     JwkUtils.generatePublicP256VerificationMethod(name, file, this.forceOverwrite);
             case ED25519 -> JwkUtils.generatePublicEd25519VerificationMethod(name, file, this.forceOverwrite);
         };

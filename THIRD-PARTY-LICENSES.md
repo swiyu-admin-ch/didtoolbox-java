@@ -8,19 +8,22 @@ This is the list of all third-party dependencies grouped by their license type. 
 ## Apache License, Version 2.0:
 
 * **Jackson-annotations** (com.fasterxml.jackson.core:jackson-annotations:2.22 - https://github.com/FasterXML/jackson)
-* **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.22.0 - https://github.com/FasterXML/jackson-core)
-* **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.22.0 - https://github.com/FasterXML/jackson)
+* **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.22.1 - https://github.com/FasterXML/jackson-core)
+* **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.22.1 - https://github.com/FasterXML/jackson)
 * **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
 * **Gson** (com.google.code.gson:gson:2.14.0 - https://github.com/google/gson)
 * **Tink Cryptography API** (com.google.crypto.tink:tink:1.22.0 - http://github.com/tink-crypto/tink-java)
 * **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.48.0 - https://errorprone.info/error_prone_annotations)
 * **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.9.1 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
+* **Byte Buddy (without dependencies)** (net.bytebuddy:byte-buddy:1.17.7 - https://bytebuddy.net/byte-buddy)
+* **Byte Buddy agent** (net.bytebuddy:byte-buddy-agent:1.17.7 - https://bytebuddy.net/byte-buddy-agent)
 * **Java Native Access** (net.java.dev.jna:jna:5.19.1 - https://github.com/java-native-access/jna)
 * **org.apiguardian:apiguardian-api** (org.apiguardian:apiguardian-api:1.1.2 - https://github.com/apiguardian-team/apiguardian)
 * **jcommander** (org.jcommander:jcommander:3.0 - https://jcommander.org)
 * **IntelliJ IDEA Annotations** (org.jetbrains:annotations:13.0 - http://www.jetbrains.org)
-* **Kotlin Stdlib** (org.jetbrains.kotlin:kotlin-stdlib:1.9.23 - https://kotlinlang.org/)
+* **Kotlin Stdlib** (org.jetbrains.kotlin:kotlin-stdlib:2.4.10 - https://kotlinlang.org/)
 * **JSpecify annotations** (org.jspecify:jspecify:1.0.0 - http://jspecify.org/)
+* **Objenesis** (org.objenesis:objenesis:3.3 - http://objenesis.org/objenesis)
 * **org.opentest4j:opentest4j** (org.opentest4j:opentest4j:1.3.0 - https://github.com/ota4j-team/opentest4j)
 
 ## BSD-3-Clause:
@@ -46,6 +49,10 @@ This is the list of all third-party dependencies grouped by their license type. 
 ## LGPL-2.1-or-later:
 
 * **Java Native Access** (net.java.dev.jna:jna:5.19.1 - https://github.com/java-native-access/jna)
+
+## MIT:
+
+* **mockito-core** (org.mockito:mockito-core:5.23.0 - https://github.com/mockito/mockito)
 
 ## MIT License:
 

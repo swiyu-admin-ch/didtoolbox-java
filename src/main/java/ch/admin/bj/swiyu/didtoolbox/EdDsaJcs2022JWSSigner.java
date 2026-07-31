@@ -22,6 +22,7 @@ import java.util.Set;
  * @since 1.8.0
  */
 public class EdDsaJcs2022JWSSigner extends EdDsaJcs2022VcDataIntegrityCryptographicSuite implements JWSSigner {
+    private final JCAContext jcaContext = new JCAContext();
 
     /**
      * @see EdDsaJcs2022VcDataIntegrityCryptographicSuite#EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path)
@@ -50,6 +51,6 @@ public class EdDsaJcs2022JWSSigner extends EdDsaJcs2022VcDataIntegrityCryptograp
 
     @Override
     public JCAContext getJCAContext() {
-        return null;
+        return this.jcaContext;
     }
 }

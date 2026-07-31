@@ -5,10 +5,7 @@ import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.security.KeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
 
 /**
  * The {@link PrimusEd25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation
@@ -42,6 +39,10 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 
         super(primus.loadKeyPair(alias, password), primus.getKeyStore().getProvider());
+    }
+
+    public PrimusEd25519VerificationMethodKeyProviderImpl(KeyPair keyPair, PrimusKeyStoreLoader primus) {
+        super(keyPair, primus.getKeyStore().getProvider());
     }
 
     /**

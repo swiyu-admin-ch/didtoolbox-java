@@ -162,4 +162,9 @@ class AbstractKeyMaterialDidLogCommandTest {
         assertThrowsExactly(IOException.class, () -> command.getAuthentications(tmpDir));
     }
 
+    @Test
+    void cryptoAlgorithm_perDefault_isP256() {
+        var command = new Command();
+        assertEquals(CryptographicAlgorithm.P256, command.cryptoAlgorithm);
+    }
 }

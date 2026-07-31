@@ -3,7 +3,8 @@
 ## Next
 
 ### Added
-- Support for Ed25519 keys as verification material in create DID logs command
+- Support for Ed25519 keys as verification material in create and update DID logs command.
+- Support for Ed25519 for signing verifying proof of possession JWTs.
 
 ### Changed
 
