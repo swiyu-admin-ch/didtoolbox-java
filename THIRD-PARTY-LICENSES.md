@@ -8,8 +8,8 @@ This is the list of all third-party dependencies grouped by their license type. 
 ## Apache License, Version 2.0:
 
 * **Jackson-annotations** (com.fasterxml.jackson.core:jackson-annotations:2.22 - https://github.com/FasterXML/jackson)
-* **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.22.0 - https://github.com/FasterXML/jackson-core)
-* **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.22.0 - https://github.com/FasterXML/jackson)
+* **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.22.1 - https://github.com/FasterXML/jackson-core)
+* **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.22.1 - https://github.com/FasterXML/jackson)
 * **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
 * **Gson** (com.google.code.gson:gson:2.14.0 - https://github.com/google/gson)
 * **Tink Cryptography API** (com.google.crypto.tink:tink:1.22.0 - http://github.com/tink-crypto/tink-java)
