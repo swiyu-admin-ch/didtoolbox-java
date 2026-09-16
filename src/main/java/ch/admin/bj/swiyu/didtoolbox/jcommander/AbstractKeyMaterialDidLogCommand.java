@@ -64,7 +64,7 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
 
     @Parameter(names = {PARAM_NAME_LONG_CRYPTOGRAPHIC_ALGORITHM, PARAM_NAME_SHORT_CRYPTOGRAPHIC_ALGORITHM},
             description = "Specify which type of keys to generate as assertion and authorization keys when none are provided through other means. Available are P-256 and Ed25519")
-    public CryptographicAlgorithm cryptoAlgorithm = CryptographicAlgorithm.P256;
+    public CryptographicAlgorithm cryptoAlgorithm = CryptographicAlgorithm.ED25519;
 
     @Parameter(names = {PARAM_NAME_LONG_FORCE, PARAM_NAME_SHORT_FORCE},
             description = "Overwrite existing PEM key files, if any")

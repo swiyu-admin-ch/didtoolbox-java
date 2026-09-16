@@ -163,8 +163,8 @@ class AbstractKeyMaterialDidLogCommandTest {
     }
 
     @Test
-    void cryptoAlgorithm_perDefault_isP256() {
+    void cryptoAlgorithm_perDefault_isEd25519() {
         var command = new Command();
-        assertEquals(CryptographicAlgorithm.P256, command.cryptoAlgorithm);
+        assertEquals(CryptographicAlgorithm.ED25519, command.cryptoAlgorithm);
     }
 }
