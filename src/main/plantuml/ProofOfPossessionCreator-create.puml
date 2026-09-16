@@ -1,0 +1,58 @@
+```plantuml
+@startuml
+
+participant ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator
+participant ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+participant com.nimbusds.jose.JWSObject
+participant com.nimbusds.jose.ActionRequiredForJWSCompletionException
+
+activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner : getAlgorithm
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator : com.nimbusds.jose.JWSAlgorithm
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner : getKid
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator : java.lang.String
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner : getKid
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator : java.lang.String
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator -> com.nimbusds.jose.JWSObject : sign
+	activate com.nimbusds.jose.JWSObject
+		com.nimbusds.jose.JWSObject -> com.nimbusds.jose.JWSObject : ensureUnsignedState
+		activate com.nimbusds.jose.JWSObject
+			com.nimbusds.jose.JWSObject --> com.nimbusds.jose.JWSObject : void
+		deactivate com.nimbusds.jose.JWSObject
+		com.nimbusds.jose.JWSObject -> com.nimbusds.jose.JWSObject : ensureJWSSignerSupport
+		activate com.nimbusds.jose.JWSObject
+			com.nimbusds.jose.JWSObject -> com.nimbusds.jose.JWSObject : getHeader
+			activate com.nimbusds.jose.JWSObject
+				com.nimbusds.jose.JWSObject --> com.nimbusds.jose.JWSObject : com.nimbusds.jose.JWSHeader
+			deactivate com.nimbusds.jose.JWSObject
+			com.nimbusds.jose.JWSObject -> com.nimbusds.jose.JWSObject : getHeader
+			activate com.nimbusds.jose.JWSObject
+				com.nimbusds.jose.JWSObject --> com.nimbusds.jose.JWSObject : com.nimbusds.jose.JWSHeader
+			deactivate com.nimbusds.jose.JWSObject
+			com.nimbusds.jose.JWSObject --> com.nimbusds.jose.JWSObject : void
+		deactivate com.nimbusds.jose.JWSObject
+		com.nimbusds.jose.JWSObject -> com.nimbusds.jose.JWSObject : getHeader
+		activate com.nimbusds.jose.JWSObject
+			com.nimbusds.jose.JWSObject --> com.nimbusds.jose.JWSObject : com.nimbusds.jose.JWSHeader
+		deactivate com.nimbusds.jose.JWSObject
+		com.nimbusds.jose.JWSObject -> com.nimbusds.jose.JWSObject : getSigningInput
+		activate com.nimbusds.jose.JWSObject
+			com.nimbusds.jose.JWSObject --> com.nimbusds.jose.JWSObject : byte[]
+		deactivate com.nimbusds.jose.JWSObject
+		com.nimbusds.jose.JWSObject -> com.nimbusds.jose.ActionRequiredForJWSCompletionException : getTriggeringOption
+		activate com.nimbusds.jose.ActionRequiredForJWSCompletionException
+			com.nimbusds.jose.ActionRequiredForJWSCompletionException --> com.nimbusds.jose.JWSObject : com.nimbusds.jose.JWSSignerOption
+		deactivate com.nimbusds.jose.ActionRequiredForJWSCompletionException
+		com.nimbusds.jose.JWSObject --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator : void
+	deactivate com.nimbusds.jose.JWSObject
+deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator
+
+@enduml
+
+```
