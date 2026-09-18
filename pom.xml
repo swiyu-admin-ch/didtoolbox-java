@@ -397,6 +397,46 @@
                             <useShortClassNames>false</useShortClassNames>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>generate-simple-diagram-ProofOfPossessionCreator-create</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
+                            <outputFilename>ProofOfPossessionCreator-create.puml</outputFilename>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator</startClass>
+                            <startMethod>create</startMethod>
+                            <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*|.*jose.JWS([PHS]).*</classBlacklistRegexp>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <!--ignoreStandardClasses>true</ignoreStandardClasses-->
+                            <showReturnTypes>true</showReturnTypes>
+                            <!--hideMethodName>true</hideMethodName>
+                            <hideSuperClass>true</hideSuperClass-->
+                            <useShortClassNames>false</useShortClassNames>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-simple-diagram-ProofOfPossessionVerifier-verify</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
+                            <outputFilename>ProofOfPossessionVerifier-verify.puml</outputFilename>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier</startClass>
+                            <startMethod>verify</startMethod>
+                            <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*|.*jose.JWS([PHS]).*|.*fasterxml.*|.*jose.*</classBlacklistRegexp>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <!--ignoreStandardClasses>true</ignoreStandardClasses-->
+                            <showReturnTypes>true</showReturnTypes>
+                            <!--hideMethodName>true</hideMethodName>
+                            <hideSuperClass>true</hideSuperClass-->
+                            <useShortClassNames>false</useShortClassNames>
+                        </configuration>
+                    </execution>
                     <!-- class diagrams -->
                     <execution>
                         <id>generate-diagram-didtoolbox-api-classes-only</id>
@@ -422,7 +462,7 @@
                             <!--useShortClassNames>true</useShortClassNames-->
                             <!--useShortClassNamesInFieldsAndMethods>true</useShortClassNamesInFieldsAndMethods-->
                             <blacklistRegexp>.*.jcommander.*|.*Util*.*|.*FilesPrivacy*.*|.*Tdw*.*|.*WebVerifiableHistory*.*|*.*ContextBuilder.*</blacklistRegexp>
-                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*.context.*|.*Enum*.*|.*.model.*DidMethodParameter*.*|.*.model.*Verification*.*</whitelistRegexp>
+                            <whitelistRegexp>.*VerificationMethodKeyProvider.*|.*.vc_data_integrity.*|.*.context.*|.*Enum*.*|.*.model.*DidMethodParameter*.*|.*.model.*Verification*.*|.*.ProofOfPossession*.*</whitelistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
                             <additionalPlantUmlConfigs>
                                 <!-- see https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf -->

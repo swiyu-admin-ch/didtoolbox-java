@@ -4,6 +4,16 @@
 left to right direction
 
 
+class ch.admin.bj.swiyu.didtoolbox.EcP256ProofOfPossessionJWSSigner {
+	{field} #signingKey : com.nimbusds.jose.jwk.ECKey
+	{method} +getAlgorithm () : com.nimbusds.jose.JWSAlgorithm
+	{method} +getJCAContext () : com.nimbusds.jose.jca.JCAContext
+	{method} +getKid () : String
+	{method} +sign ( paramJWSHeader1 : com.nimbusds.jose.JWSHeader , param[B2 : [B ) : com.nimbusds.jose.util.Base64URL
+	{method} +supportedJWSAlgorithms () : java.util.Set
+}
+
+
 class ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl {
 	{field} #keyPair : java.security.KeyPair
 	{field} #provider : java.security.Provider
@@ -13,6 +23,47 @@ class ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl {
 	{method} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
 	{method}  {static} #sanityCheck ( paramEd25519VerificationMethodKeyProviderImpl1 : ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl ) : void
 	{method} +writePublicKeyAsPem ( paramFile1 : java.io.File ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator {
+	{method} +create ( paramString1 : String , paramDuration2 : java.time.Duration ) : com.nimbusds.jwt.SignedJWT
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreatorException {
+}
+
+
+interface ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner {
+	{method}  {abstract} +getAlgorithm () : com.nimbusds.jose.JWSAlgorithm
+	{method}  {abstract} +getKid () : String
+	{method}  {static} +of ( paramPath1 : java.nio.file.Path , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+	{method}  {static} +of ( paramJWSSigner1 : com.nimbusds.jose.JWSSigner , paramString2 : String , paramJWSAlgorithm3 : com.nimbusds.jose.JWSAlgorithm ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+	{method}  {static} +of ( paramPrimusKeyStoreLoader1 : ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader , paramString2 : String , paramString3 : String , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+	{method} +supportedJWSAlgorithms () : java.util.Set
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier {
+	{method} +isValid ( paramSignedJWT1 : com.nimbusds.jwt.SignedJWT , paramString2 : String ) : boolean
+	{method} +verify ( paramSignedJWT1 : com.nimbusds.jwt.SignedJWT , paramString2 : String ) : void
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException {
+}
+
+
+enum ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException$ErrorCause {
+	{field} +EXPIRED
+	{field} +FAILED_TO_VERIFY
+	{field} +INVALID_NONCE
+	{field} +INVALID_SIGNATURE
+	{field} +KEY_MISMATCH
+	{field} +MALFORMED_CLAIM_KID
+	{field} +UNPARSABLE
+	{field} +UNSUPPORTED_ALGORITHM
 }
 
 
@@ -126,6 +177,24 @@ class ch.admin.bj.swiyu.didtoolbox.context.IncompleteDidLogEntryBuilderException
 }
 
 
+class ch.admin.bj.swiyu.didtoolbox.jcommander.CreateProofOfPossessionCommand {
+	{field} +didLog : java.io.File
+	{field} +kid : String
+	{field} +nonce : String
+	{field} +primusKeyAlias : String
+	{field} +primusKeyPassword : String
+	{field} +securosysPrimusKeyStoreLoader : ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader
+	{field} +signingKeyPemFile : java.io.File
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.jcommander.VerifyProofOfPossessionCommand {
+	{field} +didLogFile : java.io.File
+	{field} +jwt : com.nimbusds.jwt.SignedJWT
+	{field} +nonce : String
+}
+
+
 enum ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum {
 	{field} +did:tdw:0.3
 	{field} +did:webvh:1.0
@@ -200,6 +269,22 @@ class ch.admin.bj.swiyu.didtoolbox.model.VerificationMethodException {
 }
 
 
+class ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigner {
+	{method} +getAlgorithm () : com.nimbusds.jose.JWSAlgorithm
+	{method} +getJCAContext () : com.nimbusds.jose.jca.JCAContext
+	{method}  {static} +newPkcs11Signer ( paramString1 : String , paramString2 : String , paramString3 : String , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigner
+	{method}  {static} +newPrimusSigner ( paramPrimusKeyStoreLoader1 : ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader , paramString2 : String , paramString3 : String , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigner
+	{method} +sign ( paramJWSHeader1 : com.nimbusds.jose.JWSHeader , param[B2 : [B ) : com.nimbusds.jose.util.Base64URL
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl {
+	{method} +getAlgorithm () : com.nimbusds.jose.JWSAlgorithm
+	{method} +sign ( paramJWSHeader1 : com.nimbusds.jose.JWSHeader , param[B2 : [B ) : com.nimbusds.jose.util.Base64URL
+	{method} +supportedJWSAlgorithms () : java.util.Set
+}
+
+
 class ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl {
 	{method} +generateSignature ( param[B1 : [B ) : [B
 	{method}  {static} #optionallyUnderifyRS ( param[B1 : [B ) : [B
@@ -231,7 +316,10 @@ class ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographi
 
 
 
+ch.admin.bj.swiyu.didtoolbox.EcP256ProofOfPossessionJWSSigner ..|>  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
 ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
+ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator *--  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner : signer
+ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException *--  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException$ErrorCause : errorCause
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter : nextKeyHashesDidMethodParameter
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter : updateKeysDidMethodParameter
 ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.model.VerificationMethod : assertionMethods
@@ -266,6 +354,9 @@ ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBu
 ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum : didMethod$value
 ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
 ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite : verificationMethodKeyProvider
+ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigner ..|>  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl --|>  ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl
+ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl ..|>  ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
 ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusEd25519VerificationMethodKeyProviderImpl --|>  ch.admin.bj.swiyu.didtoolbox.Ed25519VerificationMethodKeyProviderImpl
 ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
 ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider

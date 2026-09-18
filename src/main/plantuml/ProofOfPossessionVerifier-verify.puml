@@ -1,0 +1,148 @@
+```plantuml
+@startuml
+
+participant ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
+participant ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+participant com.nimbusds.jwt.SignedJWT
+participant com.nimbusds.jwt.JWTClaimsSet
+participant com.nimbusds.jwt.util.DateUtils
+participant ch.admin.eid.did_sidekicks.DidDoc
+
+activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : unsupportedAlgorithm
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> com.nimbusds.jwt.SignedJWT : getJWTClaimsSet
+	activate com.nimbusds.jwt.SignedJWT
+		com.nimbusds.jwt.SignedJWT -> com.nimbusds.jwt.JWTClaimsSet : parse
+		activate com.nimbusds.jwt.JWTClaimsSet
+			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.SignedJWT : com.nimbusds.jwt.JWTClaimsSet
+		deactivate com.nimbusds.jwt.JWTClaimsSet
+		com.nimbusds.jwt.SignedJWT --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : com.nimbusds.jwt.JWTClaimsSet
+	deactivate com.nimbusds.jwt.SignedJWT
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getStringClaim
+	activate com.nimbusds.jwt.JWTClaimsSet
+		com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getClaim
+		activate com.nimbusds.jwt.JWTClaimsSet
+			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.lang.Object
+		deactivate com.nimbusds.jwt.JWTClaimsSet
+		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : java.lang.String
+	deactivate com.nimbusds.jwt.JWTClaimsSet
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : invalidNonce
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : unparsable
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getExpirationTime
+	activate com.nimbusds.jwt.JWTClaimsSet
+		com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getDateClaim
+		activate com.nimbusds.jwt.JWTClaimsSet
+			com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getClaim
+			activate com.nimbusds.jwt.JWTClaimsSet
+				com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.lang.Object
+			deactivate com.nimbusds.jwt.JWTClaimsSet
+			com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.util.DateUtils : fromSecondsSinceEpoch
+			activate com.nimbusds.jwt.util.DateUtils
+				com.nimbusds.jwt.util.DateUtils --> com.nimbusds.jwt.JWTClaimsSet : java.util.Date
+			deactivate com.nimbusds.jwt.util.DateUtils
+			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.util.Date
+		deactivate com.nimbusds.jwt.JWTClaimsSet
+		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : java.util.Date
+	deactivate com.nimbusds.jwt.JWTClaimsSet
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : expired
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.eid.did_sidekicks.DidDoc : getId
+	activate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : uniffiCloneHandle
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : long
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCleanable
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : ch.admin.eid.did_sidekicks.UniffiCleaner$Cleanable
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCleanable
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : ch.admin.eid.did_sidekicks.UniffiCleaner$Cleanable
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : java.lang.String
+	deactivate ch.admin.eid.did_sidekicks.DidDoc
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : malformedClaimKid
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.eid.did_sidekicks.DidDoc : getKeyByMethodId
+	activate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : uniffiCloneHandle
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : long
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCleanable
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : ch.admin.eid.did_sidekicks.UniffiCleaner$Cleanable
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCleanable
+		activate ch.admin.eid.did_sidekicks.DidDoc
+			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : ch.admin.eid.did_sidekicks.UniffiCleaner$Cleanable
+		deactivate ch.admin.eid.did_sidekicks.DidDoc
+		ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.eid.did_sidekicks.Jwk
+	deactivate ch.admin.eid.did_sidekicks.DidDoc
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : keyMismatch
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : unparsable
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : invalidSignature
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : failedToVerify
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
+
+@enduml
+
+```
