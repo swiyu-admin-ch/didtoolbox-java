@@ -16,6 +16,8 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Set;
@@ -102,62 +104,36 @@ public class ProofOfPossessionVerifier {
      */
     @SuppressWarnings("PMD.CyclomaticComplexity") // function doesn't contain complicated logic
     public void verify(SignedJWT signedJWT, String nonce) throws ProofOfPossessionVerifierException {
-        // TODO OMNI-1036:
-        // - change order to 1st verify signature
-        // - remove expected nonce from error message
-        // - use id of document instead of kid
-        // - use secure string comparison method
-        // - add check for nbf if present
+        // Verify alg
         var algorithm = signedJWT.getHeader().getAlgorithm();
         if (!Set.of(JWSAlgorithm.ES256, JWSAlgorithm.EdDSA).contains(algorithm)) {
             throw ProofOfPossessionVerifierException.unsupportedAlgorithm(algorithm.toString());
         }
 
-        // ParseException is thrown here, if something's wrong with the provided JWT
-        JWTClaimsSet claimSet;
-        try {
-            claimSet = signedJWT.getJWTClaimsSet();
-            // check nonce
-            String nonceClaim = claimSet.getStringClaim("nonce");
-            if (!nonce.equals(nonceClaim)) {
-                throw ProofOfPossessionVerifierException.invalidNonce(nonceClaim, nonce);
-            }
-        } catch (ParseException e) { // NOPMD ExceptionAsFlowControl: false positive
-            throw ProofOfPossessionVerifierException.unparsable(e);
-        }
-
-        // check timestamp
-        var expirationTime = claimSet.getExpirationTime();
-        if (expirationTime == null || Instant.now().isAfter(expirationTime.toInstant())) {
-            throw ProofOfPossessionVerifierException.expired();
-        }
-
-        // retrieve key from JWT
+        // Retrieve key from DID log for signature verification
         var kid = signedJWT.getHeader().getKeyID();
-        if (!kid.startsWith(didDoc.getId())) {
-            throw ProofOfPossessionVerifierException.malformedClaimKid("provided kid is not of issuer");
+        if (kid == null) {
+            throw ProofOfPossessionVerifierException.keyMismatch("");
         }
-
-        // retrieve key from DID log
         JWK jwk;
         try {
             var objectMapper = new ObjectMapper();
             var jwkString = objectMapper.writeValueAsString(this.didDoc.getKeyByMethodId(kid));
             jwk = JWK.parse(jwkString);
-        } catch (DidSidekicksException e) {
-            throw ProofOfPossessionVerifierException.keyMismatch(kid); //NOPMD stack trace of exception is not relevant
+        } catch (DidSidekicksException | NullPointerException ignore) {
+            throw ProofOfPossessionVerifierException.keyMismatch(kid);
         } catch (ParseException | JsonProcessingException e) {
             throw ProofOfPossessionVerifierException.unparsable(e);
         }
 
-
+        // Verify signature
         try {
             JWSVerifier jwsVerifier;
             // if else pattern because final class instances cannot be used as cases for a switch statement
             if (JWSAlgorithm.EdDSA.equals(algorithm)) {
-               jwsVerifier = new Ed25519Verifier(jwk.toOctetKeyPair());
+                jwsVerifier = new Ed25519Verifier(jwk.toOctetKeyPair());
             } else if (JWSAlgorithm.ES256.equals(algorithm)) {
-               jwsVerifier = new ECDSAVerifier(jwk.toECKey());
+                jwsVerifier = new ECDSAVerifier(jwk.toECKey());
             } else {
                 throw new RuntimeException("Tried to construct a JWS verifier of an algorithm that's not supported and should have been caught earlier."); // NOPMD: code is unreachable
             };
@@ -167,6 +143,35 @@ public class ProofOfPossessionVerifier {
             }
         } catch (JOSEException e) { //NOPMD ExceptionAsFlowControl: false positive
             throw ProofOfPossessionVerifierException.failedToVerify(e);
+        }
+
+        // ParseException is thrown here, if something's wrong with the provided JWT
+        JWTClaimsSet claimSet;
+        try {
+            claimSet = signedJWT.getJWTClaimsSet();
+            // check nonce
+            String nonceClaim = claimSet.getStringClaim("nonce");
+            if (!MessageDigest.isEqual(nonceClaim.getBytes(StandardCharsets.UTF_8), nonce.getBytes(StandardCharsets.UTF_8))) {
+                throw ProofOfPossessionVerifierException.invalidNonce(nonce);
+            }
+        } catch (ParseException e) { // NOPMD ExceptionAsFlowControl: false positive
+            throw ProofOfPossessionVerifierException.unparsable(e);
+        }
+
+        var iss = claimSet.getIssuer();
+        if (iss != null && !MessageDigest.isEqual(iss.getBytes(StandardCharsets.UTF_8), didDoc.getId().getBytes(StandardCharsets.UTF_8))) {
+            throw ProofOfPossessionVerifierException.failedToVerify(new Exception("Iss does not match Id of DID Log"));
+        }
+
+        // check timestamp
+        var now = Instant.now();
+        var expirationTime = claimSet.getExpirationTime();
+        if (expirationTime == null || now.isAfter(expirationTime.toInstant())) {
+            throw ProofOfPossessionVerifierException.expired();
+        }
+        var notBeforeTime = claimSet.getNotBeforeTime();
+        if (notBeforeTime != null && now.isBefore(notBeforeTime.toInstant())) {
+            throw ProofOfPossessionVerifierException.expired();
         }
     }
 }
