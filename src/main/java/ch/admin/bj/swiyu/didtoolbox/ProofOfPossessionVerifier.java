@@ -117,10 +117,14 @@ public class ProofOfPossessionVerifier {
         }
         JWK jwk;
         try {
+            var key = this.didDoc.getKeyByMethodId(kid);
+            if (key == null) {
+                throw ProofOfPossessionVerifierException.keyMismatch(kid);
+            }
             var objectMapper = new ObjectMapper();
-            var jwkString = objectMapper.writeValueAsString(this.didDoc.getKeyByMethodId(kid));
+            var jwkString = objectMapper.writeValueAsString(key);
             jwk = JWK.parse(jwkString);
-        } catch (DidSidekicksException | NullPointerException ignore) {
+        } catch (DidSidekicksException ignore) {
             throw ProofOfPossessionVerifierException.keyMismatch(kid);
         } catch (ParseException | JsonProcessingException e) {
             throw ProofOfPossessionVerifierException.unparsable(e);
@@ -160,7 +164,7 @@ public class ProofOfPossessionVerifier {
 
         var iss = claimSet.getIssuer();
         if (iss != null && !MessageDigest.isEqual(iss.getBytes(StandardCharsets.UTF_8), didDoc.getId().getBytes(StandardCharsets.UTF_8))) {
-            throw ProofOfPossessionVerifierException.failedToVerify(new Exception("Iss does not match Id of DID Log"));
+            throw ProofOfPossessionVerifierException.failedToVerify(new RuntimeException("Iss does not match Id of DID Log"));
         }
 
         // check timestamp
