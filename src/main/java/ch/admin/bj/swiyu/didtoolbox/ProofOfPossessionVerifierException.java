@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import java.io.Serial;
@@ -25,14 +26,15 @@ public class ProofOfPossessionVerifierException extends Exception {
         errorCause = null;
     }
 
-    static ProofOfPossessionVerifierException invalidNonce(String expected, String got) {
-        return new ProofOfPossessionVerifierException(String.format("Proof of possession is for nonce '%s', but expected '%s' instead", got, expected), ErrorCause.INVALID_NONCE);
+    static ProofOfPossessionVerifierException invalidNonce(String got) {
+        return new ProofOfPossessionVerifierException(String.format("Proof of Possession is NOT for nonce '%s'", got), ErrorCause.INVALID_NONCE);
     }
 
     static ProofOfPossessionVerifierException unparsable(Exception cause) {
         return new ProofOfPossessionVerifierException(String.format("The JWT cannot be parsed due to: %s", cause.getLocalizedMessage()), ErrorCause.UNPARSABLE);
     }
 
+    @Deprecated(since = "2.3.0")
     static ProofOfPossessionVerifierException malformedClaimKid(String message) {
         return new ProofOfPossessionVerifierException(String.format("The header claim kid is invalid: %s", message), ErrorCause.MALFORMED_CLAIM_KID);
     }
