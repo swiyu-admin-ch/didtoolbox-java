@@ -14,7 +14,9 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.time.ZonedDateTime;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -189,5 +191,25 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
             // IMPORTANT provide null as crypto suite intentionally (no cryptographic suite supplied) to provoke the exception
             WebVerifiableHistoryDeactivator.builder(null);
         });
+    }
+
+    @Test
+    void testDeactivateDidLogWithActivePrerotationCreatesIntermediateEntry() {
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
+                Set.of(
+                        new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS
+                        new File(TEST_DATA_PATH_PREFIX + "public01.pem") // matches TEST_VERIFICATION_METHOD_KEY_PROVIDER_ANOTHER
+                ));
+
+        var deactivatedLog = assertDoesNotThrow(
+                () -> {
+                   var deactivator =  WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE_JKS).build();
+                   return deactivator.deactivateDidLog(initialDidLogEntry);
+                }
+        );
+
+        var entries = deactivatedLog.split(System.lineSeparator());
+        assertEquals(2, entries.length); // expect 2 entries, 1st deactivating key pre-rotation, 2nd deactivating the did
+        assertDeactivatedDidLogEntry(entries[entries.length-1], initialDidLogEntry + System.lineSeparator() + deactivatedLog);
     }
 }

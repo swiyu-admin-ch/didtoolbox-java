@@ -214,7 +214,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         didDoc.addProperty("id", didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
 
         // The DID log entry is an input JSON array that when completed contains the following items:
         // [ versionId, versionTime, parameters, DIDDoc State, Data Integrity Proof ].

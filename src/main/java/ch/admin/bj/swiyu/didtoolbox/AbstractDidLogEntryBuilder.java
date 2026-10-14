@@ -36,14 +36,14 @@ public abstract class AbstractDidLogEntryBuilder {
     protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String did, String fragmentId, String publicKeyJwk) {
         var verificationMethodObj = new JsonObject();
         verificationMethodObj.addProperty("id", did + "#" + fragmentId);
-        // According to swiss profile (https://confluence.bit.admin.ch/x/VL8VTQ)
+        // According to swiss profile anchor 1.0 (https://confluence.bit.admin.ch/x/VL8VTQ)
         // controller must be the did itself
         verificationMethodObj.addProperty("controller", did);
         // CAUTION The "controller" property must not be present w.r.t.:
-        // - https://confluence.bit.admin.ch/x/3e0EMw
+        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
         verificationMethodObj.addProperty("type", "JsonWebKey2020");
         // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-        // - https://confluence.bit.admin.ch/x/3e0EMw
+        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
         verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
 
         return verificationMethodObj;
@@ -256,7 +256,7 @@ public abstract class AbstractDidLogEntryBuilder {
         didDoc.addProperty(DID_DOC_PROPERTY_ID, did);
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
 
         var profileVersion = this.getProfileVersion();
         if (profileVersion != null) {
