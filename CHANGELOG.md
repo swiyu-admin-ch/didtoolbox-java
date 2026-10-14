@@ -3,6 +3,7 @@
 ## Next
 
 ### Added
+- HTTP URLs for did logs are no longer allowed, must now be HTTPS `(#1037)`
 
 ### Fixed
 

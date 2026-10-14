@@ -53,6 +53,10 @@ activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
 	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
 		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
 	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : keyMismatch
+	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
 	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : unparsable
 	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
 		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
