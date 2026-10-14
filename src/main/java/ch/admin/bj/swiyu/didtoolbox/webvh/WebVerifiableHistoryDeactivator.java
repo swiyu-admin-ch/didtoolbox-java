@@ -160,7 +160,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
                     didLog += System.lineSeparator();
                 }
                 didLog += log;
-                // update log with new keys
+                // Deactivate new log
                 return log + System.lineSeparator() + this.deactivateDidLog(didLog, zdt);
             } catch (DidLogUpdaterStrategyException e) {
                 throw new DidLogDeactivatorStrategyException("Failed to create intermediate log for deactivating key pre-rotation.", e);
@@ -199,7 +199,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
 
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
 
         /* https://identity.foundation/didwebvh/v1.0/#the-did-log-file:
         The DID log file contains a list of entries, one for each version of the DID

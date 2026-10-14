@@ -266,7 +266,7 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.basedir}</outputDirectory>
-                            <!-- as specified here: https://confluence.bit.admin.ch/display/EIDTEAM/THIRD-PARTY-LICENSES.md -->
+                            <!-- as specified here: https://confluence.bit.admin.ch/x/AqR7N (THIRD-PARTY-LICENSES.md) -->
                             <thirdPartyFilename>THIRD-PARTY-LICENSES.md</thirdPartyFilename>
                             <!-- inspired by https://github.com/mojohaus/license-maven-plugin/blob/master/src/main/resources/org/codehaus/mojo/license/third-party-file-groupByLicense.ftl -->
                             <fileTemplate>${project.basedir}/src/main/resources/org/codehaus/mojo/license/third-party-file-groupByLicense.ftl</fileTemplate>
