@@ -8,6 +8,7 @@
 
 ### Changed
 - Generate per default Ed25519 keys instead of P-256 for authorization and assertion methods `(#1143)`
+- Improved internal handling of passwords `(#1038)`
 
 ### Removed
 

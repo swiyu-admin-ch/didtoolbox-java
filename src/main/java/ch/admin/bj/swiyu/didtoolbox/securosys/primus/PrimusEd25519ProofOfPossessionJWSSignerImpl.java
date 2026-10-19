@@ -23,9 +23,9 @@ public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519Ve
     private final JCAContext jcaContext = new JCAContext();
 
     /**
-     * @see PrimusEd25519VerificationMethodKeyProviderImpl#PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, String, String)
+     * @see PrimusEd25519VerificationMethodKeyProviderImpl#PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, char[], String)
      */
-    public PrimusEd25519ProofOfPossessionJWSSignerImpl(PrimusKeyStoreLoader primus, String alias, String password, String kid)
+    public PrimusEd25519ProofOfPossessionJWSSignerImpl(PrimusKeyStoreLoader primus, String alias, char[] password, String kid)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
         super(primus, alias, password);
         this.kid = kid;
