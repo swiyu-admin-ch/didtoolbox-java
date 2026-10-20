@@ -297,11 +297,11 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
             verificationMethodObj.addProperty("id", did + "#" + kid);
 
             // CAUTION The "controller" property must not be present w.r.t.:
-            // - https://confluence.bit.admin.ch/x/3e0EMw
+            // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
             verificationMethodObj.addProperty("type", "JsonWebKey2020");
 
             // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-            // - https://confluence.bit.admin.ch/x/3e0EMw
+            // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
 
             var jwkJsonObj = new JsonObject();
 
