@@ -165,7 +165,7 @@ public class PrimusKeyStoreLoader {
      * @param host
      * @param port
      * @param user
-     * @param password, Array will be filled with spaces after usage.
+     * @param password Array will be filled with spaces after usage.
      * @throws CertificateException
      * @throws IOException
      * @throws NoSuchAlgorithmException
