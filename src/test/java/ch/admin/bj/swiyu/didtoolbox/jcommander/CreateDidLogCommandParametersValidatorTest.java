@@ -1,10 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox.jcommander;
 
+import ch.admin.bj.swiyu.didtoolbox.jcommander.validator.IdentifierRegistryUrlParameterValidator;
 import com.beust.jcommander.JCommander;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SuppressWarnings("PMD")
 class CreateDidLogCommandParametersValidatorTest extends AbstractCommandParametersValidatorTest {
@@ -27,11 +31,16 @@ class CreateDidLogCommandParametersValidatorTest extends AbstractCommandParamete
                 .toArray(size -> (String[]) Array.newInstance(String.class, size));
     }
 
-    /* Use it as template, as soon some class-specific test cases emerge
     @Test
-    void testValidate() {
-        // NOTE no need to call the super method explicitly here, as it will be called anyway (as long as annotated with @Test)
-        //super.testAbstractValidate();
+    void test_variousUrls() {
+        var validator = new IdentifierRegistryUrlParameterValidator();
+        assertThrowsParameterException(
+                () -> validator.validate("-u", "http://example.test/aoeu")
+                ,"must be a HTTPS");
+        assertThrowsParameterException(
+                () -> validator.validate("-u", "httpsfake://example.test/aoeu")
+                ,"must be a regular HTTPS");
+        assertDoesNotThrow(() -> validator.validate("-u", "https://example.test/aoeu"));
     }
-     */
+
 }
