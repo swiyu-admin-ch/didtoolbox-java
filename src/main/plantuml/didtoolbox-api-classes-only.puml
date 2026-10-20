@@ -40,7 +40,7 @@ interface ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner {
 	{method}  {abstract} +getKid () : String
 	{method}  {static} +of ( paramPath1 : java.nio.file.Path , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
 	{method}  {static} +of ( paramJWSSigner1 : com.nimbusds.jose.JWSSigner , paramString2 : String , paramJWSAlgorithm3 : com.nimbusds.jose.JWSAlgorithm ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
-	{method}  {static} +of ( paramPrimusKeyStoreLoader1 : ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader , paramString2 : String , paramString3 : String , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
+	{method}  {static} +of ( paramPrimusKeyStoreLoader1 : ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader , paramString2 : String , param[C3 : [C , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionJWSSigner
 	{method} +supportedJWSAlgorithms () : java.util.Set
 }
 
@@ -273,7 +273,7 @@ class ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigne
 	{method} +getAlgorithm () : com.nimbusds.jose.JWSAlgorithm
 	{method} +getJCAContext () : com.nimbusds.jose.jca.JCAContext
 	{method}  {static} +newPkcs11Signer ( paramString1 : String , paramString2 : String , paramString3 : String , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigner
-	{method}  {static} +newPrimusSigner ( paramPrimusKeyStoreLoader1 : ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader , paramString2 : String , paramString3 : String , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigner
+	{method}  {static} +newPrimusSigner ( paramPrimusKeyStoreLoader1 : ch.admin.bj.swiyu.didtoolbox.securosys.primus.PrimusKeyStoreLoader , paramString2 : String , param[C3 : [C , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.securosys.primus.HsmProofOfPossessionJWSSigner
 	{method} +sign ( paramJWSHeader1 : com.nimbusds.jose.JWSHeader , param[B2 : [B ) : com.nimbusds.jose.util.Base64URL
 }
 

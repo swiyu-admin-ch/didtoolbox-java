@@ -35,7 +35,7 @@ public class PrimusEd25519VerificationMethodKeyProviderImpl extends Ed25519Verif
     /**
      * The only public constructor of the class, capable of loading an already existing key material directly from a Securosys Primus HSM (cluster).
      */
-    public PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, String password)
+    public PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, char[] password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 
         super(primus.loadKeyPair(alias, password), primus.getKeyStore().getProvider());

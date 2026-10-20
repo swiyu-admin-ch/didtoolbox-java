@@ -79,7 +79,7 @@ public interface ProofOfPossessionJWSSigner extends JWSSigner {
      * @param alias of the key inside the HSM cluster
      * @param kid of the key inside the JWT
      */
-    static ProofOfPossessionJWSSigner of(PrimusKeyStoreLoader primus, String alias, String password, String kid) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, JOSEException {
+    static ProofOfPossessionJWSSigner of(PrimusKeyStoreLoader primus, String alias, char[] password, String kid) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, JOSEException {
         var pk = (ECPrivateKey) primus.loadKeyPair(alias, password).getPrivate();
         if (pk instanceof ECPrivateKey) {
             var signer = new ECDSASigner(pk);

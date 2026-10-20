@@ -36,7 +36,7 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
      * @param alias    of the key inside the HSM cluster
      * @param kid      of the key inside the JWT
      */
-    public static HsmProofOfPossessionJWSSigner newPrimusSigner(PrimusKeyStoreLoader primus, String alias, String password, String kid) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, JOSEException {
+    public static HsmProofOfPossessionJWSSigner newPrimusSigner(PrimusKeyStoreLoader primus, String alias, char[] password, String kid) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException, JOSEException {
         KeyPair kp = primus.loadKeyPair(alias, password);
         switch (kp.getPrivate()) {
             case ECPrivateKey ecPrivateKey -> {
