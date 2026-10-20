@@ -414,7 +414,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         didDoc.addProperty("id", this.didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
         //didDoc.addProperty("controller", didTDW);
 
         if ((this.allAuthentications().isEmpty() && this.allAssertionMethods().isEmpty())) {

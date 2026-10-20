@@ -446,11 +446,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
 
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
-
-        if (this.allAuthentications().isEmpty() && this.allAssertionMethods().isEmpty()) {
-            throw new IncompleteDidLogEntryBuilderException("No update will take place as no verification material is supplied whatsoever");
-        }
+        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
 
         var verificationMethod = new JsonArray();
 

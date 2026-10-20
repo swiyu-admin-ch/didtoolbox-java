@@ -5,12 +5,11 @@ import ch.admin.bj.swiyu.didtoolbox.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.context.*;
-import ch.admin.bj.swiyu.didtoolbox.model.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.bj.swiyu.didtoolbox.model.ProfileVersion;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.eid.didresolver.Did;
+import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
@@ -24,6 +23,7 @@ import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Set;
 
 /**
  * {@link WebVerifiableHistoryDeactivator} is a {@link DidLogDeactivatorStrategy} implementation in charge of
@@ -149,6 +149,24 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
             throw new DidLogDeactivatorStrategyException(e);
         }
 
+        if (this.isPrerotationActive()) {
+            var updater = WebVerifiableHistoryUpdater.builder(this.cryptographicSuite)
+                    .updateKeysDidMethodParameter(Set.of(
+                            UpdateKeysDidMethodParameter.of(this.cryptographicSuite.getVerificationKeyMultibase())
+                    )).build();
+            try {
+                var log = updater.updateDidLog(didLog, zdt);
+                if (!didLog.endsWith(System.lineSeparator())) {
+                    didLog += System.lineSeparator();
+                }
+                didLog += log;
+                // Deactivate new log
+                return log + System.lineSeparator() + this.deactivateDidLog(didLog, zdt);
+            } catch (DidLogUpdaterStrategyException e) {
+                throw new DidLogDeactivatorStrategyException("Failed to create intermediate log for deactivating key pre-rotation.", e);
+            }
+        }
+
         // CAUTION Only activated DIDs can be updated
         if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
             throw new DidLogDeactivatorStrategyException("DID already deactivated");
@@ -181,7 +199,7 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
 
         // CAUTION "controller" property is omitted w.r.t.:
         // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/display/EIDTEAM/DID+Doc+Conformity+Check
+        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
 
         /* https://identity.foundation/didwebvh/v1.0/#the-did-log-file:
         The DID log file contains a list of entries, one for each version of the DID
@@ -260,5 +278,10 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         } catch (VcDataIntegrityCryptographicSuiteException exc) {
             throw new DidLogDeactivatorStrategyException(exc);
         }
+    }
+
+    public boolean isPrerotationActive() {
+        var nextKeys = this.didLogMeta.getParams().getNextKeyHashes();
+        return nextKeys != null && !nextKeys.isEmpty();
     }
 }
