@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.security.*;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Set;
 
 import static ch.admin.bj.swiyu.didtoolbox.jcommander.CommandParameterNames.PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY;
@@ -226,7 +227,9 @@ public final class JCommanderRunner {
         if (command.signingKeyPemFile != null) {
             signer = ProofOfPossessionJWSSigner.of(command.signingKeyPemFile.toPath(), command.kid);
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
-            signer = ProofOfPossessionJWSSigner.of(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword, command.kid);
+            var password = command.primusKeyPassword.toCharArray();
+            signer = ProofOfPossessionJWSSigner.of(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, password, command.kid);
+            Arrays.fill(password, ' ');
         }
 
         if (signer == null) {
@@ -282,7 +285,10 @@ public final class JCommanderRunner {
             }
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
             try {
-                return new PrimusEd25519VerificationMethodKeyProviderImpl(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword); // supplied external key pair
+                var password = command.primusKeyPassword.toCharArray();
+                var provider = new PrimusEd25519VerificationMethodKeyProviderImpl(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, password); // supplied external key pair
+                Arrays.fill(password, ' ');
+                return provider;
             } catch (UnrecoverableEntryException | KeyStoreException | NoSuchAlgorithmException | KeyException e) {
                 throw new VcDataIntegrityCryptographicSuiteException("Failed to initialize primus:" + e.getMessage(), e);
             }

@@ -5,9 +5,13 @@ import lombok.Getter;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -21,7 +25,6 @@ import java.util.Properties;
  * <code>com.securosys.primus.jce.PrimusProvider</code>.
  */
 public class PrimusKeyStoreLoader {
-    // TODO EIDOMNI-1038 improve security of by reducing the lifetime of sensitive data
     public static final String PROVIDER_CLASS = "com.securosys.primus.jce.PrimusProvider";
     private static final String KEY_STORE_TYPE_GETTER = "getKeyStoreTypeName";
     private static final String PROVIDER_NAME_GETTER = "getProviderName";
@@ -32,11 +35,15 @@ public class PrimusKeyStoreLoader {
      * The empty constructor.
      * <p>
      * CAUTION This constructor does not make any attempt to load the keystore, as no transport configuration is known at the time.
-     * Use other constructors for the purpose.
+     * Use other constructors for that purpose.
      *
      * @throws PrimusKeyStoreInitializationException
      */
     public PrimusKeyStoreLoader() throws PrimusKeyStoreInitializationException {
+        this.keyStore = initKeyStore();
+    }
+
+    protected KeyStore initKeyStore() throws PrimusKeyStoreInitializationException {
         try {
             // Add Securosys JCE provider for Securosys Primus HSM ("SecurosysPrimusXSeries") via reflection
             var cls = Class.forName(PROVIDER_CLASS);
@@ -53,7 +60,7 @@ public class PrimusKeyStoreLoader {
             // Throws: KeyStoreException – if no provider supports a KeyStoreSpi implementation for the specified type
             //                             (it is the same as checking primusProvider.getService("KeyStore", KEY_STORE_TYPE) against null)
             //         NullPointerException – if type is null
-            this.keyStore = KeyStore.getInstance(type, providerName);
+            return KeyStore.getInstance(type, providerName);
 
             // CAUTION Needless to say, calling this.keyStore.load(null) at this point would cause:
             //         com.securosys.primus.jce.transport.TransportUnconfiguredException: transport configuration not yet set
@@ -70,6 +77,7 @@ public class PrimusKeyStoreLoader {
      * The relevant envvars are described by {@link SecurosysPrimusEnvironment}.
      * <p>
      * If supplied, credentials may also be loaded from a file, as fallback to system environment variables.
+     * WARNING: the password remains in memory for an indeterminate amount of time.
      *
      * @param credentials a property file featuring all Primus {@code com.securosys.primus.jce.credentials.*}
      *                    required to load the keystore
@@ -81,8 +89,7 @@ public class PrimusKeyStoreLoader {
     @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
     public PrimusKeyStoreLoader(File credentials)
             throws CertificateException, IOException, NoSuchAlgorithmException, PrimusKeyStoreInitializationException {
-
-        this();
+        this.keyStore = initKeyStore();
 
         Properties props = null;
         if (credentials != null) {
@@ -95,7 +102,7 @@ public class PrimusKeyStoreLoader {
             host = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.toProperty());
         }
         if (host == null) {
-            throw new IOException("Securosys Primus HSM host cannot be resolved. "
+            throw new PrimusKeyStoreInitializationException("Securosys Primus HSM host cannot be resolved. "
                     + "You may supply it either via property file or by setting the relevant system environment variable: " // NOPMD
                     + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.name());
         }
@@ -104,16 +111,19 @@ public class PrimusKeyStoreLoader {
         if (portAsString == null && props != null) {
             portAsString = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.toProperty());
         }
-        var port = -1;
+        var port = -1; // change to int and add bounds check to also allow ports over ~32'500 since max part is 2^16~=65'000
         try {
             if (portAsString != null) {
-                port = Short.parseShort(portAsString);
+                port = Integer.parseInt(portAsString);
+            }
+            if (port > (2 << 16) -1) { // Max Unix port is max of an unsigned 16bit integer
+                throw new PrimusKeyStoreInitializationException("Securosys Primus HSM port is invalid.");
             }
         } catch (NumberFormatException ignored) {
-            throw new IOException("Securosys Primus HSM port is invalid.");
+            throw new PrimusKeyStoreInitializationException("Securosys Primus HSM port is invalid.");
         }
         if (port < 0) {
-            throw new IOException("Securosys Primus HSM port cannot be resolved. "
+            throw new PrimusKeyStoreInitializationException("Securosys Primus HSM port cannot be resolved. "
                     + "You may supply it either via property file or by setting the relevant system environment variable: "
                     + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.name());
         }
@@ -123,7 +133,7 @@ public class PrimusKeyStoreLoader {
             user = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_USER.toProperty());
         }
         if (user == null) {
-            throw new IOException("Securosys Primus HSM user cannot be resolved. "
+            throw new PrimusKeyStoreInitializationException("Securosys Primus HSM user cannot be resolved. "
                     + "You may supply it either via property file or by setting the relevant system environment variable: "
                     + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_USER.name());
         }
@@ -133,7 +143,7 @@ public class PrimusKeyStoreLoader {
             password = props.getProperty(SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PASSWORD.toProperty());
         }
         if (password == null) {
-            throw new IOException("Securosys Primus HSM password cannot be resolved. "
+            throw new PrimusKeyStoreInitializationException("Securosys Primus HSM password cannot be resolved. "
                     + "You may supply it either via property file or by setting the relevant system environment variable: "
                     + SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PASSWORD.name());
         }
@@ -143,23 +153,41 @@ public class PrimusKeyStoreLoader {
         //                       the cause of the IOException should be an UnrecoverableKeyException
         //         NoSuchAlgorithmException – if the algorithm used to check the integrity of the keystore cannot be found
         //         CertificateException – if any of the certificates in the keystore could not be loaded
-        this.keyStore.load(SecurosysPrimusEnvironment.toStream(host, port, user, password), null);
+        var param = SecurosysPrimusEnvironment.build(host, port, user, password.toCharArray());
+        var stream = new ByteArrayInputStream(param);
+        this.keyStore.load(stream, null);
+        Arrays.fill(param, (byte) 0); // Wipe sensitive data from array
     }
 
+    /**
+     * Initializes a SecuroSys keystore with the provided parameters.
+     *
+     * @param host
+     * @param port
+     * @param user
+     * @param password Array will be filled with spaces after usage.
+     * @throws CertificateException
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws PrimusKeyStoreInitializationException
+     */
     public PrimusKeyStoreLoader(String host,
                                 int port,
                                 String user,
-                                String password)
+                                char[] password)
             throws CertificateException, IOException, NoSuchAlgorithmException, PrimusKeyStoreInitializationException {
 
         this();
 
         // Throws: IOException – if there is an I/O or format problem with the keystore data, if a password is required but not given,
         //                       or if the given password was incorrect. If the error is due to a wrong password,
-        //                       the cause of the IOException should be an UnrecoverableKeyException
-        //         NoSuchAlgorithmException – if the algorithm used to check the integrity of the keystore cannot be found
-        //         CertificateException – if any of the certificates in the keystore could not be loaded
-        this.keyStore.load(SecurosysPrimusEnvironment.toStream(host, port, user, password), null);
+        //                       the cause of the IOException should be an UnrecoverableKeyException.
+        //         NoSuchAlgorithmException – if the algorithm used to check the integrity of the keystore cannot be found.
+        //         CertificateException – if any of the certificates in the keystore could not be loaded.
+        var param = SecurosysPrimusEnvironment.build(host, port, user, password);
+        var stream = new ByteArrayInputStream(param);
+        this.keyStore.load(stream, null);
+        Arrays.fill(param, (byte) 0); // Wipe sensitive data from array
     }
 
     /**
@@ -172,39 +200,45 @@ public class PrimusKeyStoreLoader {
          * Assembles a (byte) stream suitable for feeding (directly) into Primus' keystore.
          */
         @SuppressWarnings("PMD.RelianceOnDefaultCharset")
-        static InputStream toStream(String host,
-                                    int port,
-                                    String user,
-                                    String password) {
-
+        static byte[] build(String host,
+                            int port,
+                            String user,
+                            char[] password) {
             // ad-hoc configuration - assemble a byte stream to feed into Primus' keystore
-            final var baos = new ByteArrayOutputStream();
-            (new PrintStream(baos)).println(
-                    SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_HOST.toCredentialFileLine(host) + // Primus Proxy
-                            SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PORT.toCredentialFileLine(Integer.toString(port)) + // Primus Proxy TCP port
-                            SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_USER.toCredentialFileLine(user) + // Primus HSM user
-                            SecurosysPrimusEnvironment.SECUROSYS_PRIMUS_PASSWORD.toCredentialFileLine(password) // Primus HSM password
-            );
+            final var baos = new ByteArrayOutputStream(1024);
+            baos.writeBytes("com.securosys.primus.jce.credentials.host=".getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes(host.getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes("com.securosys.primus.jce.credentials.port=".getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes(Integer.toString(port).getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes("com.securosys.primus.jce.credentials.user=".getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes(user.getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+            baos.writeBytes("com.securosys.primus.jce.credentials.password=".getBytes(StandardCharsets.UTF_8));
 
-            return new ByteArrayInputStream(baos.toByteArray());
+            // Convert CharArray to ByteArray via CharBuffer and encode to avoid allocating a string
+            var pwArray = Charset.defaultCharset().encode(CharBuffer.wrap(password)).array();
+            Arrays.fill(password, ' ');
+            var pwArrayWithoutNullByte = Arrays.copyOf(pwArray, pwArray.length-1);
+            baos.writeBytes(pwArrayWithoutNullByte);
+            // Clean arrays to purge the pw from memory.
+            Arrays.fill(pwArrayWithoutNullByte, (byte)0);
+            Arrays.fill(pwArray, (byte)0);
+
+            baos.writeBytes(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+            var result = baos.toByteArray();
+
+            // Wipe buffer in baos
+            var size = baos.size();
+            baos.reset();
+            baos.writeBytes(new byte[size]);
+
+            return result;
         }
 
         private String toProperty() {
             return this.name().toLowerCase(Locale.ROOT);
-        }
-
-        private String toCredentialFileLine(String value) {
-            if (this == SECUROSYS_PRIMUS_HOST) {
-                return "com.securosys.primus.jce.credentials.host=" + value + System.lineSeparator();
-            } else if (this == SECUROSYS_PRIMUS_PORT) {
-                return "com.securosys.primus.jce.credentials.port=" + value + System.lineSeparator();
-            } else if (this == SECUROSYS_PRIMUS_USER) {
-                return "com.securosys.primus.jce.credentials.user=" + value + System.lineSeparator();
-            } else if (this == SECUROSYS_PRIMUS_PASSWORD) {
-                return "com.securosys.primus.jce.credentials.password=" + value + System.lineSeparator();
-            }
-
-            throw new IllegalArgumentException("The envvar " + this.name() + " is not required as credential for a Securosys Primus Key Store.");
         }
     }
 
@@ -215,13 +249,13 @@ public class PrimusKeyStoreLoader {
      * @param alias    the alias name
      * @param password the password for recovering the key
      * @return the requested key, or {@code null} if the given {@code alias} does not exist or does not identify a key-related entry.
-     * @throws UnrecoverableEntryException
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
+     * @throws UnrecoverableEntryException if the key cannot be recovered (e.g., the given password is wrong).
+     * @throws KeyStoreException if the keystore has not been initialized (loaded).
+     * @throws NoSuchAlgorithmException if the algorithm for recovering the key cannot be found
      * @throws KeyException
      */
     @SuppressWarnings("PMD.UnusedAssignment")
-    public KeyPair loadKeyPair(String alias, String password)
+    public KeyPair loadKeyPair(String alias, char[] password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
 
         var keyStore = this.getKeyStore();
@@ -230,14 +264,9 @@ public class PrimusKeyStoreLoader {
             throw new KeyException("The alias does not exist or does not identify a key-related entry: " + alias);
         }
 
-        /* KeyStore#getKey throws:
-        KeyStoreException – if the keystore has not been initialized (loaded).
-        NoSuchAlgorithmException – if the algorithm for recovering the key cannot be found
-        UnrecoverableKeyException – if the key cannot be recovered (e.g., the given password is wrong).
-         */
         PrivateKey key;
         if (password != null) {
-            key = (PrivateKey) keyStore.getKey(alias, password.toCharArray()); // may return null if the given alias does not exist or does not identify a key-related entry
+            key = (PrivateKey) keyStore.getKey(alias, password); // may return null if the given alias does not exist or does not identify a key-related entry
         } else {
             key = (PrivateKey) keyStore.getKey(alias, null); // may return null if the given alias does not exist or does not identify a key-related entry
         }

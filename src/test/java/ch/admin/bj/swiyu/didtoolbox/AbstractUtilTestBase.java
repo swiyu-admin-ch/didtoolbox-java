@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
  */
 @SuppressWarnings("PMD")
 public abstract class AbstractUtilTestBase {
-    final protected static String TEST_DATA_PATH_PREFIX = "src/test/data/";
+    final public static String TEST_DATA_PATH_PREFIX = "src/test/data/";
 
     final protected static String ISO_DATE_TIME = "2012-12-12T12:12:12Z";
 
