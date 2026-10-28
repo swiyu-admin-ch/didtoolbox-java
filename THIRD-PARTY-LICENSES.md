@@ -12,7 +12,7 @@ This is the list of all third-party dependencies grouped by their license type. 
 * **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.22.3 - https://github.com/FasterXML/jackson)
 * **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
 * **Gson** (com.google.code.gson:gson:2.14.0 - https://github.com/google/gson)
-* **Tink Cryptography API** (com.google.crypto.tink:tink:1.23.0 - http://github.com/tink-crypto/tink-java)
+* **Tink Cryptography API** (com.google.crypto.tink:tink:1.24.0 - http://github.com/tink-crypto/tink-java)
 * **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.48.0 - https://errorprone.info/error_prone_annotations)
 * **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.10 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
 * **Byte Buddy (without dependencies)** (net.bytebuddy:byte-buddy:1.17.7 - https://bytebuddy.net/byte-buddy)
@@ -56,4 +56,4 @@ This is the list of all third-party dependencies grouped by their license type. 
 
 ## MIT License:
 
-* **Project Lombok** (org.projectlombok:lombok:1.18.46 - https://projectlombok.org)
+* **Project Lombok** (org.projectlombok:lombok:1.18.48 - https://projectlombok.org)
