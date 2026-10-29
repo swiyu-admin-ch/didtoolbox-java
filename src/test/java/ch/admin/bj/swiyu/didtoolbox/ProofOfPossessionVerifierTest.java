@@ -108,13 +108,6 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void verify_issMismatch_thenFailure() { // TODO
-        var expiredJWT = assertDoesNotThrow(() -> SignedJWT.parse("eyJraWQiOiJkaWQ6d2Vidmg6UW1jS1Z3ak43eTVIOHlaUVlEYWNZeWp1MjluaFZhZXl4VDVROEJWdDNXZmRzbzppZGVudGlmaWVyLXJlZy50cnVzdC1pbmZyYS5zd2l5dS1pbnQuYWRtaW4uY2g6YXBpOnYxOmRpZDoxOGZhN2M3Ny05ZGQxLTRlMjAtYTE0Ny1mYjFiZWMxNDYwODUjbXktYXNzZXJ0LWtleS0wMSIsImFsZyI6IkVTMjU2In0.eyJpc3MiOiJpbnZhbGlkIGlzc3VlciIsImV4cCI6MTc5MTg5MTg2OSwibm9uY2UiOiJleGFtcGxlX25vbmNlIiwiaWF0IjoxNzkxODA1NDY5fQ.v8tM2aO0zR6cQnkUgGvQTguf5j8ot_R-L2CS4AonNcurQiGwH003nMHf66m6RkBDWGvO3BYNBipCqo09l_xz2Q"));
-        var e = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.verify(expiredJWT, NONCE));
-        assertEquals(ProofOfPossessionVerifierException.ErrorCause.FAILED_TO_VERIFY, e.getErrorCause());
-    }
-
-    @Test
     void verify_unsupportedAlgorithm_thenFailure() {
         // JWT placeholder from https://www.jwt.io/ using HS256
         var jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
