@@ -140,7 +140,7 @@ public class ProofOfPossessionVerifier {
                 jwsVerifier = new ECDSAVerifier(jwk.toECKey());
             } else {
                 throw new RuntimeException("Tried to construct a JWS verifier of an algorithm that's not supported and should have been caught earlier."); // NOPMD: code is unreachable
-            };
+            }
 
             if (!signedJWT.verify(jwsVerifier)) {
                 throw ProofOfPossessionVerifierException.invalidSignature();
@@ -160,11 +160,6 @@ public class ProofOfPossessionVerifier {
             }
         } catch (ParseException e) { // NOPMD ExceptionAsFlowControl: false positive
             throw ProofOfPossessionVerifierException.unparsable(e);
-        }
-
-        var iss = claimSet.getIssuer();
-        if (iss != null && !MessageDigest.isEqual(iss.getBytes(StandardCharsets.UTF_8), didDoc.getId().getBytes(StandardCharsets.UTF_8))) {
-            throw ProofOfPossessionVerifierException.failedToVerify(new RuntimeException("Iss does not match Id of DID Log"));
         }
 
         // check timestamp
