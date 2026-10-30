@@ -28,6 +28,7 @@ with respect to one of the following specifications:
   - [Update](#did-update)
   - [DID Deactivation (Revoke)](#did-deactivation-revoke)
   - [Key Rotation with Pre-Rotation](#key-rotation-with-pre-rotation)
+  - [Verbose Error Output](#verbose-error-output)
 - [The DID Toolbox (Java) API](#the-did-toolbox-java-api)
 - [Additional Information](#additional-information)
 - [Missing Features and Known Issues](#missing-features-and-known-issues)
@@ -66,6 +67,7 @@ $ java -jar didtoolbox.jar -h
 Usage: didtoolbox [options] [command] [command options]
   Options:
     --help, -h    Display help for the DID toolbox
+    --verbose     On error, print the full cause chain (default: false)
     --version, -V Display version (default: false)
 
   Commands:
@@ -87,7 +89,7 @@ Usage: didtoolbox [options] [command] [command options]
           --cryptographic-algorithm, -c
             Specify which type of keys to generate as assertion and authorization keys when none are provided through other means. Available are 
             P-256 and Ed25519
-            Default: P-256
+            Default: Ed25519
             Possible Values: [Ed25519, P-256]
           --force, -f
             Overwrite existing PEM key files, if any
@@ -130,6 +132,9 @@ Usage: didtoolbox [options] [command] [command options]
           --signing-key-file, -s
             The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. This CLI parameter cannot be used in 
             conjunction with any of --jks-* or --primus-* CLI parameters
+          --verbose
+            On error, print the full cause chain
+            Default: false
           --verifying-key-files, -v
             One or more Ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
             Default: []
@@ -156,7 +161,7 @@ Usage: didtoolbox [options] [command] [command options]
           --cryptographic-algorithm, -c
             Specify which type of keys to generate as assertion and authorization keys when none are provided through other means. Available are 
             P-256 and Ed25519
-            Default: P-256
+            Default: Ed25519
             Possible Values: [Ed25519, P-256]
         * --did-log-file, -d
             The file containing a valid DID log to update
@@ -199,6 +204,9 @@ Usage: didtoolbox [options] [command] [command options]
           --signing-key-file, -s
             The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. This CLI parameter cannot be used in 
             conjunction with any of --jks-* or --primus-* CLI parameters
+          --verbose
+            On error, print the full cause chain
+            Default: false
           --verifying-key-files, -v
             One or more Ed25519 public key file(s) for the DID Document’s verification method. In PEM format.
             Default: []
@@ -244,6 +252,9 @@ Usage: didtoolbox [options] [command] [command options]
           --signing-key-file, -s
             The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. This CLI parameter cannot be used in 
             conjunction with any of --jks-* or --primus-* CLI parameters
+          --verbose
+            On error, print the full cause chain
+            Default: false
 
     create-pop      Create a proof of possession JWT signed with the provided private key that expires after 24 hours.
       Usage: create-pop [options]
@@ -271,6 +282,9 @@ Usage: didtoolbox [options] [command] [command options]
             be used exclusively alongside all the other --primus-* CLI parameters, related to Securosys Primus (HSM)
           --signing-key-file, -s
             A P-256 private key file matching the specified key within the DID log
+          --verbose
+            On error, print the full cause chain
+            Default: false
 
     verify-pop      Verifies the validity of the provided proof of possession JWT.
       Usage: verify-pop [options]
@@ -284,6 +298,9 @@ Usage: didtoolbox [options] [command] [command options]
             JWT to be verified
         * --nonce, -n
             Text representation of the possession to be included in the proof
+          --verbose
+            On error, print the full cause chain
+            Default: false
 
 $ java -jar didtoolbox.jar -V
 didtoolbox 2.1.0
@@ -711,6 +728,22 @@ cat did005.jsonl | jq -c '.|.parameters'
 # {"nextKeyHashes":["QmaiT2EVB9WZcYae9QS94agPhE5isd96xGe8TMyjbRcinm"],"updateKeys":["z6Mki8rv7cMRZ5jiLtGgfbuRvknwfUZbJFjE8SApikXixvVv"]}
 # {"nextKeyHashes":["QmZbAEQCaBLYxWz6eWMQas8nfKa3vXhRoMVQD2o35RDZm2"],"updateKeys":["z6Mko41raveKqxPg5gUzv2g7Gk9a9rmCNXNn5MCKsQECFQ5E"]}
 # {"nextKeyHashes":["QmPjawyNkfnZqNomHMct8zE1QHiqfPPUGfbYyerNuXRxXo"],"updateKeys":["z6MkkPDkNqJ2CmVB89gPyJNhC5GJ2PfiPqtLsWvMHUyHS1L5"]}
+```
+
+### Verbose Error Output
+
+To print the full cause chain of an error, supply `--verbose` (before or after the command name):
+
+```shell
+java -jar didtoolbox.jar verify-pop -d did.jsonl -n "Another Nonce" -j $(cat jwt) --verbose
+# the previous command should produce an output like:
+# Failed to run 'verify-pop' command due to: Provided JWT is invalid: Proof of Possession is NOT for nonce 'Another Nonce'
+#
+# Cause chain:
+#   ch.admin.bj.swiyu.didtoolbox.JCommanderRunner$CommandException: Provided JWT is invalid: Proof of Possession is NOT for nonce 'Another Nonce'
+#   Caused by: ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException: Proof of Possession is NOT for nonce 'Another Nonce'
+#
+# For detailed usage, run: didtoolbox verify-pop -h
 ```
 
 ## The DID Toolbox (Java) API
