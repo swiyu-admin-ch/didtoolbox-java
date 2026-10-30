@@ -37,13 +37,15 @@ import java.time.ZonedDateTime;
  * <pre>
  * {@code
  *     package mypackage;
- *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
- *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
- *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
+ *
  *     import java.net.*;
+ *     import java.nio.file.Path;
+ *     import java.util.Set;
  *
  *     public static void main(String... args) {
  *
@@ -51,19 +53,22 @@ import java.time.ZonedDateTime;
  *         String deactivatedDidLogEntry = null;
  *         try {
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
- *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(new File("src/test/data/private.pem"));
+ *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem"));
  *
  *             // NOTE that all verification material will be generated here as well
- *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder(cryptographicSuite)
- *                 .build()
- *                 .create(identifierRegistryUrl);
+ *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder(DidMethodEnum.WEBVH_1_0, cryptographicSuite)
+ *                     .assertionMethods(Set.of(VerificationMethod.of(
+ *                             "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
+ *                     )))
+ *                     .build()
+ *                     .create(identifierRegistryUrl);
  *
  *             // Now deactivate the previously generated initial single-entry DID log
  *             deactivatedDidLogEntry = DidLogDeactivatorContext.builder(
- *                           DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys),
- *                           cryptographicSuite) // the same used during creation
- *                      .build()
- *                      .deactivate(initialDidLogEntryWithGeneratedKeys);
+ *                             DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys),
+ *                             cryptographicSuite) // the same used during creation
+ *                     .build()
+ *                     .deactivate(initialDidLogEntryWithGeneratedKeys);
  *
  *         } catch (Exception e) {
  *             // some exc. handling goes here

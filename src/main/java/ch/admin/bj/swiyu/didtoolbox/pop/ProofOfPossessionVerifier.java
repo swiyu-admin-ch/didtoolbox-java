@@ -32,9 +32,11 @@ import java.util.Set;
  * {@code
  *     package mypackage;
  *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
+ *     import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier;
  *     import com.nimbusds.jwt.SignedJWT;
- *     import java.nio.file.*;
+ *
+ *     import java.nio.file.Files;
+ *     import java.nio.file.Path;
  *
  *     public static void main(String... args) {
  *         boolean isValid;
@@ -50,7 +52,6 @@ import java.util.Set;
  *             System.exit(1);
  *         }
  *
- *         // do something with isValid here
  *     }
  * }
  * </pre>

@@ -49,14 +49,14 @@ import java.util.Set;
  * {@code
  *     package mypackage;
  *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
- *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext;
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
  *     import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
  *     import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
- *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
  *
- *     import java.net.*;
+ *     import java.net.URI;
+ *     import java.net.URL;
  *     import java.nio.file.Path;
  *     import java.util.Set;
  *
@@ -68,25 +68,25 @@ import java.util.Set;
  *             URL identifierRegistryUrl = URL.of(new URI("https://127.0.0.1:54858/123456789/123456789/did.jsonl"), null);
  *             var cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem"));
  *
- *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder(cryptographicSuite)
- *                 .assertionMethods(Set.of(VerificationMethod.of(
- *                     "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
- *                 )))
- *                 .build()
- *                 .create(identifierRegistryUrl);
+ *             initialDidLogEntryWithGeneratedKeys = DidLogCreatorContext.builder(DidMethodEnum.WEBVH_1_0, cryptographicSuite)
+ *                     .assertionMethods(Set.of(VerificationMethod.of(
+ *                             "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
+ *                     )))
+ *                     .build()
+ *                     .create(identifierRegistryUrl);
  *
  *             // Now update the previously generated initial single-entry DID log
  *             updatedDidLogEntryWithReplacedVerificationMaterial = DidLogUpdaterContext.builder(
- *                     DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys),
- *                     cryptographicSuite)
- *                 .assertionMethods(Set.of(VerificationMethod.of(
- *                     "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
- *                 )))
- *                 .authentications(Set.of(VerificationMethod.of(
- *                     "my-auth-key-01", Path.of("src/test/data/auth-key-01.pub")
- *                 )))
- *                 .build()
- *                 .update(initialDidLogEntryWithGeneratedKeys);
+ *                             DidMethodEnum.detectDidMethod(initialDidLogEntryWithGeneratedKeys),
+ *                             cryptographicSuite)
+ *                     .assertionMethods(Set.of(VerificationMethod.of(
+ *                             "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
+ *                     )))
+ *                     .authentications(Set.of(VerificationMethod.of(
+ *                             "my-auth-key-01", Path.of("src/test/data/auth-key-01.pub")
+ *                     )))
+ *                     .build()
+ *                     .update(initialDidLogEntryWithGeneratedKeys);
  *
  *         } catch (Exception e) {
  *             // some exc. handling goes here

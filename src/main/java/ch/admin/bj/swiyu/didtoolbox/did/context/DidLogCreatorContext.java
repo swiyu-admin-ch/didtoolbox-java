@@ -46,13 +46,13 @@ import java.util.Set;
  * {@code
  *     package mypackage;
  *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
- *     import ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext;
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
  *     import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
  *     import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
- *     import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
  *
- *     import java.net.*;
+ *     import java.net.URI;
+ *     import java.net.URL;
  *     import java.nio.file.Path;
  *     import java.util.Set;
  *
@@ -65,15 +65,16 @@ import java.util.Set;
  *
  *             // Using already existing key material
  *             didLogEntryWithExternalKeys = DidLogCreatorContext.builder(
- *                     new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem")))
- *                 .assertionMethods(Set.of(VerificationMethod.of(
- *                     "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
- *                 )))
- *                 .authentications(Set.of(VerificationMethod.of(
- *                     "my-auth-key-01", Path.of("src/test/data/auth-key-01.pub")
- *                 )))
- *                 .build()
- *                 .create(identifierRegistryUrl);
+ *                         DidMethodEnum.WEBVH_1_0,
+ *                         new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem")))
+ *                     .assertionMethods(Set.of(VerificationMethod.of(
+ *                             "my-assert-key-01", Path.of("src/test/data/assert-key-01.pub")
+ *                     )))
+ *                     .authentications(Set.of(VerificationMethod.of(
+ *                             "my-auth-key-01", Path.of("src/test/data/auth-key-01.pub")
+ *                     )))
+ *                     .build()
+ *                     .create(identifierRegistryUrl);
  *
  *         } catch (Exception e) {
  *             // some exc. handling goes here

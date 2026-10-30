@@ -24,11 +24,11 @@ import java.util.Date;
  * {@code
  *     package mypackage;
  *
- *     import ch.admin.bj.swiyu.didtoolbox.*;
- *
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.EcP256ProofOfPossessionJWSSigner;
+ *     import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
  *     import com.nimbusds.jwt.SignedJWT;
  *
- *     import java.io.*;
+ *     import java.nio.file.Path;
  *     import java.time.Duration;
  *
  *     public static void main(String... args) {
