@@ -7,6 +7,8 @@ import com.beust.jcommander.UnixStyleUsageFormatter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 
+import java.util.Arrays;
+
 public class Main {
     private final Console console;
 
@@ -60,10 +62,13 @@ public class Main {
         var usageFormatter = new UnixStyleUsageFormatter(jc);
         jc.setUsageFormatter(usageFormatter);
 
+        // parsing may stop before a trailing --verbose
+        var verbose = Arrays.asList(args).contains(CommandParameterNames.PARAM_NAME_LONG_VERBOSE);
+
         try {
             jc.parse(args);
         } catch (ParameterException e) {
-            return printCommandError(jc, null, "Failed to parse command arguments: " + e.getLocalizedMessage());
+            return printCommandError(jc, null, "Failed to parse command arguments: " + e.getLocalizedMessage(), e, verbose);
         }
 
         if (rootParameters.version) {
@@ -93,22 +98,35 @@ public class Main {
                         commandRunner.runPoPCreateCommand(createProofOfPossessionCommand);
                 case VerifyProofOfPossessionCommand.COMMAND_NAME ->
                         commandRunner.runPoPVerifyCommand(verifyProofOfPossessionCommand);
-                default -> printCommandError(jc, null, "Invalid command: " + parsedCommandName);
+                default -> printCommandError(jc, null, "Invalid command: " + parsedCommandName, null, false);
             };
             return 0;
         } catch (Exception e) { // NOPMD AvoidCatchingGenericException: catch generic exception to always print proper error message
-            return printCommandError(jc, parsedCommandName, "Failed to run '" + parsedCommandName + "' command due to: " + e.getLocalizedMessage());
+            return printCommandError(jc, parsedCommandName, "Failed to run '" + parsedCommandName + "' command due to: " + e.getLocalizedMessage(), e, verbose);
         }
     }
 
-    private int printCommandError(JCommander jc, String commandName, String message) {
+    private int printCommandError(JCommander jc, String commandName, String message, Throwable cause, boolean verbose) {
         jc.getConsole().println(message);
         jc.getConsole().println("");
+        if (verbose && cause != null) {
+            printCauseChain(jc, cause);
+            jc.getConsole().println("");
+        }
         if (commandName != null) {
             jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " " + commandName + " -h");
         } else {
             jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
         }
         return 1;
+    }
+
+    private void printCauseChain(JCommander jc, Throwable throwable) {
+        jc.getConsole().println("Cause chain:");
+        var prefix = "  ";
+        for (var t = throwable; t != null; t = t.getCause()) {
+            jc.getConsole().println(prefix + t.getClass().getName() + ": " + t.getLocalizedMessage());
+            prefix = "  Caused by: ";
+        }
     }
 }
