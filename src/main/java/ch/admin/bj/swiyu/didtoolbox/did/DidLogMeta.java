@@ -1,0 +1,117 @@
+package ch.admin.bj.swiyu.didtoolbox.did;
+
+import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameterException;
+import ch.admin.eid.did_sidekicks.DidDoc;
+import ch.admin.eid.did_sidekicks.DidMethodParameter;
+import lombok.Getter;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * This DTO is nothing but a storage for some useful information about a DID log,
+ * as specified by any of:
+ * <ul>
+ * <li><a href="https://identity.foundation/didwebvh/v0.3/">did:tdw DID Method</a> or</li>
+ * <li><a href="https://identity.foundation/didwebvh/v1.0/">did:webvh DID Method</a></li>
+ * </ul>
+ * <p>
+ * CAUTION Beware that not all information are relevant here, as this class is focusing on quite a few of them such as:
+ * <ul>
+ *     <li>{@code versionId} (of the last DID log entry)</li>
+ *     <li>{@code versionTime}</li>
+ *     <li>DID parameters</li>
+ *     <li>DID Doc {@code id}</li>
+ * </ul>
+ */
+public class DidLogMeta {
+    @Getter
+    private final String lastVersionId;
+    @Getter
+    final int lastVersionNumber;
+    @Getter
+    private final String dateTime;
+    @Getter
+    private NamedDidMethodParameters params;
+    @Getter
+    private final DidDoc didDoc;
+
+    public DidLogMeta(String lastVersionId, int lastVersionNumber, String dateTime, Map<String, DidMethodParameter> paramsMap, DidDoc didDoc) {
+        this.lastVersionId = lastVersionId;
+        this.lastVersionNumber = lastVersionNumber;
+        this.dateTime = dateTime;
+        this.setParams(paramsMap);
+        this.didDoc = didDoc;
+    }
+
+    private void setParams(Map<String, DidMethodParameter> paramsMap) {
+        var metaParams = new NamedDidMethodParameters();
+        Objects.requireNonNull(paramsMap).forEach((name, param) -> {
+            if ("method".equals(name) && param.isString()) {
+                metaParams.setMethod(param.getStringValue());
+            } else if ("scid".equals(name) && param.isString()) {
+                metaParams.setScid(param.getStringValue());
+            } else if (NamedDidMethodParameters.UPDATE_KEYS.equals(name) && param.isArray() && !param.isEmptyArray()) {
+                metaParams.setUpdateKeys(new HashSet<>(Objects.requireNonNull(param.getStringArrayValue())));
+            } else if (NamedDidMethodParameters.NEXT_KEY_HASHES.equals(name) && param.isArray() && !param.isEmptyArray()) {
+                metaParams.setNextKeyHashes(new HashSet<>(Objects.requireNonNull(param.getStringArrayValue())));
+            } else if ("deactivated".equals(name) && param.isBool()) {
+                metaParams.setDeactivated(param.getBoolValue());
+            }
+        });
+
+        this.params = metaParams;
+    }
+
+    /**
+     * W.r.t. {@code nextKeyHashes} DID method parameter value.
+     *
+     * @return {@code true} if and only if the {@code nextKeyHashes} DID method parameter is set and non-empty. Otherwise, {@code false}.
+     */
+    public boolean isKeyPreRotationActivated() {
+        var nextKeyHashesParam = this.getParams().getNextKeyHashes();
+        return nextKeyHashesParam != null && !nextKeyHashesParam.isEmpty();
+    }
+
+    /**
+     * In case of activated key pre-rotation, the method proves whether the supplied {@code multikey} is among those
+     * defined by the key pre-rotation, or not.
+     *
+     * @param multikey to check
+     * @return {@code true} if and only if the supplied {@code multikey} is legal w.r.t. key pre-rotation. Otherwise, {@code false}.
+     */
+    public boolean isPreRotatedUpdateKey(String multikey) {
+        if (this.isKeyPreRotationActivated() && multikey != null) {
+            return this.getParams().getNextKeyHashes().contains(
+                    NextKeyHashesDidMethodParameter.of(multikey).getNextKeyHash());
+        }
+
+        return false;
+    }
+
+    /**
+     * In case of activated key pre-rotation, the method proves whether the supplied {@code pemFiles} and {@code params}
+     * feature public keys that are among those defined by the key pre-rotation, or not.
+     *
+     * @param params to check
+     * @return {@code true} if and only if at least one of the supplied {@code pemFiles} is legal w.r.t. key pre-rotation. Otherwise, {@code false}.
+     * @throws UpdateKeysDidMethodParameterException in case at least one of the supplied {@code pemFiles} features no PEM content or
+     *                                               at least one of the supplied {@code pemFiles} contains no valid Ed25519 public key
+     */
+    public boolean arePreRotatedUpdateKeys(Set<UpdateKeysDidMethodParameter> params) throws UpdateKeysDidMethodParameterException {
+        if (params != null && !params.isEmpty()) {
+            for (var param : params) {
+                if (!this.isPreRotatedUpdateKey(param.getUpdateKey())) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+}

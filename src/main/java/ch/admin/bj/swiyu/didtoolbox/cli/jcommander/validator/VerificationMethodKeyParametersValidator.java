@@ -1,0 +1,43 @@
+package ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator;
+
+import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import com.beust.jcommander.IParameterValidator;
+import com.beust.jcommander.ParameterException;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class VerificationMethodKeyParametersValidator implements IParameterValidator {
+    @Override
+    public void validate(String name, String value) {
+        String[] split = value.split(",");
+        if (split.length != 2) { // NOPMD AvoidLiteralsInIfCondition
+            throw new ParameterException("Option " + name + " should supply a comma-separated list (in format key-name,public-key-file (P-256 or Ed25519 public/verifying key in PEM format)) (found " + value + ")");
+        }
+
+        String kid = split[0];
+        // Prevent any "kid" featuring URIs "Reserved Characters" (incl. "Percent-Encoding", see (https://datatracker.ietf.org/doc/html/rfc3986#section-2.2):
+        //     pct-encoded = "%" HEXDIG HEXDIG
+        //     reserved    = gen-delims / sub-delims
+        //     gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+        //     sub-delims  = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+        // A case-sensitive "kid" string may contain URIs "Unreserved Characters" (https://datatracker.ietf.org/doc/html/rfc3986#section-2.3) though:
+        //     unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
+        if (!kid.matches("[a-zA-Z0-9~._-]+")) {
+            throw new ParameterException("The key ID (kid) of the JWK supplied by " + name + " option must be a regular case-sensitive string featuring no URIs reserved characters (found " + kid + ")");
+        }
+
+        String jwkFile = split[1];
+        var f = Path.of(jwkFile);
+        if (!Files.isReadable(f)) {
+            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing an P-256 or Ed25519 public/verifying key in PEM format (found " + jwkFile + ")");
+        }
+
+        try {
+            JwkUtils.loadECPublicJWKasJSON(f, kid);
+        } catch (IOException exc) {
+            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an P-256 or Ed25519 public/verifying key in PEM format: " + exc.getLocalizedMessage(), exc);
+        }
+    }
+}

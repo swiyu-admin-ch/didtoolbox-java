@@ -58,7 +58,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
 
-        <project.main.class>ch.admin.bj.swiyu.didtoolbox.Main</project.main.class>
+        <project.main.class>ch.admin.bj.swiyu.didtoolbox.cli.Main</project.main.class>
         <!--project.dependencies.directory>lib/</project.dependencies.directory-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -346,7 +346,7 @@
                         <configuration>
                             <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
                             <outputFilename>DidLogCreatorContext-create.puml</outputFilename>
-                            <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext</startClass>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext</startClass>
                             <startMethod>create</startMethod>
                             <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*</classBlacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
@@ -366,7 +366,7 @@
                         <configuration>
                             <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
                             <outputFilename>DidLogUpdaterContext-update.puml</outputFilename>
-                            <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext</startClass>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext</startClass>
                             <startMethod>update</startMethod>
                             <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*</classBlacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
@@ -386,7 +386,7 @@
                         <configuration>
                             <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
                             <outputFilename>DidLogDeactivatorContext-deactivate.puml</outputFilename>
-                            <startClass>ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext</startClass>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext</startClass>
                             <startMethod>deactivate</startMethod>
                             <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*</classBlacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
@@ -406,7 +406,7 @@
                         <configuration>
                             <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
                             <outputFilename>ProofOfPossessionCreator-create.puml</outputFilename>
-                            <startClass>ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionCreator</startClass>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator</startClass>
                             <startMethod>create</startMethod>
                             <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*|.*jose.JWS([PHS]).*</classBlacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>
@@ -426,7 +426,7 @@
                         <configuration>
                             <outputDirectory>${basedir}/src/main/plantuml</outputDirectory>
                             <outputFilename>ProofOfPossessionVerifier-verify.puml</outputFilename>
-                            <startClass>ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier</startClass>
+                            <startClass>ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier</startClass>
                             <startMethod>verify</startMethod>
                             <classBlacklistRegexp>.*Builder*.*|.*Companion*.*|.*Uniffi*.*|.*Ffi*.*|.*Kt*.*|.*google*.*|.*jose.JWS([PHS]).*|.*fasterxml.*|.*jose.*</classBlacklistRegexp>
                             <enableMarkdownWrapper>true</enableMarkdownWrapper>

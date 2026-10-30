@@ -1,46 +1,46 @@
 ```plantuml
 @startuml
 
-participant ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-participant ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
-participant ch.admin.bj.swiyu.didtoolbox.TdwDeactivator
-participant ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator
-participant ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
+participant ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+participant ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory
+participant ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator
+participant ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDeactivator
+participant ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategy
 
-activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-	ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : deactivate
-	activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-		ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : getDeactivatorStrategy
-		activate ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : getDidMethod
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : getCryptoSuite
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.TdwDeactivator : builder
-			activate ch.admin.bj.swiyu.didtoolbox.TdwDeactivator
-				ch.admin.bj.swiyu.didtoolbox.TdwDeactivator --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.TdwDeactivator$TdwDeactivatorBuilder
-			deactivate ch.admin.bj.swiyu.didtoolbox.TdwDeactivator
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : getCryptoSuite
-			activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-				ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.VcDataIntegrityCryptographicSuite
-			deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator : builder
-			activate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator
-				ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator --> ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator$WebVerifiableHistoryDeactivatorBuilder
-			deactivate ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryDeactivator
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory --> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
-		deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogStrategyFactory
-		ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext -> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy : deactivateDidLog
-		activate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
-			ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy --> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : java.lang.String
-		deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorStrategy
-		ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext : java.lang.String
-	deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
-deactivate ch.admin.bj.swiyu.didtoolbox.context.DidLogDeactivatorContext
+activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+	ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : deactivate
+	activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+		ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : getDeactivatorStrategy
+		activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : getDidMethod
+			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum
+			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : getCryptoSuite
+			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
+			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator : builder
+			activate ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator
+				ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator$TdwDeactivatorBuilder
+			deactivate ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : getCryptoSuite
+			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
+			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDeactivator : builder
+			activate ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDeactivator
+				ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDeactivator --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDeactivator$WebVerifiableHistoryDeactivatorBuilder
+			deactivate ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDeactivator
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategy
+		deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory
+		ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategy : deactivateDidLog
+		activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategy
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategy --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : java.lang.String
+		deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategy
+		ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : java.lang.String
+	deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
+deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
 
 @enduml
 

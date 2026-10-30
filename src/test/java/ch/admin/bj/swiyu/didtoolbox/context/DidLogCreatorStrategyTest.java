@@ -1,13 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
-import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.TdwCreatorTest;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.model.NamedDidMethodParameters;
-import ch.admin.bj.swiyu.didtoolbox.model.NextKeyHashesDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.model.UpdateKeysDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreatorTest;
+import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
+import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwCreatorTest;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryCreatorTest;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;

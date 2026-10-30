@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
+import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import org.junit.jupiter.api.Test;
