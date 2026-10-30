@@ -5,6 +5,8 @@ import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
 import com.beust.jcommander.internal.DefaultConsole;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -109,5 +111,46 @@ class BlackboxIT {
 
         final var finalDidLog = didLog;
         assertThrows(DidLogMetaPeekerException.class, () -> WebVerifiableHistoryDidLogMetaPeeker.peek(finalDidLog));
+    }
+
+    /**
+     * Verifies a proof of possession against a wrong nonce, expecting the cause chain to be printed only if verbose.
+     *
+     * @param verbose whether to supply the --verbose flag
+     * @param tempDir temporary directory to store the did log file
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void verifyPoPWithWrongNonce_thenFail(boolean verbose, @TempDir Path tempDir) throws Exception {
+        var cliOutput = new ByteArrayOutputStream();
+        var main = new Main(new DefaultConsole(new PrintStream(cliOutput)));
+
+        // create did
+        var argsCreateDidLog = new String[]{"create", "-u", "https://example.com", "-s", "./src/test/data/private.pem", "-v", "./src/test/data/public.pem", "-a", "assert-key-01,./src/test/data/assert-key-01.pub", "-t", "auth-key-01,./src/test/data/auth-key-01.pub"};
+        assertEquals(0, main.run(argsCreateDidLog));
+        var didLog = cliOutput.toString();
+        cliOutput.reset();
+
+        // store did in file
+        var didLogFilePath = tempDir + "/didlog.jsonl";
+        try (var writer = new PrintWriter(didLogFilePath, StandardCharsets.UTF_8)) {
+            writer.write(didLog);
+        }
+
+        // create proof of possession
+        var didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc();
+        var argsCreatePoP = new String[]{"create-pop", "-d", didLogFilePath, "-k", didDoc.getId() + "#assert-key-01", "-s", "./src/test/data/assert-key-01", "-n", "nonce"};
+        assertEquals(0, main.run(argsCreatePoP));
+        var jwt = cliOutput.toString();
+        cliOutput.reset();
+
+        // verify proof of possession against a wrong nonce
+        var argsVerifyPoP = verbose
+                ? new String[]{"verify-pop", "-d", didLogFilePath, "-n", "wrong", "-j", jwt, "--verbose"}
+                : new String[]{"verify-pop", "-d", didLogFilePath, "-n", "wrong", "-j", jwt};
+        assertEquals(1, main.run(argsVerifyPoP));
+        var out = cliOutput.toString();
+        assertTrue(out.contains("Provided JWT is invalid"));
+        assertEquals(verbose, out.contains("Caused by: " + ProofOfPossessionVerifierException.class.getName()));
     }
 }
