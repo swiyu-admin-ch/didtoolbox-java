@@ -1,23 +1,23 @@
 ```plantuml
 @startuml
 
-participant ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
-participant ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
+participant ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier
+participant ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
 participant ch.admin.eid.did_sidekicks.DidDoc
 participant com.nimbusds.jwt.SignedJWT
 participant com.nimbusds.jwt.JWTClaimsSet
 participant com.nimbusds.jwt.util.DateUtils
 
-activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : unsupportedAlgorithm
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : keyMismatch
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.eid.did_sidekicks.DidDoc : getKeyByMethodId
+activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : unsupportedAlgorithm
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : keyMismatch
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.eid.did_sidekicks.DidDoc : getKeyByMethodId
 	activate ch.admin.eid.did_sidekicks.DidDoc
 		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
 		activate ch.admin.eid.did_sidekicks.DidDoc
@@ -47,53 +47,53 @@ activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
 		activate ch.admin.eid.did_sidekicks.DidDoc
 			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : ch.admin.eid.did_sidekicks.UniffiCleaner$Cleanable
 		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.eid.did_sidekicks.Jwk
+		ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.eid.did_sidekicks.Jwk
 	deactivate ch.admin.eid.did_sidekicks.DidDoc
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : keyMismatch
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : keyMismatch
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : unparsable
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : invalidSignature
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : failedToVerify
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> com.nimbusds.jwt.SignedJWT : getJWTClaimsSet
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : keyMismatch
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : keyMismatch
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : unparsable
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : invalidSignature
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : failedToVerify
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> com.nimbusds.jwt.SignedJWT : getJWTClaimsSet
 	activate com.nimbusds.jwt.SignedJWT
 		com.nimbusds.jwt.SignedJWT -> com.nimbusds.jwt.JWTClaimsSet : parse
 		activate com.nimbusds.jwt.JWTClaimsSet
 			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.SignedJWT : com.nimbusds.jwt.JWTClaimsSet
 		deactivate com.nimbusds.jwt.JWTClaimsSet
-		com.nimbusds.jwt.SignedJWT --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : com.nimbusds.jwt.JWTClaimsSet
+		com.nimbusds.jwt.SignedJWT --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : com.nimbusds.jwt.JWTClaimsSet
 	deactivate com.nimbusds.jwt.SignedJWT
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getStringClaim
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getStringClaim
 	activate com.nimbusds.jwt.JWTClaimsSet
 		com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getClaim
 		activate com.nimbusds.jwt.JWTClaimsSet
 			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.lang.Object
 		deactivate com.nimbusds.jwt.JWTClaimsSet
-		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : java.lang.String
+		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : java.lang.String
 	deactivate com.nimbusds.jwt.JWTClaimsSet
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : invalidNonce
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : unparsable
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getIssuer
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : invalidNonce
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : unparsable
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getIssuer
 	activate com.nimbusds.jwt.JWTClaimsSet
 		com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getStringClaim
 		activate com.nimbusds.jwt.JWTClaimsSet
@@ -103,9 +103,9 @@ activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
 			deactivate com.nimbusds.jwt.JWTClaimsSet
 			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.lang.String
 		deactivate com.nimbusds.jwt.JWTClaimsSet
-		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : java.lang.String
+		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : java.lang.String
 	deactivate com.nimbusds.jwt.JWTClaimsSet
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.eid.did_sidekicks.DidDoc : getId
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.eid.did_sidekicks.DidDoc : getId
 	activate ch.admin.eid.did_sidekicks.DidDoc
 		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
 		activate ch.admin.eid.did_sidekicks.DidDoc
@@ -135,13 +135,13 @@ activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
 		activate ch.admin.eid.did_sidekicks.DidDoc
 			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : ch.admin.eid.did_sidekicks.UniffiCleaner$Cleanable
 		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : java.lang.String
+		ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : java.lang.String
 	deactivate ch.admin.eid.did_sidekicks.DidDoc
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : failedToVerify
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getExpirationTime
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : failedToVerify
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getExpirationTime
 	activate com.nimbusds.jwt.JWTClaimsSet
 		com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getDateClaim
 		activate com.nimbusds.jwt.JWTClaimsSet
@@ -155,13 +155,13 @@ activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
 			deactivate com.nimbusds.jwt.util.DateUtils
 			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.util.Date
 		deactivate com.nimbusds.jwt.JWTClaimsSet
-		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : java.util.Date
+		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : java.util.Date
 	deactivate com.nimbusds.jwt.JWTClaimsSet
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : expired
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getNotBeforeTime
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : expired
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getNotBeforeTime
 	activate com.nimbusds.jwt.JWTClaimsSet
 		com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getDateClaim
 		activate com.nimbusds.jwt.JWTClaimsSet
@@ -175,13 +175,13 @@ activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
 			deactivate com.nimbusds.jwt.util.DateUtils
 			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.util.Date
 		deactivate com.nimbusds.jwt.JWTClaimsSet
-		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : java.util.Date
+		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : java.util.Date
 	deactivate com.nimbusds.jwt.JWTClaimsSet
-	ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException : expired
-	activate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException
-deactivate ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifier
+	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : expired
+	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
+deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier
 
 @enduml
 

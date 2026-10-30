@@ -715,10 +715,10 @@ cat did005.jsonl | jq -c '.|.parameters'
 
 ## The DID Toolbox (Java) API
 
-The sole bedrock of DID Toolbox (Java) API are the classes residing in the `ch.admin.bj.swiyu.didtoolbox.context` package:
-* [DidLogCreatorContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/context/DidLogCreatorContext.java)
-* [DidLogUpdaterContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/context/DidLogUpdaterContext.java)
-* [DidLogDeactivatorContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/context/DidLogDeactivatorContext.java)
+The sole bedrock of DID Toolbox (Java) API are the classes residing in the `did` package:
+* [DidLogCreatorContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/did/context/DidLogCreatorContext.java)
+* [DidLogUpdaterContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/did/context/DidLogUpdaterContext.java)
+* [DidLogDeactivatorContext](src/main/java/ch/admin/bj/swiyu/didtoolbox/did/context/DidLogDeactivatorContext.java)
 
 ![didtoolbox-classes-only](src/main/plantuml/didtoolbox-api-classes-only.svg)
 

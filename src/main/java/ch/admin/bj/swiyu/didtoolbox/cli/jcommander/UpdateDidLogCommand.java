@@ -1,0 +1,46 @@
+package ch.admin.bj.swiyu.didtoolbox.cli.jcommander;
+
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.DidLogFileParameterConverter;
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.CommandParametersValidator;
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.DidLogFileParameterValidator;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+
+import java.io.File;
+
+import static ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandParameterNames.PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY;
+import static ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandParameterNames.PARAM_NAME_SHORT_GENERATE_NEW_VERIFYING_KEY;
+
+@Parameters(
+        commandNames = {UpdateDidLogCommand.COMMAND_NAME},
+        commandDescription = "Update a DID log by replacing the existing verification material in DID document. " +
+                "To supply a signing/verifying key pair, always rely on one of the three available command parameter sets exclusively, " +
+                "each of then denoting a whole another source of such key material: " +
+                "PEM files, a Java KeyStore (PKCS12) or a Securosys Primus (HSM) connection. " +
+                "In case of a Securosys Primus (HSM) connection, the required JCE provider (JAR) library " +
+                "(primusX-java8.jar or primusX-java11.jar) is by-convention expected to be stored on the system alongside the DID-Toolbox " +
+                "in the lib subdirectory (e.g. as lib/primusX-java11.jar). " +
+                "Alternatively, you may also use -Xbootclasspath/a:directories|zip|JAR-files option of the java command for the purpose",
+        // Validate the value for all parameters (currently not really required):
+        parametersValidators = {CommandParametersValidator.class}
+)
+public class UpdateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
+
+    @Override
+    String getCommandName() {
+        return COMMAND_NAME;
+    }
+
+    final public static String COMMAND_NAME = "update";
+
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_DID_LOG_FILE, CommandParameterNames.PARAM_NAME_SHORT_DID_LOG_FILE},
+            description = "The file containing a valid DID log to update",
+            converter = DidLogFileParameterConverter.class,
+            validateWith = DidLogFileParameterValidator.class,
+            required = true)
+    public File didLogFile;
+
+    @Parameter(names = {PARAM_NAME_LONG_GENERATE_NEW_VERIFYING_KEY, PARAM_NAME_SHORT_GENERATE_NEW_VERIFYING_KEY},
+            description = "Requires the signing key pem file flag (-s). Generates a new ed25519 key pair to be used as 'pre-rotation' key. The generated key pair is stored in the `.didtoolbox` directory. CAUTION: using `-f` can override existing keys in the directory, make sure to back them up. Cannot be used together with the generate update key next flag ('-gw)")
+    public boolean shouldGenerateVerifyingKeyPem;
+}

@@ -1,5 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
+import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial;
+import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
+import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
 import ch.admin.eid.did_sidekicks.Ed25519SigningKey;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;

@@ -1,0 +1,62 @@
+package ch.admin.bj.swiyu.didtoolbox.cryptography.primus;
+
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.jca.JCAContext;
+import com.nimbusds.jose.util.Base64URL;
+
+import java.security.*;
+import java.util.Set;
+
+/**
+ * This {@link ProofOfPossessionJWSSigner} implementation builds on top of {@link PrimusEd25519VerificationMethodKeyProviderImpl}
+ * aiming at reusing the extensive key loading facilities from the base class.
+ * <p>
+ * To be used in conjunction with {@link ProofOfPossessionCreator#ProofOfPossessionCreator(ProofOfPossessionJWSSigner)}.
+ */
+public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519VerificationMethodKeyProviderImpl implements ProofOfPossessionJWSSigner {
+    private final String kid;
+    private final JCAContext jcaContext = new JCAContext();
+
+    /**
+     * @see PrimusEd25519VerificationMethodKeyProviderImpl#PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, char[], String)
+     */
+    public PrimusEd25519ProofOfPossessionJWSSignerImpl(PrimusKeyStoreLoader primus, String alias, char[] password, String kid)
+            throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
+        super(primus, alias, password);
+        this.kid = kid;
+    }
+
+    public PrimusEd25519ProofOfPossessionJWSSignerImpl(KeyPair keyPair, String kid, PrimusKeyStoreLoader primus) {
+        super(keyPair, primus);
+        this.kid = kid;
+    }
+
+    @Override
+    public String getKid() {
+        return this.kid;
+    }
+
+    @Override
+    public JWSAlgorithm getAlgorithm() {
+        return JWSAlgorithm.EdDSA;
+    }
+
+    @Override
+    public Set<JWSAlgorithm> supportedJWSAlgorithms() {
+        return Set.of(this.getAlgorithm());
+    }
+
+    @Override
+    public Base64URL sign(JWSHeader jwsHeader, byte[] bytes) throws JOSEException {
+        return Base64URL.encode(super.generateSignature(bytes));
+    }
+
+    @Override
+    public JCAContext getJCAContext() {
+        return jcaContext;
+    }
+}

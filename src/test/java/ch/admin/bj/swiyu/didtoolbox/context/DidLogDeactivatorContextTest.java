@@ -1,7 +1,9 @@
 package ch.admin.bj.swiyu.didtoolbox.context;
 
-import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
