@@ -62,7 +62,7 @@
         <!--project.dependencies.directory>lib/</project.dependencies.directory-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <didresolver.version>2.9.0</didresolver.version>
+        <didresolver.version>2.10.0</didresolver.version>
         <jna.version>5.19.1</jna.version>
         <gson.version>2.15.0</gson.version>
         <lombok.version>1.18.48</lombok.version>
