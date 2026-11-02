@@ -4,6 +4,7 @@
 
 ### Added
 - HTTP URLs for did logs are no longer allowed, must now be HTTPS `(#1037)`
+- `--verbose` CLI flag to print the full cause chain of an error `(#1034)`
 
 ### Fixed
 

@@ -11,4 +11,8 @@ public class RootCommandParameter {
     @Parameter(names = {"--version", "-V"},
             description = "Display version")
     public boolean version;
+
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_VERBOSE},
+            description = "On error, print the full cause chain")
+    public boolean verbose;
 }

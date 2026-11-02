@@ -8,6 +8,8 @@ public interface CommandParameterNames {
     public String PARAM_NAME_LONG_USAGE = "--help";
     public String PARAM_NAME_SHORT_USAGE = "-h";
 
+    public String PARAM_NAME_LONG_VERBOSE = "--verbose";
+
     public String PARAM_NAME_LONG_SIGNING_KEY_FILE = "--signing-key-file";
     public String PARAM_NAME_SHORT_SIGNING_KEY_FILE = "-s";
 
