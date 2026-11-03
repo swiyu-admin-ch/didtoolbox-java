@@ -5,6 +5,7 @@ import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
@@ -58,8 +59,7 @@ abstract class AbstractCommandParametersValidatorTest {
         try {
             dummyDidLogFile = File.createTempFile("my-did", ".jsonl");
 
-            var initialDidLogEntry = DidLogCreatorContext.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            var initialDidLogEntry = DidLogCreatorContext.builder(DidMethodEnum.WEBVH_1_0, TEST_CRYPTO_SUITE)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     //.updateKeys(Set.of(new File("src/test/data/public.pem")))
@@ -68,8 +68,7 @@ abstract class AbstractCommandParametersValidatorTest {
 
             var updatedDidLog = new StringBuilder(initialDidLogEntry)
                     .append(System.lineSeparator())
-                    .append(DidLogUpdaterContext.builder()
-                            .cryptographicSuite(TEST_CRYPTO_SUITE)
+                    .append(DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0, TEST_CRYPTO_SUITE)
                             .assertionMethods(TEST_ASSERTION_METHODS)
                             .authentications(TEST_AUTHENTICATIONS)
                             //.updateKeys(Set.of(new File("src/test/data/public.pem")))

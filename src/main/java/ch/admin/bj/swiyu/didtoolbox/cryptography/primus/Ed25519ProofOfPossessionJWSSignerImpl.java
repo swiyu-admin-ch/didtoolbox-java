@@ -12,25 +12,25 @@ import java.security.*;
 import java.util.Set;
 
 /**
- * This {@link ProofOfPossessionJWSSigner} implementation builds on top of {@link PrimusEd25519VerificationMethodKeyProviderImpl}
+ * This {@link ProofOfPossessionJWSSigner} implementation builds on top of {@link Ed25519VerificationMethodKeyProviderImpl}
  * aiming at reusing the extensive key loading facilities from the base class.
  * <p>
  * To be used in conjunction with {@link ProofOfPossessionCreator#ProofOfPossessionCreator(ProofOfPossessionJWSSigner)}.
  */
-public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519VerificationMethodKeyProviderImpl implements ProofOfPossessionJWSSigner {
+public class Ed25519ProofOfPossessionJWSSignerImpl extends Ed25519VerificationMethodKeyProviderImpl implements ProofOfPossessionJWSSigner {
     private final String kid;
     private final JCAContext jcaContext = new JCAContext();
 
     /**
-     * @see PrimusEd25519VerificationMethodKeyProviderImpl#PrimusEd25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, char[], String)
+     * @see Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, String, char[])
      */
-    public PrimusEd25519ProofOfPossessionJWSSignerImpl(PrimusKeyStoreLoader primus, String alias, char[] password, String kid)
+    public Ed25519ProofOfPossessionJWSSignerImpl(PrimusKeyStoreLoader primus, String alias, char[] password, String kid)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
         super(primus, alias, password);
         this.kid = kid;
     }
 
-    public PrimusEd25519ProofOfPossessionJWSSignerImpl(KeyPair keyPair, String kid, PrimusKeyStoreLoader primus) {
+    public Ed25519ProofOfPossessionJWSSignerImpl(KeyPair keyPair, String kid, PrimusKeyStoreLoader primus) {
         super(keyPair, primus);
         this.kid = kid;
     }

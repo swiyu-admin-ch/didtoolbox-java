@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.did.tdw;
 
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.*;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategy;
@@ -9,7 +9,6 @@ import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.*;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -62,11 +61,6 @@ import java.util.Set;
 @Getter
 public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
 
-    @Deprecated(since = "2.1.0")
-    public static TdwCreatorBuilder builder() {
-        return new TdwCreatorBuilder();
-    }
-
     /**
      * Constructs a builder for creating did tdw logs with the provided crypto Suite
      *
@@ -76,27 +70,6 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     public static TdwCreatorBuilder builder(@NonNull VcDataIntegrityCryptographicSuite suite) {
         return new TdwCreatorBuilder().cryptographicSuite(suite);
     }
-
-    /**
-     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
-     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
-     * for DID document.
-     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
-     * verification relationships.
-     * <p>
-     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
-     * <p>
-     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
-     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
-     * <p>
-     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
-     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
-     *
-     * @deprecated Use {@link #assertionMethods} instead
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.9.0")
-    private Map<String, String> assertionMethodKeys;
 
     /**
      * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
@@ -114,45 +87,16 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
      * for DID document.
      * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
      * verification relationships.
-     * <p>
-     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
-     * <p>
-     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
-     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
-     * <p>
-     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
-     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
-     *
-     * @deprecated Use {@link #authentications} instead
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.9.0")
-    private Map<String, String> authenticationKeys;
-
-    /**
-     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
-     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
-     * for DID document.
-     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
-     * verification relationships.
      */
     @Getter(AccessLevel.PRIVATE)
     private Set<VerificationMethod> authentications;
 
     /**
-     * Replaces the depr. {@link #verificationMethodKeyProvider},
-     * but gets no precedence over it (if both called against the same object).
-     *
-     * @since 1.8.0
+     * Handles creation of the vc data integrity proof
      */
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
-    /**
-     * @deprecated Use {@link #cryptographicSuite} instead
-     */
-    @Deprecated(since = "1.8.0")
-    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
 
     /**
      * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
@@ -171,114 +115,6 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     @Getter(AccessLevel.PRIVATE)
     private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
 
-    /**
-     * @deprecated Removed as redundant
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.9.0")
-    private boolean forceOverwrite;
-
-    /**
-     * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
-     * DID method parameter:
-     * <pre>
-     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
-     * </pre>
-     *
-     * @deprecated Use the {@link #updateKeysDidMethodParameter} setter instead
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.8.0")
-    private Set<File> updateKeys;
-
-    /**
-     * Aggregates verification material from various sources, hence it should be exclusively used in this class instead of
-     * the {@link #authentications} getter.
-     *
-     * @return a set of {@link VerificationMethod} objects, never {@code null}
-     * @since 1.9.0
-     */
-    private Set<VerificationMethod> allAuthentications() throws DidLogCreatorStrategyException {
-        var set = new HashSet<VerificationMethod>();
-        if (this.authenticationKeys != null) { // collect all from deprecated class member
-            for (var entry : this.authenticationKeys.entrySet()) {
-                try {
-                    set.add(VerificationMethod.of(entry.getKey(), entry.getValue()));
-                } catch (VerificationMethodException e) {
-                    throw new DidLogCreatorStrategyException(e);
-                }
-            }
-        }
-
-        if (this.authentications != null) {
-            set.addAll(authentications);
-        }
-
-        return set;
-    }
-
-    /**
-     * Aggregates verification material from various sources, hence it should be exclusively used in this class instead of
-     * the {@link #assertionMethods} getter.
-     *
-     * @return a set of {@link VerificationMethod} objects, never {@code null}
-     * @since 1.9.0
-     */
-    private Set<VerificationMethod> allAssertionMethods() throws DidLogCreatorStrategyException {
-        var set = new HashSet<VerificationMethod>();
-        if (this.assertionMethodKeys != null) { // collect all from deprecated class member
-            for (var entry : this.assertionMethodKeys.entrySet()) {
-                try {
-                    set.add(VerificationMethod.of(entry.getKey(), entry.getValue()));
-                } catch (VerificationMethodException e) {
-                    throw new DidLogCreatorStrategyException(e);
-                }
-            }
-        }
-
-        if (this.assertionMethods != null) {
-            set.addAll(assertionMethods);
-        }
-
-        return set;
-    }
-
-    /**
-     * Aggregates all <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
-     * DID method parameter values supplied from various sources, hence it should be exclusively used in this class instead of
-     * the {@link #updateKeysDidMethodParameter} getter.
-     *
-     * @return a set of {@link UpdateKeysDidMethodParameter} objects, never {@code null}
-     * @since 1.9.0
-     */
-    private Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogCreatorStrategyException {
-
-        var set = new HashSet<UpdateKeysDidMethodParameter>();
-        if (this.updateKeys != null) { // collect all from deprecated class member
-            for (var key : this.updateKeys) {
-                try {
-                    set.add(UpdateKeysDidMethodParameter.of(key.toPath()));
-                } catch (UpdateKeysDidMethodParameterException e) {
-                    throw new DidLogCreatorStrategyException(e);
-                }
-            }
-        }
-
-        if (this.updateKeysDidMethodParameter != null) {
-            set.addAll(updateKeysDidMethodParameter);
-        }
-
-        return set;
-    }
-
-    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
-        if (this.verificationMethodKeyProvider != null) {
-            return this.verificationMethodKeyProvider;
-        }
-
-        return this.cryptographicSuite;
-    }
-
     @Override
     protected DidMethodEnum getDidMethod() {
         return DidMethodEnum.TDW_0_3;
@@ -290,23 +126,9 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     }
 
     /**
-     * Left for the sake of backward compatibility. See deprecation notice.
-     *
-     * @deprecated Use {@link #createDidLog(URL)} instead
-     */
-    @Deprecated
-    public String create(URL identifierRegistryUrl) throws IOException {
-        try {
-            return createDidLog(identifierRegistryUrl, ZonedDateTime.now());
-        } catch (DidLogCreatorStrategyException e) {
-            throw new IOException(e);
-        }
-    }
-
-    /**
      * Creates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
      * features of this {@link TdwCreator} object, optionally customized by previously calling fluent methods like
-     * {@link TdwCreator#verificationMethodKeyProvider}, {@link TdwCreator#authentications} or
+     * {@link TdwCreator#cryptographicSuite}, {@link TdwCreator#authentications} or
      * {@link TdwCreator#assertionMethods}.
      *
      * @param identifierRegistryUrl is the URL of a did.jsonl in its entirety w.r.t.
@@ -318,20 +140,6 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     @Override
     public String createDidLog(URL identifierRegistryUrl) throws DidLogCreatorStrategyException {
         return createDidLog(identifierRegistryUrl, ZonedDateTime.now());
-    }
-
-    /**
-     * Left for the sake of backward compatibility. See deprecation notice.
-     *
-     * @deprecated Use {@link #createDidLog(URL, ZonedDateTime)} instead
-     */
-    @Deprecated
-    public String create(URL identifierRegistryUrl, ZonedDateTime zdt) throws IOException {
-        try {
-            return createDidLog(identifierRegistryUrl, zdt);
-        } catch (DidLogCreatorStrategyException e) {
-            throw new IOException(e);
-        }
     }
 
     /**
@@ -351,12 +159,12 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
     @Override
     public String createDidLog(URL identifierRegistryUrl, ZonedDateTime zdt) throws DidLogCreatorStrategyException {
 
-        if (getCryptoSuite() == null) {
+        if (this.getCryptographicSuite() == null) {
             throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
         }
 
         // Create initial did doc with placeholder
-        var didDoc = createDidDoc(identifierRegistryUrl, this.allAuthentications(), this.allAssertionMethods());
+        var didDoc = createDidDoc(identifierRegistryUrl, this.getAuthentications(), this.getAssertionMethods());
 
         var didLogEntryWithoutProofAndSignature = new JsonArray();
 
@@ -374,7 +182,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
 
         // CAUTION nextKeyHashes parameter (pre-rotation keys) not (yet) implemented for the class
-        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptoSuite(), this.allUpdateKeysDidMethodParameter(), null));
+        didLogEntryWithoutProofAndSignature.add(createDidParams(this.getCryptographicSuite(), this.getUpdateKeysDidMethodParameter(), null));
 
         // Add the initial DIDDoc
         // The fourth item in the input JSON array MUST be the JSON object {"value": <diddoc> }, where <diddoc> is the initial DIDDoc as described in the previous step 3.
@@ -423,11 +231,12 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
          */
         JsonArray proofs = new JsonArray();
         try {
-            proofs.add(JCSHasher.buildDataIntegrityProof(
-                    didDoc, false, this.getCryptoSuite(), challenge, JCSHasher.PROOF_PURPOSE_AUTHENTICATION, zdt
-            ));
-        } catch (DidSidekicksException e) {
-            throw new DidLogCreatorStrategyException(e);
+            var proof = this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, "authentication", zdt);
+            // CAUTION Set proper "verificationMethod"
+            proof.addProperty("verificationMethod", "did:key:" + this.getCryptographicSuite().getVerificationKeyMultibase() + '#' + this.getCryptographicSuite().getVerificationKeyMultibase());
+            proofs.add(proof);
+        } catch (VcDataIntegrityCryptographicSuiteException e) {
+            throw new DidLogCreatorStrategyException("Fail to build DID doc data integrity proof", e);
         }
         didLogEntryWithProof.add(proofs);
 

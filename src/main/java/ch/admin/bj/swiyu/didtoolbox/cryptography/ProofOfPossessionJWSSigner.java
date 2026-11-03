@@ -1,6 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography;
 
-import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
@@ -83,7 +83,7 @@ public interface ProofOfPossessionJWSSigner extends JWSSigner {
             signer.getJCAContext().setProvider(primus.getKeyStore().getProvider());
             return of(signer, kid, JWSAlgorithm.ES256);
         } else {
-            var signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, alias, password, kid);
+            var signer = new Ed25519ProofOfPossessionJWSSignerImpl(primus, alias, password, kid);
             return of(signer, kid, JWSAlgorithm.EdDSA);
         }
     }

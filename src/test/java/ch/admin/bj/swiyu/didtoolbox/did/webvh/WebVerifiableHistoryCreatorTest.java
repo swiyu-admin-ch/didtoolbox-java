@@ -1,10 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.MultiHash;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.*;
+import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwCreator;
 import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import com.google.gson.JsonElement;
@@ -65,11 +65,11 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertTrue(proof.isJsonObject());
         var proofJsonObj = proof.getAsJsonObject();
         assertTrue(proofJsonObj.has("type"));
-        Assertions.assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
+        Assertions.assertEquals(MultiHash.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
         assertTrue(proofJsonObj.has("cryptosuite"));
-        assertEquals(JCSHasher.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
+        assertEquals(MultiHash.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
         assertTrue(proofJsonObj.has("verificationMethod"));
-        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(JCSHasher.DID_KEY));
+        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(MultiHash.DID_KEY));
         assertTrue(proofJsonObj.has("created"));
         /*
         https://identity.foundation/didwebvh/v1.0/#create-register:
@@ -78,7 +78,7 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         object and the proofPurpose set to assertionMethod."
          */
         assertTrue(proofJsonObj.has("proofPurpose"));
-        assertEquals(JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, proofJsonObj.get("proofPurpose").getAsString());
+        assertEquals(MultiHash.PROOF_PURPOSE_ASSERTION_METHOD, proofJsonObj.get("proofPurpose").getAsString());
         assertTrue(proofJsonObj.has("proofValue"));
     }
 
@@ -308,14 +308,12 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
             var webvhUrl = url.getLast();
 
             var didDoc = TdwDidLogMetaPeeker.peek(
-                            DidLogCreatorContext.builder(DidMethodEnum.TDW_0_3, new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
-                                    //.updateKeys(Set.of(new File("src/test/data/public.pem")))
-                                    .assertionMethods(TEST_ASSERTION_METHODS)
-                                    .authentications(TEST_AUTHENTICATIONS)
-                                    .build()
-                                    .create(tdwUrl)
-                    )
-                    .getDidDoc();
+                        TdwCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+                                .assertionMethods(TEST_ASSERTION_METHODS)
+                                .authentications(TEST_AUTHENTICATIONS)
+                                .build()
+                                .createDidLog(tdwUrl, ZonedDateTime.now())
+                    ).getDidDoc();
 
             var didLogEntry = WebVerifiableHistoryCreator.createDidLogFromDidDoc(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(), didDoc, webvhUrl, zdt);
 

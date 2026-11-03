@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.did.tdw;
 
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.MultiHash;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
@@ -61,14 +61,14 @@ public class TdwCreatorTest extends AbstractUtilTestBase {
         assertTrue(proof.isJsonObject());
         var proofJsonObj = proof.getAsJsonObject();
         assertTrue(proofJsonObj.has("type"));
-        assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
+        assertEquals(MultiHash.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
         assertTrue(proofJsonObj.has("cryptosuite"));
-        assertEquals(JCSHasher.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
+        assertEquals(MultiHash.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
         assertTrue(proofJsonObj.has("verificationMethod"));
-        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(JCSHasher.DID_KEY));
+        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(MultiHash.DID_KEY));
         assertTrue(proofJsonObj.has("created"));
         assertTrue(proofJsonObj.has("proofPurpose"));
-        assertEquals(JCSHasher.PROOF_PURPOSE_AUTHENTICATION, proofJsonObj.get("proofPurpose").getAsString());
+        assertEquals(MultiHash.PROOF_PURPOSE_AUTHENTICATION, proofJsonObj.get("proofPurpose").getAsString());
         assertTrue(proofJsonObj.has("proofValue"));
     }
 

@@ -24,6 +24,7 @@ public abstract class AbstractDidLogEntryBuilder {
     protected static final String DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME = "versionTime";
     protected static final String DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS = "parameters";
     protected static final String DID_LOG_ENTRY_JSON_PROPERTY_STATE = "state";
+    protected static final String DID_LOG_ENTRY_JSON_PROPERTY_PROOF = "proof";
 
     // Common DID Document attributes
     protected static final String DID_DOC_PROPERTY_ID = "id";
@@ -79,13 +80,11 @@ public abstract class AbstractDidLogEntryBuilder {
     protected void peek(String didLog)
             throws DidLogMetaPeekerException {
 
-        if (getDidMethod().isTdw03()) {
-            this.didLogMeta = TdwDidLogMetaPeeker.peek(didLog);
-        } else if (getDidMethod().isWebVh10()) {
-            this.didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog);
-        } else {
-            throw new IllegalArgumentException("Unsupported DID method");
-        }
+        this.didLogMeta = switch (getDidMethod()) {
+            case DidMethodEnum.TDW_0_3 -> TdwDidLogMetaPeeker.peek(didLog);
+            case DidMethodEnum.WEBVH_1_0 -> WebVerifiableHistoryDidLogMetaPeeker.peek(didLog);
+            default -> throw new IllegalArgumentException("Unsupported DID method");
+        };
     }
 
     /**

@@ -92,7 +92,7 @@ public final class WebVerifiableHistoryDidLogMetaPeeker {
         }
 
         if (jsonSyntaxEx.get() != null) {
-            throw new MalformedWebVerifiableHistoryDidLogMetaPeekerException("Malformed " + DidMethodEnum.WEBVH_1_0.asString() + " log entry (a JSON object expected)", jsonSyntaxEx.get());
+            throw new MalformedWebVerifiableHistoryDidLogMetaPeekerException("Malformed " + DidMethodEnum.WEBVH_1_0 + " log entry (a JSON object expected)", jsonSyntaxEx.get());
         }
 
         if (lastVersionId.get() == null) {

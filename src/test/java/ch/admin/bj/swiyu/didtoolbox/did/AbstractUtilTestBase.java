@@ -2,7 +2,6 @@ package ch.admin.bj.swiyu.didtoolbox.did;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.EdDsaJcs2022JWSSigner;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwCreator;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
@@ -10,6 +9,7 @@ import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwCreator;
 import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryCreator;
 
 import java.io.File;
@@ -214,8 +214,7 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
 
         AtomicReference<String> didLog = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            didLog.set(TdwCreator.builder()
-                    .cryptographicSuite(cryptoSuite)
+            didLog.set(TdwCreator.builder(cryptoSuite)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public.pem")))) // to be able to use VERIFICATION_METHOD_KEY_PROVIDER while updating
@@ -235,8 +234,7 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
      */
     protected static String buildInitialWebVerifiableHistoryDidLogEntry(VcDataIntegrityCryptographicSuite cryptoSuite) {
         try {
-            return WebVerifiableHistoryCreator.builder()
-                    .cryptographicSuite(cryptoSuite)
+            return WebVerifiableHistoryCreator.builder(cryptoSuite)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(
@@ -260,9 +258,8 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
     protected static String buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
             Set<File> nextKeys) {
         try {
-            return WebVerifiableHistoryCreator.builder()
+            return WebVerifiableHistoryCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     // CAUTION Calling .verificationMethodKeyProvider(...) is here irrelevant thus redundant
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeys)) // IMPORTANT denotes key pre-rotation
@@ -285,9 +282,8 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                 // The versionTime of the last entry MUST be earlier than the current time.
                 Thread.sleep(1000);
 
-                var nextLogEntry = DidLogUpdaterContext.builder()
-                        .didMethod(DidMethodEnum.TDW_0_3) // the legacy spec. version thus not default
-                        .cryptographicSuite(cryptoSuite)
+                // the legacy spec. version thus not default
+                var nextLogEntry = DidLogUpdaterContext.builder(DidMethodEnum.TDW_0_3, cryptoSuite)
                         .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                         .build()
@@ -296,8 +292,6 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                 updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
             }
         });
-
-        //System.out.println(updatedDidLog);
 
         return updatedDidLog.toString();
     }
@@ -314,9 +308,7 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                 // The versionTime of the last entry MUST be earlier than the current time.
                 Thread.sleep(1000);
 
-                var nextLogEntry = DidLogUpdaterContext.builder()
-                        //.didMethod(DidMethodEnum.WEBVH_1_0) // default
-                        .cryptographicSuite(cryptoSuite)
+                var nextLogEntry = DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0, cryptoSuite)
                         .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                         .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                         .build()

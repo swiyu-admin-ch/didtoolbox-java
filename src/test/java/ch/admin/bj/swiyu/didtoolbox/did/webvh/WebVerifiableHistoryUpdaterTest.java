@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.MultiHash;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
@@ -59,11 +59,11 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         assertTrue(proof.isJsonObject());
         var proofJsonObj = proof.getAsJsonObject();
         assertTrue(proofJsonObj.has("type"));
-        assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
+        assertEquals(MultiHash.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
         assertTrue(proofJsonObj.has("cryptosuite"));
-        assertEquals(JCSHasher.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
+        assertEquals(MultiHash.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
         assertTrue(proofJsonObj.has("verificationMethod"));
-        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(JCSHasher.DID_KEY));
+        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(MultiHash.DID_KEY));
         assertTrue(proofJsonObj.has("created"));
         /*
         https://identity.foundation/didwebvh/v1.0/#create-register:
@@ -72,7 +72,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         object and the proofPurpose set to assertionMethod."
          */
         assertTrue(proofJsonObj.has("proofPurpose"));
-        assertEquals(JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, proofJsonObj.get("proofPurpose").getAsString());
+        assertEquals(MultiHash.PROOF_PURPOSE_ASSERTION_METHOD, proofJsonObj.get("proofPurpose").getAsString());
         assertTrue(proofJsonObj.has("proofValue"));
     }
 

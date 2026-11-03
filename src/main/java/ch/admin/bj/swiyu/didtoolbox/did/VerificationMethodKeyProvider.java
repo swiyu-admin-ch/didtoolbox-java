@@ -42,5 +42,7 @@ public interface VerificationMethodKeyProvider {
      * @param multibaseEncodedKeys
      * @return
      */
-    boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys);
+    default boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys) {
+         return multibaseEncodedKeys.contains(this.getVerificationKeyMultibase());
+    }
 }
