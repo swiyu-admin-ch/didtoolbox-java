@@ -4,6 +4,7 @@
 
 ### Added
 - HTTP URLs for did logs are no longer allowed, must now be HTTPS `(#1037)`
+- `--verbose` CLI flag to print the full cause chain of an error `(#1034)`
 
 ### Fixed
 
@@ -11,6 +12,7 @@
 - Generate per default Ed25519 keys instead of P-256 for authorization and assertion methods `(#1143)`
 - Improved internal handling of passwords `(#1038)`
 - Deactivating a DID Log with active key pre-rotation generates an intermediate log entry in order to deactivate key pre-rotation before deactivating the log. `(#1137`
+- iss claim no longer added or verified in Proof of Possessions according to swiss-profile-anchor 1.0 `(#1187)`
 
 ### Removed
 

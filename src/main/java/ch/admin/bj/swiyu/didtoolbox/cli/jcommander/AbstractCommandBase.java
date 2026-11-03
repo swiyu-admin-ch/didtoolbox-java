@@ -14,4 +14,8 @@ abstract class AbstractCommandBase {
             description = "Display help for the DID toolbox command",
             help = true)
     public boolean help;
+
+    @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_VERBOSE},
+            description = "On error, print the full cause chain")
+    public boolean verbose;
 }
