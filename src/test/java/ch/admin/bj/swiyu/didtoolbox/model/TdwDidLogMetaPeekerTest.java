@@ -1,6 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
-import ch.admin.bj.swiyu.didtoolbox.AbstractUtilTestBase;
+import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
+import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
+import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.did.tdw.MalformedTdwDidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
 import ch.admin.eid.didresolver.Did;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -81,13 +86,13 @@ class TdwDidLogMetaPeekerTest extends AbstractUtilTestBase {
 
         assertNotNull(meta.get().getLastVersionId());
         assertNotNull(meta.get().getDateTime());
-        assertEquals(4, meta.get().lastVersionNumber);
+        assertEquals(4, meta.get().getLastVersionNumber());
         assertNotNull(meta.get().getParams());
-        assertNotNull(meta.get().getParams().method);
+        assertNotNull(meta.get().getParams().getDidMethodEnum());
         assertEquals(DidMethodEnum.TDW_0_3, meta.get().getParams().getDidMethodEnum());
-        assertNotNull(meta.get().getParams().scid);
-        assertNotNull(meta.get().getParams().updateKeys);
-        assertFalse(meta.get().getParams().updateKeys.isEmpty());
-        assertEquals(1, meta.get().getParams().updateKeys.size());
+        assertNotNull(meta.get().getParams().getScid());
+        assertNotNull(meta.get().getParams().getUpdateKeys());
+        assertFalse(meta.get().getParams().getUpdateKeys().isEmpty());
+        assertEquals(1, meta.get().getParams().getUpdateKeys().size());
     }
 }

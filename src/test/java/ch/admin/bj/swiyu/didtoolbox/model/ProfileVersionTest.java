@@ -1,6 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
 
+import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

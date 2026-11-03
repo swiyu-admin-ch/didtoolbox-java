@@ -1,0 +1,187 @@
+package ch.admin.bj.swiyu.didtoolbox.did.tdw;
+
+import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.net.URL;
+import java.nio.file.Path;
+import java.time.ZonedDateTime;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+// This will suppress all PMD warnings in this (test) class
+@SuppressWarnings({"PMD"})
+public class TdwCreatorTest extends AbstractUtilTestBase {
+
+    public static void assertDidLogEntry(String didLogEntry) {
+
+        assertNotNull(didLogEntry);
+        assertTrue(JsonParser.parseString(didLogEntry).isJsonArray());
+        JsonArray jsonArray = JsonParser.parseString(didLogEntry).getAsJsonArray();
+
+        assertTrue(jsonArray.get(2).isJsonObject());
+        var params = jsonArray.get(2).getAsJsonObject();
+        assertTrue(params.has("method"));
+        assertTrue(params.has("scid"));
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
+
+        assertTrue(jsonArray.get(3).isJsonObject());
+        assertTrue(jsonArray.get(3).getAsJsonObject().has("value"));
+        var didDoc = jsonArray.get(3).getAsJsonObject().get("value").getAsJsonObject();
+        assertTrue(didDoc.has("id"));
+        assertFalse(didDoc.has("profile_version"));
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertFalse(authentication.isEmpty());
+        assertTrue(didDoc.has("assertionMethod"));
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertFalse(assertionMethod.isEmpty());
+        assertTrue(didDoc.has("verificationMethod"));
+        assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertFalse(verificationMethod.isEmpty());
+
+        var proofs = jsonArray.get(4);
+        assertTrue(proofs.isJsonArray());
+        assertFalse(proofs.getAsJsonArray().isEmpty());
+        var proof = proofs.getAsJsonArray().get(0);
+        assertTrue(proof.isJsonObject());
+        var proofJsonObj = proof.getAsJsonObject();
+        assertTrue(proofJsonObj.has("type"));
+        assertEquals(JCSHasher.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
+        assertTrue(proofJsonObj.has("cryptosuite"));
+        assertEquals(JCSHasher.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
+        assertTrue(proofJsonObj.has("verificationMethod"));
+        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(JCSHasher.DID_KEY));
+        assertTrue(proofJsonObj.has("created"));
+        assertTrue(proofJsonObj.has("proofPurpose"));
+        assertEquals(JCSHasher.PROOF_PURPOSE_AUTHENTICATION, proofJsonObj.get("proofPurpose").getAsString());
+        assertTrue(proofJsonObj.has("proofValue"));
+    }
+
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    void testCreate(URL identifierRegistryUrl) {
+
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            // the signing key are generated on-the-fly
+            didLogEntry.set(TdwCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .build()
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
+
+        assertDidLogEntry(didLogEntry.get());
+    }
+
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants (multiple updateKeys)")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    void testCreateWithMultipleUpdateKeys(URL identifierRegistryUrl) {
+
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            // the signing key are generated on-the-fly
+            didLogEntry.set(TdwCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .build()
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
+
+        assertDidLogEntry(didLogEntry.get());
+
+        var params = JsonParser.parseString(didLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
+        assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
+        assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size());// Effectively, it is only 2 distinct keys
+    }
+
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants using Java Keystore (JKS)")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    void testBuildUsingJKS(URL identifierRegistryUrl) {
+
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            didLogEntry.set(TdwCreator.builder(TEST_CRYPTO_SUITE_JKS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .build()
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
+
+        assertDidLogEntry(didLogEntry.get());
+
+        var didDoc = JsonParser.parseString(didLogEntry.get()).getAsJsonArray().get(3).getAsJsonObject().get("value").getAsJsonObject();
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertTrue(authentication.get(0).getAsString().endsWith("#my-auth-key-01")); // created by default
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertTrue(assertionMethod.get(0).getAsString().endsWith("#my-assert-key-01")); // created by default
+        assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("#my-auth-key-01")); // created by default
+        assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("#my-assert-key-01")); // created by default
+    }
+
+    @DisplayName("Building TDW log entry for various identifierRegistryUrl variants (incl. external authentication/assertion keys) using existing keys")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    void testBuildUsingJksWithExternalVerificationMethodKeys(URL identifierRegistryUrl) { // https://www.w3.org/TR/did-core/#assertion
+
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+            didLogEntry.set(TdwCreator.builder(TEST_CRYPTO_SUITE_JKS)
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(TEST_ASSERTION_METHODS)
+                    .build()
+                    // CAUTION datetime is set explicitly here just to be able to run the assert below
+                    .createDidLog(identifierRegistryUrl, ZonedDateTime.parse("2012-12-12T12:12:12Z"))); // MUT
+        });
+
+        assertDidLogEntry(didLogEntry.get());
+
+        var didDoc = JsonParser.parseString(didLogEntry.get()).getAsJsonArray().get(3).getAsJsonObject().get("value").getAsJsonObject();
+        assertTrue(didDoc.get("authentication").isJsonArray());
+        var authentication = didDoc.get("authentication").getAsJsonArray();
+        assertTrue(authentication.get(0).getAsString().endsWith("#my-auth-key-01"));
+        assertTrue(didDoc.get("assertionMethod").isJsonArray());
+        var assertionMethod = didDoc.get("assertionMethod").getAsJsonArray();
+        assertTrue(assertionMethod.get(0).getAsString().endsWith("#my-assert-key-01"));
+        assertTrue(didDoc.get("verificationMethod").isJsonArray());
+        var verificationMethod = didDoc.get("verificationMethod").getAsJsonArray();
+        assertTrue(verificationMethod.get(0).getAsJsonObject().get("id").getAsString().endsWith("#my-auth-key-01"));
+        assertTrue(verificationMethod.get(1).getAsJsonObject().get("id").getAsString().endsWith("#my-assert-key-01"));
+
+        assertTrue("""
+                ["1-QmZQuq3BYUToPVcCizjs1XWUG9LGRnyMmXLSos5fB7nRnd","2012-12-12T12:12:12Z",{"method":"did:tdw:0.3","scid":"QmcqDmAkySR3eCUriL8Rgs35hS8CK7PZr8krVPbrbN62TW","updateKeys":["z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP"],"portable":false},{"value":{"id":"did:tdw:QmcqDmAkySR3eCUriL8Rgs35hS8CK7PZr8krVPbrbN62TW:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","authentication":["did:tdw:QmcqDmAkySR3eCUriL8Rgs35hS8CK7PZr8krVPbrbN62TW:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01"],"assertionMethod":["did:tdw:QmcqDmAkySR3eCUriL8Rgs35hS8CK7PZr8krVPbrbN62TW:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmcqDmAkySR3eCUriL8Rgs35hS8CK7PZr8krVPbrbN62TW:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-auth-key-01","controller":"did:tdw:QmcqDmAkySR3eCUriL8Rgs35hS8CK7PZr8krVPbrbN62TW:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-auth-key-01","x":"-MUDoZjNImUbo0vNmdAqhAOPdJoptUC0tlK9xvLrqDg","y":"Djlu_TF69xQF5_L3px2FmCDQksM_fIp6kKbHRQLVIb0"}},{"id":"did:tdw:QmcqDmAkySR3eCUriL8Rgs35hS8CK7PZr8krVPbrbN62TW:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085#my-assert-key-01","controller":"did:tdw:QmcqDmAkySR3eCUriL8Rgs35hS8CK7PZr8krVPbrbN62TW:identifier-reg.trust-infra.swiyu-int.admin.ch:api:v1:did:18fa7c77-9dd1-4e20-a147-fb1bec146085","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"my-assert-key-01","x":"wdET0dp6vq59s1yyVh_XXyIPPU9Co7PlcTPMRRXx85Y","y":"eThC9-NetN-oXA5WU0Dn0eed7fgHtsXs2E3mU82pA9k"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2012-12-12T12:12:12Z","verificationMethod":"did:key:z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP#z6MkvdAjfVZ2CWa38V2VgZvZVjSkENZpiuiV5gyRKsXDA8UP","proofPurpose":"authentication","challenge":"1-QmZQuq3BYUToPVcCizjs1XWUG9LGRnyMmXLSos5fB7nRnd","proofValue":"z2H7zsAqfwPMk5f5nprbe7WBSkAEzUfuwV3YT9gYFWwSf8wuF4mFHJ1cqmNM2g1mTcCY2wJCz5nVz4DBsnoG5xBwi"}]]
+                """.contains(didLogEntry.get()));
+    }
+
+    @DisplayName("Building DID log entry without cryptographic suite (or verification material) throws IncompleteDidLogEntryBuilderException")
+    @Test
+    void testCreateDidLogWithoutCryptographicSuiteThrowsIncompleteDidLogEntryBuilderException() {
+        assertThrowsExactly(NullPointerException.class, () -> {
+            // IMPORTANT provide null as crypto suite intentionally (no cryptographic suite supplied)
+            TdwCreator.builder(null);
+        });
+    }
+}

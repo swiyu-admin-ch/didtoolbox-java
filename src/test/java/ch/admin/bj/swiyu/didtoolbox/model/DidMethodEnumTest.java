@@ -1,5 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
+import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
