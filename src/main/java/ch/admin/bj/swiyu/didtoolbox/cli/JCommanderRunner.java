@@ -132,9 +132,7 @@ public final class JCommanderRunner {
         jc.getConsole().println(DidLogCreatorContext.builder(didMethod, cryptoSuite)
                 .assertionMethods(assertionMethods)
                 .authentications(authentications)
-                // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
                 .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
-                // Instead of calling deprecated .nextKeys(nextKeyPemFiles)
                 .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeyPemFiles))
                 .build()
                 .create(identifierRegistryUrl));
@@ -188,9 +186,7 @@ public final class JCommanderRunner {
                 DidLogUpdaterContext.builder(didLogMeta.getParams().getDidMethodEnum(), cryptoSuite)
                         .assertionMethods(assertionMethods)
                         .authentications(authentications)
-                        // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
                         .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
-                        // Instead of calling deprecated .nextKeys(nextVerifyingKeyPemFiles)
                         .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextVerifyingKeyPemFiles))
                         .build()
                         .update(didLogFile));

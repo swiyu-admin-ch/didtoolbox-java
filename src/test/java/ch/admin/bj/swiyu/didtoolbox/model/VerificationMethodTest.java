@@ -32,8 +32,7 @@ class VerificationMethodTest {
                 "kid": "assert-key-01"
             }
             """;
-        var method = VerificationMethod.of("fragment", "JsonWebKey2020", jwk);
-        assertEquals("JsonWebKey2020", method.getType());
+        var method = VerificationMethod.of("fragment", jwk);
         assertEquals("fragment", method.getIdFragment());
         method.getVerificationMaterial().getPublicKeyJwk();
     }
@@ -41,7 +40,7 @@ class VerificationMethodTest {
     @Test
     void verificationMethodOfJWK_withValidEdDSA25519_returnsVerificationMethod() throws VerificationMethodException, JOSEException {
         var jwk = Ed25519SigningKey.Companion.generate().getVerifyingKey().toJwk();
-        var method = VerificationMethod.of("fragment", "JsonWebKey2020", jwk);
+        var method = VerificationMethod.of("fragment",  jwk);
         assertEquals("fragment", method.getIdFragment());
         method.getVerificationMaterial().getPublicKeyJwk();
     }

@@ -56,7 +56,7 @@ class AbstractKeyMaterialDidLogCommandTest {
         assertEquals(2, tmpDir.toFile().listFiles().length);
 
         assertDoesNotThrow(() -> {
-            var jwk = JwkUtils.loadECPublicJWKasJSON(new File(tmpDir.toString(), "assert-key-01.pub"), "foo");
+            var jwk = JwkUtils.loadECPublicJWKasJSON(Path.of(tmpDir.toString(), "assert-key-01.pub"), "foo");
             var jsonJwk = JsonParser.parseString(jwk).getAsJsonObject();
             var crv = jsonJwk.get("crv");
             assertEquals("P-256", crv.getAsString());
@@ -78,7 +78,7 @@ class AbstractKeyMaterialDidLogCommandTest {
         assertEquals(2, tmpDir.toFile().listFiles().length);
 
         assertDoesNotThrow(() -> {
-            var jwk = JwkUtils.loadECPublicJWKasJSON(new File(tmpDir.toString(), "assert-key-01.pub"), "foo");
+            var jwk = JwkUtils.loadECPublicJWKasJSON(Path.of(tmpDir.toString(), "assert-key-01.pub"), "foo");
             var jsonJwk = JsonParser.parseString(jwk).getAsJsonObject();
             var crv = jsonJwk.get("crv");
             assertEquals("Ed25519", crv.getAsString());
