@@ -13,6 +13,7 @@
 - Improved internal handling of passwords `(#1038)`
 - Deactivating a DID Log with active key pre-rotation generates an intermediate log entry in order to deactivate key pre-rotation before deactivating the log. `(#1137`
 - iss claim no longer added or verified in Proof of Possessions according to swiss-profile-anchor 1.0 `(#1187)`
+- Internal: split `JCommanderRunner` into one runner per CLI command and moved key-source handling (PEM / JKS / Primus) into dedicated `KeyMaterialLoader` implementations
 
 ### Removed
 
