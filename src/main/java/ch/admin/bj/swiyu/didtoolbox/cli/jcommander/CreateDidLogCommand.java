@@ -24,12 +24,8 @@ import java.net.URL;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
-public class CreateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
-
-    @Override
-    String getCommandName() {
-        return COMMAND_NAME;
-    }
+@SuppressWarnings("PMD.DataClass") // JCommander parameter holder: fields are populated reflectively and read by the command runners
+public class CreateDidLogCommand extends KeyMaterialDidLogCommand {
 
     public static final String COMMAND_NAME = "create";
 

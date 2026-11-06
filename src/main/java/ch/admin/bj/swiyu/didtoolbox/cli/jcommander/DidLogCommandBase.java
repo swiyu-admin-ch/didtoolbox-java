@@ -14,10 +14,11 @@ import java.io.File;
 /**
  * The base class for all Command classes in the package that focus on DID logs.
  */
-public abstract class AbstractDidLogCommandBase extends AbstractCommandBase {
+@SuppressWarnings("PMD.DataClass") // JCommander parameter holder: fields are populated reflectively and read by the command runners
+public class DidLogCommandBase extends CommandBase {
 
-    @Override
-    abstract String getCommandName();
+    protected DidLogCommandBase() { // not meant to be instantiated directly
+    }
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_SIGNING_KEY_FILE, CommandParameterNames.PARAM_NAME_SHORT_SIGNING_KEY_FILE},
             description = "The ed25519 private key file required for signing a DID log entry or a PoP JWT. In PEM Format. " +

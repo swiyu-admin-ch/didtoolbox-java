@@ -88,19 +88,8 @@ public class Main {
             return 1;
         }
 
-        var commandRunner = new JCommanderRunner(jc, parsedCommandName);
         try {
-            switch (parsedCommandName) {
-                case CreateDidLogCommand.COMMAND_NAME -> commandRunner.runCreateDidLogCommand(createDidLogCommand);
-                case UpdateDidLogCommand.COMMAND_NAME -> commandRunner.runUpdateDidLogCommand(updateDidLogCommand);
-                case DeactivateDidLogCommand.COMMAND_NAME ->
-                        commandRunner.runDeactivateDidLogCommand(deactivateCommand);
-                case CreateProofOfPossessionCommand.COMMAND_NAME ->
-                        commandRunner.runPoPCreateCommand(createProofOfPossessionCommand);
-                case VerifyProofOfPossessionCommand.COMMAND_NAME ->
-                        commandRunner.runPoPVerifyCommand(verifyProofOfPossessionCommand);
-                default -> printCommandError(jc, null, "Invalid command: " + parsedCommandName, null, false);
-            };
+            new JCommanderRunner(jc, parsedCommandName).run();
             return 0;
         } catch (Exception e) { // NOPMD AvoidCatchingGenericException: catch generic exception to always print proper error message
             return printCommandError(jc, parsedCommandName, "Failed to run '" + parsedCommandName + "' command due to: " + e.getLocalizedMessage(), e, verbose);

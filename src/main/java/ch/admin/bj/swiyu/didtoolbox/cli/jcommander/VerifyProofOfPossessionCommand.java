@@ -16,12 +16,8 @@ import java.io.File;
         commandDescription = "Verifies the validity of the provided proof of possession JWT.",
         parametersValidators = {CommandParametersValidator.class}
 )
-public class VerifyProofOfPossessionCommand extends AbstractCommandBase {
-
-    @Override
-    String getCommandName() {
-        return COMMAND_NAME;
-    }
+@SuppressWarnings("PMD.DataClass") // JCommander parameter holder: fields are populated reflectively and read by the command runners
+public class VerifyProofOfPossessionCommand extends CommandBase {
 
     public final static String COMMAND_NAME = "verify-pop";
 

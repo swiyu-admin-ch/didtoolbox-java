@@ -16,13 +16,9 @@ import java.io.File;
         commandDescription = "Create a proof of possession JWT signed with the provided private key that expires after 24 hours. ",
         parametersValidators = {CommandParametersValidator.class}
 )
-public class CreateProofOfPossessionCommand extends AbstractCommandBase {
+@SuppressWarnings("PMD.DataClass") // JCommander parameter holder: fields are populated reflectively and read by the command runners
+public class CreateProofOfPossessionCommand extends CommandBase {
     final public static String COMMAND_NAME = "create-pop";
-
-    @Override
-    String getCommandName() {
-        return COMMAND_NAME;
-    }
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_NONCE, CommandParameterNames.PARAM_NAME_SHORT_NONCE},
             description = "Possession which will be proven by the JWT.",

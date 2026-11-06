@@ -740,7 +740,7 @@ java -jar didtoolbox.jar verify-pop -d did.jsonl -n "Another Nonce" -j $(cat jwt
 # Failed to run 'verify-pop' command due to: Provided JWT is invalid: Proof of Possession is NOT for nonce 'Another Nonce'
 #
 # Cause chain:
-# ch.admin.bj.swiyu.didtoolbox.JCommanderRunner$CommandException:
+# ch.admin.bj.swiyu.didtoolbox.cli.CommandException:
 #     Provided JWT is invalid: Proof of Possession is NOT for nonce 'Another Nonce'
 # Caused by: ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException:
 #     Proof of Possession is NOT for nonce 'Another Nonce'
