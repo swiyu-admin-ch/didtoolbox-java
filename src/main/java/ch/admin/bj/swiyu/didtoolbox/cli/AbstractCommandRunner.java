@@ -1,6 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.AbstractCommandBase;
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandBase;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
@@ -18,7 +18,7 @@ import java.nio.file.Files;
  *
  * @param <C> type of the command to run
  */
-abstract class AbstractCommandRunner<C extends AbstractCommandBase> {
+abstract class AbstractCommandRunner<C extends CommandBase> {
 
     private final JCommander jc;
     private final String commandName;

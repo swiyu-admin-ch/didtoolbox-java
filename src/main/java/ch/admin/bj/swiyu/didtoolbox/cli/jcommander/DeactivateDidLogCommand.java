@@ -21,12 +21,7 @@ import java.io.File;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
-public class DeactivateDidLogCommand extends AbstractDidLogCommandBase {
-
-    @Override
-    String getCommandName() {
-        return COMMAND_NAME;
-    }
+public class DeactivateDidLogCommand extends DidLogCommandBase {
 
     final public static String COMMAND_NAME = "deactivate";
 

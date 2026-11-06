@@ -24,12 +24,7 @@ import static ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandParameterNames.
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
-public class UpdateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
-
-    @Override
-    String getCommandName() {
-        return COMMAND_NAME;
-    }
+public class UpdateDidLogCommand extends KeyMaterialDidLogCommand {
 
     final public static String COMMAND_NAME = "update";
 

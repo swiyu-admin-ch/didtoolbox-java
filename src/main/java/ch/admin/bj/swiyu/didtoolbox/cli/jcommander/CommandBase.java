@@ -5,9 +5,10 @@ import com.beust.jcommander.Parameter;
 /**
  * The base class for all Command classes in the package.
  */
-public abstract class AbstractCommandBase {
+public class CommandBase {
 
-    abstract String getCommandName();
+    protected CommandBase() { // not meant to be instantiated directly
+    }
 
     @Parameter(names = {CommandParameterNames.PARAM_NAME_LONG_USAGE, CommandParameterNames.PARAM_NAME_SHORT_USAGE},
             description = "Display help for the DID toolbox command",

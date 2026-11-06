@@ -1,11 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.AbstractKeyMaterialDidLogCommand;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CreateDidLogCommand;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CreateProofOfPossessionCommand;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.DeactivateDidLogCommand;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.UpdateDidLogCommand;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.VerifyProofOfPossessionCommand;
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.parameter.VerificationMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner;
@@ -58,7 +53,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         }
     });
 
-    private static void setKeyMaterial(AbstractKeyMaterialDidLogCommand command) throws IOException, InvalidKeySpecException {
+    private static void setKeyMaterial(KeyMaterialDidLogCommand command) throws IOException, InvalidKeySpecException {
         command.assertionMethodKeys = Set.of(new VerificationMethodParameters("my-assert-key-01",
                 JwkUtils.loadECPublicJWKasJSON(Path.of("src/test/data/assert-key-01.pub"), "my-assert-key-01")));
         command.authenticationKeys = Set.of(new VerificationMethodParameters("my-auth-key-01",
@@ -72,7 +67,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunPrintsUsageOnHelp(@TempDir Path tmpDir) {
+    void run_helpRequested_printsUsageOnly(@TempDir Path tmpDir) {
         var command = new CreateDidLogCommand();
         command.help = true;
 
@@ -89,7 +84,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunUnknownCommandFails(@TempDir Path tmpDir) {
+    void run_unknownCommand_throwsCommandException(@TempDir Path tmpDir) {
         assertThrowsExactly(CommandException.class, () -> new JCommanderRunner(jCommanderBuilder
                 .addCommand(CreateDidLogCommand.COMMAND_NAME, new CreateDidLogCommand())
                 .build(),
@@ -102,7 +97,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunCreateDidLogCommand(@TempDir Path tmpDir) {
+    void run_createDidLog_printsLogAndPersistsGeneratedKey(@TempDir Path tmpDir) {
 
         // REMINDER By default, command.methodVersion is set to DidMethodEnum.WEBVH_1_0
         var command = new CreateDidLogCommand();
@@ -136,7 +131,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunCreateDidLogCommandWithKeyPrerotation(@TempDir Path tmpDir) {
+    void run_createDidLogWithKeyPrerotation_printsLogWithPrerotatedKeys(@TempDir Path tmpDir) {
 
         // REMINDER By default, command.methodVersion is set to DidMethodEnum.WEBVH_1_0
         var command = new CreateDidLogCommand();
@@ -166,7 +161,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunUpdateDidLogCommand() {
+    void run_updateDidLog_appendsEntry() {
         var command = new UpdateDidLogCommand();
         command.didLogFile = writeStringToTempFile(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS));
         command.signingKeyPemFile = new File(TEST_DATA_PATH_PREFIX + "private.pem"); // must match the updateKey set by the initial entry
@@ -186,7 +181,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunUpdateDidLogCommandWithKeyPrerotation() {
+    void run_updateDidLogWithKeyPrerotation_appendsEntryWithNextPrerotatedKeys() {
         var command = new UpdateDidLogCommand();
         command.didLogFile = writeStringToTempFile(buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(Set.of(
                 TEST_KEY_FILES[0] // the (single) pre-rotation key to be used when building the next DID log entry
@@ -211,7 +206,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunUpdateDidLogCommandUsingJks() {
+    void run_updateDidLogUsingJks_appendsEntry() {
         var command = new UpdateDidLogCommand();
         command.didLogFile = writeStringToTempFile(
                 buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS) // matches "myalias" key from "mykeystore.jks"
@@ -234,7 +229,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunUpdateDidLogCommandWithKeyPrerotationUsingJksThrowsIllegalSigningKeyCommandException() {
+    void run_updateDidLogWithKeyPrerotationAndNonPrerotatedJksKey_throwsCommandException() {
         var command = new UpdateDidLogCommand();
         command.didLogFile = writeStringToTempFile(buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(Set.of(
                 TEST_KEY_FILES[0]
@@ -261,7 +256,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testMultipleRunUpdateDidLogCommandWithKeyPrerotationUsingJks() {
+    void run_repeatedUpdateDidLogWithKeyPrerotation_rotatesKeysAndDeactivatesPrerotation() {
         var command1 = new UpdateDidLogCommand();
         command1.didLogFile = writeStringToTempFile(buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(Set.of(
                 new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches "myalias" key from "mykeystore.jks"
@@ -331,7 +326,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunDeactivateDidLogCommand() {
+    void run_deactivateDidLog_appendsDeactivatingEntry() {
         var didLog = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS);
 
         var command = new DeactivateDidLogCommand();
@@ -352,7 +347,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunCreateProofOfPossessionCommand() {
+    void run_createProofOfPossession_printsValidJwt() {
         var didLog = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         var command = new CreateProofOfPossessionCommand();
@@ -377,7 +372,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void testRunVerifyProofOfPossessionCommand() {
+    void run_verifyProofOfPossession_printsValidMessage() {
         var didLog = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
 
         var command = new VerifyProofOfPossessionCommand();

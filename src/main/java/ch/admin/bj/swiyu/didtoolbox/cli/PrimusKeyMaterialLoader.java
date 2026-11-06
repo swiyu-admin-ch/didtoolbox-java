@@ -21,8 +21,13 @@ final class PrimusKeyMaterialLoader implements KeyMaterialLoader {
 
     private final PrimusKeyStoreLoader primusKeyStoreLoader;
     private final String alias;
-    private final String password;
+    private final String password; // optional, may be null
 
+    /**
+     * @param primusKeyStoreLoader to recover the key pair from
+     * @param alias                of the key pair
+     * @param password             for recovering the key pair, optional i.e. may be {@code null}
+     */
     PrimusKeyMaterialLoader(PrimusKeyStoreLoader primusKeyStoreLoader, String alias, String password) {
         this.primusKeyStoreLoader = primusKeyStoreLoader;
         this.alias = alias;
@@ -31,22 +36,36 @@ final class PrimusKeyMaterialLoader implements KeyMaterialLoader {
 
     @Override
     public VcDataIntegrityCryptographicSuite loadCryptographicSuite() throws VcDataIntegrityCryptographicSuiteException {
-        var passwordChars = password.toCharArray();
+        var passwordChars = passwordChars();
         try {
             return new PrimusEd25519VerificationMethodKeyProviderImpl(primusKeyStoreLoader, alias, passwordChars); // supplied external key pair
         } catch (UnrecoverableEntryException | KeyStoreException | NoSuchAlgorithmException | KeyException e) {
             throw new VcDataIntegrityCryptographicSuiteException("Failed to initialize primus:" + e.getMessage(), e);
         } finally {
-            Arrays.fill(passwordChars, ' ');
+            wipe(passwordChars);
         }
     }
 
     @Override
     public ProofOfPossessionJWSSigner loadProofOfPossessionSigner(String kid) throws GeneralSecurityException, JOSEException {
-        var passwordChars = password.toCharArray();
+        var passwordChars = passwordChars();
         try {
             return ProofOfPossessionJWSSigner.of(primusKeyStoreLoader, alias, passwordChars, kid);
         } finally {
+            wipe(passwordChars);
+        }
+    }
+
+    /**
+     * The password is optional (see the CLI parameter description), so {@code null} is passed on as is, which
+     * {@link PrimusKeyStoreLoader#loadKeyPair(String, char[])} explicitly supports.
+     */
+    private char[] passwordChars() {
+        return password == null ? null : password.toCharArray();
+    }
+
+    private static void wipe(char[] passwordChars) {
+        if (passwordChars != null) {
             Arrays.fill(passwordChars, ' ');
         }
     }

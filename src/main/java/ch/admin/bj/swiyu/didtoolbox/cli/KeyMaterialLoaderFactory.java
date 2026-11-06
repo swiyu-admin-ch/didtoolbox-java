@@ -1,6 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.AbstractDidLogCommandBase;
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.DidLogCommandBase;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CreateProofOfPossessionCommand;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader;
 
@@ -23,7 +23,7 @@ final class KeyMaterialLoaderFactory {
      * @param command containing the key source parameters
      * @return the matching loader, or {@link Optional#empty()} if no (complete) key source is supplied
      */
-    static Optional<KeyMaterialLoader> from(AbstractDidLogCommandBase command) {
+    static Optional<KeyMaterialLoader> from(DidLogCommandBase command) {
         return pem(command.signingKeyPemFile)
                 .or(() -> jks(command.jksFile, command.jksPassword, command.jksAlias))
                 .or(() -> primus(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, command.primusKeyPassword));

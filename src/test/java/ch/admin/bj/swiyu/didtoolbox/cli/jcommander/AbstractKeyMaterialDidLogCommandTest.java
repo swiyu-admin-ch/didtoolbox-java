@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.AbstractKeyMaterialDidLogCommand;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.parameter.VerificationMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm;
 import com.google.gson.JsonParser;
@@ -26,7 +25,7 @@ class AbstractKeyMaterialDidLogCommandTest {
     """;
 
     // Extends AbstractKeyMaterialDidLogCommand to test that class
-    private static class Command extends AbstractKeyMaterialDidLogCommand {}
+    private static class Command extends KeyMaterialDidLogCommand {}
 
     @Test
     void getAssertionMethods_noMethodsProvided_generateKeys(@TempDir Path tmpDir) {
