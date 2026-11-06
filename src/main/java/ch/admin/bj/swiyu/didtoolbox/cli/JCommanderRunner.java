@@ -102,11 +102,7 @@ public final class JCommanderRunner {
 
         var identifierRegistryUrl = command.identifierRegistryUrl;
 
-        var didMethod = command.methodVersion; // may return null
-        if (didMethod == null) {
-            didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
-        }
-
+        var didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION;
         var assertionMethods = command.getAssertionMethods(getOutputDir().toPath());
         var authentications = command.getAuthentications(getOutputDir().toPath());
 

@@ -17,14 +17,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -231,10 +227,7 @@ public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCrea
          */
         JsonArray proofs = new JsonArray();
         try {
-            var proof = this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, "authentication", zdt);
-            // CAUTION Set proper "verificationMethod"
-            proof.addProperty("verificationMethod", "did:key:" + this.getCryptographicSuite().getVerificationKeyMultibase() + '#' + this.getCryptographicSuite().getVerificationKeyMultibase());
-            proofs.add(proof);
+            proofs.add(this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_AUTHENTICATION, zdt));
         } catch (VcDataIntegrityCryptographicSuiteException e) {
             throw new DidLogCreatorStrategyException("Fail to build DID doc data integrity proof", e);
         }

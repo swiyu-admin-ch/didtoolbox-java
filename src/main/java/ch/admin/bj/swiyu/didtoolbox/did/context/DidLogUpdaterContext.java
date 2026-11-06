@@ -97,7 +97,6 @@ import java.util.Set;
 @Getter
 public class DidLogUpdaterContext {
 
-    // TODO@MP maybe add constructor setting default method (goes for the creator and deactivator as well
     /**
      * Constructs a builder for updating did logs with the provided crypto suite
      * @param method version of the did log (WEBVH or TDW)

@@ -1,7 +1,9 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,13 +18,12 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-// TODO@MP adapt class to test PrimusEd25519VerificationMethodKeyProvider
 
 // This will suppress all the PMD warnings in this (test) class
 @SuppressWarnings("PMD")
@@ -98,10 +99,8 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
         });
     }
 
-    // TODO@MP
     @Test
     public void testAddProof() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
-        /*
         assertDoesNotThrow(() -> {
             var privateKeyPemFile = Files.createTempFile("myprivatekey", "");
             var publicKeyPemFile = Files.createTempFile("mypublickey", "");
@@ -110,37 +109,31 @@ class Ed25519VerificationMethodKeyProviderImplTest extends AbstractUtilTestBase 
             cryptoSuite.writePkcs8PemFile(privateKeyPemFile);
             cryptoSuite.writePublicKeyPemFile(publicKeyPemFile);
 
-            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-            var credentialsWithProof = new Ed25519VerificationMethodKeyProviderImpl(
-                    Files.newBufferedReader(privateKeyPemFile), Files.newBufferedReader(publicKeyPemFile))
-                    .addProof(
-                            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
-                            """
-                                    {
-                                         "@context": [
-                                             "https://www.w3.org/ns/credentials/v2",
-                                             "https://www.w3.org/ns/credentials/examples/v2"
-                                         ],
-                                         "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
-                                         "type": ["VerifiableCredential", "AlumniCredential"],
-                                         "name": "Alumni Credential",
-                                         "description": "A minimum viable example of an Alumni Credential.",
-                                         "issuer": "https://vc.example/issuers/5678",
-                                         "validFrom": "2023-01-01T00:00:00Z",
-                                         "credentialSubject": {
-                                             "id": "did:example:abcdefgh",
-                                             "alumniOf": "The School of Examples"
-                                         }
-                                    }
-                                    """, null, // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
-                            "assertionMethod", ZonedDateTime.parse("2023-02-24T23:36:38Z")); // MUT
-
+            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-credential-without-proof-0
+            var document = JsonParser.parseString("""
+                            {
+                                 "@context": [
+                                     "https://www.w3.org/ns/credentials/v2",
+                                     "https://www.w3.org/ns/credentials/examples/v2"
+                                 ],
+                                 "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
+                                 "type": ["VerifiableCredential", "AlumniCredential"],
+                                 "name": "Alumni Credential",
+                                 "description": "A minimum viable example of an Alumni Credential.",
+                                 "issuer": "https://vc.example/issuers/5678",
+                                 "validFrom": "2023-01-01T00:00:00Z",
+                                 "credentialSubject": {
+                                     "id": "did:example:abcdefgh",
+                                     "alumniOf": "The School of Examples"
+                                 }
+                            }
+                            """);
+            var proof = cryptoSuite.buildDataIntegrityProof(document.getAsJsonObject(), null, "assertionMethod", ZonedDateTime.parse("2023-02-24T23:36:38Z"));
             // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-signature-of-combined-hashes-base58-btc-1
-            assertEquals("z2HnFSSPPBzR36zdDgK8PbEHeXbR56YF24jwMpt3R1eHXQzJDMWS93FCzpvJpwTWd3GAVFuUfjoJdcnTMuVor51aX", JsonParser.parseString(credentialsWithProof).getAsJsonObject().get("proof").getAsJsonArray().get(0).getAsJsonObject().get("proofValue").getAsString());
+            assertEquals("z2HnFSSPPBzR36zdDgK8PbEHeXbR56YF24jwMpt3R1eHXQzJDMWS93FCzpvJpwTWd3GAVFuUfjoJdcnTMuVor51aX", proof.get("proofValue").getAsString());
 
             Files.deleteIfExists(privateKeyPemFile);
             Files.deleteIfExists(publicKeyPemFile);
         });
-        */
     }
 }

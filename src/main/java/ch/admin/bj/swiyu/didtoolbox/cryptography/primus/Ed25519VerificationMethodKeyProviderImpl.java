@@ -233,7 +233,6 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
         }
     }
 
-    // TODO@MP create keystore util and move there
     /**
      * Yet another static helper. Self-explanatory.
      *

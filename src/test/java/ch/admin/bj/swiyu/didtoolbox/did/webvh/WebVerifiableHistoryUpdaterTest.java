@@ -59,11 +59,11 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         assertTrue(proof.isJsonObject());
         var proofJsonObj = proof.getAsJsonObject();
         assertTrue(proofJsonObj.has("type"));
-        assertEquals(MultiHash.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
+        assertEquals(VcDataIntegrityCryptographicSuite.DATA_INTEGRITY_PROOF, proofJsonObj.get("type").getAsString());
         assertTrue(proofJsonObj.has("cryptosuite"));
-        assertEquals(MultiHash.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
+        assertEquals(VcDataIntegrityCryptographicSuite.EDDSA_JCS_2022, proofJsonObj.get("cryptosuite").getAsString());
         assertTrue(proofJsonObj.has("verificationMethod"));
-        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(MultiHash.DID_KEY));
+        assertTrue(proofJsonObj.get("verificationMethod").getAsString().startsWith(VcDataIntegrityCryptographicSuite.DID_KEY));
         assertTrue(proofJsonObj.has("created"));
         /*
         https://identity.foundation/didwebvh/v1.0/#create-register:
@@ -72,7 +72,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         object and the proofPurpose set to assertionMethod."
          */
         assertTrue(proofJsonObj.has("proofPurpose"));
-        assertEquals(MultiHash.PROOF_PURPOSE_ASSERTION_METHOD, proofJsonObj.get("proofPurpose").getAsString());
+        assertEquals(VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_ASSERTION_METHOD, proofJsonObj.get("proofPurpose").getAsString());
         assertTrue(proofJsonObj.has("proofValue"));
     }
 

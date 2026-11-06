@@ -24,6 +24,12 @@ import java.util.HexFormat;
  */
 @SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface VcDataIntegrityCryptographicSuite extends VerificationMethodKeyProvider {
+    String DATA_INTEGRITY_PROOF = "DataIntegrityProof";
+    String EDDSA_JCS_2022 = "eddsa-jcs-2022";
+    String DID_KEY = "did:key:";
+    String PROOF_PURPOSE_AUTHENTICATION = "authentication";
+    String PROOF_PURPOSE_ASSERTION_METHOD = "assertionMethod";
+
     /**
      * Verify a <b>data integrity proof</b> ("a set of attributes that represent a digital proof and the parameters required to verify it. A digital signature is a type of data integrity proof.")
      * given a "<b>secured data document</b> ("a map (JSON object) that contains one or more proof values"),
@@ -84,6 +90,13 @@ public interface VcDataIntegrityCryptographicSuite extends VerificationMethodKey
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         var proof = new JsonObject();
+
+        // According to https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022:
+        // 2) If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context.
+        var ctx = unsecuredDocument.get("@context");
+        if (ctx != null) {
+            proof.add("@context", ctx);
+        }
 
         proof.addProperty("type", DATA_INTEGRITY_PROOF);
         // According to https://www.w3.org/TR/vc-di-eddsa/#proof-configuration-eddsa-jcs-2022

@@ -213,7 +213,9 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         for (var ctx : this.didLogMeta.getDidDoc().getContext()) {
             context.add(ctx);
         }
-        didDoc.add("@context", context);
+        if (!this.didLogMeta.getDidDoc().getContext().isEmpty()) {
+            didDoc.add("@context", context);
+        }
 
         didDoc.addProperty("id", this.didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
@@ -316,10 +318,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
          */
         var proofs = new JsonArray();
         try {
-            var proof = this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, "authentication", zdt);
-            // CAUTION Set proper "verificationMethod"
-            proof.addProperty("verificationMethod", "did:key:" + this.getCryptographicSuite().getVerificationKeyMultibase() + '#' + this.getCryptographicSuite().getVerificationKeyMultibase());
-            proofs.add(proof);
+            proofs.add(this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_AUTHENTICATION, zdt));
         } catch (VcDataIntegrityCryptographicSuiteException e) {
             throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }

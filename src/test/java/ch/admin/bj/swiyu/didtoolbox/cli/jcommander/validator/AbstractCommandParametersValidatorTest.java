@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SuppressWarnings("PMD")
 abstract class AbstractCommandParametersValidatorTest {
 
-    protected static final String TEST_DATA_PATH_PREFIX = "src/test/data/";
+    public static final String TEST_DATA_PATH_PREFIX = "src/test/data/";
 
     protected static final String CREDENTIALS_FILE_PATH = "src/test/data/com.securosys.primus.jce.credentials.properties";
 

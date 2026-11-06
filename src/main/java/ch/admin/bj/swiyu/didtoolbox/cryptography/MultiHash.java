@@ -7,13 +7,6 @@ import java.security.NoSuchAlgorithmException;
 
 public final class MultiHash {
 
-    // TODO@MP move to their proper place
-    public static final String DATA_INTEGRITY_PROOF = "DataIntegrityProof";
-    public static final String EDDSA_JCS_2022 = "eddsa-jcs-2022";
-    public static final String DID_KEY = "did:key:";
-    public static final String PROOF_PURPOSE_AUTHENTICATION = "authentication";
-    public static final String PROOF_PURPOSE_ASSERTION_METHOD = "assertionMethod";
-
     private MultiHash() {
     }
 

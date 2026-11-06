@@ -341,7 +341,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         try (var did = new Did(super.didLogMeta.getDidDoc().getId())) {
             var proofs = new JsonArray();
             proofs.add(this.getCryptographicSuite().buildDataIntegrityProof(
-                    didLogEntryJson, null, MultiHash.PROOF_PURPOSE_ASSERTION_METHOD, zdt));
+                    didLogEntryJson, null, VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_ASSERTION_METHOD, zdt));
             didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PROOF, proofs);
             var didLogEntry = didLogEntryJson.toString();
 

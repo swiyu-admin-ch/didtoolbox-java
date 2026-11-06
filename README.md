@@ -1,4 +1,4 @@
-![swiyu GitHub banner](https://github.com/swiyu-admin-ch/swiyu-admin-ch.github.io/blob/main/assets/images/github-banner.jpg)
+/![swiyu GitHub banner](https://github.com/swiyu-admin-ch/swiyu-admin-ch.github.io/blob/main/assets/images/github-banner.jpg)
 
 # DID-Toolbox
 
@@ -113,10 +113,8 @@ Usage: didtoolbox [options] [command] [command options]
             Java KeyStore password used to check the integrity of the keystore, the password used to unlock the keystore. This CLI parameter should 
             always be used exclusively alongside all the other --jks-* CLI parameters
           --method-version, -m
-            Defines the DID method specification version to use when generating a DID log. Case-insensitive. Valid values: 'did:tdw:0.3', 
-            'did:webvh:1.0' 
+            Options: [did:tdw:0.3, did:webvh:1.0]
             Default: did:webvh:1.0
-            Possible Values: [did:tdw:0.3, did:webvh:1.0]
           --primus-credentials, -p
             A safely stored credentials file required when using (signing/verifying) keys available in the Securosys Primus (HSM) Keystore. It should 
             feature a quartet of the following properties: securosys_primus_host, securosys_primus_port, securosys_primus_user and 
@@ -303,7 +301,7 @@ Usage: didtoolbox [options] [command] [command options]
             Default: false
 
 $ java -jar didtoolbox.jar -V
-didtoolbox 2.1.0
+didtoolbox 2.3.0
 ```
 
 ## Quickstart – Create Your First DID

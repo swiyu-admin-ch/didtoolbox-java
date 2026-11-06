@@ -217,11 +217,7 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
          */
         var proofs = new JsonArray();
         try {
-            var proof = this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, "authentication", zdt);
-            // CAUTION Set proper "verificationMethod"
-            // TODO@MP check if this is still necessary or now covered by buildDataIntegrityProof
-            proof.addProperty("verificationMethod", "did:key:" + this.getCryptographicSuite().getVerificationKeyMultibase() + '#' + this.getCryptographicSuite().getVerificationKeyMultibase());
-            proofs.add(proof);
+            proofs.add(this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_AUTHENTICATION, zdt));
         } catch (VcDataIntegrityCryptographicSuiteException e) {
             throw new DidLogDeactivatorStrategyException("Fail to build DID doc data integrity proof", e);
         }

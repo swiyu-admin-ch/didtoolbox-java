@@ -41,13 +41,4 @@ public class CreateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
             converter = IdentifierRegistryUrlParameterConverter.class,
             validateWith = IdentifierRegistryUrlParameterValidator.class)
     public URL identifierRegistryUrl;
-
-    @Parameter(names = {"--method-version", "-m"},
-            //TODO@MP check if jcommander can list all options
-            //description = "Defines the DID method specification version to use when generating a DID log. Case-insensitive. Valid values: '" + DidMethodEnum.TDW_0_3_STRING + "', '" + DidMethodEnum.WEBVH_1_0_STRING + "'",
-            converter = DidMethodParameterConverter.class,
-            validateWith = DidMethodParameterValidator.class,
-            defaultValueDescription = "did:webvh:1.0")
-    //,required = true)
-    public DidMethodEnum methodVersion;
 }
