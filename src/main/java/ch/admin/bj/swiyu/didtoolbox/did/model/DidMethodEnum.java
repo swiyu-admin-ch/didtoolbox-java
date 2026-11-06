@@ -51,6 +51,7 @@ public enum DidMethodEnum {
     private final String prefix;
 
     private static final String DID_PREFIX = "did:";
+    private static final System.Logger LOGGER = System.getLogger(DidMethodEnum.class.getName());
 
     DidMethodEnum(String method, String version) {
         this.didMethod = DID_PREFIX + method + ":" + version;
@@ -107,7 +108,8 @@ public enum DidMethodEnum {
         DidLogMeta didLogMeta;
         try {
             didLogMeta = TdwDidLogMetaPeeker.peek(didLog); // assume a did:tdw log
-        } catch (DidLogMetaPeekerException ignore) { // not a did:tdw log
+        } catch (DidLogMetaPeekerException tdwExc) { // not a did:tdw log
+            LOGGER.log(System.Logger.Level.DEBUG, "Not a did:tdw log, trying did:webvh", tdwExc);
             try {
                 didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
             } catch (DidLogMetaPeekerException exc) { // not a did:webvh log

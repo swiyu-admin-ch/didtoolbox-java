@@ -57,6 +57,7 @@ import java.util.Set;
  * </pre>
  */
 public class ProofOfPossessionVerifier {
+    private static final System.Logger LOGGER = System.getLogger(ProofOfPossessionVerifier.class.getName());
 
     private DidDoc didDoc;
 
@@ -72,6 +73,7 @@ public class ProofOfPossessionVerifier {
             try {
                 this.didDoc = TdwDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:tdw log
             } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+                LOGGER.log(System.Logger.Level.DEBUG, "Not a did:tdw log either", exc);
                 throw new ProofOfPossessionVerifierException(exc1);
             }
         }

@@ -36,7 +36,7 @@ public class VerificationMethodKeyParametersValidator implements IParameterValid
 
         try {
             JwkUtils.loadECPublicJWKasJSON(f, kid);
-        } catch (IOException exc) {
+        } catch (IOException | IllegalArgumentException exc) {
             throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an P-256 or Ed25519 public/verifying key in PEM format: " + exc.getLocalizedMessage(), exc);
         }
     }

@@ -34,6 +34,7 @@ import static ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandParameterNames.
 @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidCatchingGenericException"})
 public final class JCommanderRunner {
     private static final String DEFAULT_BASE_PATH = "./.didtoolbox";
+    private static final System.Logger LOGGER = System.getLogger(JCommanderRunner.class.getName());
 
     private final JCommander jc;
     private final String parsedCommandName;
@@ -77,6 +78,7 @@ public final class JCommanderRunner {
         try {
             didLogMeta = TdwDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:tdw log
         } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
+            LOGGER.log(System.Logger.Level.DEBUG, "Not a did:tdw log, trying did:webvh", exc);
             try {
                 didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(Files.readString(didLogFile.toPath())); // assume a did:webvh log
             } catch (DidLogMetaPeekerException | IOException exc1) { // not a did:webvh log

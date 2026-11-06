@@ -54,6 +54,9 @@ public final class PemUtils {
     static byte[] readPemObject(Reader pemKeyReader) throws IOException {
         PemReader reader = new PemReader(pemKeyReader);
         PemObject pemObject = reader.readPemObject();
+        if (pemObject == null) {
+            throw new IOException("The supplied reader features no PEM-encoded object");
+        }
         byte[] content = pemObject.getContent();
         reader.close();
         return content;
