@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class DidLogFileParameterValidator implements IParameterValidator {
+    private static final System.Logger LOGGER = System.getLogger(DidLogFileParameterValidator.class.getName());
+
     @Override
     public void validate(String name, String value) {
 
@@ -30,7 +32,8 @@ public class DidLogFileParameterValidator implements IParameterValidator {
 
         try {
             TdwDidLogMetaPeeker.peek(didLog); // assume a did:tdw log
-        } catch (MalformedTdwDidLogMetaPeekerException ignore) { // not a did:tdw log at all
+        } catch (MalformedTdwDidLogMetaPeekerException tdwExc) { // not a did:tdw log at all
+            LOGGER.log(System.Logger.Level.DEBUG, "Not a did:tdw log, trying did:webvh", tdwExc);
             try {
                 WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
             } catch (MalformedWebVerifiableHistoryDidLogMetaPeekerException exc) { // not a did:webvh log at all
