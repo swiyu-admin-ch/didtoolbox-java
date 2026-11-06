@@ -29,6 +29,7 @@ with respect to one of the following specifications:
   - [DID Deactivation (Revoke)](#did-deactivation-revoke)
   - [Key Rotation with Pre-Rotation](#key-rotation-with-pre-rotation)
   - [Verbose Error Output](#verbose-error-output)
+  - [Exit Codes](#exit-codes)
 - [The DID Toolbox (Java) API](#the-did-toolbox-java-api)
 - [Additional Information](#additional-information)
 - [Missing Features and Known Issues](#missing-features-and-known-issues)
@@ -732,7 +733,7 @@ cat did005.jsonl | jq -c '.|.parameters'
 
 ### Verbose Error Output
 
-To print the full cause chain of an error, supply `--verbose` (before or after the command name):
+To print the full cause chain and stack trace of an error, supply `--verbose` (before or after the command name):
 
 ```shell
 java -jar didtoolbox.jar verify-pop -d did.jsonl -n "Another Nonce" -j $(cat jwt) --verbose
@@ -740,13 +741,32 @@ java -jar didtoolbox.jar verify-pop -d did.jsonl -n "Another Nonce" -j $(cat jwt
 # Failed to run 'verify-pop' command due to: Provided JWT is invalid: Proof of Possession is NOT for nonce 'Another Nonce'
 #
 # Cause chain:
-# ch.admin.bj.swiyu.didtoolbox.JCommanderRunner$CommandException:
+# ch.admin.bj.swiyu.didtoolbox.cli.JCommanderRunner$CommandException:
 #     Provided JWT is invalid: Proof of Possession is NOT for nonce 'Another Nonce'
-# Caused by: ch.admin.bj.swiyu.didtoolbox.ProofOfPossessionVerifierException:
+# Caused by: ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException:
 #     Proof of Possession is NOT for nonce 'Another Nonce'
+#
+# Stack trace:
+# ch.admin.bj.swiyu.didtoolbox.cli.JCommanderRunner$CommandException: Provided JWT is invalid: Proof of Possession is NOT for nonce 'Another Nonce'
+#     at ch.admin.bj.swiyu.didtoolbox.cli.JCommanderRunner.runPoPVerifyCommand(JCommanderRunner.java:...)
+#     ...
+# Caused by: ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException: Proof of Possession is NOT for nonce 'Another Nonce'
+#     ...
 #
 # For detailed usage, run: didtoolbox verify-pop -h
 ```
+
+### Exit Codes
+
+The CLI exits with one of the following codes:
+
+| Code | Meaning                                                                                                                           |
+|------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `0`  | Success                                                                                                                           |
+| `1`  | Unexpected (internal) error                                                                                                       |
+| `2`  | Usage or parameter validation error                                                                                               |
+| `3`  | I/O or environment error, e.g. missing file, access denied, HSM unreachable                                                       |
+| `4`  | Cryptographic, verification or DID log error, e.g. invalid proof of possession, malformed key or DID log, already deactivated DID |
 
 ## The DID Toolbox (Java) API
 

@@ -7,6 +7,8 @@ import com.beust.jcommander.internal.DefaultConsole;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.ByteArrayOutputStream;
@@ -14,6 +16,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -149,9 +152,77 @@ class BlackboxIT {
         var argsVerifyPoP = verbose
                 ? new String[]{"verify-pop", "-d", didLogFilePath, "-n", "wrong", "-j", jwt, "--verbose"}
                 : new String[]{"verify-pop", "-d", didLogFilePath, "-n", "wrong", "-j", jwt};
-        assertEquals(1, main.run(argsVerifyPoP));
+        assertEquals(ExitCode.CRYPTO_VERIFICATION.code(), main.run(argsVerifyPoP));
         var out = cliOutput.toString();
         assertTrue(out.contains("Provided JWT is invalid"));
         assertEquals(verbose, out.contains("Caused by: " + ProofOfPossessionVerifierException.class.getName()));
+        assertEquals(verbose, out.contains("Stack trace:"));
+    }
+
+    @Test
+    void updateDidLogWithConflictingFlags_thenUsageError(@TempDir Path tempDir) throws Exception {
+        var cliOutput = new ByteArrayOutputStream();
+        var main = new Main(new DefaultConsole(new PrintStream(cliOutput)));
+
+        var argsCreateDidLog = new String[]{"create", "-u", "https://example.com", "-s", "./src/test/data/private.pem", "-v", "./src/test/data/public.pem", "-a", "assert-key-01,./src/test/data/assert-key-01.pub", "-t", "auth-key-01,./src/test/data/auth-key-01.pub"};
+        assertEquals(0, main.run(argsCreateDidLog));
+        var didLogFilePath = tempDir + "/didlog.jsonl";
+        try (var writer = new PrintWriter(didLogFilePath, StandardCharsets.UTF_8)) {
+            writer.write(cliOutput.toString());
+        }
+        cliOutput.reset();
+
+        var argsUpdateDidLog = new String[]{"update", "-d", didLogFilePath, "-s", "./src/test/data/private.pem", "-a", "assert-key-01,./src/test/data/assert-key-01.pub", "-t", "auth-key-01,./src/test/data/auth-key-01.pub", "--generate-new-verifying-key", "--generate-next-verifying-key"};
+        assertEquals(ExitCode.USAGE.code(), main.run(argsUpdateDidLog));
+        assertTrue(cliOutput.toString().contains("Not allowed to use the both flags"));
+    }
+
+    @Test
+    void verifyPoPWithTamperedSignature_thenCryptoVerificationError(@TempDir Path tempDir) throws Exception {
+        var cliOutput = new ByteArrayOutputStream();
+        var main = new Main(new DefaultConsole(new PrintStream(cliOutput)));
+
+        var argsCreateDidLog = new String[]{"create", "-u", "https://example.com", "-s", "./src/test/data/private.pem", "-v", "./src/test/data/public.pem", "-a", "assert-key-01,./src/test/data/assert-key-01.pub", "-t", "auth-key-01,./src/test/data/auth-key-01.pub"};
+        assertEquals(0, main.run(argsCreateDidLog));
+        var didLog = cliOutput.toString();
+        cliOutput.reset();
+        var didLogFilePath = tempDir + "/didlog.jsonl";
+        try (var writer = new PrintWriter(didLogFilePath, StandardCharsets.UTF_8)) {
+            writer.write(didLog);
+        }
+
+        var didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc();
+        var argsCreatePoP = new String[]{"create-pop", "-d", didLogFilePath, "-k", didDoc.getId() + "#assert-key-01", "-s", "./src/test/data/assert-key-01", "-n", "nonce"};
+        assertEquals(0, main.run(argsCreatePoP));
+        var jwt = cliOutput.toString().trim();
+        cliOutput.reset();
+
+        // keep header and payload, but replace the signature with a bogus one
+        var tamperedJwt = jwt.substring(0, jwt.lastIndexOf('.') + 1) + "A".repeat(86);
+
+        var argsVerifyPoP = new String[]{"verify-pop", "-d", didLogFilePath, "-n", "nonce", "-j", tamperedJwt};
+        assertEquals(ExitCode.CRYPTO_VERIFICATION.code(), main.run(argsVerifyPoP));
+        assertTrue(cliOutput.toString().contains("Provided JWT is invalid"));
+    }
+
+    private static Stream<Arguments> failingArgs() {
+        return Stream.of(
+                Arguments.of(ExitCode.USAGE, new String[]{}),
+                Arguments.of(ExitCode.USAGE, new String[]{"create", "--unknown"}),
+                Arguments.of(ExitCode.IO_ENVIRONMENT, new String[]{"create", "-u", "https://example.com", "-s", "./src/test/data/non-existent.pem", "-v", "./src/test/data/public.pem"}),
+                Arguments.of(ExitCode.IO_ENVIRONMENT, new String[]{"create", "-u", "https://example.com", "-s", "./src/test/data/private.pem", "-v", "./src/test/data/public.pem", "-a", "assert-key-01,./src/test/data/non-existent.pub"}),
+                Arguments.of(ExitCode.IO_ENVIRONMENT, new String[]{"create", "-u", "https://example.com", "-s", "./src/test/data/private.pem", "-v", "./src/test/data/public.pem", "-t", "auth-key-01,./src/test/data/non-existent.pub"}),
+                Arguments.of(ExitCode.IO_ENVIRONMENT, new String[]{"create", "-u", "https://example.com", "-j", "./src/test/data/non-existent.jks", "--jks-alias", "alias"}),
+                Arguments.of(ExitCode.IO_ENVIRONMENT, new String[]{"create", "-u", "https://example.com", "-p", "./src/test/data/non-existent.properties", "-q", "alias"}),
+                Arguments.of(ExitCode.IO_ENVIRONMENT, new String[]{"update", "-d", "./src/test/data/non-existent.jsonl", "-s", "./src/test/data/private.pem"}),
+                Arguments.of(ExitCode.CRYPTO_VERIFICATION, new String[]{"create", "-u", "https://example.com", "-s", "./src/test/data/README.md", "-v", "./src/test/data/public.pem"})
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("failingArgs")
+    void runWithInvalidArgs_thenExitCode(ExitCode expected, String[] args) {
+        var main = new Main(new DefaultConsole(new PrintStream(new ByteArrayOutputStream())));
+        assertEquals(expected.code(), main.run(args));
     }
 }
