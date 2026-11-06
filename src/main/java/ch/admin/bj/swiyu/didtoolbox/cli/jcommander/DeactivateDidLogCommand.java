@@ -21,6 +21,7 @@ import java.io.File;
         // Validate the value for all parameters (currently not really required):
         parametersValidators = {CommandParametersValidator.class}
 )
+@SuppressWarnings("PMD.DataClass") // JCommander parameter holder: fields are populated reflectively and read by the command runners
 public class DeactivateDidLogCommand extends DidLogCommandBase {
 
     final public static String COMMAND_NAME = "deactivate";

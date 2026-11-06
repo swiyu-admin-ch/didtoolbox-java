@@ -36,7 +36,7 @@ final class PrimusKeyMaterialLoader implements KeyMaterialLoader {
 
     @Override
     public VcDataIntegrityCryptographicSuite loadCryptographicSuite() throws VcDataIntegrityCryptographicSuiteException {
-        var passwordChars = passwordChars();
+        var passwordChars = password == null ? null : password.toCharArray(); // the password is optional, null is explicitly supported by PrimusKeyStoreLoader#loadKeyPair
         try {
             return new PrimusEd25519VerificationMethodKeyProviderImpl(primusKeyStoreLoader, alias, passwordChars); // supplied external key pair
         } catch (UnrecoverableEntryException | KeyStoreException | NoSuchAlgorithmException | KeyException e) {
@@ -48,20 +48,12 @@ final class PrimusKeyMaterialLoader implements KeyMaterialLoader {
 
     @Override
     public ProofOfPossessionJWSSigner loadProofOfPossessionSigner(String kid) throws GeneralSecurityException, JOSEException {
-        var passwordChars = passwordChars();
+        var passwordChars = password == null ? null : password.toCharArray(); // the password is optional, null is explicitly supported by PrimusKeyStoreLoader#loadKeyPair
         try {
             return ProofOfPossessionJWSSigner.of(primusKeyStoreLoader, alias, passwordChars, kid);
         } finally {
             wipe(passwordChars);
         }
-    }
-
-    /**
-     * The password is optional (see the CLI parameter description), so {@code null} is passed on as is, which
-     * {@link PrimusKeyStoreLoader#loadKeyPair(String, char[])} explicitly supports.
-     */
-    private char[] passwordChars() {
-        return password == null ? null : password.toCharArray();
     }
 
     private static void wipe(char[] passwordChars) {
