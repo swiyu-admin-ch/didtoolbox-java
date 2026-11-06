@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.did.model;
 
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
 import lombok.Getter;
 

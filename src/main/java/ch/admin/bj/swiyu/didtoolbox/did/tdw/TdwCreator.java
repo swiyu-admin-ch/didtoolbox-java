@@ -1,14 +1,16 @@
 package ch.admin.bj.swiyu.didtoolbox.did.tdw;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.*;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.did.IncompleteDidLogEntryBuilderException;
-import ch.admin.bj.swiyu.didtoolbox.did.model.*;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
+import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

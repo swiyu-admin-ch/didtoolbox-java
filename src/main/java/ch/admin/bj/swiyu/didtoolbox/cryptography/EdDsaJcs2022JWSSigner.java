@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography;
 
-import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;

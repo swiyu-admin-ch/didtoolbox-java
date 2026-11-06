@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography.primus;
 
-import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;

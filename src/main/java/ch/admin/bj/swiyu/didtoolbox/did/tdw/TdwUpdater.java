@@ -1,12 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox.did.tdw;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.*;
-import ch.admin.bj.swiyu.didtoolbox.did.context.*;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategy;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.*;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -19,12 +21,9 @@ import lombok.NonNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 

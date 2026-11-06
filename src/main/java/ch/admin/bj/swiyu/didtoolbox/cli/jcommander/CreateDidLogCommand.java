@@ -1,9 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander;
 
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.DidMethodParameterConverter;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.IdentifierRegistryUrlParameterConverter;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.CommandParametersValidator;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.DidMethodParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.IdentifierRegistryUrlParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import com.beust.jcommander.Parameter;

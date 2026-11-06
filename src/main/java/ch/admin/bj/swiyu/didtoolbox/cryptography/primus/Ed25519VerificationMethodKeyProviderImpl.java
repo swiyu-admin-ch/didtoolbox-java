@@ -1,6 +1,5 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography.primus;
 
-import ch.admin.bj.swiyu.didtoolbox.cryptography.Base58;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.Ed25519Utils;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
@@ -16,13 +15,11 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.NamedParameterSpec;
-import java.util.Arrays;
 import java.util.Random;
 
 /**

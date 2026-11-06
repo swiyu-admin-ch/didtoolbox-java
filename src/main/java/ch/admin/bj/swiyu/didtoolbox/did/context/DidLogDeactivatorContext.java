@@ -1,10 +1,9 @@
 package ch.admin.bj.swiyu.didtoolbox.did.context;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import lombok.Builder;
 import lombok.Getter;
 

@@ -1,17 +1,19 @@
 package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
+import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractDidLogEntryBuilder;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.MultiHash;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.did.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategy;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.did.IncompleteDidLogEntryBuilderException;
-import ch.admin.bj.swiyu.didtoolbox.did.model.*;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
+import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.VerificationMethod;
 import com.google.gson.JsonArray;

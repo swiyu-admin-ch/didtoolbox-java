@@ -5,10 +5,10 @@ import ch.admin.bj.swiyu.didtoolbox.cryptography.Ed25519Utils;
 import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
-import ch.admin.eid.did_sidekicks.*;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.Ed25519Signature;
+import ch.admin.eid.did_sidekicks.Ed25519SigningKey;
+import ch.admin.eid.did_sidekicks.EddsaJcs2022Cryptosuite;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,13 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HexFormat;
-import java.util.List;
-import java.util.Set;
 
 /**
  * The {@link EdDsaJcs2022VcDataIntegrityCryptographicSuite} class is a
