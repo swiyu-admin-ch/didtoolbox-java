@@ -129,7 +129,7 @@ class Ed25519UtilsTest extends AbstractUtilTestBase {
             tempFile.deleteOnExit();
 
             // Create JWK file
-            JwkUtils.generatePublicEC256("auth-key-01", tempFile, true);
+            JwkUtils.generatePublicP256VerificationMethod("auth-key-01", tempFile, true);
             // At this point, the following file should exist:
             var jwkFile = Path.of(tempFile.toPath() + ".pub");
 

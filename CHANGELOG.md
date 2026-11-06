@@ -6,6 +6,9 @@
 - HTTP URLs for did logs are no longer allowed, must now be HTTPS `(#1037)`
 - `--verbose` CLI flag to print the full cause chain of an error `(#1034)`
 
+### Removed
+- create command option `--method-version, -m ` removed, because TDW creation has been removed, newly created did logs use `did:webvh:1.0` `(#1194)
+
 ### Fixed
 
 ### Changed

@@ -2,25 +2,34 @@ package ch.admin.bj.swiyu.didtoolbox.cli;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.did.context.*;
 import ch.admin.bj.swiyu.didtoolbox.did.model.*;
 import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.pop.*;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreatorException;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.nimbusds.jose.JOSEException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
-import java.security.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.security.KeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Set;
@@ -102,11 +111,7 @@ public final class JCommanderRunner {
 
         var identifierRegistryUrl = command.identifierRegistryUrl;
 
-        var didMethod = command.methodVersion; // may return null
-        if (didMethod == null) {
-            didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION; // fallback
-        }
-
+        var didMethod = CreateDidLogCommand.DEFAULT_METHOD_VERSION;
         var assertionMethods = command.getAssertionMethods(getOutputDir().toPath());
         var authentications = command.getAuthentications(getOutputDir().toPath());
 
@@ -132,9 +137,7 @@ public final class JCommanderRunner {
         jc.getConsole().println(DidLogCreatorContext.builder(didMethod, cryptoSuite)
                 .assertionMethods(assertionMethods)
                 .authentications(authentications)
-                // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
                 .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
-                // Instead of calling deprecated .nextKeys(nextKeyPemFiles)
                 .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeyPemFiles))
                 .build()
                 .create(identifierRegistryUrl));
@@ -188,9 +191,7 @@ public final class JCommanderRunner {
                 DidLogUpdaterContext.builder(didLogMeta.getParams().getDidMethodEnum(), cryptoSuite)
                         .assertionMethods(assertionMethods)
                         .authentications(authentications)
-                        // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
                         .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
-                        // Instead of calling deprecated .nextKeys(nextVerifyingKeyPemFiles)
                         .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextVerifyingKeyPemFiles))
                         .build()
                         .update(didLogFile));
@@ -291,7 +292,7 @@ public final class JCommanderRunner {
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
             try {
                 var password = command.primusKeyPassword.toCharArray();
-                var provider = new PrimusEd25519VerificationMethodKeyProviderImpl(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, password); // supplied external key pair
+                var provider = new Ed25519VerificationMethodKeyProviderImpl(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, password); // supplied external key pair
                 Arrays.fill(password, ' ');
                 return provider;
             } catch (UnrecoverableEntryException | KeyStoreException | NoSuchAlgorithmException | KeyException e) {

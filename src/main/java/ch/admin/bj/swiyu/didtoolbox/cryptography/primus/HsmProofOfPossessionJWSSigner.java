@@ -46,7 +46,7 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
                 return new HsmProofOfPossessionJWSSigner(signer, kid);
             }
             case EdECPrivateKey ignored -> {
-                var signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(kp, kid, primus);
+                var signer = new Ed25519ProofOfPossessionJWSSignerImpl(kp, kid, primus);
                 return new HsmProofOfPossessionJWSSigner(signer, kid);
             }
             default -> {

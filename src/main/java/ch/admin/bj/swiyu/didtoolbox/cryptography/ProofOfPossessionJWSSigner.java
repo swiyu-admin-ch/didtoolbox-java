@@ -1,10 +1,13 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography;
 
-import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519ProofOfPossessionJWSSignerImpl;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import com.nimbusds.jose.*;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
@@ -83,7 +86,7 @@ public interface ProofOfPossessionJWSSigner extends JWSSigner {
             signer.getJCAContext().setProvider(primus.getKeyStore().getProvider());
             return of(signer, kid, JWSAlgorithm.ES256);
         } else {
-            var signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, alias, password, kid);
+            var signer = new Ed25519ProofOfPossessionJWSSignerImpl(primus, alias, password, kid);
             return of(signer, kid, JWSAlgorithm.EdDSA);
         }
     }

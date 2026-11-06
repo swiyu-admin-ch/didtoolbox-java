@@ -118,7 +118,6 @@ public class Main {
 
             var index = 0;
             do {
-                // the Ed25519VerificationMethodKeyProviderImpl() would also work, but is deprecated
                 var suite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
                 suites[index] = suite;
                 Path publicPEM = null;
