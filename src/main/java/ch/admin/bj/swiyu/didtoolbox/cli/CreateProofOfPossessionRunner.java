@@ -1,11 +1,11 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
-import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreatorException;
-import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
-import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException;
-import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CreateProofOfPossessionCommand;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreatorException;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException;
 import com.beust.jcommander.JCommander;
 import com.nimbusds.jose.JOSEException;
 
@@ -31,7 +31,7 @@ final class CreateProofOfPossessionRunner extends AbstractCommandRunner<CreatePr
         var didLog = Files.readString(command.didLog.toPath());
 
         var signer = KeyMaterialLoaderFactory.from(command)
-                .orElseThrow(() -> new CommandException("No (complete) source of signing key supplied. Use one of the relevant options to supply keys"))
+                .orElseThrow(() -> new CommandException("No valid source of signing P-256 key supplied. Use one of the relevant options to supply keys"))
                 .loadProofOfPossessionSigner(command.kid);
 
         var proof = new ProofOfPossessionCreator(signer).create(command.nonce, VALID_DURATION);

@@ -1,16 +1,16 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CreateDidLogCommand;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CreateDidLogCommand;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.beust.jcommander.JCommander;
 
 import java.io.IOException;

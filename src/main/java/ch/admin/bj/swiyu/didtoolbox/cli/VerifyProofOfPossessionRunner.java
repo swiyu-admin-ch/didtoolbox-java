@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
-import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException;
-import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.VerifyProofOfPossessionCommand;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier;
+import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException;
 import com.beust.jcommander.JCommander;
 
 import java.io.IOException;

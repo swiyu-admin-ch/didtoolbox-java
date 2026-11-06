@@ -53,20 +53,20 @@ final class GeneratedKeyPairStore {
      * @param forceOverwrite allows to overwrite already existing key files
      * @throws FileAlreadyExistsException if the private key file exists already and could not be overwritten
      */
-    @SuppressWarnings("PMD.CognitiveComplexity")
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity", "PMD.AvoidCatchingThrowable"})
     void storeKeysOnDisk(EdDsaJcs2022VcDataIntegrityCryptographicSuite cryptoSuite, boolean forceOverwrite) throws CommandException, FileAlreadyExistsException {
         if (!outputDir.exists() || forceOverwrite) {
             try {
                 FilesPrivacy.createPrivateDirectory(outputDir.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
             } catch (DirectoryNotEmptyException | FileAlreadyExistsException ex) {
                 if (!outputDir.exists()) {
-                    throw new IllegalStateException("Failed to (re)create " + outputDir.getPath() + " directory", ex); // the delete-create logic is not implemented properly
+                    throw new IllegalArgumentException(ex); // the delete-create logic is not implemented properly
                 }
                 // ignore otherwise
             } catch (AccessDeniedException ex) {
                 throw new CommandException("Access denied to " + outputDir.getPath() + " due to: " + ex.getMessage(), ex);
-            } catch (IOException | SecurityException | UnsupportedOperationException | IllegalArgumentException ex) {
-                throw new CommandException("Failed to (re)create " + outputDir.getPath() + " directory due to: " + ex.getMessage(), ex);
+            } catch (Throwable thr) {
+                throw new CommandException("Failed to (re)create " + outputDir.getPath() + " directory due to: " + thr.getMessage(), thr);
             }
         }
 
@@ -79,16 +79,16 @@ final class GeneratedKeyPairStore {
             // CAUTION A private key file MUST always be created with appropriate file permissions i.e. with access restricted to the current user only
             FilesPrivacy.createPrivateFile(privateKeyFile.toPath(), forceOverwrite); // may throw FileAlreadyExistsException, SecurityException etc.
         } catch (DirectoryNotEmptyException ex) {
-            throw new CommandException("Expected the private key PEM file to be a file, but found a (non-empty) directory: " + privateKeyFile.getPath(), ex);
+            throw new IllegalArgumentException(ex); // it should be a file, not a directory
         } catch (FileAlreadyExistsException ex) {
             if (!privateKeyFile.exists()) {
-                throw new IllegalStateException("Failed to (re)create private key PEM file " + privateKeyFile.getPath(), ex);
+                throw new IllegalArgumentException(ex);
             }
             throw ex;
         } catch (AccessDeniedException ex) {
             throw new CommandException("Access denied to private key PEM file " + privateKeyFile.getPath() + " due to: " + ex.getMessage(), ex);
-        } catch (IOException | SecurityException | UnsupportedOperationException | IllegalArgumentException ex) {
-            throw new CommandException("The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath(), ex);
+        } catch (Throwable thr) {
+            throw new CommandException("The private key PEM file could not be created with restricted access: " + privateKeyFile.getPath(), thr);
         }
 
         try {

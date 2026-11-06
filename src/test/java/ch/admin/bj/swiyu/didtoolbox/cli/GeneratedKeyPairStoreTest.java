@@ -1,5 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
+import ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class GeneratedKeyPairStoreTest {
     }
 
     @Test
-    void storeKeysOnDisk_noForceOverwrite_success(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException {
+    void storeKeysOnDisk_noForceOverwrite_success(@TempDir Path tmpDir) throws Exception {
         // check that .didtoolbox doesn't exist yet
         assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
@@ -37,7 +38,8 @@ class GeneratedKeyPairStoreTest {
         assertTrue(publicKey.exists());
 
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
-        assertEquals(cryptoSuite.getVerificationKeyMultibase(), keys.getVerificationKeyMultibase());
+        assertEquals(keys.getVerificationKeyMultibase(), cryptoSuite.getVerificationKeyMultibase());
+        assertEquals(keys.getVerificationKeyMultibase(), PemUtils.readEd25519PublicKeyPemFileToMultibase(publicKey.toPath()));
     }
 
     @Test
@@ -50,14 +52,14 @@ class GeneratedKeyPairStoreTest {
         // Create filled .didtoolbox directory
         assertDoesNotThrow(() -> store.storeKeysOnDisk(keys, false));
 
-        // Try to create new directory
+        // Try to store new keys, which must be refused as overwrite mode is not engaged
         var newKeys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        // Returns 1 when something went wrong (files already exists in this case)
-        assertThrowsExactly(CommandException.class, () -> store.storeKeysOnDisk(newKeys, false));
+        var exc = assertThrowsExactly(CommandException.class, () -> store.storeKeysOnDisk(newKeys, false));
+        assertTrue(exc.getMessage().contains("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged"));
 
         var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
-        assertEquals(cryptoSuite.getVerificationKeyMultibase(), keys.getVerificationKeyMultibase()); // should be old keys
+        assertEquals(keys.getVerificationKeyMultibase(), cryptoSuite.getVerificationKeyMultibase()); // should be old keys
     }
 
     @Test
@@ -71,11 +73,11 @@ class GeneratedKeyPairStoreTest {
 
         var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
-        assertEquals(cryptoSuite.getVerificationKeyMultibase(), keys.getVerificationKeyMultibase()); // should be old keys
+        assertEquals(keys.getVerificationKeyMultibase(), cryptoSuite.getVerificationKeyMultibase());
     }
 
     @Test
-    void storeKeysOnDisk_withOverwriteAlreadyExisting_success(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException {
+    void storeKeysOnDisk_withOverwriteAlreadyExisting_success(@TempDir Path tmpDir) throws Exception {
         // Check that .didtoolbox doesn't exist yet
         assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
@@ -85,33 +87,36 @@ class GeneratedKeyPairStoreTest {
         // Create filled .didtoolbox directory
         assertDoesNotThrow(() -> store.storeKeysOnDisk(keys, false));
 
-        // Try to create new directory
+        // Try to store new keys, which replace the existing ones as overwrite mode is engaged
         var newKeys = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-        // Returns 1 when something went wrong (files already exists in this case)
         assertDoesNotThrow(() -> store.storeKeysOnDisk(newKeys, true));
 
         var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
-        assertEquals(cryptoSuite.getVerificationKeyMultibase(), newKeys.getVerificationKeyMultibase()); // should be old keys
+        assertEquals(newKeys.getVerificationKeyMultibase(), cryptoSuite.getVerificationKeyMultibase()); // should be new keys
+        var publicKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519.pub");
+        assertEquals(newKeys.getVerificationKeyMultibase(), PemUtils.readEd25519PublicKeyPemFileToMultibase(publicKey.toPath())); // should be new keys
     }
 
     @Test
-    void generateAndSaveNewKey_noOverwrite_success(@TempDir Path tmpDir) {
+    void generateAndSaveNewKey_noOverwrite_success(@TempDir Path tmpDir) throws Exception {
         // Check that .didtoolbox doesn't exist yet
         assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
-        var store = new GeneratedKeyPairStore(tmpDir.toString());
+        var store = new GeneratedKeyPairStore(new File(tmpDir.toString(), ".didtoolbox").getPath());
         Set<File> keys = new HashSet<>();
         assertDoesNotThrow(() -> store.generateAndSaveNewKey(false, keys));
-        assertEquals(1, keys.size());
 
-        keys.forEach(file -> {
-            assertTrue(file.exists());
-        });
+        var publicKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519.pub");
+        assertEquals(Set.of(publicKey), keys); // never the private key file
+
+        var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
+        var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
+        assertEquals(cryptoSuite.getVerificationKeyMultibase(), PemUtils.readEd25519PublicKeyPemFileToMultibase(publicKey.toPath()));
     }
 
     @Test
-    void generateAndSaveNewKey_noOverwriteAlreadyExisting_fails(@TempDir Path tmpDir) {
+    void generateAndSaveNewKey_noOverwriteAlreadyExisting_fails(@TempDir Path tmpDir) throws VcDataIntegrityCryptographicSuiteException {
         // Check that .didtoolbox doesn't exist yet
         assertFalse(new File(tmpDir.toString() + File.separator + ".didtoolbox").exists());
 
@@ -121,12 +126,13 @@ class GeneratedKeyPairStoreTest {
         assertDoesNotThrow(() -> store.storeKeysOnDisk(oldKeys, false));
 
         Set<File> keys = new HashSet<>();
-        assertThrowsExactly(CommandException.class, () -> store.generateAndSaveNewKey(false, keys));
+        var exc = assertThrowsExactly(CommandException.class, () -> store.generateAndSaveNewKey(false, keys));
+        assertTrue(exc.getMessage().contains("The PEM file(s) exist(s) already and will remain intact until overwrite mode is engaged"));
         assertEquals(0, keys.size());
 
-        keys.forEach(file -> {
-            assertTrue(file.exists());
-        });
+        var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
+        var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
+        assertEquals(oldKeys.getVerificationKeyMultibase(), cryptoSuite.getVerificationKeyMultibase()); // should be old keys
     }
 
     @Test
@@ -142,14 +148,13 @@ class GeneratedKeyPairStoreTest {
 
         Set<File> keys = new HashSet<>();
         assertDoesNotThrow(() -> store.generateAndSaveNewKey(true, keys));
-        assertEquals(1, keys.size());
 
-        keys.forEach(file -> {
-            assertTrue(file.exists());
-        });
+        var publicKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519.pub");
+        assertEquals(Set.of(publicKey), keys); // never the private key file
 
         var privateKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519");
         var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(privateKey.toPath());
-        assertNotEquals(cryptoSuite.getVerificationKeyMultibase(), oldKeys.getVerificationKeyMultibase()); // keys have changed
+        assertNotEquals(oldKeys.getVerificationKeyMultibase(), cryptoSuite.getVerificationKeyMultibase()); // keys have changed
+        assertEquals(cryptoSuite.getVerificationKeyMultibase(), PemUtils.readEd25519PublicKeyPemFileToMultibase(publicKey.toPath()));
     }
 }

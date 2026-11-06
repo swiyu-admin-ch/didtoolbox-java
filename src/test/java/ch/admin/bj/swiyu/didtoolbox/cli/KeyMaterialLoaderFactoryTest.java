@@ -1,10 +1,10 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
-import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CreateProofOfPossessionCommand;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.DeactivateDidLogCommand;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.UpdateDidLogCommand;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader;
+import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -26,12 +26,12 @@ class KeyMaterialLoaderFactoryTest extends AbstractUtilTestBase {
         var command = new DeactivateDidLogCommand();
         command.signingKeyPemFile = new File(TEST_DATA_PATH_PREFIX + "private.pem");
 
-        var loader = KeyMaterialLoaderFactory.from(command);
+        var loader = KeyMaterialLoaderFactory.from(command).orElseThrow();
 
-        assertInstanceOf(PemKeyMaterialLoader.class, loader.orElseThrow());
+        assertInstanceOf(PemKeyMaterialLoader.class, loader);
         assertDoesNotThrow(() -> assertEquals(
                 TEST_CRYPTO_SUITE_JKS.getVerificationKeyMultibase(), // "private.pem" matches "myalias" key from "mykeystore.jks"
-                loader.get().loadCryptographicSuite().getVerificationKeyMultibase()));
+                loader.loadCryptographicSuite().getVerificationKeyMultibase()));
     }
 
     @Test
@@ -41,14 +41,14 @@ class KeyMaterialLoaderFactoryTest extends AbstractUtilTestBase {
         command.jksPassword = "changeit";
         command.jksAlias = "myalias";
 
-        var loader = KeyMaterialLoaderFactory.from(command);
+        var loader = KeyMaterialLoaderFactory.from(command).orElseThrow();
 
-        assertInstanceOf(JksKeyMaterialLoader.class, loader.orElseThrow());
+        assertInstanceOf(JksKeyMaterialLoader.class, loader);
         assertDoesNotThrow(() -> assertEquals(
                 TEST_CRYPTO_SUITE_JKS.getVerificationKeyMultibase(),
-                loader.get().loadCryptographicSuite().getVerificationKeyMultibase()));
+                loader.loadCryptographicSuite().getVerificationKeyMultibase()));
         // signing PoP JWTs using JKS is not supported
-        assertThrowsExactly(UnsupportedOperationException.class, () -> loader.get().loadProofOfPossessionSigner("kid"));
+        assertThrowsExactly(UnsupportedOperationException.class, () -> loader.loadProofOfPossessionSigner("kid"));
     }
 
     @Test
@@ -81,9 +81,9 @@ class KeyMaterialLoaderFactoryTest extends AbstractUtilTestBase {
         var command = new CreateProofOfPossessionCommand();
         command.signingKeyPemFile = new File(TEST_DATA_PATH_PREFIX + "private.pem");
 
-        var loader = KeyMaterialLoaderFactory.from(command);
+        var loader = KeyMaterialLoaderFactory.from(command).orElseThrow();
 
-        assertInstanceOf(PemKeyMaterialLoader.class, loader.orElseThrow());
-        assertDoesNotThrow(() -> assertEquals("my-kid", loader.get().loadProofOfPossessionSigner("my-kid").getKid()));
+        assertInstanceOf(PemKeyMaterialLoader.class, loader);
+        assertDoesNotThrow(() -> assertEquals("my-kid", loader.loadProofOfPossessionSigner("my-kid").getKid()));
     }
 }

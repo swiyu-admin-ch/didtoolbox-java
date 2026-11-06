@@ -1,14 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.UpdateDidLogCommand;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.UpdateDidLogCommand;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
@@ -62,7 +62,7 @@ final class UpdateDidLogRunner extends AbstractCommandRunner<UpdateDidLogCommand
         var nextVerifyingKeyPemFiles = command.nextVerifyingKeyPemFiles; // if set, denotes key pre-rotation
 
         var cryptoSuite = KeyMaterialLoaderFactory.from(command)
-                .orElseThrow(() -> new CommandException("No (complete) source of signing/verifying keys supplied. Use one of the relevant options to supply keys"))
+                .orElseThrow(() -> new CommandException("Incomplete source of the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys"))
                 .loadCryptographicSuite();
 
         if (didLogMeta.isKeyPreRotationActivated() && !didLogMeta.isPreRotatedUpdateKey(cryptoSuite.getVerificationKeyMultibase())) {
