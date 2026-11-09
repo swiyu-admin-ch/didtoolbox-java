@@ -454,8 +454,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             JsonArray authentication = new JsonArray();
             for (var vm : this.allAuthentications()) {
                 authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
-                        this.didLogMeta.getDidDoc().getId(), vm));
+                verificationMethod.add(vm.toVerificationMethodEntry(this.didLogMeta.getDidDoc().getId()));
             }
             didDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
         }
@@ -464,8 +463,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             var assertionMethod = new JsonArray();
             for (var vm : this.allAssertionMethods()) {
                 assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
-                        this.didLogMeta.getDidDoc().getId(), vm));
+                verificationMethod.add(vm.toVerificationMethodEntry(
+                        this.didLogMeta.getDidDoc().getId()));
             }
             didDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);
         }

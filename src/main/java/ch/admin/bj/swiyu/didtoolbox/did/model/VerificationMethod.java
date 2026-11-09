@@ -51,6 +51,26 @@ public interface VerificationMethod {
     String getPublicKeyJwk();
 
     /**
+     * Create a verification method entry with set id, type, controller and publicKeyJwk as JsonObject
+     * according to swiss-profile-anchor 1.0
+     * @param did the did to be used as part of the id together with the idFragment
+     * @return the verification method as JsonObject
+     */
+    default JsonObject toVerificationMethodEntry(String did) {
+        var verificationMethodObj = new JsonObject();
+        verificationMethodObj.addProperty("id", did + "#" + getIdFragment());
+        // The "controller" may be present, if it is it MUST be the DID
+        // - https://swiyu-admin-ch.github.io/specifications/swiss-profile-anchor/#512-did-controller
+        verificationMethodObj.addProperty("controller", did);
+        verificationMethodObj.addProperty("type", getType());
+        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(getPublicKeyJwk()).getAsJsonObject());
+        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
+        // https://swiyu-admin-ch.github.io/specifications/swiss-profile-anchor/#521-verification-material
+
+        return verificationMethodObj;
+    }
+
+    /**
      * Effectively, this is the default {@link Object#equals(Object)} implementation introduced for the sake of preventing:
      * <pre>Default method 'equals' overrides a member of 'java.lang.Object'</pre>
      *
