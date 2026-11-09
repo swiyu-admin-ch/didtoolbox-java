@@ -1,10 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.FilesPrivacy;
-import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import lombok.NonNull;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -63,9 +61,9 @@ public final class JwkUtils {
         }
 
         try {
-            var jwk = VerificationMaterial.of(kid, ecPublicPemPath);
+            var jwk = VerificationMethod.ofPEMPath(kid, ecPublicPemPath);
             return jwk.getPublicKeyJwk();
-        } catch (DidSidekicksException e) {
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
     }
@@ -89,7 +87,7 @@ public final class JwkUtils {
      */
     @Deprecated(since = "2.3.0")
     public static String generatePublicEC256(String kid, @NonNull File keyPairPemFile, boolean forceOverwrite) throws IOException {
-        return generatePublicP256VerificationMethod(kid, keyPairPemFile, forceOverwrite).getVerificationMaterial().getPublicKeyJwk();
+        return generatePublicP256VerificationMethod(kid, keyPairPemFile, forceOverwrite).getPublicKeyJwk();
     }
 
     /**
@@ -132,8 +130,8 @@ public final class JwkUtils {
 
         VerificationMethod verificationMethod;
         try {
-            verificationMethod = VerificationMethod.of(VerificationMaterial.of(kid, publicKeyPem));
-        } catch (DidSidekicksException | VerificationMethodException | IOException e) {
+            verificationMethod = VerificationMethod.ofPEM(kid, publicKeyPem);
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
 
@@ -181,8 +179,8 @@ public final class JwkUtils {
 
         VerificationMethod verificationMethod;
         try {
-            verificationMethod = VerificationMethod.of(VerificationMaterial.of(kid, publicKeyPem));
-        } catch (DidSidekicksException | VerificationMethodException | IOException e) {
+            verificationMethod = VerificationMethod.ofPEM(kid, publicKeyPem);
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
 

@@ -34,18 +34,18 @@ public abstract class AbstractDidLogEntryBuilder {
 
     protected DidLogMeta didLogMeta;
 
-    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String did, String fragmentId, String publicKeyJwk) {
+    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String did, VerificationMethod verificationMethod) {
         var verificationMethodObj = new JsonObject();
-        verificationMethodObj.addProperty("id", did + "#" + fragmentId);
+        verificationMethodObj.addProperty("id", did + "#" + verificationMethod.getIdFragment());
         // According to swiss profile anchor 1.0 (https://confluence.bit.admin.ch/x/VL8VTQ)
         // controller must be the did itself
         verificationMethodObj.addProperty("controller", did);
         // CAUTION The "controller" property must not be present w.r.t.:
         // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
-        verificationMethodObj.addProperty("type", "JsonWebKey2020");
+        verificationMethodObj.addProperty("type", verificationMethod.getType());
         // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
         // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
-        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
+        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(verificationMethod.getPublicKeyJwk()).getAsJsonObject());
 
         return verificationMethodObj;
     }
@@ -276,7 +276,7 @@ public abstract class AbstractDidLogEntryBuilder {
             var authentication = new JsonArray();
             for (var vm : authentications) {
                 authentication.add(did + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm));
             }
 
             didDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
@@ -287,7 +287,7 @@ public abstract class AbstractDidLogEntryBuilder {
             var assertionMethod = new JsonArray();
             for (var vm : assertionMethods) {
                 assertionMethod.add(did + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
+                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm));
             }
 
             didDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);

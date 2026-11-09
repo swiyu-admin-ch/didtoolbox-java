@@ -349,7 +349,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
                 try {
-                    set.add(ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod.of(entry.getKey(), entry.getValue()));
+                    set.add(ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod.ofPEM(entry.getKey(), entry.getValue()));
                 } catch (VerificationMethodException e) {
                     throw new DidLogCreatorStrategyException(e);
                 }
@@ -374,7 +374,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
                 try {
-                    set.add(ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod.of(entry.getKey(), entry.getValue()));
+                    set.add(ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod.ofPEM(entry.getKey(), entry.getValue()));
                 } catch (VerificationMethodException e) {
                     throw new DidLogCreatorStrategyException(e);
                 }
