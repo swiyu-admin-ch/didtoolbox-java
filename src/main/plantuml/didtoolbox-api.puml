@@ -8,7 +8,6 @@ class ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethod
 	{method} +generateSignature ( param[B1 : [B ) : [B
 	{method} +getVerificationKeyMultibase () : String
 	{method}  {static} #optionallyUnderifyRS ( param[B1 : [B ) : [B
-	{method} #sanityCheck () : void
 	{method} +verify ( param[B1 : [B , param[B2 : [B ) : boolean
 }
 

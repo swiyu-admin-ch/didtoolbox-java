@@ -18,7 +18,7 @@ final class DidLogStrategyFactory {
 
         switch (ctx.getDidMethod()) {
             case TDW_0_3 -> {
-                throw new IllegalArgumentException(String.format("TDWs are no longer supported.", ctx.getDidMethod()));
+                throw new IllegalArgumentException(String.format("TDWs are no longer supported."));
             }
             case WEBVH_1_0 -> {
                 return WebVerifiableHistoryCreator.builder(ctx.getCryptographicSuite())

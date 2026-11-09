@@ -174,6 +174,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @return signed message
      * makes it redundant. Since 1.8.0
      */
+    @Override
     public byte[] generateSignature(byte[] message) {
         try {
             var signer = Signature.getInstance("EdDSA", this.provider);
@@ -216,7 +217,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * The private/public keys (supplied within {@link #keyPair}) should match. Otherwise, {@link IllegalArgumentException} is thrown.
      */
-    protected void sanityCheck() {
+    private void sanityCheck() {
 
         // alphanumerical chars falls within  ['0':'z'] range with...
         var generatedString = new Random().ints(48, 122 + 1)

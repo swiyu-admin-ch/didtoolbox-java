@@ -76,7 +76,7 @@ public interface VcDataIntegrityCryptographicSuite extends VerificationMethodKey
      * @param proofPurpose                  typically "assertionMethod" or "authentication"
      * @param dateTime                      of the proof creation
      * @return JsonObject representing the data integrity proof
-     * @throws DidSidekicksException may come from a hasher
+     * @throws VcDataIntegrityCryptographicSuiteException if it fails to hash the object
      */
     default JsonObject buildDataIntegrityProof(JsonObject unsecuredDocument,
                                                      String challenge,

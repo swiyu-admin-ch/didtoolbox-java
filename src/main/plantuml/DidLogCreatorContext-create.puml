@@ -15,10 +15,6 @@ activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext
-			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext : getDidMethod
-			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext
-				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum
-			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext
 			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext : getCryptographicSuite
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext
 				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
