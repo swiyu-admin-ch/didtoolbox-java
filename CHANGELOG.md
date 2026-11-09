@@ -13,6 +13,7 @@
 - Improved internal handling of passwords `(#1038)`
 - Deactivating a DID Log with active key pre-rotation generates an intermediate log entry in order to deactivate key pre-rotation before deactivating the log. `(#1137`
 - iss claim no longer added or verified in Proof of Possessions according to swiss-profile-anchor 1.0 `(#1187)`
+- Merge VerificationMaterial into VerificationMethod `(#1197)`
 
 ### Removed
 
