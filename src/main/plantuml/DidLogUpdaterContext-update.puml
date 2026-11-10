@@ -5,6 +5,14 @@ participant ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
 participant ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory
 participant ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwUpdater
 participant ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+participant ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils
+participant org.bouncycastle.openssl.PEMParser
+participant org.bouncycastle.util.io.pem.PemReader
+participant org.bouncycastle.util.encoders.Base64
+participant org.bouncycastle.util.encoders.Encoder
+participant org.bouncycastle.util.Exceptions
+participant org.bouncycastle.util.io.pem.PemObject
+participant org.bouncycastle.util.io.pem.PemObjectParser
 participant ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
 participant ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryUpdater
 participant ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategy
@@ -36,22 +44,54 @@ activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwUpdater
 			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext : allAssertionMethods
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : of
+				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : ofPEM
 				activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : of
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils : parsePemPublicKey
+					activate ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils
+						ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils -> org.bouncycastle.openssl.PEMParser : readObject
+						activate org.bouncycastle.openssl.PEMParser
+							org.bouncycastle.openssl.PEMParser -> org.bouncycastle.util.io.pem.PemReader : readPemObject
+							activate org.bouncycastle.util.io.pem.PemReader
+								org.bouncycastle.util.io.pem.PemReader -> org.bouncycastle.util.io.pem.PemReader : loadObject
+								activate org.bouncycastle.util.io.pem.PemReader
+									org.bouncycastle.util.io.pem.PemReader -> org.bouncycastle.util.encoders.Base64 : decode
+									activate org.bouncycastle.util.encoders.Base64
+										org.bouncycastle.util.encoders.Base64 -> org.bouncycastle.util.encoders.Encoder : decode
+										activate org.bouncycastle.util.encoders.Encoder
+											org.bouncycastle.util.encoders.Encoder --> org.bouncycastle.util.encoders.Base64 : int
+										deactivate org.bouncycastle.util.encoders.Encoder
+										org.bouncycastle.util.encoders.Base64 --> org.bouncycastle.util.io.pem.PemReader : byte[]
+									deactivate org.bouncycastle.util.encoders.Base64
+									org.bouncycastle.util.io.pem.PemReader -> org.bouncycastle.util.Exceptions : ioException
+									activate org.bouncycastle.util.Exceptions
+										org.bouncycastle.util.Exceptions --> org.bouncycastle.util.io.pem.PemReader : java.io.IOException
+									deactivate org.bouncycastle.util.Exceptions
+									org.bouncycastle.util.io.pem.PemReader --> org.bouncycastle.util.io.pem.PemReader : org.bouncycastle.util.io.pem.PemObject
+								deactivate org.bouncycastle.util.io.pem.PemReader
+								org.bouncycastle.util.io.pem.PemReader --> org.bouncycastle.openssl.PEMParser : org.bouncycastle.util.io.pem.PemObject
+							deactivate org.bouncycastle.util.io.pem.PemReader
+							org.bouncycastle.openssl.PEMParser -> org.bouncycastle.util.io.pem.PemObject : getType
+							activate org.bouncycastle.util.io.pem.PemObject
+								org.bouncycastle.util.io.pem.PemObject --> org.bouncycastle.openssl.PEMParser : java.lang.String
+							deactivate org.bouncycastle.util.io.pem.PemObject
+							org.bouncycastle.openssl.PEMParser -> org.bouncycastle.util.io.pem.PemObjectParser : parseObject
+							activate org.bouncycastle.util.io.pem.PemObjectParser
+								org.bouncycastle.util.io.pem.PemObjectParser --> org.bouncycastle.openssl.PEMParser : java.lang.Object
+							deactivate org.bouncycastle.util.io.pem.PemObjectParser
+							org.bouncycastle.openssl.PEMParser --> ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils : java.lang.Object
+						deactivate org.bouncycastle.openssl.PEMParser
+						ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.security.PublicKey
+					deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : parseEcJWK
 					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : validateJwk
-						activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
-							activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-								ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
-							deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
-							activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-								ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
-							deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : void
-						deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
+					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : parseEdJWK
+					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
+					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : buildJWKVerificationMethod
+					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
@@ -60,22 +100,22 @@ activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
 			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext : allAuthentications
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : of
+				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : ofJWK
 				activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : of
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : validateJwk
 					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : validateJwk
-						activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
-							activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-								ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
-							deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
-							activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-								ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
-							deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : void
-						deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
+						activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
+						deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
+						activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
+						deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : void
+					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : buildJWKVerificationMethod
+					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
@@ -96,22 +136,54 @@ activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryUpdater
 			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext : allAssertionMethods
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : of
+				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : ofPEM
 				activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : of
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils : parsePemPublicKey
+					activate ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils
+						ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils -> org.bouncycastle.openssl.PEMParser : readObject
+						activate org.bouncycastle.openssl.PEMParser
+							org.bouncycastle.openssl.PEMParser -> org.bouncycastle.util.io.pem.PemReader : readPemObject
+							activate org.bouncycastle.util.io.pem.PemReader
+								org.bouncycastle.util.io.pem.PemReader -> org.bouncycastle.util.io.pem.PemReader : loadObject
+								activate org.bouncycastle.util.io.pem.PemReader
+									org.bouncycastle.util.io.pem.PemReader -> org.bouncycastle.util.encoders.Base64 : decode
+									activate org.bouncycastle.util.encoders.Base64
+										org.bouncycastle.util.encoders.Base64 -> org.bouncycastle.util.encoders.Encoder : decode
+										activate org.bouncycastle.util.encoders.Encoder
+											org.bouncycastle.util.encoders.Encoder --> org.bouncycastle.util.encoders.Base64 : int
+										deactivate org.bouncycastle.util.encoders.Encoder
+										org.bouncycastle.util.encoders.Base64 --> org.bouncycastle.util.io.pem.PemReader : byte[]
+									deactivate org.bouncycastle.util.encoders.Base64
+									org.bouncycastle.util.io.pem.PemReader -> org.bouncycastle.util.Exceptions : ioException
+									activate org.bouncycastle.util.Exceptions
+										org.bouncycastle.util.Exceptions --> org.bouncycastle.util.io.pem.PemReader : java.io.IOException
+									deactivate org.bouncycastle.util.Exceptions
+									org.bouncycastle.util.io.pem.PemReader --> org.bouncycastle.util.io.pem.PemReader : org.bouncycastle.util.io.pem.PemObject
+								deactivate org.bouncycastle.util.io.pem.PemReader
+								org.bouncycastle.util.io.pem.PemReader --> org.bouncycastle.openssl.PEMParser : org.bouncycastle.util.io.pem.PemObject
+							deactivate org.bouncycastle.util.io.pem.PemReader
+							org.bouncycastle.openssl.PEMParser -> org.bouncycastle.util.io.pem.PemObject : getType
+							activate org.bouncycastle.util.io.pem.PemObject
+								org.bouncycastle.util.io.pem.PemObject --> org.bouncycastle.openssl.PEMParser : java.lang.String
+							deactivate org.bouncycastle.util.io.pem.PemObject
+							org.bouncycastle.openssl.PEMParser -> org.bouncycastle.util.io.pem.PemObjectParser : parseObject
+							activate org.bouncycastle.util.io.pem.PemObjectParser
+								org.bouncycastle.util.io.pem.PemObjectParser --> org.bouncycastle.openssl.PEMParser : java.lang.Object
+							deactivate org.bouncycastle.util.io.pem.PemObjectParser
+							org.bouncycastle.openssl.PEMParser --> ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils : java.lang.Object
+						deactivate org.bouncycastle.openssl.PEMParser
+						ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.security.PublicKey
+					deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : parseEcJWK
 					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : validateJwk
-						activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
-							activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-								ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
-							deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
-							activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-								ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
-							deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : void
-						deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
+					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : parseEdJWK
+					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
+					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : buildJWKVerificationMethod
+					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
@@ -120,22 +192,22 @@ activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
 			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext : allAuthentications
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
-				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : of
+				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : ofJWK
 				activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : of
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : validateJwk
 					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : validateJwk
-						activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
-							activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-								ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
-							deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
-							activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-								ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
-							deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
-							ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : void
-						deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
+						activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
+						deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm : toString
+						activate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
+							ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : java.lang.String
+						deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm
+						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : void
+					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod -> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : buildJWKVerificationMethod
+					activate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 						ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 					deactivate ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 					ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod

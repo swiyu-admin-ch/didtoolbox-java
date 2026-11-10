@@ -8,12 +8,12 @@ This is the list of all third-party dependencies grouped by their license type. 
 ## Apache License, Version 2.0:
 
 * **Jackson-annotations** (com.fasterxml.jackson.core:jackson-annotations:2.22 - https://github.com/FasterXML/jackson)
-* **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.22.3 - https://github.com/FasterXML/jackson-core)
-* **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.22.3 - https://github.com/FasterXML/jackson)
+* **Jackson-core** (com.fasterxml.jackson.core:jackson-core:2.22.4 - https://github.com/FasterXML/jackson-core)
+* **jackson-databind** (com.fasterxml.jackson.core:jackson-databind:2.22.4 - https://github.com/FasterXML/jackson)
 * **FindBugs-jsr305** (com.google.code.findbugs:jsr305:3.0.2 - http://findbugs.sourceforge.net/)
-* **Gson** (com.google.code.gson:gson:2.14.0 - https://github.com/google/gson)
+* **Gson** (com.google.code.gson:gson:2.15.0 - https://github.com/google/gson)
 * **Tink Cryptography API** (com.google.crypto.tink:tink:1.24.0 - http://github.com/tink-crypto/tink-java)
-* **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.48.0 - https://errorprone.info/error_prone_annotations)
+* **error-prone annotations** (com.google.errorprone:error_prone_annotations:2.50.0 - https://errorprone.info/error_prone_annotations)
 * **Nimbus JOSE+JWT** (com.nimbusds:nimbus-jose-jwt:10.10 - https://bitbucket.org/connect2id/nimbus-jose-jwt)
 * **Byte Buddy (without dependencies)** (net.bytebuddy:byte-buddy:1.17.7 - https://bytebuddy.net/byte-buddy)
 * **Byte Buddy agent** (net.bytebuddy:byte-buddy-agent:1.17.7 - https://bytebuddy.net/byte-buddy-agent)

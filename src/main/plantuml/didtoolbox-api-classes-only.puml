@@ -213,6 +213,15 @@ enum ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum {
 }
 
 
+class ch.admin.bj.swiyu.didtoolbox.did.model.JsonWebKeyVerificationMethod {
+	{method} +equals ( paramObject1 : Object ) : boolean
+	{method} +getIdFragment () : String
+	{method} +getPublicKeyJwk () : String
+	{method} +getType () : String
+	{method} +hashCode () : int
+}
+
+
 class ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters {
 	{field} +deactivated : Boolean
 	{field} +nextKeyHashes : java.util.Set
@@ -266,15 +275,13 @@ interface ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial {
 interface ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod {
 	{method} +defaultEquals ( paramObject1 : Object ) : boolean
 	{method}  {abstract} +getIdFragment () : String
-	{method}  {abstract} +getType () : String <<deprecated>> 
-	{method}  {abstract} +getVerificationMaterial () : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial
-	{method}  {static} +of ( paramVerificationMaterial1 : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-	{method}  {static} +of ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-	{method}  {static} +of ( paramString1 : String , paramPath2 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-	{method}  {static} +of ( paramString1 : String , paramECPublicKey2 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
-	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramString3 : String ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod <<deprecated>> 
-	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramPath3 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod <<deprecated>> 
-	{method}  {static} +of ( paramString1 : String , paramString2 : String , paramECPublicKey3 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod <<deprecated>> 
+	{method}  {abstract} +getPublicKeyJwk () : String
+	{method}  {abstract} +getType () : String
+	{method}  {static} +ofEcPublicKey ( paramString1 : String , paramECPublicKey2 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+	{method}  {static} +ofJWK ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+	{method}  {static} +ofPEM ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+	{method}  {static} +ofPEMPath ( paramString1 : String , paramPath2 : java.nio.file.Path ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
+	{method} +toVerificationMethodEntry ( paramString1 : String ) : com.google.gson.JsonObject
 }
 
 
@@ -357,6 +364,7 @@ ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterConte
 ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
 ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite : verificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum : didMethod$value
+ch.admin.bj.swiyu.didtoolbox.did.model.JsonWebKeyVerificationMethod ..|>  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator *--  ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner : signer
 ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException *--  ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException$ErrorCause : errorCause
 

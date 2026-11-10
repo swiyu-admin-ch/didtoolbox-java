@@ -93,54 +93,6 @@ activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier
 	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
 		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
 	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
-	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getIssuer
-	activate com.nimbusds.jwt.JWTClaimsSet
-		com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getStringClaim
-		activate com.nimbusds.jwt.JWTClaimsSet
-			com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getClaim
-			activate com.nimbusds.jwt.JWTClaimsSet
-				com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.lang.Object
-			deactivate com.nimbusds.jwt.JWTClaimsSet
-			com.nimbusds.jwt.JWTClaimsSet --> com.nimbusds.jwt.JWTClaimsSet : java.lang.String
-		deactivate com.nimbusds.jwt.JWTClaimsSet
-		com.nimbusds.jwt.JWTClaimsSet --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : java.lang.String
-	deactivate com.nimbusds.jwt.JWTClaimsSet
-	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.eid.did_sidekicks.DidDoc : getId
-	activate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
-		activate ch.admin.eid.did_sidekicks.DidDoc
-			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
-		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
-		activate ch.admin.eid.did_sidekicks.DidDoc
-			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
-		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : uniffiCloneHandle
-		activate ch.admin.eid.did_sidekicks.DidDoc
-			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : long
-		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
-		activate ch.admin.eid.did_sidekicks.DidDoc
-			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
-		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCleanable
-		activate ch.admin.eid.did_sidekicks.DidDoc
-			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : ch.admin.eid.did_sidekicks.UniffiCleaner$Cleanable
-		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCallCounter$p
-		activate ch.admin.eid.did_sidekicks.DidDoc
-			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : java.util.concurrent.atomic.AtomicLong
-		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc -> ch.admin.eid.did_sidekicks.DidDoc : access$getCleanable
-		activate ch.admin.eid.did_sidekicks.DidDoc
-			ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.eid.did_sidekicks.DidDoc : ch.admin.eid.did_sidekicks.UniffiCleaner$Cleanable
-		deactivate ch.admin.eid.did_sidekicks.DidDoc
-		ch.admin.eid.did_sidekicks.DidDoc --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : java.lang.String
-	deactivate ch.admin.eid.did_sidekicks.DidDoc
-	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException : failedToVerify
-	activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
-		ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier : ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
-	deactivate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException
 	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier -> com.nimbusds.jwt.JWTClaimsSet : getExpirationTime
 	activate com.nimbusds.jwt.JWTClaimsSet
 		com.nimbusds.jwt.JWTClaimsSet -> com.nimbusds.jwt.JWTClaimsSet : getDateClaim

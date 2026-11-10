@@ -97,7 +97,7 @@ public interface VerificationMethod {
      * private values removed, never {@code null}
      */
     static VerificationMethod ofEcPublicKey(String kid, @NonNull ECPublicKey ecPublicKey) throws VerificationMethodException {
-        return buildJWK(kid, parseEcJWK(kid, ecPublicKey));
+        return buildJWKVerificationMethod(kid, parseEcJWK(kid, ecPublicKey));
     }
 
     /**
@@ -121,7 +121,7 @@ public interface VerificationMethod {
 
     static VerificationMethod ofJWK(String kid, String publicKeyJwk) throws VerificationMethodException {
         validateJwk(publicKeyJwk);
-        return buildJWK(kid, publicKeyJwk);
+        return buildJWKVerificationMethod(kid, publicKeyJwk);
     }
 
     /**
@@ -146,7 +146,7 @@ public interface VerificationMethod {
                 case EdECPublicKey ignored -> parseEdJWK(kid, pem);
                 default -> throw new VerificationMethodException("provided pem is not supported.");
             };
-            return buildJWK(kid, jwkString);
+            return buildJWKVerificationMethod(kid, jwkString);
         } catch (IOException e) {
             throw new VerificationMethodException(e);
         }
@@ -175,7 +175,7 @@ public interface VerificationMethod {
      * @return A JsonWebKeyVerificationMethod
      * @throws VerificationMethodException if the provided JWK or kid is missing or invalid
      */
-    private static VerificationMethod buildJWK(String kid, String jwkString) throws VerificationMethodException {
+    private static VerificationMethod buildJWKVerificationMethod(String kid, String jwkString) throws VerificationMethodException {
         JsonObject jsonObj;
         try {
             jsonObj = JsonParser.parseString(jwkString).getAsJsonObject();
