@@ -143,7 +143,7 @@ public interface VerificationMethod {
             var publicKey = PemUtils.parsePemPublicKey(new StringReader(pem));
             String jwkString = switch (publicKey) {
                 case ECPublicKey k -> parseEcJWK(kid, k);
-                case EdECPublicKey ignored -> parseEdJWK(kid, pem);
+                case EdECPublicKey _ -> parseEdJWK(kid, pem);
                 default -> throw new VerificationMethodException("provided pem is not supported.");
             };
             return buildJWKVerificationMethod(kid, jwkString);
