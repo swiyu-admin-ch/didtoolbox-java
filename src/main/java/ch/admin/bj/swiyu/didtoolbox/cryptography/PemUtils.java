@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 public final class PemUtils {
 
@@ -31,9 +32,10 @@ public final class PemUtils {
      * @param pemFile to read PEM key from
      * @return the PEM key as byte array
      * @throws FileNotFoundException in case of inappropriate {@code pemFile} parameter value
-     * @throws IOException           in case of a parse error
+     * @throws IOException             in case of a read error
+     * @throws InvalidKeySpecException in case of no PEM-encoded object
      */
-    public static byte[] readPEMFile(File pemFile) throws IOException {
+    public static byte[] readPEMFile(File pemFile) throws IOException, InvalidKeySpecException {
 
         if (!pemFile.isFile()) {
             throw new FileNotFoundException(String.format("The file '%s' doesn't exist.", pemFile.getAbsolutePath()));
@@ -51,9 +53,12 @@ public final class PemUtils {
         return parsePemKeyPair(Files.newBufferedReader(pemFile.toPath()));
     }
 
-    static byte[] readPemObject(Reader pemKeyReader) throws IOException {
+    static byte[] readPemObject(Reader pemKeyReader) throws IOException, InvalidKeySpecException {
         PemReader reader = new PemReader(pemKeyReader);
         PemObject pemObject = reader.readPemObject();
+        if (pemObject == null) {
+            throw new InvalidKeySpecException("The supplied reader features no PEM-encoded object");
+        }
         byte[] content = pemObject.getContent();
         reader.close();
         return content;
