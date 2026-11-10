@@ -16,6 +16,7 @@
 - CLI returns differentiated exit codes (`2` usage, `3` I/O/environment, `4` crypto/verification/DID log, `1` unexpected) and `--verbose` also prints the stack trace `(#1031)`
 
 ### Removed
+- Unreachable duplicate Primus parameter validation `(#1029)`
 
 ## 2.3.0 - 2026-07-31
 
