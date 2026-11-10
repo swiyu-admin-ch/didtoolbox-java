@@ -135,8 +135,8 @@ public interface VerificationMethod {
      * @param kid non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
      * @param pem a proper public ES256 or Ed25519 key in PEM format
      * @return a valid {@link VerificationMethod} implementation object representing Elliptic Curve JWK with any
-     * @throws IOException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
      *                     private values removed, never {@code null}
+     * @throws VerificationMethodException if the supplied key cannot be parsed as a supported public key format
      */
     static VerificationMethod ofPEM(String kid, @NonNull String pem) throws VerificationMethodException {
         try {
