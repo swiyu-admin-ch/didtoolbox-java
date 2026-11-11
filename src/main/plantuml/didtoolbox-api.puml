@@ -4,14 +4,6 @@
 left to right direction
 
 
-class ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl {
-	{method} +generateSignature ( param[B1 : [B ) : [B
-	{method} +getVerificationKeyMultibase () : String
-	{method}  {static} #optionallyUnderifyRS ( param[B1 : [B ) : [B
-	{method} +verify ( param[B1 : [B , param[B2 : [B ) : boolean
-}
-
-
 class ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite {
 	{field} #cryptoSuite : ch.admin.eid.did_sidekicks.EddsaJcs2022Cryptosuite
 	{field} #signingKey : ch.admin.eid.did_sidekicks.Ed25519SigningKey
@@ -197,8 +189,6 @@ class ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException {
 
 
 
-ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
 ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter : nextKeyHashesDidMethodParameter

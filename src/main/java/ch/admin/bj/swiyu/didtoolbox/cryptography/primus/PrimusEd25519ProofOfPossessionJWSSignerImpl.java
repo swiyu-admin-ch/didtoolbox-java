@@ -12,25 +12,25 @@ import java.security.*;
 import java.util.Set;
 
 /**
- * This {@link ProofOfPossessionJWSSigner} implementation builds on top of {@link Ed25519VerificationMethodKeyProviderImpl}
+ * This {@link ProofOfPossessionJWSSigner} implementation builds on top of {@link PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite}
  * aiming at reusing the extensive key loading facilities from the base class.
  * <p>
  * To be used in conjunction with {@link ProofOfPossessionCreator#ProofOfPossessionCreator(ProofOfPossessionJWSSigner)}.
  */
-public class Ed25519ProofOfPossessionJWSSignerImpl extends Ed25519VerificationMethodKeyProviderImpl implements ProofOfPossessionJWSSigner {
+public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite implements ProofOfPossessionJWSSigner {
     private final String kid;
     private final JCAContext jcaContext = new JCAContext();
 
     /**
-     * @see Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, String, char[])
+     * @see PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite#PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite(PrimusKeyStoreLoader, String, char[])
      */
-    public Ed25519ProofOfPossessionJWSSignerImpl(PrimusKeyStoreLoader primus, String alias, char[] password, String kid)
+    public PrimusEd25519ProofOfPossessionJWSSignerImpl(PrimusKeyStoreLoader primus, String alias, char[] password, String kid)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
         super(primus, alias, password);
         this.kid = kid;
     }
 
-    public Ed25519ProofOfPossessionJWSSignerImpl(KeyPair keyPair, String kid, PrimusKeyStoreLoader primus) {
+    public PrimusEd25519ProofOfPossessionJWSSignerImpl(KeyPair keyPair, String kid, PrimusKeyStoreLoader primus) {
         super(keyPair, primus);
         this.kid = kid;
     }

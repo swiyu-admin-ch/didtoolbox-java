@@ -2,7 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.cli;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.*;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
@@ -292,7 +292,7 @@ public final class JCommanderRunner {
         } else if (command.securosysPrimusKeyStoreLoader != null && command.primusKeyAlias != null) {
             try {
                 var password = command.primusKeyPassword.toCharArray();
-                var provider = new Ed25519VerificationMethodKeyProviderImpl(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, password); // supplied external key pair
+                var provider = new PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite(command.securosysPrimusKeyStoreLoader, command.primusKeyAlias, password); // supplied external key pair
                 Arrays.fill(password, ' ');
                 return provider;
             } catch (UnrecoverableEntryException | KeyStoreException | NoSuchAlgorithmException | KeyException e) {
