@@ -9,11 +9,13 @@ import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.did.new_did.DidDocumentBuilder;
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import javax.xml.parsers.DocumentBuilder;
 import java.io.File;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -76,6 +78,20 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
         assertTrue(proofJsonObj.has("proofValue"));
     }
 
+    // TODO@MP delete
+    @Test
+    void foo() throws Exception {
+        var crypot = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+        var initialDidLog = buildInitialWebVerifiableHistoryDidLogEntry(crypot);
+        var now = ZonedDateTime.now();
+        var updated = WebVerifiableHistoryUpdater.builder(crypot).build().updateDidLog(initialDidLog, now);
+
+
+        var documentBuilder = new DidDocumentBuilder();
+        var nextLog = ch.admin.bj.swiyu.didtoolbox.did.new_did.WebVerifiableHistoryUpdater.builder(crypot, documentBuilder).build().updateDidLog(initialDidLog, now);
+        System.out.println(nextLog);
+    }
+
     @Test
     void testUpdateDidLogThrowsUpdateKeyMismatchDidLogUpdaterStrategyException() {
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
@@ -93,6 +109,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                     .build()
                     .updateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
+
         assertEquals("Update key mismatch", exc.getMessage());
     }
 
