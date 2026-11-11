@@ -82,6 +82,9 @@ import java.time.ZonedDateTime;
 @Getter
 public class DidLogDeactivatorContext {
 
+    // Class definition for java doc to build
+    public static class DidLogDeactivatorContextBuilder {}
+
     /**
      * Constructs a builder for deactivating did logs with the provided crypto Suite
      * @param cryptoSuite used to create the log entry signature

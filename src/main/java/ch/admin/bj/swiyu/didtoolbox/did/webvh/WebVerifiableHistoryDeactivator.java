@@ -55,6 +55,9 @@ import java.util.Set;
 @Builder
 public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
+    // Class definition for java doc to build
+    public static class WebVerifiableHistoryDeactivatorBuilder {}
+
     /**
      * Constructs a builder for deactivating did wbevh logs with the provided crypto Suite
      *

@@ -59,6 +59,9 @@ import java.util.Set;
 @Getter
 public class TdwCreator extends AbstractDidLogEntryBuilder implements DidLogCreatorStrategy {
 
+    // Class definition for java doc to build
+    public static class TdwCreatorBuilder {}
+
     /**
      * Constructs a builder for creating did tdw logs with the provided crypto Suite
      *

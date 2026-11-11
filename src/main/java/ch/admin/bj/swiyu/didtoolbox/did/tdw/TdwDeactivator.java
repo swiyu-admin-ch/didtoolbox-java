@@ -55,6 +55,9 @@ import java.time.temporal.ChronoUnit;
 @Builder
 public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
+    // Class definition for java doc to build
+    public static class TdwDeactivatorBuilder {}
+
     /**
      * Constructs a builder for deactivating did tdw logs with the provided crypto Suite
      *

@@ -100,6 +100,9 @@ import java.util.Set;
 @Getter
 public class DidLogUpdaterContext {
 
+    // Class definition for java doc to build
+    public static class DidLogUpdaterContextBuilder {}
+
     /**
      * Constructs a builder for updating did logs with the provided crypto suite
      * @param method version of the did log (WEBVH or TDW)

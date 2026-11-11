@@ -89,6 +89,9 @@ import java.util.Set;
 @Getter
 public class DidLogCreatorContext {
 
+    // Class definition for java doc to build
+    public static class DidLogCreatorContextBuilder {}
+
     /**
      * Constructs a builder for creating did logs with the provided crypto suite
      * @param method version of the did log (WEBVH or TDW)
