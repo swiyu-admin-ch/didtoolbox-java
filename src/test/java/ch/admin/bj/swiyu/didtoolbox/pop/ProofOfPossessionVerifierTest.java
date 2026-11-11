@@ -11,11 +11,17 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -167,5 +173,67 @@ class ProofOfPossessionVerifierTest extends AbstractUtilTestBase {
         var verifier = assertDoesNotThrow(() -> new ProofOfPossessionVerifier(didLog));
         var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.verify(jwt, NONCE));
         assertEquals(ProofOfPossessionVerifierException.ErrorCause.UNPARSABLE, exc.getErrorCause());
+    }
+
+    private static JWTClaimsSet.Builder unexpiredClaims() {
+        return new JWTClaimsSet.Builder()
+                .claim("nonce", NONCE)
+                .expirationTime(Date.from(Instant.now().plus(ONE_DAY_LONG)));
+    }
+
+    private SignedJWT signClaims(JWTClaimsSet claims) throws JOSEException {
+        var jwt = new SignedJWT(new JWSHeader.Builder(signer.getAlgorithm()).keyID(signer.getKid()).build(), claims);
+        jwt.sign(signer);
+        return jwt;
+    }
+
+    private void assertRejected(SignedJWT jwt, ProofOfPossessionVerifierException.ErrorCause expected) {
+        var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.verify(jwt, NONCE));
+        assertEquals(expected, exc.getErrorCause());
+        assertFalse(verifier.isValid(jwt, NONCE));
+    }
+
+    @Test
+    void verify_signedByAnotherKeyUnderValidKid_throwsInvalidSignature() throws Exception {
+        var anotherKeySigner = new EcP256ProofOfPossessionJWSSigner(Path.of("src/test/data/auth-key-01"), signer.getKid());
+
+        var proof = new ProofOfPossessionCreator(anotherKeySigner).create(NONCE, ONE_DAY_LONG);
+
+        assertRejected(proof, ProofOfPossessionVerifierException.ErrorCause.INVALID_SIGNATURE);
+    }
+
+    static Stream<Named<JWTClaimsSet>> claimsRejectedAsExpired() {
+        return Stream.of(
+                Named.of("no exp", new JWTClaimsSet.Builder().claim("nonce", NONCE).build()),
+                Named.of("nbf in the future", unexpiredClaims().notBeforeTime(Date.from(Instant.now().plus(Duration.ofHours(1)))).build()));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("claimsRejectedAsExpired")
+    void verify_validlySignedButNotCurrentlyValid_throwsExpired(JWTClaimsSet claims) throws Exception {
+        assertRejected(signClaims(claims), ProofOfPossessionVerifierException.ErrorCause.EXPIRED);
+    }
+
+    @Test
+    void verify_notBeforeInThePast_doesNotThrow() throws Exception {
+        var jwt = signClaims(unexpiredClaims().notBeforeTime(Date.from(Instant.now().minus(Duration.ofHours(1)))).build());
+
+        assertDoesNotThrow(() -> verifier.verify(jwt, NONCE));
+        assertTrue(verifier.isValid(jwt, NONCE));
+    }
+
+    @Test
+    void verify_signedJwtVerifyThrowsJoseException_throwsFailedToVerify() throws JOSEException {
+        var jwt = mock(SignedJWT.class);
+        var header = mock(JWSHeader.class);
+
+        when(jwt.getHeader()).thenReturn(header);
+        when(header.getAlgorithm()).thenReturn(JWSAlgorithm.ES256);
+        when(header.getKeyID()).thenReturn(didDoc.getId() + "#my-assert-key-01");
+        when(jwt.verify(any())).thenThrow(new JOSEException("mock exception"));
+
+        var exc = assertThrowsExactly(ProofOfPossessionVerifierException.class, () -> verifier.verify(jwt, NONCE));
+        assertEquals(ProofOfPossessionVerifierException.ErrorCause.FAILED_TO_VERIFY, exc.getErrorCause());
+        assertTrue(exc.getMessage().contains("mock exception"));
     }
 }

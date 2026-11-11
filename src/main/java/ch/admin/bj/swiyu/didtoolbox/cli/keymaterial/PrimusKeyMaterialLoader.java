@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.cli;
+package ch.admin.bj.swiyu.didtoolbox.cli.keymaterial;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
@@ -21,7 +21,9 @@ final class PrimusKeyMaterialLoader implements KeyMaterialLoader {
 
     private final PrimusKeyStoreLoader primusKeyStoreLoader;
     private final String alias;
-    private final String password; // optional, may be null
+    // Optional, may be null. Deliberately a String: JCommander only ever delivers the password as a String,
+    // so a char[] field would not limit its lifetime.
+    private final String password;
 
     /**
      * @param primusKeyStoreLoader to recover the key pair from
@@ -56,6 +58,7 @@ final class PrimusKeyMaterialLoader implements KeyMaterialLoader {
         }
     }
 
+    @SuppressWarnings("PMD.UseVarargs") // a single password buffer, not an argument list
     private static void wipe(char[] passwordChars) {
         if (passwordChars != null) {
             Arrays.fill(passwordChars, ' ');

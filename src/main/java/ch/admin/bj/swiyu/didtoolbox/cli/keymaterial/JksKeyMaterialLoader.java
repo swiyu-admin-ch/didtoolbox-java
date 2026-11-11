@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.cli;
+package ch.admin.bj.swiyu.didtoolbox.cli.keymaterial;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;

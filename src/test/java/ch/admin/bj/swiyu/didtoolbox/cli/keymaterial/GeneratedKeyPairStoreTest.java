@@ -1,13 +1,18 @@
-package ch.admin.bj.swiyu.didtoolbox.cli;
+package ch.admin.bj.swiyu.didtoolbox.cli.keymaterial;
 
+import ch.admin.bj.swiyu.didtoolbox.cli.CommandException;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -96,6 +101,29 @@ class GeneratedKeyPairStoreTest {
         assertEquals(newKeys.getVerificationKeyMultibase(), cryptoSuite.getVerificationKeyMultibase()); // should be new keys
         var publicKey = new File(tmpDir.toString() + File.separator + ".didtoolbox/id_ed25519.pub");
         assertEquals(newKeys.getVerificationKeyMultibase(), PemUtils.readEd25519PublicKeyPemFileToMultibase(publicKey.toPath())); // should be new keys
+    }
+
+    @Test
+    @EnabledOnOs({OS.LINUX, OS.MAC})
+    void storeKeysOnDisk_freshAndForcedOverwrite_restrictsAccessToCurrentUser(@TempDir Path tmpDir) throws Exception {
+        var outputDir = tmpDir.resolve(".didtoolbox");
+        var privateKey = outputDir.resolve("id_ed25519");
+        var filePermissions = PosixFilePermissions.fromString("rw-------");
+        var directoryPermissions = PosixFilePermissions.fromString("rwx------");
+        var store = new GeneratedKeyPairStore(outputDir.toString());
+
+        store.storeKeysOnDisk(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(), false); // MUT
+
+        assertEquals(filePermissions, Files.getPosixFilePermissions(privateKey));
+        assertEquals(directoryPermissions, Files.getPosixFilePermissions(outputDir));
+
+        // Otherwise, merely writing into the already restricted file would go unnoticed
+        Files.setPosixFilePermissions(privateKey, PosixFilePermissions.fromString("rw-r--r--"));
+
+        store.storeKeysOnDisk(new EdDsaJcs2022VcDataIntegrityCryptographicSuite(), true); // MUT
+
+        assertEquals(filePermissions, Files.getPosixFilePermissions(privateKey));
+        assertEquals(directoryPermissions, Files.getPosixFilePermissions(outputDir));
     }
 
     @Test

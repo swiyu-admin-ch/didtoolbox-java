@@ -1,10 +1,12 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.*;
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandBase;
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandContext;
+import ch.admin.bj.swiyu.didtoolbox.cli.keymaterial.GeneratedKeyPairStore;
 import com.beust.jcommander.JCommander;
 
 /**
- * Thin dispatcher delegating the parsed CLI command to its dedicated runner.
+ * Thin dispatcher running the parsed CLI command.
  * <p>
  * The class is introduced for the sake of being able to test the CLI with no hassle involved.
  */
@@ -44,23 +46,13 @@ public final class JCommanderRunner {
      *
      * @throws Exception if the command fails for whatever reason
      */
-    public void run() throws Exception { // NOPMD SignatureDeclareThrowsException: each runner declares its own (checked) exceptions
+    public void run() throws Exception { // NOPMD SignatureDeclareThrowsException: each command declares its own (checked) exceptions
         var jcCommand = jc.getCommands().get(parsedCommandName);
-        if (jcCommand == null || jcCommand.getObjects().isEmpty()) {
+        if (jcCommand == null || jcCommand.getObjects().isEmpty()
+                || !(jcCommand.getObjects().getFirst() instanceof CommandBase command)) {
             throw new CommandException("Invalid command: " + parsedCommandName);
         }
 
-        switch (jcCommand.getObjects().getFirst()) {
-            case CreateDidLogCommand command ->
-                    new CreateDidLogRunner(jc, parsedCommandName, keyPairStore).run(command);
-            case UpdateDidLogCommand command ->
-                    new UpdateDidLogRunner(jc, parsedCommandName, keyPairStore).run(command);
-            case DeactivateDidLogCommand command -> new DeactivateDidLogRunner(jc, parsedCommandName).run(command);
-            case CreateProofOfPossessionCommand command ->
-                    new CreateProofOfPossessionRunner(jc, parsedCommandName).run(command);
-            case VerifyProofOfPossessionCommand command ->
-                    new VerifyProofOfPossessionRunner(jc, parsedCommandName).run(command);
-            default -> throw new CommandException("Invalid command: " + parsedCommandName);
-        }
+        command.run(new CommandContext(jc, parsedCommandName, keyPairStore));
     }
 }

@@ -14,7 +14,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AbstractKeyMaterialDidLogCommandTest {
+class KeyMaterialDidLogCommandTest {
     private final String jwk = """
     {
         "kty": "EC",
@@ -24,8 +24,12 @@ class AbstractKeyMaterialDidLogCommandTest {
     }
     """;
 
-    // Extends AbstractKeyMaterialDidLogCommand to test that class
-    private static class Command extends KeyMaterialDidLogCommand {}
+    // Extends KeyMaterialDidLogCommand to test that (abstract) class
+    private static final class Command extends KeyMaterialDidLogCommand {
+        @Override
+        protected void execute(CommandContext context) {
+        }
+    }
 
     @Test
     void getAssertionMethods_noMethodsProvided_generateKeys(@TempDir Path tmpDir) {

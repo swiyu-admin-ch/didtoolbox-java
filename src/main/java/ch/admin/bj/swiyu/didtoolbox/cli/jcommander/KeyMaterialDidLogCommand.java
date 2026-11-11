@@ -23,10 +23,7 @@ import static ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandParameterNames.
 /**
  * The base class for all Command classes in the package that require supply of a key material.
  */
-public class KeyMaterialDidLogCommand extends DidLogCommandBase {
-
-    protected KeyMaterialDidLogCommand() {
-    }
+public abstract class KeyMaterialDidLogCommand extends DidLogCommandBase {
 
     @Parameter(names = {PARAM_NAME_LONG_VERIFYING_KEY_FILES, PARAM_NAME_SHORT_VERIFYING_KEY_FILES},
             description = "One or more Ed25519 public key file(s) for the DID Document’s verification method. In PEM format.",

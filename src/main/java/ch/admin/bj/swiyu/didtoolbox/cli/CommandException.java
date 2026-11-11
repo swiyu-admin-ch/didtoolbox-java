@@ -5,11 +5,11 @@ package ch.admin.bj.swiyu.didtoolbox.cli;
  */
 @SuppressWarnings("PMD.MissingSerialVersionUID")
 public class CommandException extends Exception {
-    CommandException(String message, Throwable cause) {
+    public CommandException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    CommandException(String message) {
+    public CommandException(String message) {
         super(message);
     }
 }
