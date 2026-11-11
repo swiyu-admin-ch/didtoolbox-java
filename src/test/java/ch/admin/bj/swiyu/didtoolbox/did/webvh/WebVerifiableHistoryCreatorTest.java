@@ -2,7 +2,6 @@ package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.MultiHash;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.*;
 import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwCreator;
@@ -87,18 +86,18 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
     void testCreateDidLog(URL identifierRegistryUrl) {
-        AtomicReference<String> didLogEntry = new AtomicReference<>();
-        assertDoesNotThrow(() -> {
-
+        var crypt = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+        var zdt = ZonedDateTime.now();
+        var didLogEntry = assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
-            didLogEntry.set(WebVerifiableHistoryCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            return WebVerifiableHistoryCreator.builder(crypt)
                     .authentications(TEST_AUTHENTICATIONS)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .build()
-                    .createDidLog(identifierRegistryUrl)); // MUT
+                    .createDidLog(identifierRegistryUrl, zdt);
         });
 
-        assertDidLogEntry(didLogEntry.get());
+        assertDidLogEntry(didLogEntry);
     }
 
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys)")

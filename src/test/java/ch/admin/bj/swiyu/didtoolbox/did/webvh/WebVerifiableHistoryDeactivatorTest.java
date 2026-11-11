@@ -102,7 +102,6 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
                     .deactivateDidLog(deactivatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
         });
 
-
         deactivatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
         var finalUpdatedDidLog = deactivatedDidLog.toString().trim(); // trimming due to a closing line separator
 

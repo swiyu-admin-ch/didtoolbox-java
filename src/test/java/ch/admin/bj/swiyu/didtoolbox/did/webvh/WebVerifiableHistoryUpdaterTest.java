@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.MultiHash;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
@@ -93,6 +92,7 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                     .build()
                     .updateDidLog(buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)); // MUT
         });
+
         assertEquals("Update key mismatch", exc.getMessage());
     }
 
