@@ -6,6 +6,7 @@ import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -15,7 +16,7 @@ public class PrimusCredentialsFileParameterValidator implements IParameterValida
     public void validate(String name, String value) {
         var file = new File(value);
         if (!file.isFile() || !file.exists()) {
-            throw new ParameterException("Parameter " + name + " should be a regular properties file featuring Securosys Primus credentials (found " + value + ")");
+            throw new ParameterException("Parameter " + name + " should be a regular properties file featuring Securosys Primus credentials (found " + value + ")", new FileNotFoundException(value));
         }
 
         try {

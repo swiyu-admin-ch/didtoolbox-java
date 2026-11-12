@@ -30,8 +30,6 @@ abstract class AbstractCommandParametersValidatorTest {
 
     protected static final String TEST_DATA_PATH_PREFIX = "src/test/data/";
 
-    protected static final String CREDENTIALS_FILE_PATH = "src/test/data/com.securosys.primus.jce.credentials.properties";
-
     protected static File dummyDidLogFile = null;
 
     protected static final File somePrivatePEMFile = new File("src/test/data/private.pem");
@@ -211,112 +209,6 @@ abstract class AbstractCommandParametersValidatorTest {
         }
     }
 
-    // CAUTION For calling this function,
-    //         see the related instructions in pom.xml in regard to Securosys Primus HSM (JCE security provider)
-    private void assertPrimusParameters() {
-
-        assertDoesNotThrow(() -> {
-            buildCommandParser().parse(appendToRequiredCommandArgs(
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
-                    //,CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-            ));
-        });
-
-        assertDoesNotThrow(() -> {
-            buildCommandParser().parse(appendToRequiredCommandArgs(
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
-            ));
-        });
-
-        assertDoesNotThrow(() -> {
-            buildCommandParser().parse(appendToRequiredCommandArgs(
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
-            ));
-        });
-
-        assertDoesNotThrow(() -> {
-            buildCommandParser().parse(appendToRequiredCommandArgs(
-                    CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
-                    CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
-            ));
-        });
-
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE_PASSWORD
-
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH
-        );
-
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH
-        );
-
-        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE_PASSWORD
-
-        /*
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
-        );
-
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
-        );
-        */
-
-        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
-
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-        );
-
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE_PASSWORD
-
-        /*
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever"
-        );
-
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE, CREDENTIALS_FILE_PATH,
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever"
-        );
-         */
-
-        // No PARAM_NAME_*_PRIMUS_KEYSTORE_ALIAS
-
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS, CREDENTIALS_FILE_PATH,
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-        );
-
-        // No PARAM_NAME_*_PRIMUS_CREDENTIALS
-
-        /*
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS, "whatever",
-                CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-        );
-
-        assertTdwCommandThrowsParameterException(
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS, "whatever",
-                CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD, "whatever"
-        );
-         */
-    }
-
-    protected void assertTdwCommandThrowsParameterException(String... args) {
-        assertThrowsParameterException(() -> buildCommandParser().parse(appendToRequiredCommandArgs(args)),
-                "Incomplete Primus parameters supplied"
-        );
-    }
-
     protected static void assertThrowsParameterException(Executable executable, String containedInErrorMessage) {
         var exc = assertThrowsExactly(ParameterException.class, executable, "Expected: " + containedInErrorMessage);
         if (containedInErrorMessage != null) {
@@ -326,10 +218,6 @@ abstract class AbstractCommandParametersValidatorTest {
 
     @Test
     void testAbstractValidate() {
-        // CAUTION For calling this function,
-        //         see the related instructions in pom.xml in regard to Securosys Primus HSM (JCE security provider)
-        //assertPrimusParameters();
-
         assertAmbiguousParameters();
         assertBoundParameters();
     }

@@ -12,7 +12,6 @@ public class CommandParametersValidator implements IParametersValidator {
     public void validate(Map<String, Object> parameters) {
         validateAmbiguousParameters(parameters);
         validateBoundParameters(parameters);
-        validatePrimusParameters(parameters);
     }
 
     @SuppressWarnings("PMD.NPathComplexity")
@@ -60,28 +59,5 @@ public class CommandParametersValidator implements IParametersValidator {
                 || !isPrimusKeystoreAliasParamSupplied && isPrimusKeystorePasswordParamSupplied) {
             throw new ParameterException("The supplied Primus parameter(s) are incomplete. Use one of the relevant options to supply missing parameters");
         }
-    }
-
-    private static void validatePrimusParameters(Map<String, Object> parameters) {
-
-        if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) != null) {
-
-            if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS) == null && parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS) == null) {
-                throw new ParameterException("Incomplete Primus parameters supplied");
-            }
-
-        } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS) != null) {
-
-            if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) != null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) != null) {
-                throw new ParameterException("Incomplete Primus parameters supplied");
-            }
-
-        } else if (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_PASSWORD) != null && (
-                (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_CREDENTIALS) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_CREDENTIALS) == null) ||
-                        (parameters.get(CommandParameterNames.PARAM_NAME_LONG_PRIMUS_KEYSTORE_ALIAS) == null || parameters.get(CommandParameterNames.PARAM_NAME_SHORT_PRIMUS_KEYSTORE_ALIAS) == null)
-        )) {
-            throw new ParameterException("Incomplete Primus parameters supplied");
-        }
-
     }
 }
