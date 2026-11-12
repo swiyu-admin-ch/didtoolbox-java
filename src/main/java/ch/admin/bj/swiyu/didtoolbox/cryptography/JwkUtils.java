@@ -62,7 +62,7 @@ public final class JwkUtils {
 
         try {
             var jwk = VerificationMethod.ofPEMPath(kid, ecPublicPemPath);
-            return jwk.getPublicKeyJwk();
+            return jwk.getPublicKey();
         } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
@@ -87,7 +87,7 @@ public final class JwkUtils {
      */
     @Deprecated(since = "2.3.0")
     public static String generatePublicEC256(String kid, @NonNull File keyPairPemFile, boolean forceOverwrite) throws IOException {
-        return generatePublicP256VerificationMethod(kid, keyPairPemFile, forceOverwrite).getPublicKeyJwk();
+        return generatePublicP256VerificationMethod(kid, keyPairPemFile, forceOverwrite).getPublicKey();
     }
 
     /**

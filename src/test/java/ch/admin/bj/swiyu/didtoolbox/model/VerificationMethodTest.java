@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class VerificationMethodTest {
 
     private void assertKid(String expectedKid, VerificationMethod method) {
-        var jwk = method.getPublicKeyJwk();
+        var jwk = method.getPublicKey();
         var json = JsonParser.parseString(jwk).getAsJsonObject();
         var kid = json.get("kid");
         assertNotNull(kid);
@@ -128,7 +128,7 @@ class VerificationMethodTest {
         var method = VerificationMethod.ofJWK("fragment", jwk);
         assertEquals("JsonWebKey2020", method.getType());
         assertEquals("fragment", method.getIdFragment());
-        method.getPublicKeyJwk();
+        method.getPublicKey();
     }
 
     @Test
@@ -136,7 +136,7 @@ class VerificationMethodTest {
         var jwk = Ed25519SigningKey.Companion.generate().getVerifyingKey().toJwk();
         var method = VerificationMethod.ofJWK("fragment", jwk);
         assertEquals("fragment", method.getIdFragment());
-        method.getPublicKeyJwk();
+        method.getPublicKey();
     }
 
     @Test

@@ -162,9 +162,10 @@ enum ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum {
 class ch.admin.bj.swiyu.didtoolbox.did.model.JsonWebKeyVerificationMethod {
 	{method} +equals ( paramObject1 : Object ) : boolean
 	{method} +getIdFragment () : String
-	{method} +getPublicKeyJwk () : String
+	{method} +getPublicKey () : String
 	{method} +getType () : String
 	{method} +hashCode () : int
+	{method} +toVerificationMethodEntry ( paramString1 : String ) : com.google.gson.JsonObject
 }
 
 
@@ -221,7 +222,7 @@ interface ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial {
 interface ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod {
 	{method} +defaultEquals ( paramObject1 : Object ) : boolean
 	{method}  {abstract} +getIdFragment () : String
-	{method}  {abstract} +getPublicKeyJwk () : String
+	{method}  {abstract} +getPublicKey () : String
 	{method}  {abstract} +getType () : String
 	{method}  {static} +ofEcPublicKey ( paramString1 : String , paramECPublicKey2 : java.security.interfaces.ECPublicKey ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 	{method}  {static} +ofJWK ( paramString1 : String , paramString2 : String ) : ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod

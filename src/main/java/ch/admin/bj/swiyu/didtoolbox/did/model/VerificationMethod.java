@@ -42,13 +42,19 @@ public interface VerificationMethod {
     /**
      * As <a href="https://www.w3.org/TR/did-1.0/#dfn-verificationmethod">specified</a>
      * and w.r.t. <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.5">RFC3986</a>
+     * the type of the verification method. Possible values should be one of the
+     * <a href="https://www.w3.org/TR/did-extensions-properties/#verification-method-types">
+     * registered method types</a>
      *
      * @return a string that references exactly one verification method type
      */
     String getType();
 
 
-    String getPublicKeyJwk();
+    /**
+     * @return the public key of the verification method in the method specific form
+     */
+    String getPublicKey();
 
     /**
      * Create a verification method entry with set id, type, controller and publicKeyJwk as JsonObject
@@ -63,9 +69,7 @@ public interface VerificationMethod {
         // - https://swiyu-admin-ch.github.io/specifications/swiss-profile-anchor/#512-did-controller
         verificationMethodObj.addProperty("controller", did);
         verificationMethodObj.addProperty("type", getType());
-        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(getPublicKeyJwk()).getAsJsonObject());
-        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-        // https://swiyu-admin-ch.github.io/specifications/swiss-profile-anchor/#521-verification-material
+        // CAUTION The exact claim where the public key is depends on the verification method type
 
         return verificationMethodObj;
     }
@@ -87,7 +91,7 @@ public interface VerificationMethod {
      * Yet another static factory method of the interface.
      * <p>
      * For the supplied public Elliptic Curve key {@code ecPublicKey},
-     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKeyJwk()} method
+     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKey()} method
      * that always returns JSON representation of the Elliptic Curve JWK with any private values removed.
      * The cryptographic curve is always P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7).
      *
@@ -104,7 +108,7 @@ public interface VerificationMethod {
      * Yet another static factory method of the interface.
      * <p>
      * For the supplied pem file {@code publicKeyPemFile},
-     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKeyJwk()} method
+     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKey()} method
      * that always returns JSON representation of the JWK with any private values removed.
      * The cryptographic curve is either P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7) or Ed25519.
      *
@@ -128,7 +132,7 @@ public interface VerificationMethod {
      * Yet another static factory method of the interface.
      * <p>
      * For the supplied pem file as string {@code pem},
-     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKeyJwk()} method
+     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKey()} method
      * that always returns JSON representation of the JWK with any private values removed.
      * The cryptographic curve is either P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7) or Ed25519.
      *
@@ -143,7 +147,7 @@ public interface VerificationMethod {
             var publicKey = PemUtils.parsePemPublicKey(new StringReader(pem));
             String jwkString = switch (publicKey) {
                 case ECPublicKey k -> parseEcJWK(kid, k);
-                case EdECPublicKey _ -> parseEdJWK(kid, pem);
+                case EdECPublicKey k -> parseEdJWK(kid, pem);
                 default -> throw new VerificationMethodException("provided pem is not supported.");
             };
             return buildJWKVerificationMethod(kid, jwkString);

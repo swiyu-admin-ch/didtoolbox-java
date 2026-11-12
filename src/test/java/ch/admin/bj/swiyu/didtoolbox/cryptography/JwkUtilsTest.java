@@ -26,7 +26,7 @@ class JwkUtilsTest {
     private static void assertGeneratePublicEC256(VerificationMethod verificationMethod, String kid) {
         assertEquals(kid, verificationMethod.getIdFragment());
 
-        var json = verificationMethod.getPublicKeyJwk();
+        var json = verificationMethod.getPublicKey();
         var publicJwkJsonObject = JsonParser.parseString(json).getAsJsonObject();
         assertTrue(publicJwkJsonObject.has("kty"));
         assertEquals("EC", publicJwkJsonObject.get("kty").getAsString());
