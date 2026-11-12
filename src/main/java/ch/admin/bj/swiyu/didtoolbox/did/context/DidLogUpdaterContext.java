@@ -280,7 +280,7 @@ public class DidLogUpdaterContext {
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
                 try {
-                    set.add(VerificationMethod.of(entry.getKey(), entry.getValue()));
+                    set.add(VerificationMethod.ofJWK(entry.getKey(), entry.getValue()));
                 } catch (VerificationMethodException e) {
                     throw new DidLogUpdaterStrategyException(e);
                 }
@@ -307,7 +307,7 @@ public class DidLogUpdaterContext {
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
                 try {
-                    set.add(VerificationMethod.of(entry.getKey(), entry.getValue()));
+                    set.add(VerificationMethod.ofPEM(entry.getKey(), entry.getValue()));
                 } catch (VerificationMethodException e) {
                     throw new DidLogUpdaterStrategyException(e);
                 }

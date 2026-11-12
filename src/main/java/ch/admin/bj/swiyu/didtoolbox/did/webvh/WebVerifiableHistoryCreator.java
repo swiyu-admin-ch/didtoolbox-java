@@ -297,13 +297,15 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
             var verificationMethodObj = new JsonObject();
             verificationMethodObj.addProperty("id", did + "#" + kid);
 
-            // CAUTION The "controller" property must not be present w.r.t.:
-            // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
+            // CAUTION The "controller" property should not be present w.r.t.:
+            // - https://swiyu-admin-ch.github.io/specifications/swiss-profile-anchor/#512-did-controller
             verificationMethodObj.addProperty("type", "JsonWebKey2020");
 
             // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-            // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
+            // https://swiyu-admin-ch.github.io/specifications/swiss-profile-anchor/#521-verification-material
 
+
+            // Build the JWK from DID Sidekicks
             var jwkJsonObj = new JsonObject();
 
             jwkJsonObj.addProperty("kid", kid);
@@ -349,7 +351,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
                 try {
-                    set.add(ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod.of(entry.getKey(), entry.getValue()));
+                    set.add(ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod.ofPEM(entry.getKey(), entry.getValue()));
                 } catch (VerificationMethodException e) {
                     throw new DidLogCreatorStrategyException(e);
                 }
@@ -374,7 +376,7 @@ public class WebVerifiableHistoryCreator extends AbstractDidLogEntryBuilder impl
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
                 try {
-                    set.add(ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod.of(entry.getKey(), entry.getValue()));
+                    set.add(ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod.ofPEM(entry.getKey(), entry.getValue()));
                 } catch (VerificationMethodException e) {
                     throw new DidLogCreatorStrategyException(e);
                 }

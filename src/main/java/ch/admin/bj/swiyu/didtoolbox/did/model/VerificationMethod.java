@@ -1,15 +1,22 @@
 package ch.admin.bj.swiyu.didtoolbox.did.model;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.Ed25519VerifyingKey;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import lombok.NonNull;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.interfaces.ECPublicKey;
-import java.util.Objects;
+import java.security.interfaces.EdECPublicKey;
 
 /**
  * A <a href="https://www.w3.org/TR/did-1.0/#dfn-did-documents">DID Document</a> can express
@@ -25,15 +32,6 @@ import java.util.Objects;
 public interface VerificationMethod {
 
     /**
-     * The string representation of the
-     * <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type behind
-     * <a href="https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020">JsonWebKey2020</a>, which is
-     * the type of the verification method for the signature suite {@code JsonWebSignature2020}.
-     */
-    @Deprecated(since = "2.3.0") // NOPMD AvoidDuplicateLiterals
-    String VM_TYPE_JSON_WEB_KEY_2020 = "JsonWebKey2020";
-
-    /**
      * As <a href="https://www.w3.org/TR/did-1.0/#dfn-verificationmethod">specified</a>
      * and w.r.t. <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.5">RFC3986</a>
      *
@@ -44,21 +42,37 @@ public interface VerificationMethod {
     /**
      * As <a href="https://www.w3.org/TR/did-1.0/#dfn-verificationmethod">specified</a>
      * and w.r.t. <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.5">RFC3986</a>
+     * the type of the verification method. Possible values should be one of the
+     * <a href="https://www.w3.org/TR/did-extensions-properties/#verification-method-types">
+     * registered method types</a>
      *
      * @return a string that references exactly one verification method type
      */
-    @Deprecated(since = "2.3.0")
     String getType();
 
+
     /**
-     * As <a href="https://www.w3.org/TR/did-1.0/#verification-material">specified</a>:
-     * <p>
-     * <a href="https://www.w3.org/TR/did-1.0/#verification-material">Verification material</a> is any information that is used by a process that applies a
-     * <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a>.
-     *
-     * @return a valid {@link VerificationMaterial} implementation object, never {@code null}
+     * @return the public key of the verification method in the method specific form
      */
-    VerificationMaterial getVerificationMaterial();
+    String getPublicKey();
+
+    /**
+     * Create a verification method entry with set id, type, controller and publicKeyJwk as JsonObject
+     * according to swiss-profile-anchor 1.0
+     * @param did the did to be used as part of the id together with the idFragment
+     * @return the verification method as JsonObject
+     */
+    default JsonObject toVerificationMethodEntry(String did) {
+        var verificationMethodObj = new JsonObject();
+        verificationMethodObj.addProperty("id", did + "#" + getIdFragment());
+        // The "controller" may be present, if it is it MUST be the DID
+        // - https://swiyu-admin-ch.github.io/specifications/swiss-profile-anchor/#512-did-controller
+        verificationMethodObj.addProperty("controller", did);
+        verificationMethodObj.addProperty("type", getType());
+        // CAUTION The exact claim where the public key is depends on the verification method type
+
+        return verificationMethodObj;
+    }
 
     /**
      * Effectively, this is the default {@link Object#equals(Object)} implementation introduced for the sake of preventing:
@@ -76,237 +90,116 @@ public interface VerificationMethod {
     /**
      * Yet another static factory method of the interface.
      * <p>
-     * Assuming the supplied {@code publicKeyJwk} represents a proper <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
-     * featuring <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.1">"kty" (Key Type)</a>, {@code crv}, {@code x} and {@code y} parameters,
-     * a valid {@link VerificationMethod} implementation object is returned featuring
-     * {@link VerificationMethod#getVerificationMaterial()} method that always returns a valid
-     * {@link VerificationMaterial} implementation object of type {@code type}
-     * (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020}).
-     *
-     * @param kid          non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
-     * @param type         string representation of a <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type
-     *                     (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020})
-     * @param publicKeyJwk string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
-     * @return a valid {@link VerificationMethod} implementation object, never {@code null}
-     * @throws VerificationMethodException if the supplied {@code publicKeyJwk} does not represent a proper
-     *                                     <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a> as described above
-     */
-    // Upon removal, move logic to constructor without type parameter
-    @Deprecated(since = "2.3.0")
-    static VerificationMethod of(String kid, String type, String publicKeyJwk) throws VerificationMethodException {
-        JsonObject jsonObj;
-        try {
-            jsonObj = JsonParser.parseString(publicKeyJwk).getAsJsonObject();
-        } catch (JsonSyntaxException exc) {
-            throw new VerificationMethodException("The supplied string does not represent a public key JWK", exc);
-        }
-
-        validateJwk(jsonObj);
-
-        return new VerificationMethod() {
-            @Override
-            public String getIdFragment() {
-                return kid;
-            }
-
-            @Override
-            public String getType() {
-                return type;
-            }
-
-            @Override
-            public VerificationMaterial getVerificationMaterial() {
-                return () -> {
-                    jsonObj.addProperty("kid", kid);
-                    return jsonObj.toString();
-                };
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                return this.defaultEquals(obj);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(this.getIdFragment());
-            }
-        };
-    }
-
-    /**
-     * Yet another static factory method of the interface.
-     * <p>
-     * It is nothing but a variant of the {@link #of(String, String, String)}
-     * static factory method having {@link #VM_TYPE_JSON_WEB_KEY_2020} as {@code type}.
-     *
-     * @see #of(String, String, String)
-     * @see #VM_TYPE_JSON_WEB_KEY_2020
-     */
-    static VerificationMethod of(String kid, String publicKeyJwk) throws VerificationMethodException {
-        return VerificationMethod.of(kid, VM_TYPE_JSON_WEB_KEY_2020, publicKeyJwk);
-    }
-
-    /**
-     * Yet another static factory method of the interface.
-     * <p>
-     * Assuming the supplied {@code ecPublicKeyPemPath} denotes a file featuring a proper (PEM-encoded) public EC key,
-     * a valid {@link VerificationMethod} implementation object is returned featuring
-     * {@link VerificationMethod#getVerificationMaterial()} method that always returns a valid
-     * {@link VerificationMaterial} implementation object of type {@code type}
-     * (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020}).
-     *
-     * @param kid              non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
-     * @param type             string representation of a <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type
-     *                         (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020})
-     * @param publicKeyPemPath file featuring a proper P-256 or Ed25519 public key in PEM format
-     * @return a valid {@link VerificationMethod} implementation object, never {@code null}
-     * @throws VerificationMethodException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
-     * @see #of(String, String, String)
-     */
-    // Upon removal, move logic to constructor without type parameter
-    @Deprecated(since = "2.3.0")
-    static VerificationMethod of(String kid, String type, Path publicKeyPemPath) throws VerificationMethodException {
-
-        VerificationMaterial vm;
-        try {
-            vm = VerificationMaterial.of(kid, publicKeyPemPath);
-        } catch (IOException | DidSidekicksException exc) {
-            throw new VerificationMethodException(exc);
-        }
-
-        // Assigning vm to new variable, as the vm cannot be final, as it has "2" assignments
-        // even though only 1 of them can work.
-        return of(vm);
-    }
-
-    /**
-     * Yet another static factory method of the interface.
-     * <p>
-     * It is nothing but a variant of the {@link #of(String, String, Path)}
-     * static factory method having {@link #VM_TYPE_JSON_WEB_KEY_2020} as {@code type}.
-     *
-     * @see #of(String, String, Path)
-     * @see #VM_TYPE_JSON_WEB_KEY_2020
-     */
-    static VerificationMethod of(String kid, Path pemPath) throws VerificationMethodException {
-        return VerificationMethod.of(kid, VM_TYPE_JSON_WEB_KEY_2020, pemPath);
-    }
-
-    /**
-     * Yet another static factory method of the interface.
-     * <p>
-     * For the supplied public EC key {@code ecPublicKey},
-     * a valid {@link VerificationMethod} implementation object is returned featuring
-     * {@link VerificationMethod#getVerificationMaterial()} method that always returns a valid
-     * {@link VerificationMaterial} implementation object of type {@code type}
-     * (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020}).
+     * For the supplied public Elliptic Curve key {@code ecPublicKey},
+     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKey()} method
+     * that always returns JSON representation of the Elliptic Curve JWK with any private values removed.
+     * The cryptographic curve is always P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7).
      *
      * @param kid         non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
-     * @param type        string representation of a <a href="https://www.w3.org/TR/did-1.0/#dfn-verification-method">verification method</a> type
-     *                    (e.g. {@link #VM_TYPE_JSON_WEB_KEY_2020})
-     * @param ecPublicKey valid public EC public key
-     * @return a valid {@link VerificationMethod} implementation object, never {@code null}
-     * @see VerificationMaterial#of(String, ECPublicKey)
+     * @param ecPublicKey The public EC key to represent. Must not be {@code null}
+     * @return a valid {@link VerificationMethod} implementation object representing Elliptic Curve JWK with any
+     * private values removed, never {@code null}
      */
-    // Upon removal, move logic to constructor without type parameter
-    @Deprecated(since = "2.3.0")
-    static VerificationMethod of(String kid, String type, ECPublicKey ecPublicKey) {
-        return new VerificationMethod() {
-            @Override
-            public String getIdFragment() {
-                return kid;
-            }
-
-            @Override
-            public String getType() {
-                return type;
-            }
-
-            @Override
-            public VerificationMaterial getVerificationMaterial() {
-                return VerificationMaterial.of(kid, ecPublicKey);
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                return this.defaultEquals(obj);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(this.getIdFragment());
-            }
-        };
+    static VerificationMethod ofEcPublicKey(String kid, @NonNull ECPublicKey ecPublicKey) throws VerificationMethodException {
+        return buildJWKVerificationMethod(kid, parseEcJWK(kid, ecPublicKey));
     }
 
     /**
      * Yet another static factory method of the interface.
      * <p>
-     * It is nothing but a variant of the {@link #of(String, String, ECPublicKey)}
-     * static factory method having {@link #VM_TYPE_JSON_WEB_KEY_2020} as {@code type}.
+     * For the supplied pem file {@code publicKeyPemFile},
+     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKey()} method
+     * that always returns JSON representation of the JWK with any private values removed.
+     * The cryptographic curve is either P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7) or Ed25519.
      *
-     * @see #of(String, String, ECPublicKey)
-     * @see #VM_TYPE_JSON_WEB_KEY_2020
+     * @param kid              non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
+     * @param publicKeyPemPath file featuring a proper public P-256 or Ed25519 key in PEM format
+     * @return a valid {@link VerificationMethod} implementation object representing Elliptic Curve JWK with any
+     * @throws IOException if the supplied {@code ecPublicKeyPemPath} does not feature a proper public EC key in PEM format
+     *                     private values removed, never {@code null}
      */
-    static VerificationMethod of(String kid, ECPublicKey ecPublicKey) {
-        return VerificationMethod.of(kid, VM_TYPE_JSON_WEB_KEY_2020, ecPublicKey);
+    static VerificationMethod ofPEMPath(String kid, @NonNull Path publicKeyPemPath) throws VerificationMethodException, IOException {
+            var pem = Files.readString(publicKeyPemPath);
+            return ofPEM(kid, pem);
     }
+
+    static VerificationMethod ofJWK(String kid, String publicKeyJwk) throws VerificationMethodException {
+        validateJwk(publicKeyJwk);
+        return buildJWKVerificationMethod(kid, publicKeyJwk);
+    }
+
+    /**
+     * Yet another static factory method of the interface.
+     * <p>
+     * For the supplied pem file as string {@code pem},
+     * a valid {@link VerificationMethod} implementation object is returned featuring {@link #getPublicKey()} method
+     * that always returns JSON representation of the JWK with any private values removed.
+     * The cryptographic curve is either P-256 (secp256r1, also called prime256v1, OID = 1.2.840.10045.3.1.7) or Ed25519.
+     *
+     * @param kid non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
+     * @param pem a proper public ES256 or Ed25519 key in PEM format
+     * @return a valid {@link VerificationMethod} implementation object representing Elliptic Curve JWK with any
+     *                     private values removed, never {@code null}
+     * @throws VerificationMethodException if the supplied key cannot be parsed as a supported public key format
+     */
+    static VerificationMethod ofPEM(String kid, @NonNull String pem) throws VerificationMethodException {
+        try {
+            var publicKey = PemUtils.parsePemPublicKey(new StringReader(pem));
+            String jwkString = switch (publicKey) {
+                case ECPublicKey k -> parseEcJWK(kid, k);
+                case EdECPublicKey k -> parseEdJWK(kid, pem);
+                default -> throw new VerificationMethodException("provided pem is not supported.");
+            };
+            return buildJWKVerificationMethod(kid, jwkString);
+        } catch (IOException e) {
+            throw new VerificationMethodException(e);
+        }
+    }
+
+    private static String parseEcJWK(String kid, ECPublicKey ecPublicKey) {
+        return new ECKey.Builder(Curve.P_256, ecPublicKey).keyID(kid).build().toPublicJWK().toJSONString();
+    }
+
+    private static String parseEdJWK(String kid, String pem) throws VerificationMethodException {
+        try (var dsaPublicKey = Ed25519VerifyingKey.Companion.fromPublicKeyPem(pem)) {
+            var jwk = JsonParser.parseString(dsaPublicKey.toJwk());
+            jwk.getAsJsonObject().addProperty("kid", kid);
+            return jwk.toString();
+        } catch (DidSidekicksException e) {
+            throw new VerificationMethodException(e);
+        }
+    }
+
 
     /**
      * Returns a verification method of the provided material. The fragment is the kid extracted from the material as JWK.
      *
-     * @param verificationMaterial to be wrapped
-     * @return
-     * @throws VerificationMethodException if the provided verificationMaterial returns an invalid JWK or is missing the property 'kid'
+     * @param kid non-empty string representing a <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">"kid" (Key ID) Parameter</a>
+     * @param jwkString the json web key as stringified json
+     * @return A JsonWebKeyVerificationMethod
+     * @throws VerificationMethodException if the provided JWK or kid is missing or invalid
      */
-    static VerificationMethod of(VerificationMaterial verificationMaterial) throws VerificationMethodException {
+    private static VerificationMethod buildJWKVerificationMethod(String kid, String jwkString) throws VerificationMethodException {
         JsonObject jsonObj;
         try {
-            jsonObj = JsonParser.parseString(verificationMaterial.getPublicKeyJwk()).getAsJsonObject();
+            jsonObj = JsonParser.parseString(jwkString).getAsJsonObject();
         } catch (JsonSyntaxException exc) {
             throw new VerificationMethodException("The supplied string does not represent a public key JWK", exc);
         }
-        var rawKid = jsonObj.get("kid");
-        if (rawKid == null || !rawKid.isJsonPrimitive()) {
-            throw new VerificationMethodException("Expected JWK to bo present in the JWK as string");
+        if (kid == null || kid.isBlank()) {
+            throw new VerificationMethodException("kid is required");
         }
-        var kid = rawKid.getAsString();
 
-        return new VerificationMethod() {
-            @Override
-            public String getIdFragment() {
-                return kid;
-            }
-
-            @Override
-            public String getType() {
-                return VM_TYPE_JSON_WEB_KEY_2020;
-            }
-
-            @Override
-            public VerificationMaterial getVerificationMaterial() {
-                return verificationMaterial;
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                return this.defaultEquals(obj);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(this.getIdFragment());
-            }
-        };
+        return new JsonWebKeyVerificationMethod(kid, jsonObj);
     }
 
     /**
      * Validates that the JWK has the required fields and that the alg is supported by the ecosystem.
-     * @param jwk to validate
+     * @param publicKeyJwk to validate
      * @throws VerificationMethodException if the JWK is invalid or not supported
      */
-    private static void validateJwk(JsonObject jwk) throws VerificationMethodException {
+    private static void validateJwk(String publicKeyJwk) throws VerificationMethodException {
+        JsonObject jwk = JsonParser.parseString(publicKeyJwk).getAsJsonObject();
         var crv = jwk.get("crv");
         if (crv == null || !crv.isJsonPrimitive()) {
             throw new VerificationMethodException("Property 'crv' is required");

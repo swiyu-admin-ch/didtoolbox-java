@@ -234,7 +234,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         if (this.authenticationKeys != null) { // collect all from deprecated class member
             for (var entry : this.authenticationKeys.entrySet()) {
                 try {
-                    set.add(VerificationMethod.of(entry.getKey(), entry.getValue()));
+                    set.add(VerificationMethod.ofPEM(entry.getKey(), entry.getValue()));
                 } catch (VerificationMethodException e) {
                     throw new DidLogUpdaterStrategyException(e);
                 }
@@ -260,7 +260,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
         if (this.assertionMethodKeys != null) { // collect all from deprecated class member
             for (var entry : this.assertionMethodKeys.entrySet()) {
                 try {
-                    set.add(VerificationMethod.of(entry.getKey(), entry.getValue()));
+                    set.add(VerificationMethod.ofPEM(entry.getKey(), entry.getValue()));
                 } catch (VerificationMethodException e) {
                     throw new DidLogUpdaterStrategyException(e);
                 }
@@ -454,8 +454,7 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             JsonArray authentication = new JsonArray();
             for (var vm : this.allAuthentications()) {
                 authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
-                        this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
+                verificationMethod.add(vm.toVerificationMethodEntry(this.didLogMeta.getDidDoc().getId()));
             }
             didDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
         }
@@ -464,8 +463,8 @@ public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder impl
             var assertionMethod = new JsonArray();
             for (var vm : this.allAssertionMethods()) {
                 assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
-                        this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
+                verificationMethod.add(vm.toVerificationMethodEntry(
+                        this.didLogMeta.getDidDoc().getId()));
             }
             didDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);
         }

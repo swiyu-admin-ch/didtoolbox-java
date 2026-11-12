@@ -15,10 +15,6 @@ activate ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator
 	activate ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
 		ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator : java.lang.String
 	deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
-	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator -> ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner : getKid
-	activate ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
-		ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner --> ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator : java.lang.String
-	deactivate ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
 	ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator -> com.nimbusds.jose.JWSObject : sign
 	activate com.nimbusds.jose.JWSObject
 		com.nimbusds.jose.JWSObject -> com.nimbusds.jose.JWSObject : ensureUnsignedState

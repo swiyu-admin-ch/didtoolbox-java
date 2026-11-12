@@ -44,8 +44,8 @@ abstract class AbstractCommandParametersValidatorTest {
         try {
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
             TEST_CRYPTO_SUITE = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem"));
-            TEST_ASSERTION_METHODS = Set.of(VerificationMethod.of("my-assert-key-01", Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub")));
-            TEST_AUTHENTICATIONS = Set.of(VerificationMethod.of("my-auth-key-01", Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub")));
+            TEST_ASSERTION_METHODS = Set.of(VerificationMethod.ofPEMPath("my-assert-key-01", Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub")));
+            TEST_AUTHENTICATIONS = Set.of(VerificationMethod.ofPEMPath("my-auth-key-01", Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub")));
 
         } catch (Exception intolerable) {
             throw new IllegalArgumentException(intolerable);

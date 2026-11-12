@@ -167,8 +167,8 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                     Files.newInputStream(Path.of(TEST_DATA_PATH_PREFIX + "mykeystore.jks")), "changeit", "myalias", "changeit");
             TEST_CRYPTO_SUITE_JKS = suiteJks;
 
-            TEST_ASSERTION_METHODS = Set.of(VerificationMethod.of("my-assert-key-01", Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub")));
-            TEST_AUTHENTICATIONS = Set.of(VerificationMethod.of("my-auth-key-01", Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub")));
+            TEST_ASSERTION_METHODS = Set.of(VerificationMethod.ofPEMPath("my-assert-key-01", Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub")));
+            TEST_AUTHENTICATIONS = Set.of(VerificationMethod.ofPEMPath("my-auth-key-01", Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub")));
         } catch (Exception intolerable) {
             throw new IllegalArgumentException(intolerable);
         }
@@ -288,8 +288,8 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                 var nextLogEntry = DidLogUpdaterContext.builder()
                         .didMethod(DidMethodEnum.TDW_0_3) // the legacy spec. version thus not default
                         .cryptographicSuite(cryptoSuite)
-                        .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
-                        .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                        .assertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                        .authentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                         .build()
                         .update(updatedDidLog.toString()); // MUT
 
@@ -317,8 +317,8 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                 var nextLogEntry = DidLogUpdaterContext.builder()
                         //.didMethod(DidMethodEnum.WEBVH_1_0) // default
                         .cryptographicSuite(cryptoSuite)
-                        .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
-                        .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                        .assertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                        .authentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                         .build()
                         .update(updatedDidLog.toString()); // MUT
 

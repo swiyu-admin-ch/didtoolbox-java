@@ -329,8 +329,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
                 var cryptoSuite = cryptoSuites[i % 2];
 
                 var nextLogEntry = WebVerifiableHistoryUpdater.builder(cryptoSuite)// different for odd and even entries (key alternation)
-                        .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
-                        .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                        .assertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                        .authentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                         // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
                         //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
                         .build()
@@ -371,8 +371,8 @@ class WebVerifiableHistoryUpdaterTest extends AbstractUtilTestBase {
             for (int i = 2; i < TEST_KEY_FILES.length + 1; i++) {
 
                 String nextLogEntry = WebVerifiableHistoryUpdater.builder(TEST_CRYPTO_SUITES[i - 2])// rotate to the key defined by the previous entry
-                        .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
-                        .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                        .assertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                        .authentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                         // CAUTION Trying to explicitly set 'updateKeys' by calling .updateKeys(...) results in error condition:
                         //         "invalid DID method parameter: invalid DID parameter: Invalid update key found. UpdateKey may only be set during key pre-rotation."
                         // Using alternative and more potent method to supply pre-rotation keys.
