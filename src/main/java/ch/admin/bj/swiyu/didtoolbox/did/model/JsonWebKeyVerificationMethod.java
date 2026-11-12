@@ -6,7 +6,7 @@ import com.google.gson.JsonParser;
 import java.util.Objects;
 
 public class JsonWebKeyVerificationMethod implements VerificationMethod {
-    private final String METHOD_TYPE = "JsonWebKey2020";
+    private final static String METHOD_TYPE = "JsonWebKey2020";
 
     private final String kid;
     private final JsonObject jsonObject;
