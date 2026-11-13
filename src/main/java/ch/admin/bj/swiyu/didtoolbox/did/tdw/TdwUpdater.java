@@ -62,6 +62,9 @@ import java.util.stream.Collectors;
 @Getter
 public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
 
+    // Class definition for java doc to build
+    public static class TdwUpdaterBuilder {}
+
     /**
      * Constructs a builder for updating did tdw logs with the provided crypto Suite
      *

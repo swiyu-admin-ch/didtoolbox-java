@@ -42,27 +42,19 @@ interface ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner {
 }
 
 
-class ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519ProofOfPossessionJWSSignerImpl {
-	{method} +getAlgorithm () : com.nimbusds.jose.JWSAlgorithm
-	{method} +sign ( paramJWSHeader1 : com.nimbusds.jose.JWSHeader , param[B2 : [B ) : com.nimbusds.jose.util.Base64URL
-	{method} +supportedJWSAlgorithms () : java.util.Set
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl {
-	{method} +generateSignature ( param[B1 : [B ) : [B
-	{method} +getVerificationKeyMultibase () : String
-	{method}  {static} #optionallyUnderifyRS ( param[B1 : [B ) : [B
-	{method} +verify ( param[B1 : [B , param[B2 : [B ) : boolean
-}
-
-
 class ch.admin.bj.swiyu.didtoolbox.cryptography.primus.HsmProofOfPossessionJWSSigner {
 	{method} +getAlgorithm () : com.nimbusds.jose.JWSAlgorithm
 	{method} +getJCAContext () : com.nimbusds.jose.jca.JCAContext
 	{method}  {static} +newPkcs11Signer ( paramString1 : String , paramString2 : String , paramString3 : String , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.cryptography.primus.HsmProofOfPossessionJWSSigner
 	{method}  {static} +newPrimusSigner ( paramPrimusKeyStoreLoader1 : ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader , paramString2 : String , param[C3 : [C , paramString4 : String ) : ch.admin.bj.swiyu.didtoolbox.cryptography.primus.HsmProofOfPossessionJWSSigner
 	{method} +sign ( paramJWSHeader1 : com.nimbusds.jose.JWSHeader , param[B2 : [B ) : com.nimbusds.jose.util.Base64URL
+}
+
+
+class ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl {
+	{method} +getAlgorithm () : com.nimbusds.jose.JWSAlgorithm
+	{method} +sign ( paramJWSHeader1 : com.nimbusds.jose.JWSHeader , param[B2 : [B ) : com.nimbusds.jose.util.Base64URL
+	{method} +supportedJWSAlgorithms () : java.util.Set
 }
 
 
@@ -295,11 +287,8 @@ enum ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException$ErrorCa
 
 
 ch.admin.bj.swiyu.didtoolbox.cryptography.EcP256ProofOfPossessionJWSSigner ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
-ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519ProofOfPossessionJWSSignerImpl --|>  ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl
-ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519ProofOfPossessionJWSSignerImpl ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
-ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.cryptography.primus.Ed25519VerificationMethodKeyProviderImpl ..|>  ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.cryptography.primus.HsmProofOfPossessionJWSSigner ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
+ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
 ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
 ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider
 ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter : nextKeyHashesDidMethodParameter

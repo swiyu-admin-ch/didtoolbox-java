@@ -19,11 +19,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.NamedParameterSpec;
 import java.util.Random;
 
 /**
- * The {@link Ed25519VerificationMethodKeyProviderImpl} class is a {@link VerificationMethodKeyProvider} implementation
+ * The {@link PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite} class is a {@link VerificationMethodKeyProvider} implementation
+ * supports the generation of new keys, instantiation with a java key store, private and public key readers and
  * relying completely on Securosys Primus HSM cluster as source of key pairs for the Ed25519 algorithm.
  * Such key pair is then used for the purpose of DID (<a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> or <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>) log creation.
  * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
@@ -40,10 +40,10 @@ import java.util.Random;
  * <p>
  * Thanks to the following constructor(s), it is capable of loading an already existing key material directly from a Securosys Primus HSM (cluster):
  * <ul>
- * <li>{@link Ed25519VerificationMethodKeyProviderImpl#Ed25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader, String, char[])}</li>
+ * <li>{@link PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite#PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite(PrimusKeyStoreLoader, String, char[])}</li>
  * </ul>
  */
-public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMethodKeyProvider, VcDataIntegrityCryptographicSuite {
+public class PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataIntegrityCryptographicSuite {
 
     static {
         Security.addProvider(new BouncyCastleProvider());
@@ -57,7 +57,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     private final KeyPair keyPair;
     private Provider provider = Security.getProvider(DEFAULT_JCE_PROVIDER_NAME);
 
-    public Ed25519VerificationMethodKeyProviderImpl(KeyPair ed25519KeyPair, Provider provider) {
+    public PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite(KeyPair ed25519KeyPair, Provider provider) {
         if (ed25519KeyPair == null) {
             throw new IllegalArgumentException("Valid key pair expected, instead of null");
         }
@@ -78,75 +78,13 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
     /**
      * The only public constructor of the class, capable of loading an already existing key material directly from a Securosys Primus HSM (cluster).
      */
-    public Ed25519VerificationMethodKeyProviderImpl(PrimusKeyStoreLoader primus, String alias, char[] password)
+    public PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite(PrimusKeyStoreLoader primus, String alias, char[] password)
             throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, KeyException {
         this(primus.loadKeyPair(alias, password), primus.getKeyStore().getProvider());
     }
 
-    public Ed25519VerificationMethodKeyProviderImpl(KeyPair keyPair, PrimusKeyStoreLoader primus) {
+    public PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite(KeyPair keyPair, PrimusKeyStoreLoader primus) {
         this(keyPair, primus.getKeyStore().getProvider());
-    }
-
-    public Ed25519VerificationMethodKeyProviderImpl() {
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("Ed25519");
-            keyPairGenerator.initialize(NamedParameterSpec.ED25519);
-            this.keyPair = keyPairGenerator.generateKeyPair();
-        } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
-
-    /**
-     * The {@link Reader}-based {@link Ed25519VerificationMethodKeyProviderImpl} constructor
-     * accepting keys in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format from various sources.
-     * <p>
-     * CAUTION It is assumed the keys do really match. Otherwise, {@link IllegalArgumentException} is thrown.
-     *
-     * @param privateKeyReader reader to load a private Ed25519 key from. It is assumed to be encoded according to the PKCS #8 standard.
-     * @param publicKeyReader  reader to load a public Ed25519 key from. It is assumed to be encoded according to the X.509 standard.
-     * @throws IOException             in case of a parse error.
-     * @throws InvalidKeySpecException if any of the given key specifications is inappropriate for its key factory to produce a key.
-     */
-    public Ed25519VerificationMethodKeyProviderImpl(Reader privateKeyReader, Reader publicKeyReader) throws IOException, InvalidKeySpecException {
-        this.keyPair = new KeyPair(PemUtils.parsePemPublicKey(publicKeyReader), PemUtils.parsePemPrivateKey(privateKeyReader));
-
-        sanityCheck();
-    }
-
-    /**
-     * The Java KeyStore (type: PKCS12) compliant {@link Ed25519VerificationMethodKeyProviderImpl} constructor.
-     *
-     * @param jksFile     the input stream from which the keystore is loaded, or null
-     * @param password    the password used to check the integrity of the keystore, the password used to unlock the keystore, or null
-     * @param alias       the alias name the key is associated with
-     * @param keyPassword the password for recovering the key, or {@code null} if not required
-     * @throws KeyStoreException           ...
-     * @throws CertificateException        ...
-     * @throws IOException                 ...
-     * @throws NoSuchAlgorithmException    ...
-     * @throws UnrecoverableEntryException ...
-     * @throws KeyException                ...
-     * @see KeyStore#load(InputStream, char[])
-     */
-    public Ed25519VerificationMethodKeyProviderImpl(InputStream jksFile, String password, String alias, String keyPassword)
-            throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
-
-        // CAUTION Calling KeyStore.getInstance("JKS") may cause:
-        //         "java.security.NoSuchAlgorithmException: no such algorithm: EdDSA for provider SUN"
-        KeyStore keyStore = KeyStore.getInstance("PKCS12", this.provider);
-        char[] pass = null;
-        if (password != null) {
-            pass = password.toCharArray();
-        }
-        keyStore.load(jksFile, pass); // java.io.IOException: keystore password was incorrect
-
-        // CAUTION Flexible constructors is a preview feature and is disabled by default. (use --enable-preview to enable flexible constructors)
-        //this(createFromKeyStore(keyStore, alias, keyPassword));
-
-        var obj = createFromKeyStore(keyStore, alias, keyPassword);
-        this.keyPair = obj.keyPair;
-        this.provider = obj.provider;
     }
 
     /**
@@ -242,7 +180,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
      * @throws UnrecoverableEntryException ...
      * @throws KeyException                ...
      */
-    private static Ed25519VerificationMethodKeyProviderImpl createFromKeyStore(KeyStore keyStore, String alias, String password)
+    private static PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite createFromKeyStore(KeyStore keyStore, String alias, String password)
             throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyException {
 
         if (!keyStore.isKeyEntry(alias)) {
@@ -273,7 +211,7 @@ public class Ed25519VerificationMethodKeyProviderImpl implements VerificationMet
 
         var publicKey = cert.getPublicKey();
 
-        return new Ed25519VerificationMethodKeyProviderImpl(new KeyPair(publicKey, key), keyStore.getProvider());
+        return new PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite(new KeyPair(publicKey, key), keyStore.getProvider());
     }
 
 }

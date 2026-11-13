@@ -61,6 +61,9 @@ import java.util.stream.Collectors;
 @Getter
 public class WebVerifiableHistoryUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
 
+    // Class definition for java doc to build
+    public static class WebVerifiableHistoryUpdaterBuilder {}
+
     /**
      * Constructs a builder for updating did webvh logs with the provided crypto Suite
      *
