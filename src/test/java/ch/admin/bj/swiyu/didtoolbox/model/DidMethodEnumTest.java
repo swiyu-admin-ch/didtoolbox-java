@@ -43,18 +43,6 @@ public class DidMethodEnumTest {
     }
 
     @Test
-    void isTdw03() {
-        assertTrue(DidMethodEnum.TDW_0_3.isTdw03());
-        assertFalse(DidMethodEnum.WEBVH_1_0.isTdw03());
-    }
-
-    @Test
-    void isWebv10() {
-        assertFalse(DidMethodEnum.TDW_0_3.isWebVh10());
-        assertTrue(DidMethodEnum.WEBVH_1_0.isWebVh10());
-    }
-
-    @Test
     void detectDidMethod_withValidTdwLog_returnsTdw() {
         var tdw = """
                 ["1-QmRVQ8EFiYfGqLXTpHSYMYXMcpFZwsy58gBeFYBEG3RPgj","2026-07-27T05:13:16Z",{"method":"did:tdw:0.3","scid":"QmY8Qa5YJynh7syyaUuBYSBJX18DjuYZ2BKsYBXoAv2VeC","updateKeys":["z6MkffRFEaq5wypbXTNK7AvmhvTWf4XiKVLomouvkpjuRPmP"],"portable":false},{"value":{"id":"did:tdw:QmY8Qa5YJynh7syyaUuBYSBJX18DjuYZ2BKsYBXoAv2VeC:example.com","authentication":["did:tdw:QmY8Qa5YJynh7syyaUuBYSBJX18DjuYZ2BKsYBXoAv2VeC:example.com#auth-key-01"],"assertionMethod":["did:tdw:QmY8Qa5YJynh7syyaUuBYSBJX18DjuYZ2BKsYBXoAv2VeC:example.com#assert-key-01"],"verificationMethod":[{"id":"did:tdw:QmY8Qa5YJynh7syyaUuBYSBJX18DjuYZ2BKsYBXoAv2VeC:example.com#auth-key-01","controller":"did:tdw:QmY8Qa5YJynh7syyaUuBYSBJX18DjuYZ2BKsYBXoAv2VeC:example.com","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"auth-key-01","x":"5mEj0G8RrCIK6Y-LFN0XAwEpRwhvyqwuqZ-4yQp6p4U","y":"q5-z3xdICaa7hTAfc-0HTiyR-5XklJTsjfcKWG9tGaw"}},{"id":"did:tdw:QmY8Qa5YJynh7syyaUuBYSBJX18DjuYZ2BKsYBXoAv2VeC:example.com#assert-key-01","controller":"did:tdw:QmY8Qa5YJynh7syyaUuBYSBJX18DjuYZ2BKsYBXoAv2VeC:example.com","type":"JsonWebKey2020","publicKeyJwk":{"kty":"EC","crv":"P-256","kid":"assert-key-01","x":"bwUStKHLIRy3RN1lyqgOdgTXO8h80KfcbGIZdn0wzEY","y":"JJG7jrkfY8PpW_yjHMJoB8GbuXpZWdPGX06vGAJlfOY"}}]}},[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2026-07-27T05:13:16Z","verificationMethod":"did:key:z6MkffRFEaq5wypbXTNK7AvmhvTWf4XiKVLomouvkpjuRPmP#z6MkffRFEaq5wypbXTNK7AvmhvTWf4XiKVLomouvkpjuRPmP","proofPurpose":"authentication","challenge":"1-QmRVQ8EFiYfGqLXTpHSYMYXMcpFZwsy58gBeFYBEG3RPgj","proofValue":"z5SjoNbsuT8z7WTvhVFWtLA8HNiteaQVsViYktcQ9EBtBaXEzqpbSCUSnqBw8io7MmLJMYy2Y3L9CAw7FySzWGoLs"}]]

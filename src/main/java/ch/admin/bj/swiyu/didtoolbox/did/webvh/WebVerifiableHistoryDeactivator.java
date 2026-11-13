@@ -1,18 +1,17 @@
 package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
+import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractDidLogEntryBuilder;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.did.IncompleteDidLogEntryBuilderException;
 import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.did.context.*;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
@@ -56,10 +55,8 @@ import java.util.Set;
 @Builder
 public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
-    @Deprecated(since = "2.1.0")
-    public static WebVerifiableHistoryDeactivatorBuilder builder() {
-        return new WebVerifiableHistoryDeactivatorBuilder();
-    }
+    // Class definition for java doc to build
+    public static class WebVerifiableHistoryDeactivatorBuilder {}
 
     /**
      * Constructs a builder for deactivating did wbevh logs with the provided crypto Suite
@@ -72,18 +69,11 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
     }
 
     /**
-     * Replaces the depr. {@link #verificationMethodKeyProvider},
-     * but gets no precedence over it (if both called against the same object).
+     * Handles creation of the vc data integrity proof
      */
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
-    /**
-     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.8.0")
-    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -93,14 +83,6 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
     @Override
     protected ProfileVersion getProfileVersion() {
         return ProfileVersion.SWISS_PROFILE_ANCHOR_1_0_0;
-    }
-
-    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
-        if (this.verificationMethodKeyProvider != null) {
-            return this.verificationMethodKeyProvider;
-        }
-
-        return this.cryptographicSuite;
     }
 
     /**
@@ -175,9 +157,9 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
             throw new DidLogDeactivatorStrategyException("DID already deactivated");
         }
 
-        if (getCryptoSuite() == null) {
+        if (this.getCryptographicSuite() == null) {
             throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
-        } else if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        } else if (!this.getCryptographicSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogDeactivatorStrategyException("Deactivation key mismatch");
         }
 
@@ -255,15 +237,15 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
         }
 
         // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
-        var didLogEntryWithoutProof = new JsonObject();
+        var didLogEntryJson = new JsonObject();
 
         var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
-        didLogEntryWithoutProof.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
-        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
+        didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
+        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
                 didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME));
-        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
+        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
                 didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS));
-        didLogEntryWithoutProof.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE,
+        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE,
                 didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE));
 
         /*
@@ -276,8 +258,11 @@ public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder 
          */
         try {
             // skip final resolve check, as resolver returns an error when resolving a deactivated did
-            return this.getCryptoSuite().addProof(didLogEntryWithoutProof.toString(), null, JCSHasher.PROOF_PURPOSE_ASSERTION_METHOD, zdt);
-
+            var proofs = new JsonArray();
+            proofs.add(this.getCryptographicSuite().buildDataIntegrityProof(
+                    didLogEntryJson, null, VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_ASSERTION_METHOD, zdt));
+            didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PROOF, proofs);
+            return didLogEntryJson.toString();
         } catch (VcDataIntegrityCryptographicSuiteException exc) {
             throw new DidLogDeactivatorStrategyException(exc);
         }

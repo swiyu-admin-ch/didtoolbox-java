@@ -6,6 +6,7 @@ import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
@@ -26,13 +27,12 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.AbstractCommandParametersValidatorTest.TEST_DATA_PATH_PREFIX;
 import static org.junit.jupiter.api.Assertions.*;
 
 // This will suppress all the PMD warnings in this (test) class
 @SuppressWarnings("PMD")
-class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend AbstractCommandParametersValidatorTest class, instead
-
-    protected static final String TEST_DATA_PATH_PREFIX = "src/test/data/";
+class VerifyProofOfPossessionCommandParametersValidatorTest {
 
     protected static File dummyDidLogFile = null;
     protected static final String dummyJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
@@ -45,7 +45,7 @@ class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend Abs
     static {
         try {
             // Total 3 (PrivateKeyEntry) entries available in the JKS: myalias/myalias2/myalias3
-            TEST_CRYPTO_SUITE = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of("src/test/data/private.pem"));
+            TEST_CRYPTO_SUITE = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(Path.of(TEST_DATA_PATH_PREFIX + "private.pem"));
             TEST_ASSERTION_METHODS = Set.of(VerificationMethod.ofPEMPath("my-assert-key-01", Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub")));
             TEST_AUTHENTICATIONS = Set.of(VerificationMethod.ofPEMPath("my-auth-key-01", Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub")));
         } catch (Exception intolerable) {
@@ -57,8 +57,7 @@ class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend Abs
         try {
             dummyDidLogFile = File.createTempFile("my-did", ".jsonl");
 
-            var initialDidLogEntry = DidLogCreatorContext.builder()
-                    .cryptographicSuite(TEST_CRYPTO_SUITE)
+            var initialDidLogEntry = DidLogCreatorContext.builder(DidMethodEnum.WEBVH_1_0, TEST_CRYPTO_SUITE)
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     .build()
@@ -66,8 +65,7 @@ class VerifyProofOfPossessionCommandParametersValidatorTest { // TODO Extend Abs
 
             var updatedDidLog = new StringBuilder(initialDidLogEntry)
                     .append(System.lineSeparator())
-                    .append(DidLogUpdaterContext.builder()
-                            .cryptographicSuite(TEST_CRYPTO_SUITE)
+                    .append(DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0, TEST_CRYPTO_SUITE)
                             .assertionMethods(TEST_ASSERTION_METHODS)
                             .authentications(TEST_AUTHENTICATIONS)
                             //.updateKeys(Set.of(new File("src/test/data/public.pem")))

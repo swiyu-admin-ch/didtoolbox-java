@@ -36,10 +36,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
         var illegalArgExc = assertThrowsExactly(IllegalArgumentException.class, () -> {
 
-            DidLogUpdaterContext.builder()
-                    .didMethod(DidMethodEnum.TDW_0_3) // must be set explicitly for did:tdw logs
-                    // the signing keys are generated on-the-fly
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            // the signing keys are generated on-the-fly
+            DidLogUpdaterContext.builder(DidMethodEnum.TDW_0_3, new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     // CAUTION Key pre-rotation is not (yet) implemented for did:tdw
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of("src/test/data/public01.pem")))) // activate prerotation by adding another key for the future
                     .build()
@@ -49,19 +47,15 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
         var exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
-            DidLogUpdaterContext.builder()
-                    .didMethod(DidMethodEnum.TDW_0_3) // must be set explicitly for did:tdw logs
-                    // the signing keys are generated on-the-fly
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            // the signing keys are generated on-the-fly
+            DidLogUpdaterContext.builder(DidMethodEnum.TDW_0_3, new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .update(finalDidLog1); // MUT
         });
         assertTrue(exc.getMessage().contains("Update key mismatch"));
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            DidLogUpdaterContext.builder()
-                    .didMethod(DidMethodEnum.TDW_0_3) // must be set explicitly for did:tdw logs
-                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
+            DidLogUpdaterContext.builder(DidMethodEnum.TDW_0_3, TEST_CRYPTO_SUITE) // using another verification key provider...
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // ...with NO matching key supplied!
                     .build()
                     .update(finalDidLog1); // MUT
@@ -71,20 +65,15 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
         // detecting DID method
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-
-            DidLogUpdaterContext.builder()
-                    .didMethod(DidMethodEnum.detectDidMethod(finalDidLog1))
-                    // the signing keys are generated on-the-fly
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            // the signing keys are generated on-the-fly
+            DidLogUpdaterContext.builder(DidMethodEnum.detectDidMethod(finalDidLog1),new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .update(finalDidLog1); // MUT
         });
         assertTrue(exc.getMessage().contains("Update key mismatch"));
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            DidLogUpdaterContext.builder()
-                    .didMethod(DidMethodEnum.detectDidMethod(finalDidLog1))
-                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
+            DidLogUpdaterContext.builder(DidMethodEnum.detectDidMethod(finalDidLog1),TEST_CRYPTO_SUITE) // using another verification key provider...
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // ...with NO matching key supplied!
                     .build()
                     .update(finalDidLog1); // MUT
@@ -98,19 +87,15 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
-            DidLogUpdaterContext.builder()
-                    //.didMethod(DidMethodEnum.WEBVH_1_0) // default
-                    // the signing keys are generated on-the-fly
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            // the signing keys are generated on-the-fly
+            DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0,new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .update(finalDidLog2); // MUT
         });
         assertTrue(exc.getMessage().contains("Update key mismatch"));
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            DidLogUpdaterContext.builder()
-                    //.didMethod(DidMethodEnum.WEBVH_1_0) // default
-                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
+            DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0, TEST_CRYPTO_SUITE) // using another verification key provider...
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // ...with NO matching key supplied!
                     .build()
                     .update(finalDidLog2); // MUT
@@ -121,19 +106,15 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
 
-            DidLogUpdaterContext.builder()
-                    .didMethod(DidMethodEnum.detectDidMethod(finalDidLog2))
-                    // the signing keys are generated on-the-fly
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            // the signing keys are generated on-the-fly
+            DidLogUpdaterContext.builder(DidMethodEnum.detectDidMethod(finalDidLog2),new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .build()
                     .update(finalDidLog2); // MUT
         });
         assertTrue(exc.getMessage().contains("Update key mismatch"));
 
         exc = assertThrowsExactly(DidLogUpdaterStrategyException.class, () -> {
-            DidLogUpdaterContext.builder()
-                    .didMethod(DidMethodEnum.detectDidMethod(finalDidLog2))
-                    .cryptographicSuite(TEST_CRYPTO_SUITE) // using another verification key provider...
+            DidLogUpdaterContext.builder(DidMethodEnum.detectDidMethod(finalDidLog2), TEST_CRYPTO_SUITE) // using another verification key provider...
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem")))) // ...with NO matching key supplied!
                     .build()
                     .update(finalDidLog2); // MUT
@@ -149,8 +130,7 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
 
         // build initial DID log entry
         // initial (by default, did:webvh:1.0) DID log entry (featuring a pre-rotation key)
-        var initialDidLog = DidLogCreatorContext.builder()
-                .cryptographicSuite(crytpoSuite)
+        var initialDidLog = DidLogCreatorContext.builder(DidMethodEnum.WEBVH_1_0, crytpoSuite)
                 // IMPORTANT Calling this method activates key pre-rotation
                 .nextKeyHashesDidMethodParameter(Set.of(
                         // get a whole another pre-rotation key to be used when building the next DID log entry.
@@ -177,9 +157,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
             var nextUpdateKey = RandomEd25519KeyStore.rotate().getPublicKey();
             didLog.append(
                     // next DID log entry
-                    DidLogUpdaterContext.builder()
-                            // switch to the key defined by the "nextKeyHashes" from the previous entry (the key store is already "rotated" earlier)
-                            .cryptographicSuite(crytpoSuite)
+                    // switch to the key defined by the "nextKeyHashes" from the previous entry (the key store is already "rotated" earlier)
+                    DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0, crytpoSuite)
                             .assertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
                             .authentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                             // Prepare ("rotate" to) another pre-rotation key to be used when building the next DID log entry

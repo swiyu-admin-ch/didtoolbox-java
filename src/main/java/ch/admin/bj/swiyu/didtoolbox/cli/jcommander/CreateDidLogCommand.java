@@ -1,9 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander;
 
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.DidMethodParameterConverter;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.IdentifierRegistryUrlParameterConverter;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.CommandParametersValidator;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.DidMethodParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.IdentifierRegistryUrlParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import com.beust.jcommander.Parameter;
@@ -41,12 +39,4 @@ public class CreateDidLogCommand extends AbstractKeyMaterialDidLogCommand {
             converter = IdentifierRegistryUrlParameterConverter.class,
             validateWith = IdentifierRegistryUrlParameterValidator.class)
     public URL identifierRegistryUrl;
-
-    @Parameter(names = {"--method-version", "-m"},
-            description = "Defines the DID method specification version to use when generating a DID log. Case-insensitive. Valid values: '" + DidMethodEnum.TDW_0_3_STRING + "', '" + DidMethodEnum.WEBVH_1_0_STRING + "'",
-            converter = DidMethodParameterConverter.class,
-            validateWith = DidMethodParameterValidator.class,
-            defaultValueDescription = DidMethodEnum.WEBVH_1_0_STRING)
-    //,required = true)
-    public DidMethodEnum methodVersion;
 }

@@ -5,10 +5,10 @@ import ch.admin.bj.swiyu.didtoolbox.cryptography.Ed25519Utils;
 import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
-import ch.admin.eid.did_sidekicks.*;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.eid.did_sidekicks.Ed25519Signature;
+import ch.admin.eid.did_sidekicks.Ed25519SigningKey;
+import ch.admin.eid.did_sidekicks.EddsaJcs2022Cryptosuite;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,13 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HexFormat;
-import java.util.List;
-import java.util.Set;
 
 /**
  * The {@link EdDsaJcs2022VcDataIntegrityCryptographicSuite} class is a
@@ -262,11 +256,9 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
      *
      * @param message to sign
      * @return signed message
-     * @deprecated As the method {@link #addProof(String, String, String, ZonedDateTime)}
      * makes it redundant. Since 1.8.0
      */
     @Override
-    @Deprecated(since = "1.8.0")
     public byte[] generateSignature(byte[] message) {
         try {
             return Base58.decode(this.signingKey.signHex(HexFormat.of().formatHex(message)).toMultibase().substring(1));
@@ -274,11 +266,6 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
             // The 'signHex' will never fail as long HexFormat.of().formatHex call ensures the message is supplied as hex-encoded string
             throw new RuntimeException(e); // NOPMD AvoidThrowingRawExceptionTypes: see reason above
         }
-    }
-
-    @Override
-    public boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys) {
-        return multibaseEncodedKeys.contains(this.getVerificationKeyMultibase());
     }
 
     /**
@@ -308,75 +295,5 @@ public class EdDsaJcs2022VcDataIntegrityCryptographicSuite implements VcDataInte
         }
 
         return true;
-    }
-
-    /**
-     * Add a data integrity proof to a supplied <b>unsecured data document</b> ("a map that contains no proof values"), thus producing
-     * a <b>secured data document</b> ("a map that contains one or more proof values"),
-     * as specified by <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">Data Integrity EdDSA Cryptosuites v1.0</a>.
-     * <p>
-     * See <a href="https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022">example</a>
-     * <p>
-     * The {@code proofValue} property of the {@code proof} MUST be a detached EdDSA signature produced according to
-     * <a href="https://www.rfc-editor.org/rfc/rfc8032">RFC8032</a>,
-     * encoded using the base-58-btc header and alphabet as described in the
-     * <a href="https://www.w3.org/TR/controller-document/#multibase-0">Multibase</a> section of
-     * <a href="https://www.w3.org/TR/controller-document/">Controlled Identifier Document</a>.
-     *
-     * @param unsecuredDocument to make "secure" in terms of adding a data integrity proof to it,
-     *                          as <a href="https://www.w3.org/TR/vc-data-integrity/#dfn-unsecured-data-document">specified</a>
-     *                          ("unsecured data document is a map (JSON object) that contains no proof values")
-     * @param challenge         self-explanatory
-     * @param proofPurpose      typically "assertionMethod" or "authentication"
-     * @param dateTime          of the proof creation (in <a href="https://www.rfc-editor.org/rfc/rfc3339.html">RFC3339</a> format)
-     * @return String representing a "secured" document i.e. the supplied {@code unsecuredDocument} featuring a data integrity proof
-     * @throws VcDataIntegrityCryptographicSuiteException if operation fails for any reason
-     */
-    @Override
-    public String addProof(String unsecuredDocument,
-                           String challenge,
-                           String proofPurpose,
-                           ZonedDateTime dateTime)
-            throws VcDataIntegrityCryptographicSuiteException {
-
-        JsonObject unsecuredDocumentJsonObject;
-        try {
-            unsecuredDocumentJsonObject = JsonParser.parseString(unsecuredDocument).getAsJsonObject();
-        } catch (JsonSyntaxException | IllegalStateException ex) {
-            throw new VcDataIntegrityCryptographicSuiteException(ex);
-        }
-
-        var verifyingKeyMultibase = this.signingKey.getVerifyingKey().toMultibase();
-
-        // According to https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022:
-        // 2) If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context.
-        var ctx = unsecuredDocumentJsonObject.get("@context");
-        List<String> context = new ArrayList<>();
-        if (ctx != null && ctx.isJsonArray()) {
-            ctx.getAsJsonArray().forEach(jsonElement -> {
-                context.add(jsonElement.getAsString());
-            });
-        }
-
-        List<String> finalContext = null;
-        if (!context.isEmpty()) {
-            finalContext = context;
-        }
-
-        try {
-            return this.cryptoSuite.addProof(
-                    unsecuredDocument,
-                    CryptoSuiteProofOptions.Companion.newEddsaJcs2022(
-                            DateTimeFormatter.ISO_INSTANT.format(dateTime.truncatedTo(ChronoUnit.SECONDS)),
-                            "did:key:" + verifyingKeyMultibase + '#' + verifyingKeyMultibase,
-                            proofPurpose,
-                            finalContext,
-                            challenge
-                    )
-            );
-
-        } catch (DidSidekicksException e) {
-            throw new VcDataIntegrityCryptographicSuiteException(e);
-        }
     }
 }

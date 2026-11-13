@@ -76,7 +76,7 @@ public final class PemUtils {
         throw new IllegalArgumentException("The supplied reader features no PEM-encoded key pair");
     }
 
-    static PrivateKey parsePemPrivateKey(Reader pemPrivateKeyReader) throws IOException {
+    public static PrivateKey parsePemPrivateKey(Reader pemPrivateKeyReader) throws IOException {
         final PEMParser parser = new PEMParser(pemPrivateKeyReader);
         var pemObj = parser.readObject();
 

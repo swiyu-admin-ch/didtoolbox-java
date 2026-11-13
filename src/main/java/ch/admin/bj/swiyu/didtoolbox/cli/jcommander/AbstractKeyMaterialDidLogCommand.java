@@ -1,13 +1,13 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.FilesPrivacy;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.parameter.VerificationMethodParameters;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.PemFileParameterListConverter;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.VerificationMethodParametersConverter;
+import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.parameter.VerificationMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.PemFileParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.VerificationMethodKeyParametersValidator;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
 import com.beust.jcommander.Parameter;

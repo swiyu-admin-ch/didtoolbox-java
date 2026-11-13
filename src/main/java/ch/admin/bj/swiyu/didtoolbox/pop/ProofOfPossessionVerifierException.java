@@ -33,11 +33,6 @@ public class ProofOfPossessionVerifierException extends Exception {
         return new ProofOfPossessionVerifierException(String.format("The JWT cannot be parsed due to: %s", cause.getLocalizedMessage()), ErrorCause.UNPARSABLE);
     }
 
-    @Deprecated(since = "2.3.0")
-    static ProofOfPossessionVerifierException malformedClaimKid(String message) {
-        return new ProofOfPossessionVerifierException(String.format("The header claim kid is invalid: %s", message), ErrorCause.MALFORMED_CLAIM_KID);
-    }
-
     static ProofOfPossessionVerifierException expired() {
         return new ProofOfPossessionVerifierException("The JWT has expired", ErrorCause.EXPIRED);
     }

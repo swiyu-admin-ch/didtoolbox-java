@@ -1,13 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox.did.tdw;
 
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils;
-import ch.admin.bj.swiyu.didtoolbox.did.*;
-import ch.admin.bj.swiyu.didtoolbox.did.context.*;
-import ch.admin.bj.swiyu.didtoolbox.did.model.*;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.did.*;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategy;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.*;
 import ch.admin.eid.didresolver.Did;
 import ch.admin.eid.didresolver.DidResolveException;
 import com.google.gson.JsonArray;
@@ -20,12 +21,9 @@ import lombok.NonNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,9 +42,9 @@ import java.util.stream.Collectors;
  * So, before calling the {@code build()} method there are also these fluent methods (setters) available:
  * <ul>
  * <li>{@link TdwUpdater#cryptographicSuite} for the purpose of adding data integrity proof</li>
- * <li>{@link TdwUpdater#authenticationKeys} for setting authentication
+ * <li>{@link TdwUpdater#authentications} for setting authentication
  * (P-256/Ed2519 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
- * <li>{@link TdwUpdater#assertionMethodKeys} for setting/assertion
+ * <li>{@link TdwUpdater#assertionMethods} for setting/assertion
  * (P-256/Ed2519 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a>) keys</li>
  * </ul>
  * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
@@ -64,10 +62,8 @@ import java.util.stream.Collectors;
 @Getter
 public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpdaterStrategy {
 
-    @Deprecated(since = "2.1.0")
-    public static TdwUpdaterBuilder builder() {
-        return new TdwUpdaterBuilder();
-    }
+    // Class definition for java doc to build
+    public static class TdwUpdaterBuilder {}
 
     /**
      * Constructs a builder for updating did tdw logs with the provided crypto Suite
@@ -85,51 +81,10 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * for DID document.
      * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
      * verification relationships.
-     * <p>
-     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
-     * <p>
-     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
-     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
-     * <p>
-     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
-     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
-     *
-     * @deprecated Use {@link #assertionMethods} instead
      */
+    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.9.0")
-    private Map<String, String> assertionMethodKeys;
-
-    /**
-     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
-     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
-     * for DID document.
-     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#assertion">assertion</a>
-     * verification relationships.
-     */
-    @Getter(AccessLevel.PRIVATE)
-    private Set<VerificationMethod> assertionMethods;
-
-    /**
-     * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
-     * Introduced for the purpose of supplying <a href="https://www.w3.org/TR/did-1.0/#verification-material">verification material</a>
-     * for DID document.
-     * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
-     * verification relationships.
-     * <p>
-     * The supplied {@link Map} object should contain multiple <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Keys (JWKs)</a>, whereas:
-     * <p>
-     * 1. The (map) key is a string representing both a {@code kid} (of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>)
-     * as well as a <a href="https://www.w3.org/TR/did-1.0/#fragment">fragment identifier</a> for the verification relationship.
-     * <p>
-     * 2. The (map) value is a string representation of a <a href="https://www.rfc-editor.org/rfc/rfc7517">JSON Web Key (JWK)</a>
-     * containing no private members, thus usable as value of the {@code publicKeyJwk} property of {@code verificationMethod}.
-     *
-     * @deprecated Use {@link #authentications} instead
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.9.0")
-    private Map<String, String> authenticationKeys;
+    private Set<VerificationMethod> assertionMethods = Set.of();
 
     /**
      * Yet another <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent method</a> of the class.
@@ -138,24 +93,15 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * More specifically, the focus here is on <a href="https://www.w3.org/TR/did-1.0/#authentication">authentication</a>
      * verification relationships.
      */
+    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private Set<VerificationMethod> authentications;
+    private Set<VerificationMethod> authentications = Set.of();
 
     /**
-     * Replaces the depr. {@link #verificationMethodKeyProvider},
-     * but gets no precedence over it (if both called against the same object).
-     *
-     * @since 1.8.0
+     * Handles creation of the vc data integrity proof
      */
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite;
-
-    /**
-     * @deprecated Use {@link #cryptographicSuite} instead
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.8.0")
-    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
 
     /**
      * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
@@ -171,110 +117,9 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      *
      * @since 1.8.0
      */
+    @Builder.Default
     @Getter(AccessLevel.PRIVATE)
-    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter;
-
-    /**
-     * Holder of the <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
-     * DID method parameter:
-     * <pre>
-     * A JSON array of multikey formatted public keys associated with the private keys that are authorized to sign the log entries that update the DID.
-     * </pre>
-     *
-     * @deprecated Use the {@link #updateKeysDidMethodParameter} setter instead
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.8.0")
-    private Set<File> updateKeys;
-
-    /**
-     * Aggregates verification material from various sources, hence it should be exclusively used in this class instead of
-     * the {@link #authentications} getter.
-     *
-     * @return a set of {@link VerificationMethod} objects, never {@code null}
-     * @since 1.9.0
-     */
-    private Set<VerificationMethod> allAuthentications() throws DidLogUpdaterStrategyException {
-        var set = new HashSet<VerificationMethod>();
-        if (this.authenticationKeys != null) { // collect all from deprecated class member
-            for (var entry : this.authenticationKeys.entrySet()) {
-                try {
-                    set.add(VerificationMethod.ofJWK(entry.getKey(), entry.getValue()));
-                } catch (VerificationMethodException e) {
-                    throw new DidLogUpdaterStrategyException(e);
-                }
-            }
-        }
-
-        if (this.authentications != null) {
-            set.addAll(authentications);
-        }
-
-        return set;
-    }
-
-    /**
-     * Aggregates verification material from various sources, hence it should be exclusively used in this class instead of
-     * the {@link #assertionMethods} getter.
-     *
-     * @return a set of {@link VerificationMethod} objects, never {@code null}
-     * @since 1.9.0
-     */
-    private Set<VerificationMethod> allAssertionMethods() throws DidLogUpdaterStrategyException {
-        var set = new HashSet<VerificationMethod>();
-        if (this.assertionMethodKeys != null) { // collect all from deprecated class member
-            for (var entry : this.assertionMethodKeys.entrySet()) {
-                try {
-                    set.add(VerificationMethod.ofPEM(entry.getKey(), entry.getValue()));
-                } catch (VerificationMethodException e) {
-                    throw new DidLogUpdaterStrategyException(e);
-                }
-            }
-        }
-
-        if (this.assertionMethods != null) {
-            set.addAll(assertionMethods);
-        }
-
-        return set;
-    }
-
-    /**
-     * Aggregates all <a href="https://identity.foundation/didwebvh/v0.3/#didwebvh-did-method-parameters">updateKeys</a>
-     * DID method parameter values supplied from various sources, hence it should be exclusively used in this class instead of
-     * the {@link #updateKeysDidMethodParameter} getter.
-     *
-     * @return a set of {@link UpdateKeysDidMethodParameter} objects, never {@code null}
-     * @throws DidLogUpdaterStrategyException see {@link PemUtils#readEd25519PublicKeyPemFileToMultibase(Path)}
-     * @since 1.9.0
-     */
-    private Set<UpdateKeysDidMethodParameter> allUpdateKeysDidMethodParameter() throws DidLogUpdaterStrategyException {
-
-        var set = new HashSet<UpdateKeysDidMethodParameter>();
-        if (this.updateKeys != null) { // collect all from deprecated class member
-            for (var key : this.updateKeys) {
-                try {
-                    set.add(UpdateKeysDidMethodParameter.of(key.toPath()));
-                } catch (UpdateKeysDidMethodParameterException e) {
-                    throw new DidLogUpdaterStrategyException(e);
-                }
-            }
-        }
-
-        if (this.updateKeysDidMethodParameter != null) {
-            set.addAll(updateKeysDidMethodParameter);
-        }
-
-        return set;
-    }
-
-    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
-        if (this.verificationMethodKeyProvider != null) {
-            return this.verificationMethodKeyProvider;
-        }
-
-        return this.cryptographicSuite;
-    }
+    private Set<UpdateKeysDidMethodParameter> updateKeysDidMethodParameter = Set.of();
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -287,20 +132,6 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     }
 
     /**
-     * Left for the sake of backward compatibility. See deprecation notice.
-     *
-     * @deprecated Use {@link #updateDidLog(String)} instead
-     */
-    @Deprecated
-    public String update(String didLog) throws TdwUpdaterException {
-        try {
-            return updateDidLog(didLog, ZonedDateTime.now());
-        } catch (DidLogUpdaterStrategyException e) {
-            throw new TdwUpdaterException(e);
-        }
-    }
-
-    /**
      * Updates a valid <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log by taking into account other
      * features of this {@link TdwUpdater} object, optionally customized by previously calling fluent methods like
      * {@link TdwUpdater#cryptographicSuite}, {@link TdwUpdater#authentications} or
@@ -310,25 +141,10 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
      * @return a whole new <a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> log entry to be appended to the existing {@code didLog}
      * @throws DidLogUpdaterStrategyException        if update fails for whatever reason.
      * @throws IncompleteDidLogEntryBuilderException if either no cryptographic suite or no proper verification material has been supplied yet
-     * @see #update(String, ZonedDateTime)
      */
     @Override
     public String updateDidLog(String didLog) throws DidLogUpdaterStrategyException {
         return updateDidLog(didLog, ZonedDateTime.now());
-    }
-
-    /**
-     * Left for the sake of backward compatibility. See deprecation notice.
-     *
-     * @deprecated Use {@link #updateDidLog(File)} instead
-     */
-    @Deprecated(since = "1.6.0")
-    String update(File didLogFile) throws TdwUpdaterException, IOException {
-        try {
-            return updateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
-        } catch (DidLogUpdaterStrategyException e) {
-            throw new TdwUpdaterException(e);
-        }
     }
 
     /**
@@ -344,20 +160,6 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             return updateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
         } catch (IOException e) {
             throw new DidLogUpdaterStrategyException(e);
-        }
-    }
-
-    /**
-     * Left for the sake of backward compatibility. See deprecation notice.
-     *
-     * @deprecated Use {@link #updateDidLog(File)} instead
-     */
-    @Deprecated(since = "1.6.0")
-    String update(String resolvableDidLog, ZonedDateTime zdt) throws TdwUpdaterException {
-        try {
-            return updateDidLog(resolvableDidLog, zdt);
-        } catch (DidLogUpdaterStrategyException e) {
-            throw new TdwUpdaterException(e);
         }
     }
 
@@ -389,9 +191,9 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             throw new DidLogUpdaterStrategyException("DID already deactivated");
         }
 
-        if (getCryptoSuite() == null) {
+        if (this.getCryptographicSuite() == null) {
             throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
-        } else if (!this.getCryptoSuite().isKeyMultibaseInSet(this.didLogMeta.getParams().getUpdateKeys())) {
+        } else if (!this.getCryptographicSuite().isKeyMultibaseInSet(this.didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogUpdaterStrategyException("Update key mismatch");
         }
 
@@ -413,7 +215,9 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         for (var ctx : this.didLogMeta.getDidDoc().getContext()) {
             context.add(ctx);
         }
-        didDoc.add("@context", context);
+        if (!this.didLogMeta.getDidDoc().getContext().isEmpty()) {
+            didDoc.add("@context", context);
+        }
 
         didDoc.addProperty("id", this.didLogMeta.getDidDoc().getId());
         // CAUTION "controller" property is omitted w.r.t.:
@@ -421,16 +225,16 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
         //didDoc.addProperty("controller", didTDW);
 
-        if ((this.allAuthentications().isEmpty() && this.allAssertionMethods().isEmpty())) {
+        if ((this.getAuthentications().isEmpty() && this.getAssertionMethods().isEmpty())) {
             throw new IncompleteDidLogEntryBuilderException("No update will take place as no verification material is supplied whatsoever");
         }
 
         var verificationMethod = new JsonArray();
 
-        if (!this.allAuthentications().isEmpty()) {
+        if (!this.getAuthentications().isEmpty()) {
 
             JsonArray authentication = new JsonArray();
-            for (var vm : this.allAuthentications()) {
+            for (var vm : this.getAuthentications()) {
 
                 authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(vm.toVerificationMethodEntry(
@@ -440,10 +244,10 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             didDoc.add("authentication", authentication);
         }
 
-        if (!this.allAssertionMethods().isEmpty()) {
+        if (!this.getAssertionMethods().isEmpty()) {
 
             var assertionMethod = new JsonArray();
-            for (var vm : this.allAssertionMethods()) {
+            for (var vm : this.getAssertionMethods()) {
 
                 assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
                 verificationMethod.add(vm.toVerificationMethodEntry(
@@ -478,7 +282,7 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         // The third item in the input JSON array MUST be the parameters JSON object.
         // The parameters are used to configure the DID generation and verification processes.
         // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        if (!this.allUpdateKeysDidMethodParameter().isEmpty()) {
+        if (!this.getUpdateKeysDidMethodParameter().isEmpty()) {
             didLogEntryWithoutProofAndSignature.add(buildDidMethodParameters());
         } else {
             didLogEntryWithoutProofAndSignature.add(new JsonObject()); // CAUTION params remain the same
@@ -515,16 +319,11 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         var proofs = new JsonArray();
-        JsonObject proof;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(
-                    didDoc, false, this.getCryptoSuite(), challenge, "authentication", zdt);
-        } catch (DidSidekicksException e) {
+            proofs.add(this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_AUTHENTICATION, zdt));
+        } catch (VcDataIntegrityCryptographicSuiteException e) {
             throw new DidLogUpdaterStrategyException("Fail to build DID doc data integrity proof", e);
         }
-        // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + this.getCryptoSuite().getVerificationKeyMultibase() + '#' + this.getCryptoSuite().getVerificationKeyMultibase());
-        proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
         try (var did = new Did(this.didLogMeta.getDidDoc().getId())) {
@@ -545,9 +344,9 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
         var updateKeysJsonArray = new JsonArray();
 
-        var newUpdateKeys = this.allUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).collect(Collectors.toSet());
+        var newUpdateKeys = this.getUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).collect(Collectors.toSet());
         if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)
-                && !this.allUpdateKeysDidMethodParameter().isEmpty()) { // need for change?
+                && !this.getUpdateKeysDidMethodParameter().isEmpty()) { // need for change?
             newUpdateKeys.forEach(updateKeysJsonArray::add);
         }
 

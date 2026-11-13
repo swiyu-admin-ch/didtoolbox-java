@@ -1,11 +1,9 @@
 package ch.admin.bj.swiyu.didtoolbox.did.context;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -84,10 +82,8 @@ import java.time.ZonedDateTime;
 @Getter
 public class DidLogDeactivatorContext {
 
-    @Deprecated(since = "2.1.0")
-    public static DidLogDeactivatorContextBuilder builder() {
-        return new DidLogDeactivatorContextBuilder();
-    }
+    // Class definition for java doc to build
+    public static class DidLogDeactivatorContextBuilder {}
 
     /**
      * Constructs a builder for deactivating did logs with the provided crypto Suite
@@ -99,29 +95,13 @@ public class DidLogDeactivatorContext {
     }
 
     /**
-     * Replaces the depr. {@link #verificationMethodKeyProvider},
-     * but gets no precedence over it (if both called against the same object).
+     * Handles creation of the vc data integrity proof
      */
-    @Builder.Default
-    @Getter(AccessLevel.PRIVATE)
-    private VcDataIntegrityCryptographicSuite cryptographicSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
-    /**
-     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated
-    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
+    @Getter()
+    private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
     @Builder.Default
     private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
-
-    VcDataIntegrityCryptographicSuite getCryptoSuite() {
-        if (this.verificationMethodKeyProvider != null) {
-            return this.verificationMethodKeyProvider;
-        }
-
-        return this.cryptographicSuite;
-    }
 
     /**
      * Immediately deactivates a presumably valid DID log.
