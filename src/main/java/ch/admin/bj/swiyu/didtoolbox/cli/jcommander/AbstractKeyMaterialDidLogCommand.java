@@ -87,7 +87,7 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
         var assertionMethods = new HashSet<VerificationMethod>();
         if (this.assertionMethodKeys != null && !this.assertionMethodKeys.isEmpty()) {
             for (VerificationMethodParameters param : this.assertionMethodKeys) {
-                assertionMethods.add(VerificationMethod.of(param.key, param.jwk));
+                assertionMethods.add(VerificationMethod.ofJWK(param.key, param.jwk));
             }
         } else {
             assertionMethods.add(generateVerificationMethod(directoryToStoreGeneratedKeys, "assert-key-01"));
@@ -110,7 +110,7 @@ public class AbstractKeyMaterialDidLogCommand extends AbstractDidLogCommandBase 
         var authentications = new HashSet<VerificationMethod>();
         if (this.authenticationKeys != null && !this.authenticationKeys.isEmpty()) {
             for (VerificationMethodParameters param : this.authenticationKeys) {
-                authentications.add(VerificationMethod.of(param.key, param.jwk));
+                authentications.add(VerificationMethod.ofJWK(param.key, param.jwk));
             }
         } else {
             authentications.add(generateVerificationMethod(directoryToStoreGeneratedKeys, "auth-key-01"));

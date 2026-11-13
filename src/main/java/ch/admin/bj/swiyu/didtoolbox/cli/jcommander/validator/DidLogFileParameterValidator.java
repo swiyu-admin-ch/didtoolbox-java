@@ -9,6 +9,7 @@ import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -17,7 +18,10 @@ public class DidLogFileParameterValidator implements IParameterValidator {
     public void validate(String name, String value) {
 
         final var didLogFile = new File(value);
-        if (!didLogFile.isFile() || !didLogFile.exists() || didLogFile.length() == 0) {
+        if (!didLogFile.isFile() || !didLogFile.exists()) {
+            throw buildParameterException(name, value, new FileNotFoundException(String.format("The file '%s' doesn't exist.", didLogFile.getAbsolutePath())));
+        }
+        if (didLogFile.length() == 0) {
             throw buildParameterException(name, value, null);
         }
 
@@ -51,7 +55,7 @@ public class DidLogFileParameterValidator implements IParameterValidator {
             if (cause.getCause() != null) {
                 causeMsg = cause.getCause().getMessage();
             }
-            return new ParameterException(msg + ": " + causeMsg);
+            return new ParameterException(msg + ": " + causeMsg, cause);
         }
         return new ParameterException(msg);
     }

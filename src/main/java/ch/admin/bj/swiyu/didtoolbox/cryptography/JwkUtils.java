@@ -1,10 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.FilesPrivacy;
-import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import lombok.NonNull;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -46,9 +44,9 @@ public final class JwkUtils {
         }
 
         try {
-            var jwk = VerificationMaterial.of(kid, ecPublicPemPath);
-            return jwk.getPublicKeyJwk();
-        } catch (DidSidekicksException e) {
+            var jwk = VerificationMethod.ofPEMPath(kid, ecPublicPemPath);
+            return jwk.getPublicKey();
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
     }
@@ -93,8 +91,8 @@ public final class JwkUtils {
 
         VerificationMethod verificationMethod;
         try {
-            verificationMethod = VerificationMethod.of(VerificationMaterial.of(kid, publicKeyPem));
-        } catch (DidSidekicksException | VerificationMethodException | IOException e) {
+            verificationMethod = VerificationMethod.ofPEM(kid, publicKeyPem);
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
 
@@ -142,8 +140,8 @@ public final class JwkUtils {
 
         VerificationMethod verificationMethod;
         try {
-            verificationMethod = VerificationMethod.of(VerificationMaterial.of(kid, publicKeyPem));
-        } catch (DidSidekicksException | VerificationMethodException | IOException e) {
+            verificationMethod = VerificationMethod.ofPEM(kid, publicKeyPem);
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
 

@@ -159,8 +159,8 @@ class DidLogUpdaterContextTest extends AbstractUtilTestBase {
                     // next DID log entry
                     // switch to the key defined by the "nextKeyHashes" from the previous entry (the key store is already "rotated" earlier)
                     DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0, crytpoSuite)
-                            .assertionMethods(Set.of(VerificationMethod.of("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
-                            .authentications(Set.of(VerificationMethod.of("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                            .assertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                            .authentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
                             // Prepare ("rotate" to) another pre-rotation key to be used when building the next DID log entry
                             .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(currentUpdateKey)))
                             .nextKeyHashesDidMethodParameter(Set.of(

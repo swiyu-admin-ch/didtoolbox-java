@@ -234,8 +234,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             for (var vm : this.getAuthentications()) {
 
                 authentication.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
-                        this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
+                verificationMethod.add(vm.toVerificationMethodEntry(
+                        this.didLogMeta.getDidDoc().getId()));
             }
 
             didDoc.add("authentication", authentication);
@@ -247,8 +247,8 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
             for (var vm : this.getAssertionMethods()) {
 
                 assertionMethod.add(this.didLogMeta.getDidDoc().getId() + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(
-                        this.didLogMeta.getDidDoc().getId(), vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
+                verificationMethod.add(vm.toVerificationMethodEntry(
+                        this.didLogMeta.getDidDoc().getId()));
             }
 
             didDoc.add("assertionMethod", assertionMethod);
