@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.did.model;
 
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
 import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
 import lombok.Getter;
 
@@ -18,33 +18,11 @@ public enum DidMethodEnum {
     /**
      * Refers to <a href="https://identity.foundation/didwebvh/v0.3/">Trust DID Web - did:tdw - v0.3</a>
      */
-    TDW_0_3("tdw", "0.3") {
-        @Override
-        public boolean isTdw03() {
-            return true;
-        }
-    },
+    TDW_0_3("tdw", "0.3"),
     /**
      * Refers to <a href="https://identity.foundation/didwebvh/v1.0/">The did:webvh DID Method v1.0</a>
      */
-    WEBVH_1_0("webvh", "1.0") {
-        @Override
-        public boolean isWebVh10() {
-            return true;
-        }
-    };
-
-    /**
-     * String representation of {@link DidMethodEnum#TDW_0_3}
-     */
-    @Deprecated(since = "2.2.0")
-    public static final String TDW_0_3_STRING = "did:tdw:0.3";
-
-    /**
-     * String representation of {@link DidMethodEnum#WEBVH_1_0}
-     */
-    @Deprecated(since = "2.2.0")
-    public static final String WEBVH_1_0_STRING = "did:webvh:1.0";
+    WEBVH_1_0("webvh", "1.0");
 
     private final String didMethod;
     @Getter
@@ -76,21 +54,6 @@ public enum DidMethodEnum {
         }
 
         throw new ParseException("Unknown or unsupported DID method: " + str, 0);
-    }
-
-    @Deprecated(since = "2.3.0")
-    public boolean isTdw03() {
-        return false;
-    }
-
-    @Deprecated(since = "2.3.0")
-    public boolean isWebVh10() {
-        return false;
-    }
-
-    @Deprecated(since = "2.2.0")
-    public String asString() {
-        return this.toString();
     }
 
     @Override

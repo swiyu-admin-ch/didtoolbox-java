@@ -4,6 +4,7 @@ import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,12 +32,12 @@ public class VerificationMethodKeyParametersValidator implements IParameterValid
         String jwkFile = split[1];
         var f = Path.of(jwkFile);
         if (!Files.isReadable(f)) {
-            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing an P-256 or Ed25519 public/verifying key in PEM format (found " + jwkFile + ")");
+            throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must be a regular file containing an P-256 or Ed25519 public/verifying key in PEM format (found " + jwkFile + ")", new FileNotFoundException(jwkFile));
         }
 
         try {
             JwkUtils.loadECPublicJWKasJSON(f, kid);
-        } catch (IOException exc) {
+        } catch (IOException | IllegalArgumentException exc) {
             throw new ParameterException("A public key file (" + jwkFile + ") supplied by " + name + " option must contain an P-256 or Ed25519 public/verifying key in PEM format: " + exc.getLocalizedMessage(), exc);
         }
     }

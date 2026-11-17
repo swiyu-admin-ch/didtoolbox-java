@@ -1,16 +1,18 @@
 package ch.admin.bj.swiyu.didtoolbox.did.tdw;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractDidLogEntryBuilder;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
-import ch.admin.bj.swiyu.didtoolbox.did.IncompleteDidLogEntryBuilderException;
-import ch.admin.bj.swiyu.didtoolbox.did.context.*;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.did.IncompleteDidLogEntryBuilderException;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategy;
+import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
@@ -53,10 +55,8 @@ import java.time.temporal.ChronoUnit;
 @Builder
 public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
 
-    @Deprecated(since = "2.1.0")
-    public static TdwDeactivatorBuilder builder() {
-        return new TdwDeactivatorBuilder();
-    }
+    // Class definition for java doc to build
+    public static class TdwDeactivatorBuilder {}
 
     /**
      * Constructs a builder for deactivating did tdw logs with the provided crypto Suite
@@ -69,26 +69,10 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
     }
 
     /**
-     * Replaces the depr. {@link #verificationMethodKeyProvider},
-     * but gets no precedence over it (if both called against the same object).
+     * Handles creation of the vc data integrity proof
      */
     @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite;
-
-    /**
-     * @deprecated Use {@link #cryptographicSuite} instead. Since 1.8.0
-     */
-    @Getter(AccessLevel.PRIVATE)
-    @Deprecated(since = "1.8.0")
-    private VcDataIntegrityCryptographicSuite verificationMethodKeyProvider;
-
-    private VcDataIntegrityCryptographicSuite getCryptoSuite() {
-        if (this.verificationMethodKeyProvider != null) {
-            return this.verificationMethodKeyProvider;
-        }
-
-        return this.cryptographicSuite;
-    }
 
     @Override
     protected DidMethodEnum getDidMethod() {
@@ -98,20 +82,6 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
     @Override
     protected ProfileVersion getProfileVersion() {
         return null;
-    }
-
-    /**
-     * Left for the sake of backward compatibility. See deprecation notice.
-     *
-     * @deprecated Use {@link #deactivateDidLog(String)} instead
-     */
-    @Deprecated(since = "1.6.0")
-    public String deactivate(String didLog) throws TdwDeactivatorException {
-        try {
-            return deactivateDidLog(didLog, ZonedDateTime.now());
-        } catch (DidLogDeactivatorStrategyException e) {
-            throw new TdwDeactivatorException(e);
-        }
     }
 
     /**
@@ -129,20 +99,6 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
     }
 
     /**
-     * Left for the sake of backward compatibility. See deprecation notice.
-     *
-     * @deprecated Use {@link #deactivateDidLog(File)} instead
-     */
-    @Deprecated(since = "1.6.0")
-    String deactivate(File didLogFile) throws TdwDeactivatorException, IOException {
-        try {
-            return deactivateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
-        } catch (DidLogDeactivatorStrategyException e) {
-            throw new TdwDeactivatorException(e);
-        }
-    }
-
-    /**
      * The file-system-as-input variation of {@link #deactivateDidLog(String)}
      *
      * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason
@@ -154,20 +110,6 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
             return deactivateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
         } catch (IOException e) {
             throw new DidLogDeactivatorStrategyException(e);
-        }
-    }
-
-    /**
-     * Left for the sake of backward compatibility. See deprecation notice.
-     *
-     * @deprecated Use {@link #deactivateDidLog(String, ZonedDateTime)} instead
-     */
-    @Deprecated(since = "1.6.0")
-    public String deactivate(String didLog, ZonedDateTime zdt) throws TdwDeactivatorException {
-        try {
-            return deactivateDidLog(didLog, zdt);
-        } catch (DidLogDeactivatorStrategyException e) {
-            throw new TdwDeactivatorException(e);
         }
     }
 
@@ -197,9 +139,9 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
             throw new DidLogDeactivatorStrategyException("DID already deactivated");
         }
 
-        if (getCryptoSuite() == null) {
+        if (this.getCryptographicSuite() == null) {
             throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
-        } else if (!this.getCryptoSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
+        } else if (!this.getCryptographicSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
             throw new DidLogDeactivatorStrategyException("Deactivation key mismatch");
         }
 
@@ -280,15 +222,11 @@ public class TdwDeactivator extends AbstractDidLogEntryBuilder implements DidLog
         The generated proof is added to the JSON as the fifth item, and the entire array becomes the first entry in the DID Log.
          */
         var proofs = new JsonArray();
-        JsonObject proof;
         try {
-            proof = JCSHasher.buildDataIntegrityProof(didDoc, false, this.getCryptoSuite(), challenge, "authentication", zdt);
-        } catch (DidSidekicksException e) {
+            proofs.add(this.getCryptographicSuite().buildDataIntegrityProof(didDoc, challenge, VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_AUTHENTICATION, zdt));
+        } catch (VcDataIntegrityCryptographicSuiteException e) {
             throw new DidLogDeactivatorStrategyException("Fail to build DID doc data integrity proof", e);
         }
-        // CAUTION Set proper "verificationMethod"
-        proof.addProperty("verificationMethod", "did:key:" + this.getCryptoSuite().getVerificationKeyMultibase() + '#' + this.getCryptoSuite().getVerificationKeyMultibase());
-        proofs.add(proof);
         didLogEntryWithProof.add(proofs);
 
         // skip final resolve check, as resolver returns an error when resolving a deactivated did

@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.keymaterial;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
@@ -40,7 +40,7 @@ final class PrimusKeyMaterialLoader implements KeyMaterialLoader {
     public VcDataIntegrityCryptographicSuite loadCryptographicSuite() throws VcDataIntegrityCryptographicSuiteException {
         var passwordChars = password == null ? null : password.toCharArray(); // the password is optional, null is explicitly supported by PrimusKeyStoreLoader#loadKeyPair
         try {
-            return new PrimusEd25519VerificationMethodKeyProviderImpl(primusKeyStoreLoader, alias, passwordChars); // supplied external key pair
+            return new PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite(primusKeyStoreLoader, alias, passwordChars); // supplied external key pair
         } catch (UnrecoverableEntryException | KeyStoreException | NoSuchAlgorithmException | KeyException e) {
             throw new VcDataIntegrityCryptographicSuiteException("Failed to initialize primus:" + e.getMessage(), e);
         } finally {

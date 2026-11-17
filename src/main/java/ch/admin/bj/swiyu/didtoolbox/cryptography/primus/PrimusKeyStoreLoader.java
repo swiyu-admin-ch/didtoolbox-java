@@ -3,7 +3,10 @@ package ch.admin.bj.swiyu.didtoolbox.cryptography.primus;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;

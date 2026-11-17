@@ -2,7 +2,6 @@ package ch.admin.bj.swiyu.didtoolbox.cryptography;
 
 import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonArray;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HexFormat;
@@ -117,7 +115,7 @@ class JCSHasherTest {
     public void testMultihash(String input, String expectedHex) {
 
         assertDoesNotThrow(() -> {
-            assertEquals(expectedHex, HexFormat.of().formatHex(JCSHasher.multihash(input))); // MUT
+            assertEquals(expectedHex, HexFormat.of().formatHex(MultiHash.multihash(input))); // MUT
         });
     }
 
@@ -160,26 +158,5 @@ class JCSHasherTest {
         }
 
         assertEquals("QmNpLm7YWwp1TxQ2KspuGtYrhXgSa7KqfqEvSZoTkhgdct", actual);
-    }
-
-    @Test
-    public void testBuildDataIntegrityProofExample() { // according to https://www.w3.org/TR/vc-di-eddsa/#representation-eddsa-jcs-2022
-
-        assertDoesNotThrow(() -> {
-            var credentialsWithoutProof = JsonParser.parseString(CREDENTIAL_WITHOUT_PROOF).getAsJsonObject();
-
-            JsonObject actual = JCSHasher.buildDataIntegrityProof(
-                    credentialsWithoutProof,
-                    true,
-                    // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-private-and-public-keys-for-signature-1
-                    new EdDsaJcs2022VcDataIntegrityCryptographicSuite("z3u2en7t5LR2WtQH5PfFqMqwVHBeXouLzo6haApm8XHqvjxq"),
-                    null, // CAUTION The original PROOF_OPTIONS_DOCUMENT features NO proof's challenge!
-                    "assertionMethod",
-                    ZonedDateTime.parse("2023-02-24T23:36:38Z"));
-
-            String actualProofValue = actual.asMap().get("proofValue").getAsString();
-            // As suggested by https://www.w3.org/TR/vc-di-eddsa/#example-signature-of-combined-hashes-base58-btc-1
-            assertEquals("z2HnFSSPPBzR36zdDgK8PbEHeXbR56YF24jwMpt3R1eHXQzJDMWS93FCzpvJpwTWd3GAVFuUfjoJdcnTMuVor51aX", actualProofValue);
-        });
     }
 }

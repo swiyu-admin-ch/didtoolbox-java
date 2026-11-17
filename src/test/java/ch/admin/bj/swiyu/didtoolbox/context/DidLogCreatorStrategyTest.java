@@ -32,41 +32,22 @@ class DidLogCreatorStrategyTest extends AbstractUtilTestBase {
         AtomicReference<String> didLogEntry = new AtomicReference<>();
 
         // did:tdw
-
         assertDoesNotThrow(() -> {
 
             // NOTE that all keys will all be generated here as well, as the default cryptographicSuite is used
-            var ctxBuilder = DidLogCreatorContext.builder()
-                    .didMethod(DidMethodEnum.TDW_0_3) // CAUTION must be set explicitly for did:tdw logs
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            var ctxBuilder = DidLogCreatorContext.builder(DidMethodEnum.TDW_0_3, new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .assertionMethods(TEST_ASSERTION_METHODS)
                     .authentications(TEST_AUTHENTICATIONS)
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public.pem")))); // add another value "updateKeys" param
-
-            didLogEntry.set(ctxBuilder.build().create(identifierRegistryUrl)); // MUT
-
-            TdwCreatorTest.assertDidLogEntry(didLogEntry.get());
-
-            var params = JsonParser.parseString(didLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
-            assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
-            assertEquals(2, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // Effectively, it is only 2 distinct keys
-
-            var exc = assertThrowsExactly(IllegalArgumentException.class, () -> {
-                // CAUTION Key pre-rotation is not (yet) implemented for did:tdw
-                ctxBuilder.nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public01.pem")))) // activate prerotation by adding another key for the future
-                        .build()
-                        .create(identifierRegistryUrl); // MUT
-            });
-            assertTrue(exc.getMessage().contains("currently not supported"));
+            var e = assertThrowsExactly(IllegalArgumentException.class, () -> ctxBuilder.build().create(identifierRegistryUrl));
+            assertTrue(e.getMessage().contains("no longer supported"));
         });
 
         // did:webvh
 
         assertDoesNotThrow(() -> {
             // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
-            didLogEntry.set(DidLogCreatorContext.builder()
-                    //.didMethod(DidMethodEnum.WEBVH_1_0) // default
-                    .cryptographicSuite(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            didLogEntry.set(DidLogCreatorContext.builder(DidMethodEnum.WEBVH_1_0, new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public.pem")))) // add another value "updateKeys" param
                     .nextKeyHashesDidMethodParameter(Set.of(NextKeyHashesDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public01.pem")))) // activate prerotation by adding another key for the future
                     .assertionMethods(TEST_ASSERTION_METHODS)

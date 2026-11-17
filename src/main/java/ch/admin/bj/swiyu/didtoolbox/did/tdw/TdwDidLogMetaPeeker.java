@@ -1,8 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.did.tdw;
 
-import ch.admin.bj.swiyu.didtoolbox.did.model.DidDocument;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
 import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidDocument;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidMethodParameter;

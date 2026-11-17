@@ -6,6 +6,9 @@
 - HTTP URLs for did logs are no longer allowed, must now be HTTPS `(#1037)`
 - `--verbose` CLI flag to print the full cause chain of an error `(#1034)`
 
+### Removed
+- create command option `--method-version, -m ` removed, because TDW creation has been removed, newly created did logs use `did:webvh:1.0` `(#1194)
+
 ### Fixed
 
 ### Changed
@@ -13,9 +16,12 @@
 - Improved internal handling of passwords `(#1038)`
 - Deactivating a DID Log with active key pre-rotation generates an intermediate log entry in order to deactivate key pre-rotation before deactivating the log. `(#1137`
 - iss claim no longer added or verified in Proof of Possessions according to swiss-profile-anchor 1.0 `(#1187)`
+- Merge VerificationMaterial into VerificationMethod `(#1197)`
+- CLI returns differentiated exit codes (`2` usage, `3` I/O/environment, `4` crypto/verification/DID log, `1` unexpected) and `--verbose` also prints the stack trace `(#1031)`
 - Internal: moved command execution from `JCommanderRunner` into the CLI command classes and key-source handling (PEM / JKS / Primus) into dedicated `KeyMaterialLoader` implementations in their own package `(#1033)`
 
 ### Removed
+- Unreachable duplicate Primus parameter validation `(#1029)`
 
 ## 2.3.0 - 2026-07-31
 

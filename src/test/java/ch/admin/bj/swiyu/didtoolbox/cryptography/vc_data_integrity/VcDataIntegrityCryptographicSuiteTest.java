@@ -20,11 +20,6 @@ public class VcDataIntegrityCryptographicSuiteTest {
     // Class that just implements the VcDataIntegrityCryptographicSuite interface to test the default implementations.
     private class CryptographicSuite implements VcDataIntegrityCryptographicSuite {
         @Override
-        public String addProof(String unsecuredDocument, String challenge, String proofPurpose, ZonedDateTime dateTime) throws VcDataIntegrityCryptographicSuiteException {
-            return "";
-        }
-
-        @Override
         public String getVerificationKeyMultibase() {
             return "";
         }

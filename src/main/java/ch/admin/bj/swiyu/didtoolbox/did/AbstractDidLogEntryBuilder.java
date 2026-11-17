@@ -24,6 +24,7 @@ public abstract class AbstractDidLogEntryBuilder {
     protected static final String DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME = "versionTime";
     protected static final String DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS = "parameters";
     protected static final String DID_LOG_ENTRY_JSON_PROPERTY_STATE = "state";
+    protected static final String DID_LOG_ENTRY_JSON_PROPERTY_PROOF = "proof";
 
     // Common DID Document attributes
     protected static final String DID_DOC_PROPERTY_ID = "id";
@@ -33,22 +34,6 @@ public abstract class AbstractDidLogEntryBuilder {
     protected static final String DID_DOC_PROPERTY_ASSERTION_METHOD = "assertionMethod";
 
     protected DidLogMeta didLogMeta;
-
-    protected static JsonObject buildVerificationMethodWithPublicKeyJwk(String did, String fragmentId, String publicKeyJwk) {
-        var verificationMethodObj = new JsonObject();
-        verificationMethodObj.addProperty("id", did + "#" + fragmentId);
-        // According to swiss profile anchor 1.0 (https://confluence.bit.admin.ch/x/VL8VTQ)
-        // controller must be the did itself
-        verificationMethodObj.addProperty("controller", did);
-        // CAUTION The "controller" property must not be present w.r.t.:
-        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
-        verificationMethodObj.addProperty("type", "JsonWebKey2020");
-        // CAUTION The "publicKeyMultibase" property must not be present w.r.t.:
-        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
-        verificationMethodObj.add("publicKeyJwk", JsonParser.parseString(publicKeyJwk).getAsJsonObject());
-
-        return verificationMethodObj;
-    }
 
     /**
      * Build self-certifying identifier (SCID) - an object identifier derived from initial data such that an attacker could not
@@ -79,13 +64,11 @@ public abstract class AbstractDidLogEntryBuilder {
     protected void peek(String didLog)
             throws DidLogMetaPeekerException {
 
-        if (getDidMethod().isTdw03()) {
-            this.didLogMeta = TdwDidLogMetaPeeker.peek(didLog);
-        } else if (getDidMethod().isWebVh10()) {
-            this.didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog);
-        } else {
-            throw new IllegalArgumentException("Unsupported DID method");
-        }
+        this.didLogMeta = switch (getDidMethod()) {
+            case DidMethodEnum.TDW_0_3 -> TdwDidLogMetaPeeker.peek(didLog);
+            case DidMethodEnum.WEBVH_1_0 -> WebVerifiableHistoryDidLogMetaPeeker.peek(didLog);
+            default -> throw new IllegalArgumentException("Unsupported DID method");
+        };
     }
 
     /**
@@ -276,7 +259,7 @@ public abstract class AbstractDidLogEntryBuilder {
             var authentication = new JsonArray();
             for (var vm : authentications) {
                 authentication.add(did + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
+                verificationMethod.add(vm.toVerificationMethodEntry(did));
             }
 
             didDoc.add(DID_DOC_PROPERTY_AUTHENTICATION, authentication);
@@ -287,7 +270,7 @@ public abstract class AbstractDidLogEntryBuilder {
             var assertionMethod = new JsonArray();
             for (var vm : assertionMethods) {
                 assertionMethod.add(did + "#" + vm.getIdFragment());
-                verificationMethod.add(buildVerificationMethodWithPublicKeyJwk(did, vm.getIdFragment(), vm.getVerificationMaterial().getPublicKeyJwk()));
+                verificationMethod.add(vm.toVerificationMethodEntry(did));
             }
 
             didDoc.add(DID_DOC_PROPERTY_ASSERTION_METHOD, assertionMethod);

@@ -1,6 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.keymaterial;
 
-import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519VerificationMethodKeyProviderImpl;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -88,7 +88,7 @@ class PrimusKeyMaterialLoaderTest {
     void loadCryptographicSuite_success_blanksPassword() throws Exception {
         // CAUTION The real constructor cannot succeed here, as its sanity check signs via the (unavailable) Primus JCE provider
         var handedOver = new AtomicReference<char[]>();
-        try (var constructions = mockConstruction(PrimusEd25519VerificationMethodKeyProviderImpl.class, (mock, context) -> {
+        try (var constructions = mockConstruction(PrimusEdDsaJcs2022VcDataIntegrityCryptographicSuite.class, (mock, context) -> {
             handedOver.set((char[]) context.arguments().get(2));
             passwordAtCall = handedOver.get().clone();
         })) {

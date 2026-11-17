@@ -8,8 +8,22 @@ import com.beust.jcommander.UnixStyleUsageFormatter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
 
+/**
+ * Entrypoint of the CLI.
+ * <p>
+ * Exit codes (see {@link ExitCode}):
+ * <ul>
+ *   <li>{@code 0} - success</li>
+ *   <li>{@code 1} - unexpected error</li>
+ *   <li>{@code 2} - usage / parameter validation error</li>
+ *   <li>{@code 3} - I/O / environment error (e.g. missing file, HSM unreachable)</li>
+ *   <li>{@code 4} - crypto / verification error</li>
+ * </ul>
+ */
 public class Main {
     private final Console console;
 
@@ -74,23 +88,23 @@ public class Main {
 
         if (rootParameters.version) {
             jc.getConsole().println(ManifestUtils.getImplementationTitle() + " " + ManifestUtils.getImplementationVersion());
-            return 0;
+            return ExitCode.SUCCESS.code();
         }
 
         if (rootParameters.help) {
             jc.usage();
-            return 0;
+            return ExitCode.SUCCESS.code();
         }
 
         var parsedCommandName = jc.getParsedCommand();
         if (parsedCommandName == null) {
             jc.usage();
-            return 1;
+            return ExitCode.USAGE.code();
         }
 
         try {
             new JCommanderRunner(jc, parsedCommandName).run();
-            return 0;
+            return ExitCode.SUCCESS.code();
         } catch (Exception e) { // NOPMD AvoidCatchingGenericException: catch generic exception to always print proper error message
             return printCommandError(jc, parsedCommandName, "Failed to run '" + parsedCommandName + "' command due to: " + e.getLocalizedMessage(), e, verbose);
         }
@@ -102,13 +116,15 @@ public class Main {
         if (verbose && cause != null) {
             printCauseChain(jc, cause);
             jc.getConsole().println("");
+            printStackTrace(jc, cause);
+            jc.getConsole().println("");
         }
         if (commandName != null) {
             jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " " + commandName + " -h");
         } else {
             jc.getConsole().println("For detailed usage, run: " + ManifestUtils.getImplementationTitle() + " -h");
         }
-        return 1;
+        return ExitCode.of(cause).code();
     }
 
     private void printCauseChain(JCommander jc, Throwable throwable) {
@@ -125,5 +141,12 @@ public class Main {
             }
             prefix = "Caused by: ";
         }
+    }
+
+    private void printStackTrace(JCommander jc, Throwable throwable) {
+        jc.getConsole().println("Stack trace:");
+        var stackTrace = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(stackTrace));
+        jc.getConsole().println(stackTrace.toString());
     }
 }

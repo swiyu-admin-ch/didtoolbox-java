@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter;
 
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.parameter.VerificationMethodParameters;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
 import com.beust.jcommander.IStringConverter;
 
 import java.io.IOException;

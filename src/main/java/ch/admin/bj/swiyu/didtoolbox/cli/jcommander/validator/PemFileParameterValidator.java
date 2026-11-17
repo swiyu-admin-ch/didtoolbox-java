@@ -6,13 +6,14 @@ import com.beust.jcommander.ParameterException;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.spec.InvalidKeySpecException;
 
 public class PemFileParameterValidator implements IParameterValidator {
     @Override
     public void validate(String name, String value) { // throws ParameterException {
         try {
             PemUtils.readPEMFile(new File(value));
-        } catch (IOException exc) {
+        } catch (IOException | InvalidKeySpecException exc) {
             throw new ParameterException("Parameter " + name + " should be a regular file containing key in PEM format (found " + value + ")", exc);
         }
     }

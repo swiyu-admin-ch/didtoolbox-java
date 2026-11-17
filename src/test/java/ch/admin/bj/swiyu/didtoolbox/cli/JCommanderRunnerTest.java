@@ -664,20 +664,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         assertDidDocFeaturesKeys(didLogMeta.getDidDoc(), "supplied-assert", "supplied-auth");
     }
 
-    @Test
-    void run_createDidLogWithTdwMethodVersion_printsTdwDidLog(@TempDir Path tmpDir) throws Exception {
-        var command = new CreateDidLogCommand();
-        command.identifierRegistryUrl = URL.of(new URI(TEST_DID_URL), null);
-        command.methodVersion = DidMethodEnum.TDW_0_3;
-        setKeyMaterial(command); // essential
-
-        run(CreateDidLogCommand.COMMAND_NAME, command, tmpDir); // MUT
-
-        var didLogMeta = TdwDidLogMetaPeeker.peek(output.toString());
-        assertEquals(1, didLogMeta.getLastVersionNumber());
-        assertEquals(DidMethodEnum.TDW_0_3, didLogMeta.getParams().getDidMethodEnum());
-    }
-
     private static Stream<Arguments> unverifiableProofs() throws DidLogMetaPeekerException {
         var didLog = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
         return Stream.of(

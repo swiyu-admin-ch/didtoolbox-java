@@ -2,7 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.did.model;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.Base58;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.Ed25519Utils;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JCSHasher;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.MultiHash;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.google.gson.JsonArray;
@@ -53,7 +53,7 @@ public interface NextKeyHashesDidMethodParameter {
     static NextKeyHashesDidMethodParameter of(Path pemPath) throws NextKeyHashesDidMethodParameterException {
         String hash;
         try {
-            hash = Base58.encode(JCSHasher.multihash(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemPath)));
+            hash = Base58.encode(MultiHash.multihash(PemUtils.readEd25519PublicKeyPemFileToMultibase(pemPath)));
         } catch (DidSidekicksException e) {
             throw new NextKeyHashesDidMethodParameterException(e);
         }
@@ -89,7 +89,7 @@ public interface NextKeyHashesDidMethodParameter {
         return new NextKeyHashesDidMethodParameter() {
             @Override
             public String getNextKeyHash() {
-                return Base58.encode(JCSHasher.multihash(Ed25519Utils.toMultibase(publicKey)));
+                return Base58.encode(MultiHash.multihash(Ed25519Utils.toMultibase(publicKey)));
             }
 
             @Override
@@ -115,7 +115,7 @@ public interface NextKeyHashesDidMethodParameter {
         return new NextKeyHashesDidMethodParameter() {
             @Override
             public String getNextKeyHash() {
-                return Base58.encode(JCSHasher.multihash(multibaseKey));
+                return Base58.encode(MultiHash.multihash(multibaseKey));
             }
 
             @Override

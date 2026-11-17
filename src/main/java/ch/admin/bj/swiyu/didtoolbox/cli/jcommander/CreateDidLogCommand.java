@@ -1,10 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.CommandException;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.DidMethodParameterConverter;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.IdentifierRegistryUrlParameterConverter;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.CommandParametersValidator;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.DidMethodParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.IdentifierRegistryUrlParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
@@ -49,20 +47,9 @@ public class CreateDidLogCommand extends KeyMaterialDidLogCommand {
             validateWith = IdentifierRegistryUrlParameterValidator.class)
     public URL identifierRegistryUrl;
 
-    @Parameter(names = {"--method-version", "-m"},
-            description = "Defines the DID method specification version to use when generating a DID log. Case-insensitive. Valid values: '" + DidMethodEnum.TDW_0_3_STRING + "', '" + DidMethodEnum.WEBVH_1_0_STRING + "'",
-            converter = DidMethodParameterConverter.class,
-            validateWith = DidMethodParameterValidator.class,
-            defaultValueDescription = DidMethodEnum.WEBVH_1_0_STRING)
-    //,required = true)
-    public DidMethodEnum methodVersion;
-
     @Override
     protected void execute(CommandContext context) throws VerificationMethodException, DidLogCreatorStrategyException, IOException, VcDataIntegrityCryptographicSuiteException, CommandException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException {
-        var didMethod = methodVersion; // may return null
-        if (didMethod == null) {
-            didMethod = DEFAULT_METHOD_VERSION; // fallback
-        }
+        var didMethod = DEFAULT_METHOD_VERSION;
 
         var outputDir = context.keyPairStore().getOutputDir().toPath();
         var assertionMethods = getAssertionMethods(outputDir);
@@ -88,13 +75,10 @@ public class CreateDidLogCommand extends KeyMaterialDidLogCommand {
 
         var nextKeyPemFiles = nextVerifyingKeyPemFiles;
 
-        // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
         context.println(DidLogCreatorContext.builder(didMethod, cryptoSuite)
                 .assertionMethods(assertionMethods)
                 .authentications(authentications)
-                // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
                 .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
-                // Instead of calling deprecated .nextKeys(nextKeyPemFiles)
                 .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeyPemFiles))
                 .build()
                 .create(identifierRegistryUrl));

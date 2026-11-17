@@ -1,10 +1,8 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.FilesPrivacy;
-import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMaterial;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
-import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import lombok.NonNull;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -28,23 +26,6 @@ public final class JwkUtils {
     /**
      * Loads a public P-256 key from the specified PEM file and returns its JWK JSON representation
      *
-     * @param ecPublicPemFile the P-256 public key in PEM format
-     * @param kid             the ID (kid) of the JWK that can be used to match this key.
-     *                        A regular case-sensitive string featuring no URIs reserved characters is expected.
-     *                        Otherwise, {@link IllegalArgumentException} is thrown
-     * @return JSON object string representation of the public JWK
-     * @throws IOException             if the file couldn't be read
-     * @throws InvalidKeySpecException if the given key specification is inappropriate for the EC key factory to produce a public key
-     * @deprecated Use {@link #loadECPublicJWKasJSON(Path, String)} instead
-     */
-    @Deprecated(since = "1.8.0")
-    public static String loadECPublicJWKasJSON(File ecPublicPemFile, String kid) throws IOException, InvalidKeySpecException {
-        return loadECPublicJWKasJSON(ecPublicPemFile.toPath(), kid);
-    }
-
-    /**
-     * Loads a public P-256 key from the specified PEM file and returns its JWK JSON representation
-     *
      * @param ecPublicPemPath to file featuring an P-256 public key in PEM format
      * @param kid             the ID (kid) of the JWK that can be used to match this key.
      *                        A regular case-sensitive string featuring no URIs reserved characters is expected.
@@ -63,33 +44,11 @@ public final class JwkUtils {
         }
 
         try {
-            var jwk = VerificationMaterial.of(kid, ecPublicPemPath);
-            return jwk.getPublicKeyJwk();
-        } catch (DidSidekicksException e) {
+            var jwk = VerificationMethod.ofPEMPath(kid, ecPublicPemPath);
+            return jwk.getPublicKey();
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
-    }
-
-    /**
-     * Use generatePublicP256VerificationMaterial instead of this method.
-     *
-     * Generates a new key pair (in <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">JWKS</a> format)
-     * using standard digital signature algorithm
-     * <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.4">ECDSA using P-256 curve and SHA-256 hash function</a>.
-     * The key pair is exported in
-     * <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format.
-     * Needless to say, the helper ensures the private key file access is restricted to current user only.
-     *
-     * @param kid            the ID of the JWK, that can be used to match a specific key
-     * @param keyPairPemFile the file where a generated key pair will be stored
-     *                       (in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format)
-     * @param forceOverwrite the flag controlling whether the existing PEM files should be overwritten or not
-     * @return a new public EC JWK (in JSON format).
-     * @throws IOException if persisting a key pair fails
-     */
-    @Deprecated(since = "2.3.0")
-    public static String generatePublicEC256(String kid, @NonNull File keyPairPemFile, boolean forceOverwrite) throws IOException {
-        return generatePublicP256VerificationMethod(kid, keyPairPemFile, forceOverwrite).getVerificationMaterial().getPublicKeyJwk();
     }
 
     /**
@@ -132,8 +91,8 @@ public final class JwkUtils {
 
         VerificationMethod verificationMethod;
         try {
-            verificationMethod = VerificationMethod.of(VerificationMaterial.of(kid, publicKeyPem));
-        } catch (DidSidekicksException | VerificationMethodException | IOException e) {
+            verificationMethod = VerificationMethod.ofPEM(kid, publicKeyPem);
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
 
@@ -181,8 +140,8 @@ public final class JwkUtils {
 
         VerificationMethod verificationMethod;
         try {
-            verificationMethod = VerificationMethod.of(VerificationMaterial.of(kid, publicKeyPem));
-        } catch (DidSidekicksException | VerificationMethodException | IOException e) {
+            verificationMethod = VerificationMethod.ofPEM(kid, publicKeyPem);
+        } catch (VerificationMethodException e) {
             throw new IllegalArgumentException(e);
         }
 

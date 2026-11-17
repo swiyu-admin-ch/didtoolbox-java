@@ -16,7 +16,7 @@ activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
 				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
-			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : getCryptoSuite
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : getCryptographicSuite
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
 				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
@@ -24,7 +24,7 @@ activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
 			activate ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator
 				ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator$TdwDeactivatorBuilder
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDeactivator
-			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : getCryptoSuite
+			ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory -> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext : getCryptographicSuite
 			activate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
 				ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext --> ch.admin.bj.swiyu.didtoolbox.did.context.DidLogStrategyFactory : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
 			deactivate ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext

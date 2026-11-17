@@ -91,9 +91,7 @@ public class UpdateDidLogCommand extends KeyMaterialDidLogCommand {
                 DidLogUpdaterContext.builder(didLogMeta.getParams().getDidMethodEnum(), cryptoSuite)
                         .assertionMethods(assertionMethods)
                         .authentications(authentications)
-                        // Instead of calling deprecated .updateKeys(verifyingKeyPemFiles)
                         .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
-                        // Instead of calling deprecated .nextKeys(nextVerifyingKeyPemFiles)
                         .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextVerifyingKeyPemFiles))
                         .build()
                         .update(didLogFile));
