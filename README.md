@@ -4,14 +4,13 @@
 
 [![Pull Request Check](https://github.com/swiyu-admin-ch/didtoolbox-java/actions/workflows/pull-request-check.yml/badge.svg)](https://github.com/swiyu-admin-ch/didtoolbox-java/actions/workflows/pull-request-check.yml)
 
-An official Swiss Government project made by
-the [Federal Office of Information Technology, Systems and Telecommunication FOITT](https://www.bit.admin.ch/)
+An official Swiss Government project made by the [Federal Office of Information Technology, Systems and Telecommunication FOITT](https://www.bit.admin.ch/)
 as part of the electronic identity (e-ID) project.
 
 This project implements the DID-Toolbox, a helper utility for the purpose of creation, update or deactivation of DIDs
 with respect to one of the following specifications:
-* [Trust DID Web (`did:tdw`) - v0.3](https://identity.foundation/didwebvh/v0.3/) (optional)
 * [DID Web + Verifiable History (`did:webvh`) - v1.0](https://identity.foundation/didwebvh/v1.0/) (default since v1.6.0)
+* [Trust DID Web (`did:tdw`) - v0.3](https://identity.foundation/didwebvh/v0.3/) (deprecated)
 
 ## Table of contents
 
@@ -40,7 +39,7 @@ with respect to one of the following specifications:
 
 A **Decentralized Identifier (DID)** is a globally unique identifier that allows individuals and entities to create and manage their own digital identities independently of centralized authorities. To actively participate in the swiyu Sandbox as an issuer or verifier, you must create at least one DID and upload the resulting DID log content to the Identifier Registry. Creating new DIDs involves a set of steps that are error prone or need some time to get familiar with and one might end up with invalid DIDs. The DID-Toolbox supports you with various options for a quick start or advanced usage.
 
-**Currently, the swiyu ecosystem supports the following DID method: did:tdw, version 0.3.**
+**Currently, the swiyu ecosystem supports the following DID method: did:webvh:1.0.**
 
 As of now, it supports creating and updating DIDs with [verification relationships](https://www.w3.org/TR/did-core/#verification-relationships) of types:
 - authentication 
