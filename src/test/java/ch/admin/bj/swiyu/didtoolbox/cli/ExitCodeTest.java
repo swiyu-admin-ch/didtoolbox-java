@@ -15,11 +15,11 @@ class ExitCodeTest {
     @Test
     void testOf() {
         assertEquals(ExitCode.USAGE, ExitCode.of(new ParameterException("invalid")));
-        assertEquals(ExitCode.USAGE, ExitCode.of(new JCommanderRunner.CommandException("no keys")));
+        assertEquals(ExitCode.USAGE, ExitCode.of(new CommandException("no keys")));
         assertEquals(ExitCode.IO_ENVIRONMENT, ExitCode.of(new ParameterException("missing", new FileNotFoundException())));
         assertEquals(ExitCode.IO_ENVIRONMENT, ExitCode.of(new ParameterException("hsm", new PrimusKeyStoreInitializationException("unreachable"))));
         assertEquals(ExitCode.CRYPTO_VERIFICATION, ExitCode.of(new ParameterException("malformed", new InvalidKeySpecException())));
-        assertEquals(ExitCode.CRYPTO_VERIFICATION, ExitCode.of(new JCommanderRunner.CommandException("unsupported", new DidLogMetaPeekerException("malformed"))));
+        assertEquals(ExitCode.CRYPTO_VERIFICATION, ExitCode.of(new CommandException("unsupported", new DidLogMetaPeekerException("malformed"))));
         assertEquals(ExitCode.UNEXPECTED, ExitCode.of(new IllegalStateException()));
         assertEquals(ExitCode.UNEXPECTED, ExitCode.of(new Exception()));
         assertEquals(ExitCode.UNEXPECTED, ExitCode.of(null));

@@ -73,7 +73,7 @@ public enum ExitCode {
             }
         }
         if (throwable instanceof ParameterException
-                || (throwable instanceof JCommanderRunner.CommandException && throwable.getCause() == null)) {
+                || (throwable instanceof CommandException && throwable.getCause() == null)) {
             return USAGE;
         }
         return UNEXPECTED;
