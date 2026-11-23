@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
-import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.AbstractKeyMaterialDidLogCommand;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.parameter.VerificationMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.CryptographicAlgorithm;
 import com.google.gson.JsonParser;
@@ -15,7 +14,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AbstractKeyMaterialDidLogCommandTest {
+class KeyMaterialDidLogCommandTest {
     private final String jwk = """
     {
         "kty": "EC",
@@ -25,8 +24,12 @@ class AbstractKeyMaterialDidLogCommandTest {
     }
     """;
 
-    // Extends AbstractKeyMaterialDidLogCommand to test that class
-    private static class Command extends AbstractKeyMaterialDidLogCommand {}
+    // Extends KeyMaterialDidLogCommand to test that (abstract) class
+    private static final class Command extends KeyMaterialDidLogCommand {
+        @Override
+        protected void execute(CommandContext context) {
+        }
+    }
 
     @Test
     void getAssertionMethods_noMethodsProvided_generateKeys(@TempDir Path tmpDir) {

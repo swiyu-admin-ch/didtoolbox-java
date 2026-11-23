@@ -211,4 +211,36 @@ class WebVerifiableHistoryDeactivatorTest extends AbstractUtilTestBase {
         assertEquals(2, entries.length); // expect 2 entries, 1st deactivating key pre-rotation, 2nd deactivating the did
         assertDeactivatedDidLogEntry(entries[entries.length-1], initialDidLogEntry + System.lineSeparator() + deactivatedLog);
     }
+
+    private static ZonedDateTime subSecondDateTime() {
+        // CAUTION A whole-second value would collide with the versionTime of the intermediate log entry
+        return ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1).plusNanos(500_000_000);
+    }
+
+    @Test
+    void deactivateDidLog_signingKeyAbsentFromNextKeyHashes_throwsFailedToCreateIntermediateLog() {
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
+                Set.of(new File(TEST_DATA_PATH_PREFIX + "public01.pem"))); // does NOT match TEST_CRYPTO_SUITE_JKS
+
+        var exc = assertThrowsExactly(DidLogDeactivatorStrategyException.class, () ->
+                WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE_JKS)
+                        .build()
+                        .deactivateDidLog(initialDidLogEntry, subSecondDateTime())); // MUT
+
+        assertTrue(exc.getMessage().contains("Failed to create intermediate log"));
+        var cause = assertInstanceOf(DidLogUpdaterStrategyException.class, exc.getCause());
+        assertEquals("Update key mismatch", cause.getMessage());
+    }
+
+    @Test
+    void deactivateDidLog_withActivePrerotation_trailingLineSeparatorMakesNoDifference() throws Exception {
+        var initialDidLogEntry = buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
+                Set.of(new File(TEST_DATA_PATH_PREFIX + "public.pem"))); // matches TEST_CRYPTO_SUITE_JKS
+        var deactivator = WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE_JKS).build();
+
+        var withoutSeparator = deactivator.deactivateDidLog(initialDidLogEntry.stripTrailing(), subSecondDateTime()); // MUT
+        var withSeparator = deactivator.deactivateDidLog(initialDidLogEntry.stripTrailing() + System.lineSeparator(), subSecondDateTime()); // MUT
+
+        assertEquals(withoutSeparator, withSeparator);
+    }
 }

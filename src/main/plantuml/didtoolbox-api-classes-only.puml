@@ -12,6 +12,8 @@ class ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CreateProofOfPossessionCommand
 	{field} +primusKeyPassword : String
 	{field} +securosysPrimusKeyStoreLoader : ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader
 	{field} +signingKeyPemFile : java.io.File
+	{method} #execute ( paramCommandContext1 : ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandContext ) : void
+	{method} +keyMaterialLoader () : java.util.Optional
 }
 
 
@@ -19,6 +21,7 @@ class ch.admin.bj.swiyu.didtoolbox.cli.jcommander.VerifyProofOfPossessionCommand
 	{field} +didLogFile : java.io.File
 	{field} +jwt : com.nimbusds.jwt.SignedJWT
 	{field} +nonce : String
+	{method} #execute ( paramCommandContext1 : ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandContext ) : void
 }
 
 
