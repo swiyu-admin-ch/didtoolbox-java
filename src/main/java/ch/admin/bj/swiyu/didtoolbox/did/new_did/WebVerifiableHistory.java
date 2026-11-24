@@ -22,6 +22,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * {@link WebVerifiableHistory} is  in charge of
+ * <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log generation.
+ * <p>
+ * It also provides helpers to for the construction of new DID WEBVH logs.
+ * <p>
+ * Once a {@link WebVerifiableHistory} object is initialized
+ * a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
+ * log can be created by calling the {@link #buildInitial(URL, ZonedDateTime, VcDataIntegrityCryptographicSuite)}
+ * or {@link #build(String, ZonedDateTime, VcDataIntegrityCryptographicSuite...)} method.
+ */
 public class WebVerifiableHistory {
     protected static final String SCID_PLACEHOLDER = "{SCID}";
 
@@ -34,21 +45,54 @@ public class WebVerifiableHistory {
 
     private final DidDocumentBuilder didDocumentBuilder;
 
+    /**
+     * Sets the [updateKeys] <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">DID method parameters</a>.
+     * They specify which keys can be used for the data verification proof of the log.
+     */
     @Setter
     private Optional<Set<String>> updateKeys = Optional.empty();
+
+    /**
+     * Sets the [nextKeyHashes] <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">DID method parameters</a>.
+     * They are the hashes of the update keys allowed for the verification proof generation of the next log entry
+     */
     @Setter
     private Optional<Set<String>> nextKeyHashes = Optional.empty();
+
+    /**
+     * Sets the [deactivated] <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">DID method parameters</a>.
+     * Specifies if the document is deactivated, allowing no more updates to the DID log.
+     */
     @Setter
     private boolean isDeactivated = false;
+
+    /**
+     * Sets the [ttl] <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">DID method parameters</a>.
+     * Specifies how long the DID log should be cached.
+     */
     @Setter
     private Optional<Integer> ttl = Optional.empty();
 
+    /**
+     * Instantiates a new DID WEBVH log creator.
+     *
+     * @param didDocumentBuilder builder for the document of the log entry.
+     */
     public WebVerifiableHistory(DidDocumentBuilder didDocumentBuilder) {
         this.didDocumentBuilder = didDocumentBuilder;
     }
 
-    // builds initial entry
-    public String build(ZonedDateTime zdt, VcDataIntegrityCryptographicSuite cryptographicSuite, URL identifierRegistryUrl) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException {
+    /**
+     * Builds a new initial log entry, based on the provided URL.
+     *
+     * @param identifierRegistryUrl
+     * @param zdt
+     * @param cryptographicSuite
+     * @return The created DID WEBVH log
+     * @throws WebVerifiableHistoryException
+     * @throws VcDataIntegrityCryptographicSuiteException
+     */
+    public String buildInitial(URL identifierRegistryUrl, ZonedDateTime zdt, VcDataIntegrityCryptographicSuite cryptographicSuite) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException {
         var didLogEntryJson = new JsonObject();
         // set version ID
         didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, SCID_PLACEHOLDER);
@@ -57,7 +101,9 @@ public class WebVerifiableHistory {
         // set parameters
         didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, this.buildMethodParameters(true));
         // set state
-        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, this.didDocumentBuilder.build(DidMethodEnum.WEBVH_1_0, identifierRegistryUrl));
+        didLogEntryJson.add(
+                DID_LOG_ENTRY_JSON_PROPERTY_STATE,
+                this.didDocumentBuilder.build(buildInitialDid(identifierRegistryUrl)));
 
         // Generate SCID and replace placeholder in did doc
         String scid = buildSCID(didLogEntryJson);
@@ -77,8 +123,17 @@ public class WebVerifiableHistory {
         return didLogEntryJson.toString();
     }
 
-    // builds following entries
-    public String build(ZonedDateTime zdt, VcDataIntegrityCryptographicSuite cryptographicSuite, String didLog) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException {
+    /**
+     * Builds a new log entry to be appended to the provided DID log.
+     *
+     * @param didLog
+     * @param zdt
+     * @param cryptographicSuite
+     * @return the new DID log entry, previous entries are not included
+     * @throws WebVerifiableHistoryException
+     * @throws VcDataIntegrityCryptographicSuiteException
+     */
+    public String build(String didLog, ZonedDateTime zdt, VcDataIntegrityCryptographicSuite cryptographicSuite) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException {
         try {
             var didLogJson = JsonParser.parseString(didLog.lines().reduce((first, second) -> second).get()).getAsJsonObject();
             var did = didLogJson.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE).getAsJsonObject().get("id").getAsString();
@@ -86,8 +141,8 @@ public class WebVerifiableHistory {
             var versionNumber = Integer.parseInt(versionId.split("-")[0]);
 
             var didLogEntryJson = new JsonObject();
-            // set version ID
-            didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, versionId); // TODO replace with old version id
+            // set old version ID, to be replaced later, used for entry hash generation
+            didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, versionId);
             // set version time
             didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
             // set parameters
@@ -95,15 +150,14 @@ public class WebVerifiableHistory {
             // set state
             didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, this.didDocumentBuilder.build(did));
 
-            // Generate SCID and replace placeholder in did doc
-            String scid = buildSCID(didLogEntryJson);
+            // Generate entryHash (same logic as SCID) and replace placeholder in did doc
+            String entryHash = buildSCID(didLogEntryJson);
             didLogEntryJson = JsonParser.parseString(
-                    didLogEntryJson.toString().replace(SCID_PLACEHOLDER, scid)
+                    didLogEntryJson.toString().replace(SCID_PLACEHOLDER, entryHash)
             ).getAsJsonObject();
 
-            // Set version ID
-            String entryHash = "%d-%s".formatted(versionNumber + 1, scid);
-            didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, entryHash);
+            // Set actual version ID
+            didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, "%d-%s".formatted(versionNumber + 1, entryHash));
 
             // set proof
             var proofs = new JsonArray();
@@ -116,7 +170,14 @@ public class WebVerifiableHistory {
         }
     }
 
-    public JsonObject buildMethodParameters(boolean isInitialEntry) {
+    /**
+     * Builds the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">method parameters</a>
+     * of the DID log.
+     *
+     * @param isInitialEntry used to include entries only specified in the initial entry
+     * @return
+     */
+    protected JsonObject buildMethodParameters(boolean isInitialEntry) {
         var parameters = new JsonObject();
         if (isInitialEntry) {
             parameters.addProperty("method", DidMethodEnum.WEBVH_1_0.toString());
@@ -147,6 +208,14 @@ public class WebVerifiableHistory {
         return parameters;
     }
 
+    /**
+     * Resolves the didLog, executing the <a href="https://identity.foundation/didwebvh/v1.0/#read-resolve">read</a>
+     * DID method operation.
+     *
+     * @param didLog
+     * @return
+     * @throws WebVerifiableHistoryException
+     */
     public static DidDocExtended resolveLog(String didLog) throws WebVerifiableHistoryException {
         try {
             var didLogJson = JsonParser.parseString(didLog.lines().reduce((first, second) -> second).get()).getAsJsonObject();
@@ -160,17 +229,52 @@ public class WebVerifiableHistory {
         }
     }
 
+    /**
+     * Checks if the <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">key pre-rotation</a>
+     * is active.
+     *
+     * @param parameters
+     * @return
+     */
     public static boolean isKeyRotationActive(Map<String, DidMethodParameter> parameters) {
         var nextKeyHashesParameter = parameters.get("nextKeyHashes");
         return (nextKeyHashesParameter.isArray() && !nextKeyHashesParameter.isEmptyArray());
     }
 
-    // Expects a did log without proof
+    /**
+     * Generates the <a href="https://identity.foundation/didwebvh/v1.0/#scid-generation-and-verification">SCID</a>.
+     * Note that NO modifications are done to the didLog and MUST be done by the caller.
+     *
+     * @param didLog
+     * @return
+     * @throws WebVerifiableHistoryException
+     */
     private String buildSCID(JsonObject didLog) throws WebVerifiableHistoryException {
         try (var hasher = JcsSha256Hasher.Companion.build()) {
             return hasher.base58btcEncodeMultihash(didLog.toString());
         } catch (DidSidekicksException e) {
             throw new WebVerifiableHistoryException("Failed to hash json", e);
         }
+    }
+
+    /**
+     * Constructs the DID based on the provided URL.
+     *
+     * @param identifierRegistryUrl
+     * @return
+     */
+    private String buildInitialDid(URL identifierRegistryUrl) {
+        var did = "%s:{SCID}:%s".formatted(DidMethodEnum.WEBVH_1_0.getPrefix(), identifierRegistryUrl.getHost());
+        int port = identifierRegistryUrl.getPort(); // the port number, or -1 if the port is not set
+        if (port != -1) {
+            did = "%s%%3A%d".formatted(did, port);
+        }
+        String path = identifierRegistryUrl.getPath(); // the path part of this URL, or an empty string if one does not exist
+        if (!path.isEmpty()) {
+            did = "%s%s".formatted(did,
+                    path.replace("/did.jsonl", "") // cleanup
+                            .replace("/", ":")); // w.r.t. https://identity.foundation/didwebvh/v1.0/#the-did-to-https-transformation
+        }
+        return did;
     }
 }
