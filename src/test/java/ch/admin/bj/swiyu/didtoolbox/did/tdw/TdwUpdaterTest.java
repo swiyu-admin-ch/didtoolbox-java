@@ -7,6 +7,8 @@ import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022V
 import ch.admin.eid.didresolver.Did;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -159,7 +161,7 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
         });
     }
 
-    @DisplayName("Updating DID log using various existing keys")
+    @DisplayName("Updating DID log using various existing keys, varying number of used keys")
     @ParameterizedTest(name = "Using signing key: {0}")
     @MethodSource("keys")
     void testUpdateWithKeyChange(String privateKeyMultibase, String publicKeyMultibase, String publicKeyPem) {
@@ -190,8 +192,6 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
                     // The versionTime for each log entry MUST be greater than the previous entry’s time.
                     // The versionTime of the last entry MUST be earlier than the current time.
                     .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(1))); // MUT
-
-            Files.deleteIfExists(finalPublicKeyPemFile);
         });
 
         assertDidLogEntry(nextLogEntry.get());
@@ -205,6 +205,26 @@ MCowBQYDK2VwAyEAFRQpul8Rf/bxGK2ku4Loo8i7O1H/bvE7+U6RrQahOX4=
 
         updatedDidLog.append(nextLogEntry.get()).append(System.lineSeparator());
 
+        // Update to only 1 Method
+        assertDoesNotThrow(() -> {
+                    nextLogEntry.set(TdwUpdater.builder(TEST_CRYPTO_SUITE_JKS)// using a whole another verification key provider
+                            .assertionMethods(TEST_ASSERTION_METHODS)
+                            .authentications(TEST_AUTHENTICATIONS)
+                            .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(finalPublicKeyPemFile)))
+                            .build()
+                            // The versionTime for each log entry MUST be greater than the previous entry’s time.
+                            // The versionTime of the last entry MUST be earlier than the current time.
+                            .updateDidLog(updatedDidLog.toString(), ZonedDateTime.parse(ISO_DATE_TIME).plusSeconds(2))); // MUT
+                    Files.deleteIfExists(finalPublicKeyPemFile);
+            });
+        assertDidLogEntry(nextLogEntry.get());
+
+        // At this point should be all fine with the nextLogEntry i.e. it is sufficient just to check on updateKeys
+        params = JsonParser.parseString(nextLogEntry.get()).getAsJsonArray().get(2).getAsJsonObject();
+        assertTrue(params.has(NamedDidMethodParameters.UPDATE_KEYS));
+        assertTrue(params.get(NamedDidMethodParameters.UPDATE_KEYS).isJsonArray());
+        assertFalse(params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().isEmpty());
+        assertEquals(1, params.get(NamedDidMethodParameters.UPDATE_KEYS).getAsJsonArray().size()); // now only 1 again
         var finalUpdatedDidLog = updatedDidLog.toString().trim(); // trimming due to a closing line separator
         // System.out.println(finalUpdatedDidLog); // checkpoint
         assertDoesNotThrow(() -> {

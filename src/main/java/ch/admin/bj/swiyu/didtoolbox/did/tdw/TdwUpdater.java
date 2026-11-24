@@ -344,11 +344,11 @@ public class TdwUpdater extends AbstractDidLogEntryBuilder implements DidLogUpda
     private JsonObject buildDidMethodParameters() throws DidLogUpdaterStrategyException {
         var updateKeysJsonArray = new JsonArray();
 
-        var newUpdateKeys = this.getUpdateKeysDidMethodParameter().stream().map(UpdateKeysDidMethodParameter::getUpdateKey).collect(Collectors.toSet());
-        if (!super.didLogMeta.getParams().getUpdateKeys().containsAll(newUpdateKeys)
-                && !this.getUpdateKeysDidMethodParameter().isEmpty()) { // need for change?
-            newUpdateKeys.forEach(updateKeysJsonArray::add);
-        }
+        var distinctUpdateKeys = this.getUpdateKeysDidMethodParameter()
+                .stream()
+                .map(UpdateKeysDidMethodParameter::getUpdateKey)
+                .collect(Collectors.toSet());
+        distinctUpdateKeys.forEach(updateKeysJsonArray::add);
 
         var didMethodParameters = new JsonObject();
         if (!updateKeysJsonArray.isEmpty()) {
