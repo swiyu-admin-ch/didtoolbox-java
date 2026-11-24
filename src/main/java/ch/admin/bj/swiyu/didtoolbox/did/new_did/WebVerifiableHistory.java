@@ -30,8 +30,8 @@ import java.util.Set;
  * <p>
  * Once a {@link WebVerifiableHistory} object is initialized
  * a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
- * log can be created by calling the {@link #buildInitial(URL, ZonedDateTime, VcDataIntegrityCryptographicSuite)}
- * or {@link #build(String, ZonedDateTime, VcDataIntegrityCryptographicSuite...)} method.
+ * log can be created by calling the {@link #buildInitial(DidMethodEnum, URL, ZonedDateTime, VcDataIntegrityCryptographicSuite)}
+ * or {@link #build(DidMethodEnum, String, ZonedDateTime, VcDataIntegrityCryptographicSuite)} method.
  */
 public class WebVerifiableHistory {
     protected static final String SCID_PLACEHOLDER = "{SCID}";
@@ -92,18 +92,18 @@ public class WebVerifiableHistory {
      * @throws WebVerifiableHistoryException
      * @throws VcDataIntegrityCryptographicSuiteException
      */
-    public String buildInitial(URL identifierRegistryUrl, ZonedDateTime zdt, VcDataIntegrityCryptographicSuite cryptographicSuite) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException {
+    public String buildInitial(DidMethodEnum method, URL identifierRegistryUrl, ZonedDateTime zdt, VcDataIntegrityCryptographicSuite cryptographicSuite) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException {
         var didLogEntryJson = new JsonObject();
         // set version ID
         didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, SCID_PLACEHOLDER);
         // set version time
         didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
         // set parameters
-        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, this.buildMethodParameters(true));
+        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, this.buildMethodParameters(method, true));
         // set state
         didLogEntryJson.add(
                 DID_LOG_ENTRY_JSON_PROPERTY_STATE,
-                this.didDocumentBuilder.build(buildInitialDid(identifierRegistryUrl)));
+                this.didDocumentBuilder.build(buildInitialDid(method, identifierRegistryUrl)));
 
         // Generate SCID and replace placeholder in did doc
         String scid = buildSCID(didLogEntryJson);
@@ -133,7 +133,7 @@ public class WebVerifiableHistory {
      * @throws WebVerifiableHistoryException
      * @throws VcDataIntegrityCryptographicSuiteException
      */
-    public String build(String didLog, ZonedDateTime zdt, VcDataIntegrityCryptographicSuite cryptographicSuite) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException {
+    public String build(DidMethodEnum method, String didLog, ZonedDateTime zdt, VcDataIntegrityCryptographicSuite cryptographicSuite) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException {
         try {
             var didLogJson = JsonParser.parseString(didLog.lines().reduce((first, second) -> second).get()).getAsJsonObject();
             var did = didLogJson.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE).getAsJsonObject().get("id").getAsString();
@@ -146,7 +146,7 @@ public class WebVerifiableHistory {
             // set version time
             didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
             // set parameters
-            didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, this.buildMethodParameters(false));
+            didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, this.buildMethodParameters(method, false));
             // set state
             didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, this.didDocumentBuilder.build(did));
 
@@ -174,13 +174,14 @@ public class WebVerifiableHistory {
      * Builds the <a href="https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters">method parameters</a>
      * of the DID log.
      *
+     * @param method specifies the DID WEBVH version
      * @param isInitialEntry used to include entries only specified in the initial entry
      * @return
      */
-    protected JsonObject buildMethodParameters(boolean isInitialEntry) {
+    protected JsonObject buildMethodParameters(DidMethodEnum method, boolean isInitialEntry) {
         var parameters = new JsonObject();
         if (isInitialEntry) {
-            parameters.addProperty("method", DidMethodEnum.WEBVH_1_0.toString());
+            parameters.addProperty("method", method.toString());
             parameters.addProperty("scid", SCID_PLACEHOLDER);
             parameters.addProperty("portable", false);
         }
@@ -260,10 +261,11 @@ public class WebVerifiableHistory {
     /**
      * Constructs the DID based on the provided URL.
      *
+     * @param method specifies the version of the did method
      * @param identifierRegistryUrl
      * @return
      */
-    private String buildInitialDid(URL identifierRegistryUrl) {
+    private String buildInitialDid(DidMethodEnum method, URL identifierRegistryUrl) {
         var did = "%s:{SCID}:%s".formatted(DidMethodEnum.WEBVH_1_0.getPrefix(), identifierRegistryUrl.getHost());
         int port = identifierRegistryUrl.getPort(); // the port number, or -1 if the port is not set
         if (port != -1) {

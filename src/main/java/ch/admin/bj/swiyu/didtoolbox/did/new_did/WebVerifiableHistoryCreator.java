@@ -2,6 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.did.new_did;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import lombok.Builder;
@@ -9,7 +10,6 @@ import lombok.NonNull;
 
 import java.net.URL;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -27,17 +27,45 @@ import java.util.stream.Collectors;
  * Once a {@link WebVerifiableHistoryCreator} object is initialized
  * a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
  * log can be created by calling {@link #createDidLog(URL)} method.
+ *
+ * <pre>
+ * {@code
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.DidDocumentBuilder;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.WebVerifiableHistoryCreator;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.WebVerifiableHistoryException;
+ *
+ *     import java.net.MalformedURLException;
+ *     import java.net.URL;
+ *
+ *     var documentBuilder = new DidDocumentBuilder();
+ *     // Add verification methods to document, will contain none otherwise:
+ *     //documentBuilder.setAssertionMethods(myAssertionMethods);
+ *     //documentBuilder.setAuthentications(myAuthentications);
+ *
+ *     // Instantiate DID WEBVH log builder
+ *     var logBuilder = WebVerifiableHistoryCreator.builder(documentBuilder, new EdDsaJcs2022VcDataIntegrityCryptographicSuite());
+ *     // (Optionally) set update keys and next key hashes
+ *     //logBuilder.updateKeys(myUpdateKeys)
+ *     //logBuilder.nextKeyHashes(myNextKeyHashes)
+ *
+ *     // Create DID log
+ *     var log = logBuilder.build().createDidLog(new URL("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v 1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"));
+ *
+ *     System.out.println(log);
+ * }
+ * </pre>
  */
 @Builder
 public class WebVerifiableHistoryCreator {
-
     /**
      * Constructs a builder for creating DID WEBVH logs with the provided crypto Suite and DID document
      *
      * @param suite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */
-    public static WebVerifiableHistoryCreatorBuilder builder( DidDocumentBuilder documentBuilder, @NonNull VcDataIntegrityCryptographicSuite suite) {
+    public static WebVerifiableHistoryCreatorBuilder builder(DidDocumentBuilder documentBuilder, @NonNull VcDataIntegrityCryptographicSuite suite) {
         return new WebVerifiableHistoryCreatorBuilder().cryptographicSuite(suite).didDocumentBuilder(documentBuilder);
     }
     // Class definition for Javadoc to reference
@@ -66,6 +94,12 @@ public class WebVerifiableHistoryCreator {
      */
     @Builder.Default
     private Set<UpdateKeysDidMethodParameter> nextKeyHashes = Set.of();
+
+    /**
+     * Specifies the DID WEBVH version to use.
+     */
+    @Builder.Default
+    private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
 
     /**
      * Creates the DID log.
@@ -103,6 +137,6 @@ public class WebVerifiableHistoryCreator {
             builder.setNextKeyHashes(Optional.of(nextKeyHashes));
         }
 
-        return builder.buildInitial(identifierRegistryUrl, zdt, this.cryptographicSuite);
+        return builder.buildInitial(this.didMethod, identifierRegistryUrl, zdt, this.cryptographicSuite);
     }
 }

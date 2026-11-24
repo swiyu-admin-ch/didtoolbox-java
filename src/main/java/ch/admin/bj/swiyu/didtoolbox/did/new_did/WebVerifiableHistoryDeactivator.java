@@ -2,6 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.did.new_did;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import lombok.Builder;
 import lombok.NonNull;
@@ -27,6 +28,28 @@ import java.util.Set;
  * Once a {@link WebVerifiableHistoryDeactivator} object is initialized
  * a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
  * log can be created by calling {@link #deactivateDidLog(String)} method.
+ * <pre>
+ * {@code
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.*;
+ *
+ *     import java.net.MalformedURLException;
+ *     import java.net.URL;
+ *     import java.time.Duration;
+ *
+ *     var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+ *     var initialDidLog = WebVerifiableHistoryCreator.builder(new DidDocumentBuilder(), cryptoSuite).build().createDidLog(new URL("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"));
+ *
+ *     // To ensure the DID log entries do NOT share the same version time.
+ *     Thread.sleep(Duration.ofSeconds(1));
+ *
+ *     var deactivator = WebVerifiableHistoryDeactivator.builder(cryptoSuite).build();
+ *     var deactivatedDidLog = initialDidLog + System.lineSeparator() + deactivator.deactivateDidLog(initialDidLog);
+ *
+ *     System.out.println(deactivatedDidLog);
+ * }
+ * </pre>
  */
 @Builder
 public class WebVerifiableHistoryDeactivator {
@@ -54,6 +77,12 @@ public class WebVerifiableHistoryDeactivator {
      */
     @Builder.Default
     private Set<UpdateKeysDidMethodParameter> updateKeys = Set.of();
+
+    /**
+     * Specifies the DID WEBVH version to use.
+     */
+    @Builder.Default
+    private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
 
     /**
      * Creates the final DID log entry.
@@ -103,6 +132,6 @@ public class WebVerifiableHistoryDeactivator {
 
         builder.setUpdateKeys(Optional.of(Set.of()));
         builder.setDeactivated(true);
-        return prefix + builder.build(didLog, zdt, this.cryptographicSuite);
+        return prefix + builder.build(didMethod, didLog, zdt, this.cryptographicSuite);
     }
 }

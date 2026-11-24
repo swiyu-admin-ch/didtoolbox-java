@@ -32,7 +32,6 @@ public final class JwkUtils {
      *                        Otherwise, {@link IllegalArgumentException} is thrown
      * @return JSON object string representation of the public JWK
      * @throws IOException             if the file couldn't be read
-     * @throws InvalidKeySpecException if the given key specification is inappropriate for the EC key factory to produce a public key
      */
     public static String loadECPublicJWKasJSON(Path ecPublicPemPath, String kid) throws IOException {
         if (!Files.isReadable(ecPublicPemPath)) {

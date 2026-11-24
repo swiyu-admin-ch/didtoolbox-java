@@ -2,6 +2,7 @@ package ch.admin.bj.swiyu.didtoolbox.did.new_did;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.eid.did_sidekicks.DidMethodParameter;
@@ -25,6 +26,28 @@ import java.util.stream.Collectors;
  * Once a {@link WebVerifiableHistoryUpdater} object is initialized
  * a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
  * log can be created by calling {@link #updateDidLog(String)} method.
+ * <pre>
+ * {@code
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.DidDocumentBuilder;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.WebVerifiableHistoryCreator;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.WebVerifiableHistoryException;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.WebVerifiableHistoryUpdater;
+ *
+ *     import java.net.MalformedURLException;
+ *     import java.net.URL;
+ *     import java.time.Duration;
+ *
+ *     var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+ *     var initialDidLog = WebVerifiableHistoryCreator.builder(new DidDocumentBuilder(), cryptoSuite).build().createDidLog(new URL("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"));
+ *
+ *     // To ensure the DID log entries do NOT share the same version time.
+ *     Thread.sleep(Duration.ofSeconds(1));
+ *     var updater = WebVerifiableHistoryUpdater.builder(new DidDocumentBuilder(), cryptoSuite).build();
+ *     var updatedDidLog = initialDidLog + System.lineSeparator() + updater.updateDidLog(initialDidLog);
+ * }
+ * </pre>
  */
 @Builder
 public class WebVerifiableHistoryUpdater {
@@ -64,6 +87,12 @@ public class WebVerifiableHistoryUpdater {
      */
     @Builder.Default
     private Set<NextKeyHashesDidMethodParameter> nextKeyHashes = Set.of();
+
+    /**
+     * Specifies the DID WEBVH version to use.
+     */
+    @Builder.Default
+    private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
 
     /**
      * Creates the new DID log entry.
@@ -110,7 +139,7 @@ public class WebVerifiableHistoryUpdater {
             throw new WebVerifiableHistoryException("Key pre-rotation is currently active, but no new update keys have been provided.");
         }
 
-        return builder.build(didLog, zdt, this.cryptographicSuite);
+        return builder.build(didMethod, didLog, zdt, this.cryptographicSuite);
     }
 
     /**
