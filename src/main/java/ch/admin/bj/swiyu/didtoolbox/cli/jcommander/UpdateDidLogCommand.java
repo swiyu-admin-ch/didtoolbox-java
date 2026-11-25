@@ -5,13 +5,14 @@ import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.DidLogFileParameter
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.CommandParametersValidator;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.DidLogFileParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
+import ch.admin.bj.swiyu.didtoolbox.did.DidDocumentBuilder;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryUpdater;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
@@ -53,9 +54,7 @@ public class UpdateDidLogCommand extends KeyMaterialDidLogCommand {
     public boolean shouldGenerateVerifyingKeyPem;
 
     @Override
-    protected void execute(CommandContext context) throws CommandException, VerificationMethodException, IOException, VcDataIntegrityCryptographicSuiteException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, DidLogUpdaterStrategyException {
-        var didLogMeta = fetchDidLogMeta(didLogFile);
-
+    protected void execute(CommandContext context) throws CommandException, VerificationMethodException, IOException, VcDataIntegrityCryptographicSuiteException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, WebVerifiableHistoryException {
         // CAUTION At this point, it should be all in place to update to be able to update the supplied DID log
 
         var outputDir = context.keyPairStore().getOutputDir().toPath();
@@ -82,18 +81,25 @@ public class UpdateDidLogCommand extends KeyMaterialDidLogCommand {
                 .orElseThrow(() -> new CommandException("Incomplete source of the (signing/verifying) ed25519 keys supplied. Use one of the relevant options to supply keys"))
                 .loadCryptographicSuite();
 
+        /* TODO@MP
         if (didLogMeta.isKeyPreRotationActivated() && !didLogMeta.isPreRotatedUpdateKey(cryptoSuite.getVerificationKeyMultibase())) {
             throw new CommandException("Illegal signing (private) ed25519 key supplied");
         }
+         */
 
-        // CAUTION At this point, the methodVersion var of type DidMethodEnum MUST be non-null already
-        context.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
-                DidLogUpdaterContext.builder(didLogMeta.getParams().getDidMethodEnum(), cryptoSuite)
-                        .assertionMethods(assertionMethods)
-                        .authentications(authentications)
-                        .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
-                        .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextVerifyingKeyPemFiles))
-                        .build()
-                        .update(didLogFile));
+        var didDocumentBuilder = new DidDocumentBuilder()
+                .setAssertionMethods(assertionMethods)
+                .setAuthentications(authentications);
+        var logUpdater = WebVerifiableHistoryUpdater.builder(didDocumentBuilder, cryptoSuite)
+                .updateKeys(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
+                .nextKeyHashes(NextKeyHashesDidMethodParameter.of(nextVerifyingKeyPemFiles))
+                .build();
+
+        var didLog = Files.readString(didLogFile.toPath()).trim();
+
+        context.println(
+                didLog +
+                System.lineSeparator() +
+                logUpdater.updateDidLog(didLog));
     }
 }

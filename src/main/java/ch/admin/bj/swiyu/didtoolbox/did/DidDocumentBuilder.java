@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.did.new_did;
+package ch.admin.bj.swiyu.didtoolbox.did;
 
 import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;

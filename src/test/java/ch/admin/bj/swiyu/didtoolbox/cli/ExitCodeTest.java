@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreInitializationException;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
 import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;
 

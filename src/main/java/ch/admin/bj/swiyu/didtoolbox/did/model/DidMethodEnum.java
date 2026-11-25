@@ -1,14 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.did.model;
 
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
 import lombok.Getter;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.text.ParseException;
 
 /**
@@ -16,15 +9,12 @@ import java.text.ParseException;
  */
 public enum DidMethodEnum {
     /**
-     * Refers to <a href="https://identity.foundation/didwebvh/v0.3/">Trust DID Web - did:tdw - v0.3</a>
-     */
-    TDW_0_3("tdw", "0.3"),
-    /**
      * Refers to <a href="https://identity.foundation/didwebvh/v1.0/">The did:webvh DID Method v1.0</a>
      */
     WEBVH_1_0("webvh", "1.0");
 
     private final String didMethod;
+
     @Getter
     private final String prefix;
 
@@ -36,7 +26,7 @@ public enum DidMethodEnum {
     }
 
     /**
-     * Yet another type conversion helper.
+     * A type conversion helper.
      *
      * @param str to convert to {@link DidMethodEnum} from. Case-insensitive.
      * @return a valid {@link DidMethodEnum} constant matching the supplied string. Otherwise, {@code null}.
@@ -47,41 +37,15 @@ public enum DidMethodEnum {
             return null;
         }
 
-        if (str.equalsIgnoreCase(DidMethodEnum.TDW_0_3.toString())) {
-            return DidMethodEnum.TDW_0_3;
-        } else if (str.equalsIgnoreCase(DidMethodEnum.WEBVH_1_0.toString())) {
+        if (str.equalsIgnoreCase(DidMethodEnum.WEBVH_1_0.toString())) {
             return DidMethodEnum.WEBVH_1_0;
         }
 
-        throw new ParseException("Unknown or unsupported DID method: " + str, 0);
+        throw new ParseException("Unsupported or invalid DID method: " + str, 0);
     }
 
     @Override
     public String toString() {
         return this.didMethod;
-    }
-
-    public static DidMethodEnum detectDidMethod(File didLogFile) throws DidLogMetaPeekerException, IOException {
-        return detectDidMethod(Files.readString(didLogFile.toPath()));
-    }
-
-    @SuppressWarnings("PMD.PreserveStackTrace")
-    public static DidMethodEnum detectDidMethod(String didLog) throws DidLogMetaPeekerException {
-        DidLogMeta didLogMeta;
-        try {
-            didLogMeta = TdwDidLogMetaPeeker.peek(didLog); // assume a did:tdw log
-        } catch (DidLogMetaPeekerException ignore) { // not a did:tdw log
-            try {
-                didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
-            } catch (DidLogMetaPeekerException exc) { // not a did:webvh log
-                throw new DidLogMetaPeekerException("The supplied DID log features an unsupported DID method", exc);
-            }
-        }
-
-        if (didLogMeta.getParams() == null || didLogMeta.getParams().getDidMethodEnum() == null) {
-            throw new DidLogMetaPeekerException("Incomplete metadata");
-        }
-
-        return didLogMeta.getParams().getDidMethodEnum();
     }
 }

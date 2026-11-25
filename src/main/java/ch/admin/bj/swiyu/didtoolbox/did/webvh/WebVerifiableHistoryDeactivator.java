@@ -1,275 +1,127 @@
 package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
-import ch.admin.bj.swiyu.didtoolbox.cryptography.JwkUtils;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.bj.swiyu.didtoolbox.did.AbstractDidLogEntryBuilder;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.IncompleteDidLogEntryBuilderException;
-import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
-import ch.admin.bj.swiyu.didtoolbox.did.context.*;
+import ch.admin.bj.swiyu.didtoolbox.did.DidDocumentBuilder;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
-import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NonNull;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * {@link WebVerifiableHistoryDeactivator} is a {@link DidLogDeactivatorStrategy} implementation in charge of
- * <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log deactivation (revoke).
+ * {@link WebVerifiableHistoryDeactivator} implements
+ * <a href="https://identity.foundation/didwebvh/v1.0/#deactivate-revoke">did:webvh deactivate</a>
+ * and generates a new DID log entry, to be appended to the log.
+ * <p>
+ * In case <a href="https://identity.foundation/didwebvh/v1.0/#pre-rotation-key-hash-generation-and-verification">key pre-rotation</a>
+ * is active, an additional entry is generated.
+ * This is done to remove all update keys in the final entry.
  * <p>
  * By relying fully on the <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder (creational) Design Pattern</a>, thus making heavy use of
  * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent design</a>,
  * it is intended to be instantiated exclusively via its static {@code builder()} method.
  * <p>
- * Once a {@link WebVerifiableHistoryDeactivator} object is "built", creating a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
- * log goes simply by calling {@link #deactivateDidLog(String)} method. Optionally, but most likely, an already existing key material will
- * be also used in the process, so for the purpose there are further fluent methods available:
- * <ul>
- * <li>{@link WebVerifiableHistoryDeactivator#cryptographicSuite} for the purpose of adding data integrity proof</li>
- * </ul>
- * To load required (Ed25519) keys (e.g. from the file system in <a href="https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail">PEM</a> format),
- * feel free to explore all available {@link VerificationMethodKeyProvider} implementations.
- * <p>
- * To load authentication/assertion public P-256 <a href="https://www.w3.org/TR/vc-jws-2020/#json-web-key-2020">JsonWebKey2020</a> keys from
- * <a href="https://datatracker.ietf.org/doc/html/rfc7517#appendix-A.1">PEM</a> files, you may rely on {@link JwkUtils}.
- * <p>
- * <strong>CAUTION</strong> Any explicit use of this class in your code is HIGHLY INADVISABLE.
- * Instead, rather rely on the designated {@link DidLogDeactivatorContext} for the purpose. Needless to say,
- * the proper DID method must be supplied to the strategy - for that matter, simply use one of the available helpers like
- * {@link DidMethodEnum#detectDidMethod(String)} or {@link DidMethodEnum#detectDidMethod(File)}.
+ * Once a {@link WebVerifiableHistoryDeactivator} object is initialized
+ * a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>
+ * log can be created by calling {@link #deactivateDidLog(String)} method.
+ * <pre>
+ * {@code
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
+ *     import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+ *     import ch.admin.bj.swiyu.didtoolbox.did.new_did.*;
+ *
+ *     import java.net.MalformedURLException;
+ *     import java.net.URL;
+ *     import java.time.Duration;
+ *
+ *     var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite();
+ *     var initialDidLog = WebVerifiableHistoryCreator.builder(new DidDocumentBuilder(), cryptoSuite).build().createDidLog(new URL("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"));
+ *
+ *     // To ensure the DID log entries do NOT share the same version time.
+ *     Thread.sleep(Duration.ofSeconds(1));
+ *
+ *     var deactivator = WebVerifiableHistoryDeactivator.builder(cryptoSuite).build();
+ *     var deactivatedDidLog = initialDidLog + System.lineSeparator() + deactivator.deactivateDidLog(initialDidLog);
+ *
+ *     System.out.println(deactivatedDidLog);
+ * }
+ * </pre>
  */
 @Builder
-public class WebVerifiableHistoryDeactivator extends AbstractDidLogEntryBuilder implements DidLogDeactivatorStrategy {
-
-    // Class definition for java doc to build
-    public static class WebVerifiableHistoryDeactivatorBuilder {}
+public class WebVerifiableHistoryDeactivator {
 
     /**
-     * Constructs a builder for deactivating did wbevh logs with the provided crypto Suite
+     * Constructs a builder for deactivating did webvh logs with the provided crypto suite
      *
      * @param suite used to create the log entry signature
      * @return the builder, it's recommended to also call 'assertionMethods' or 'authentications' on it.
      */
-    public static WebVerifiableHistoryDeactivatorBuilder builder(@NonNull VcDataIntegrityCryptographicSuite suite) {
-        return new WebVerifiableHistoryDeactivatorBuilder().cryptographicSuite(suite);
+    public static WebVerifiableHistoryDeactivator.WebVerifiableHistoryDeactivatorBuilder builder(@NonNull VcDataIntegrityCryptographicSuite suite) {
+        return new WebVerifiableHistoryDeactivator.WebVerifiableHistoryDeactivatorBuilder().cryptographicSuite(suite);
     }
+    // Class definition for Javadoc to reference
+    public static class WebVerifiableHistoryDeactivatorBuilder {}
 
     /**
-     * Handles creation of the vc data integrity proof
+     * Handles creation of the vc data integrity proof.
      */
-    @Getter(AccessLevel.PRIVATE)
     private VcDataIntegrityCryptographicSuite cryptographicSuite;
 
+    /**
+     * Specifies the DID WEBVH version to use.
+     */
+    @Builder.Default
+    private DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
 
-    @Override
-    protected DidMethodEnum getDidMethod() {
-        return DidMethodEnum.WEBVH_1_0;
-    }
-
-    @Override
-    protected ProfileVersion getProfileVersion() {
-        return ProfileVersion.SWISS_PROFILE_ANCHOR_1_0_0;
+    /**
+     * Creates the final DID log entry.
+     *
+     * @param didLog
+     * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log. In case of active key pre-rotation, 2 entries are returned.
+     * @throws WebVerifiableHistoryException
+     * @throws VcDataIntegrityCryptographicSuiteException
+     * @throws InterruptedException if it fails to wait one second to create the 2nd entry in case of key pre-rotation.
+     */
+    public String deactivateDidLog(String didLog) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException, InterruptedException {
+        return this.deactivateDidLog(didLog, ZonedDateTime.now());
     }
 
     /**
-     * Deactivates a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log by taking into account other
-     * features of this {@link WebVerifiableHistoryDeactivator} object.
+     * Creates the final DID log entry.
      *
-     * @param didLog to deactivate. Expected to be resolvable/verifiable already.
-     * @return a whole new <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
-     * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
-     * @see #deactivateDidLog(String, ZonedDateTime)
+     * @param didLog
+     * @param zdt timestamp of log entry creation
+     * @return a valid <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log. In case of active key pre-rotation, 2 entries are returned.
+     * @throws WebVerifiableHistoryException
+     * @throws VcDataIntegrityCryptographicSuiteException
+     * @throws InterruptedException if it fails to wait one second to create the 2nd entry in case of key pre-rotation.
      */
-    @Override
-    public String deactivateDidLog(String didLog) throws DidLogDeactivatorStrategyException {
-        return deactivateDidLog(didLog, ZonedDateTime.now());
-    }
+    public String deactivateDidLog(String didLog, ZonedDateTime zdt) throws WebVerifiableHistoryException, VcDataIntegrityCryptographicSuiteException, InterruptedException {
+        var builder = new WebVerifiableHistory(new DidDocumentBuilder());
 
-    /**
-     * The file-system-as-input variation of {@link #deactivateDidLog(String)}
-     *
-     * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason
-     * @see #deactivateDidLog(String)
-     */
-    @Override
-    public String deactivateDidLog(File didLogFile) throws DidLogDeactivatorStrategyException {
-        try {
-            return deactivateDidLog(Files.readString(didLogFile.toPath()), ZonedDateTime.now());
-        } catch (IOException e) {
-            throw new DidLogDeactivatorStrategyException(e);
-        }
-    }
+        var did = WebVerifiableHistory.resolveLog(didLog);
 
-    /**
-     * Deactivates a <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log for a supplied datetime.
-     * <p>
-     * This package-scope method is certainly more potent than the public one.
-     * <p>
-     * <b>However, it is introduced for the sake of testability only.</b>
-     *
-     * @param didLog to deactivate. Expected to be resolvable/verifiable already.
-     * @param zdt    a date-time with a time-zone in the ISO-8601 calendar system
-     * @return a whole new  <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a> log entry to be appended to the existing {@code didLog}
-     * @throws DidLogDeactivatorStrategyException if deactivation fails for whatever reason.
-     */
-    @Override
-    public String deactivateDidLog(String didLog, ZonedDateTime zdt) throws DidLogDeactivatorStrategyException {
-        try {
-            super.peek(didLog);
-        } catch (DidLogMetaPeekerException e) {
-            throw new DidLogDeactivatorStrategyException(e);
+        var prefix = "";
+        if (WebVerifiableHistory.isKeyRotationActive(did.getDidMethodParameters())) {
+            var updater = WebVerifiableHistoryUpdater.builder(new DidDocumentBuilder(), this.cryptographicSuite)
+                    .updateKeys(Set.of(UpdateKeysDidMethodParameter.of(cryptographicSuite.getVerificationKeyMultibase())))
+                    .build();
+
+            prefix += updater.updateDidLog(didLog,zdt);
+            didLog += prefix;
+            prefix += System.lineSeparator();
+
+            zdt.plusSeconds(1);
+            Thread.sleep(Duration.ofSeconds(1));
         }
 
-        if (this.isPrerotationActive()) {
-            var updater = WebVerifiableHistoryUpdater.builder(this.cryptographicSuite)
-                    .updateKeysDidMethodParameter(Set.of(
-                            UpdateKeysDidMethodParameter.of(this.cryptographicSuite.getVerificationKeyMultibase())
-                    )).build();
-            try {
-                var log = updater.updateDidLog(didLog, zdt);
-                if (!didLog.endsWith(System.lineSeparator())) {
-                    didLog += System.lineSeparator();
-                }
-                didLog += log;
-                // Deactivate new log
-                return log + System.lineSeparator() + this.deactivateDidLog(didLog, zdt);
-            } catch (DidLogUpdaterStrategyException e) {
-                throw new DidLogDeactivatorStrategyException("Failed to create intermediate log for deactivating key pre-rotation.", e);
-            }
-        }
-
-        // CAUTION Only activated DIDs can be updated
-        if (didLogMeta.getParams().getDeactivated() != null && didLogMeta.getParams().getDeactivated()) {
-            throw new DidLogDeactivatorStrategyException("DID already deactivated");
-        }
-
-        if (this.getCryptographicSuite() == null) {
-            throw new IncompleteDidLogEntryBuilderException("No cryptographic suite supplied");
-        } else if (!this.getCryptographicSuite().isKeyMultibaseInSet(didLogMeta.getParams().getUpdateKeys())) {
-            throw new DidLogDeactivatorStrategyException("Deactivation key mismatch");
-        }
-
-        // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
-        // and that the represented time MUST be before or equal to the current time.
-        //
-        // The versionTime for each log entry MUST be greater than the previous entry’s time.
-        // The versionTime of the last entry MUST be earlier than the current time.
-        var lastEntryDateTime = ZonedDateTime.parse(didLogMeta.getDateTime());
-        if (zdt.isBefore(lastEntryDateTime) || zdt.isEqual(lastEntryDateTime)) {
-            throw new DidLogDeactivatorStrategyException("The versionTime of the last entry MUST be earlier than the current time");
-        }
-
-        // Create initial did doc with placeholder
-        var didDoc = new JsonObject();
-        didDoc.addProperty(DID_DOC_PROPERTY_ID, didLogMeta.getDidDoc().getId());
-
-        var profileVersion = getProfileVersion();
-        if (profileVersion != null) {
-            didDoc.addProperty(DID_DOC_PROPERTY_PROFILE_VERSION, profileVersion.toString());
-        }
-
-        // CAUTION "controller" property is omitted w.r.t.:
-        // - https://jira.bit.admin.ch/browse/EIDSYS-352
-        // - https://confluence.bit.admin.ch/x/3e0EMw (DID Doc Conformity Check)
-
-        /* https://identity.foundation/didwebvh/v1.0/#the-did-log-file:
-        The DID log file contains a list of entries, one for each version of the DID
-        A version of the DID is an update to the contents of the resolved DIDDoc for the DID, and/or a change to the
-        parameters that control the generation and verification of the DID.
-        Each entry is a JSON object consisting of the following properties.
-        { "versionId": "", "versionTime": "", "parameters": {}, "state": {}, "proof" : [] }
-         */
-
-        // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
-        var didLogEntryWithoutProofAndSignature = new JsonObject();
-
-        // https://identity.foundation/didwebvh/v1.0/#entry-hash-generation-and-verification:
-        // For the first log entry, the predecessor versionId is the SCID (itself a hash),
-        // while for all other entries it is the versionId item from the previous log entry.
-        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, didLogMeta.getLastVersionId());
-
-        // The second item in the input JSON array MUST be a valid ISO8601 date/time string,
-        // and that the represented time MUST be before or equal to the current time.
-        //
-        // The versionTime for each log entry MUST be greater than the previous entry’s time.
-        // The versionTime of the last entry MUST be earlier than the current time.
-        didLogEntryWithoutProofAndSignature.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME, DateTimeFormatter.ISO_INSTANT.format(zdt.truncatedTo(ChronoUnit.SECONDS)));
-
-        // The third item in the input JSON array MUST be the parameters JSON object.
-        // The parameters are used to configure the DID generation and verification processes.
-        // All parameters MUST be valid and all required values in the first version of the DID MUST be present.
-        // Define the parameters (https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters)
-        var didMethodParameters = new JsonObject();
-        didMethodParameters.addProperty("deactivated", true);
-
-        // https://identity.foundation/didwebvh/v1.0/#deactivate-revoke:
-        // A DID MAY update the DIDDoc further to indicate the deactivation of the DID, such as including an empty updateKeys list
-        // ("updateKeys": []) in the parameters, preventing further versions of the DID.
-        didMethodParameters.add(NamedDidMethodParameters.UPDATE_KEYS, new JsonArray());
-        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS, didMethodParameters);
-
-        // The JSON object "state" contains the DIDDoc for this version of the DID.
-        didLogEntryWithoutProofAndSignature.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE, didDoc);
-
-        // See https://identity.foundation/didwebvh/v1.0/#generate-entry-hash
-        // This JSON is the input to the entryHash generation process – with the SCID as the first item of the array.
-        // Once the process has run, the version number of this first version of the DID (1),
-        // a dash - and the resulting output hash replace the SCID as the first item in the array – the versionId.
-        String scid;
-        try {
-            scid = buildSCID(didLogEntryWithoutProofAndSignature);
-        } catch (DidLogCreatorStrategyException e) {
-            throw new DidLogDeactivatorStrategyException(e);
-        }
-
-        // since did:tdw:0.4 ("Changes the DID log entry array to be named JSON objects or properties.")
-        var didLogEntryJson = new JsonObject();
-
-        var challenge = didLogMeta.getLastVersionNumber() + 1 + "-" + scid; // versionId as the proof challenge
-        didLogEntryJson.addProperty(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_ID, challenge);
-        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME,
-                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_VERSION_TIME));
-        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS,
-                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_PARAMETERS));
-        didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_STATE,
-                didLogEntryWithoutProofAndSignature.get(DID_LOG_ENTRY_JSON_PROPERTY_STATE));
-
-        /*
-        https://identity.foundation/didwebvh/v1.0/#update-rotate:
-        6. Generate a Data Integrity proof on the DID log entry using an authorized key, as defined in the Authorized Keys
-           section of this specification, and the proofPurpose set to assertionMethod.
-        Since did.tdw:0.4 ->
-           "Makes each DID version’s Data Integrity proof apply across the JSON DID log entry object, as is typical with Data Integrity proofs.
-           Previously, the Data Integrity proof was generated across the current DIDDoc version, with the versionId as the challenge."
-         */
-        try {
-            // skip final resolve check, as resolver returns an error when resolving a deactivated did
-            var proofs = new JsonArray();
-            proofs.add(this.getCryptographicSuite().buildDataIntegrityProof(
-                    didLogEntryJson, null, VcDataIntegrityCryptographicSuite.PROOF_PURPOSE_ASSERTION_METHOD, zdt));
-            didLogEntryJson.add(DID_LOG_ENTRY_JSON_PROPERTY_PROOF, proofs);
-            return didLogEntryJson.toString();
-        } catch (VcDataIntegrityCryptographicSuiteException exc) {
-            throw new DidLogDeactivatorStrategyException(exc);
-        }
-    }
-
-    public boolean isPrerotationActive() {
-        var nextKeys = this.didLogMeta.getParams().getNextKeyHashes();
-        return nextKeys != null && !nextKeys.isEmpty();
+        builder.setUpdateKeys(Optional.of(Set.of()));
+        builder.setDeactivated(true);
+        return prefix + builder.build(didMethod, didLog, zdt, this.cryptographicSuite);
     }
 }

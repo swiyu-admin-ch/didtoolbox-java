@@ -1,10 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator;
 
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.MalformedTdwDidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.did.webvh.MalformedWebVerifiableHistoryDidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistory;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.ParameterException;
 
@@ -16,7 +13,6 @@ import java.nio.file.Files;
 public class DidLogFileParameterValidator implements IParameterValidator {
     @Override
     public void validate(String name, String value) {
-
         final var didLogFile = new File(value);
         if (!didLogFile.isFile() || !didLogFile.exists()) {
             throw buildParameterException(name, value, new FileNotFoundException(String.format("The file '%s' doesn't exist.", didLogFile.getAbsolutePath())));
@@ -33,18 +29,9 @@ public class DidLogFileParameterValidator implements IParameterValidator {
         }
 
         try {
-            TdwDidLogMetaPeeker.peek(didLog); // assume a did:tdw log
-        } catch (MalformedTdwDidLogMetaPeekerException ignore) { // not a did:tdw log at all
-            try {
-                WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
-            } catch (MalformedWebVerifiableHistoryDidLogMetaPeekerException exc) { // not a did:webvh log at all
-                // none of the (known) kind
-                throw buildParameterException(name, value, new IllegalArgumentException("Malformed DID log or unsupported DID method", exc)); //NOPMD PreserveStackTrace: is not relevant
-            } catch (DidLogMetaPeekerException exc) { // not a valid did:webvh log
-                throw buildParameterException(name, value, exc); //NOPMD PreserveStackTrace: is not relevant
-            }
-        } catch (DidLogMetaPeekerException ex) { // not a valid did:tdw log
-            throw buildParameterException(name, value, ex);
+            WebVerifiableHistory.resolveLog(didLog);
+        } catch (WebVerifiableHistoryException ex) {
+            throw buildParameterException(name, value, new IllegalArgumentException("Malformed DID log or unsupported DID method", ex));
         }
     }
 

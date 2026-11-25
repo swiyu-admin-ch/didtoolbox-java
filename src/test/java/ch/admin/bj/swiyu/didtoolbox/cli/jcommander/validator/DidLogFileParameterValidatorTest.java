@@ -1,10 +1,12 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandParameterNames;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistory;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDeactivator;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
 import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,16 +40,9 @@ class DidLogFileParameterValidatorTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains(expectedMessageFragment), exc.getMessage());
     }
 
-    private static String deactivate(String didLog, DidMethodEnum didMethod) throws DidLogDeactivatorStrategyException {
+    private static String deactivate(String didLog, DidMethodEnum didMethod) throws VcDataIntegrityCryptographicSuiteException, InterruptedException, WebVerifiableHistoryException {
         return didLog + System.lineSeparator()
-                + DidLogDeactivatorContext.builder(didMethod, TEST_CRYPTO_SUITE_JKS).build().deactivate(didLog);
-    }
-
-    @Test
-    void validate_validTdwDidLog_accepted() throws IOException {
-        var didLogFile = writeDidLogFile(buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS));
-
-        assertDoesNotThrow(() -> validator.validate(PARAM_NAME, didLogFile.toString())); // MUT
+                + WebVerifiableHistoryDeactivator.builder(TEST_CRYPTO_SUITE_JKS).build().deactivateDidLog(didLog);
     }
 
     @Test
@@ -63,9 +58,7 @@ class DidLogFileParameterValidatorTest extends AbstractUtilTestBase {
     }
 
     static Stream<Arguments> initialDidLogEntries() {
-        return Stream.of(
-                Arguments.of(DidMethodEnum.TDW_0_3, buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS)),
-                Arguments.of(DidMethodEnum.WEBVH_1_0, buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)));
+        return Stream.of(Arguments.of(DidMethodEnum.WEBVH_1_0, buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE_JKS)));
     }
 
     @ParameterizedTest(name = "{0}")

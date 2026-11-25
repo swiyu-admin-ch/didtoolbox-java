@@ -3,7 +3,6 @@ package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NamedDidMethodParameters;
 import ch.admin.bj.swiyu.didtoolbox.did.model.ProfileVersion;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;

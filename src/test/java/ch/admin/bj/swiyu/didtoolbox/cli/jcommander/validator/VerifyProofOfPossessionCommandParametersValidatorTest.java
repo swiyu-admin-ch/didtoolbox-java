@@ -2,14 +2,15 @@ package ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.CommandParameterNames;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.VerifyProofOfPossessionCommand;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.did.DidDocumentBuilder;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryCreator;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryUpdater;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -56,25 +58,25 @@ class VerifyProofOfPossessionCommandParametersValidatorTest {
     static {
         try {
             dummyDidLogFile = File.createTempFile("my-did", ".jsonl");
+            var initialDidLogEntry = WebVerifiableHistoryCreator.builder(new DidDocumentBuilder()
+                    .setAssertionMethods(TEST_ASSERTION_METHODS)
+                    .setAuthentications(TEST_AUTHENTICATIONS),
+                    TEST_CRYPTO_SUITE
+                ).build().createDidLog(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null));
 
-            var initialDidLogEntry = DidLogCreatorContext.builder(DidMethodEnum.WEBVH_1_0, TEST_CRYPTO_SUITE)
-                    .assertionMethods(TEST_ASSERTION_METHODS)
-                    .authentications(TEST_AUTHENTICATIONS)
-                    .build()
-                    .create(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null));
+            Thread.sleep(Duration.ofSeconds(1));
 
-            var updatedDidLog = new StringBuilder(initialDidLogEntry)
-                    .append(System.lineSeparator())
-                    .append(DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0, TEST_CRYPTO_SUITE)
-                            .assertionMethods(TEST_ASSERTION_METHODS)
-                            .authentications(TEST_AUTHENTICATIONS)
-                            //.updateKeys(Set.of(new File("src/test/data/public.pem")))
-                            .build()
-                            .update(initialDidLogEntry));
+            var updatedDidLog = initialDidLogEntry +
+                    System.lineSeparator() +
+                    WebVerifiableHistoryUpdater.builder(new DidDocumentBuilder()
+                            .setAssertionMethods(TEST_ASSERTION_METHODS)
+                            .setAuthentications(TEST_AUTHENTICATIONS),
+                    TEST_CRYPTO_SUITE
+                ).build().updateDidLog(initialDidLogEntry);
 
             Files.writeString(dummyDidLogFile.toPath(), updatedDidLog);
 
-        } catch (IOException | URISyntaxException | DidLogCreatorStrategyException | DidLogUpdaterStrategyException e) {
+        } catch (IOException | URISyntaxException | VcDataIntegrityCryptographicSuiteException | InterruptedException | WebVerifiableHistoryException e) {
             fail(e);
         }
         dummyDidLogFile.deleteOnExit();

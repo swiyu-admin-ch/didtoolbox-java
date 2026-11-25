@@ -1,16 +1,14 @@
 package ch.admin.bj.swiyu.didtoolbox.did;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.EdDsaJcs2022JWSSigner;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
-import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwCreator;
 import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryCreator;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryUpdater;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +22,6 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -202,42 +199,20 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
         tempFile.deleteOnExit();
         return tempFile;
     }
-
-    /**
-     * The helper delivers an initial {@code did:tdw} DID log entry featuring the {@code updateKey} provided by {@link #TEST_CRYPTO_SUITE_JKS}.
-     *
-     * @param cryptoSuite to be used for signing the new {@code did:tdw} DID log
-     * @return a valid DID log
-     * @see #buildInitialWebVerifiableHistoryDidLogEntry(VcDataIntegrityCryptographicSuite)
-     */
-    protected static String buildInitialTdwDidLogEntry(VcDataIntegrityCryptographicSuite cryptoSuite) {
-
-        AtomicReference<String> didLog = new AtomicReference<>();
-        assertDoesNotThrow(() -> {
-            didLog.set(TdwCreator.builder(cryptoSuite)
-                    .assertionMethods(TEST_ASSERTION_METHODS)
-                    .authentications(TEST_AUTHENTICATIONS)
-                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of(TEST_DATA_PATH_PREFIX + "public.pem")))) // to be able to use VERIFICATION_METHOD_KEY_PROVIDER while updating
-                    .build()
-                    .createDidLog(URL.of(new URI(TEST_DID_URL), null), ZonedDateTime.parse(ISO_DATE_TIME)));
-        });
-
-        return didLog.get();
-    }
-
     /**
      * The helper delivers an initial {@code did:webvh} DID log entry featuring the {@code updateKey} provided by {@link #TEST_CRYPTO_SUITE_JKS}.
      *
      * @param cryptoSuite to be used for signing the new {@code did:webvh} DID log
      * @return a valid {@code did:webvh} DID log entry
-     * @see #buildInitialTdwDidLogEntry(VcDataIntegrityCryptographicSuite)
      */
     protected static String buildInitialWebVerifiableHistoryDidLogEntry(VcDataIntegrityCryptographicSuite cryptoSuite) {
         try {
-            return WebVerifiableHistoryCreator.builder(cryptoSuite)
-                    .assertionMethods(TEST_ASSERTION_METHODS)
-                    .authentications(TEST_AUTHENTICATIONS)
-                    .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(
+            return WebVerifiableHistoryCreator.builder(
+                    new DidDocumentBuilder()
+                            .setAssertionMethods(TEST_ASSERTION_METHODS)
+                            .setAuthentications(TEST_AUTHENTICATIONS),
+                    cryptoSuite)
+                    .updateKeys(Set.of(UpdateKeysDidMethodParameter.of(
                             Path.of(TEST_DATA_PATH_PREFIX + "public.pem") // to be able to use TEST_VERIFICATION_METHOD_KEY_PROVIDER_JKS while updating
                             //,TEST_KEY_FILES[0]
                     )))
@@ -253,47 +228,22 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
      *
      * @param nextKeys to be used when adding the next {@code did:webvh} DID log entry
      * @return a valid {@code did:webvh} DID log entry
-     * @see #buildInitialTdwDidLogEntry(VcDataIntegrityCryptographicSuite)
      */
     protected static String buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(
             Set<File> nextKeys) {
         try {
-            return WebVerifiableHistoryCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+            return WebVerifiableHistoryCreator.builder(
+                    new DidDocumentBuilder()
+                            .setAssertionMethods(TEST_ASSERTION_METHODS)
+                            .setAuthentications(TEST_AUTHENTICATIONS),
+                    new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     // CAUTION Calling .verificationMethodKeyProvider(...) is here irrelevant thus redundant
-                    .assertionMethods(TEST_ASSERTION_METHODS)
-                    .authentications(TEST_AUTHENTICATIONS)
-                    .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeys)) // IMPORTANT denotes key pre-rotation
+                    .nextKeyHashes(NextKeyHashesDidMethodParameter.of(nextKeys)) // IMPORTANT denotes key pre-rotation
                     .build()
                     .createDidLog(URL.of(new URI(TEST_DID_URL), null), ZonedDateTime.parse(ISO_DATE_TIME));
         } catch (Exception simplyIntolerable) {
             throw new IllegalArgumentException(simplyIntolerable);
         }
-    }
-
-    protected static String buildTdwDidLog(VcDataIntegrityCryptographicSuite cryptoSuite) {
-
-        var updatedDidLog = new StringBuilder(buildInitialTdwDidLogEntry(cryptoSuite));
-
-        assertDoesNotThrow(() -> {
-
-            for (int i = 2; i < 5; i++) { // update DID log by adding several new entries
-
-                // The versionTime for each log entry MUST be greater than the previous entry’s time.
-                // The versionTime of the last entry MUST be earlier than the current time.
-                Thread.sleep(1000);
-
-                // the legacy spec. version thus not default
-                var nextLogEntry = DidLogUpdaterContext.builder(DidMethodEnum.TDW_0_3, cryptoSuite)
-                        .assertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
-                        .authentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
-                        .build()
-                        .update(updatedDidLog.toString()); // MUT
-
-                updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
-            }
-        });
-
-        return updatedDidLog.toString();
     }
 
     protected static String buildWebVhDidLog(VcDataIntegrityCryptographicSuite cryptoSuite) {
@@ -308,11 +258,12 @@ MCowBQYDK2VwAyEAy+TrjsokNmoMEyOPm/6e9Vw+CPP3KAAKd9D9ZKsE/hM=
                 // The versionTime of the last entry MUST be earlier than the current time.
                 Thread.sleep(1000);
 
-                var nextLogEntry = DidLogUpdaterContext.builder(DidMethodEnum.WEBVH_1_0, cryptoSuite)
-                        .assertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
-                        .authentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub"))))
+                var nextLogEntry = WebVerifiableHistoryUpdater.builder(new DidDocumentBuilder()
+                                        .setAssertionMethods(Set.of(VerificationMethod.ofPEMPath("my-assert-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01.pub"))))
+                                        .setAuthentications(Set.of(VerificationMethod.ofPEMPath("my-auth-key-0" + i, Path.of(TEST_DATA_PATH_PREFIX + "auth-key-01.pub")))),
+                                cryptoSuite)
                         .build()
-                        .update(updatedDidLog.toString()); // MUT
+                        .updateDidLog(updatedDidLog.toString());
 
                 updatedDidLog.append(System.lineSeparator()).append(nextLogEntry);
             }

@@ -1,8 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.pop;
 
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistory;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
 import ch.admin.eid.did_sidekicks.DidDoc;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -67,13 +66,9 @@ public class ProofOfPossessionVerifier {
     @SuppressWarnings("PMD.PreserveStackTrace")
     public ProofOfPossessionVerifier(String didLog) throws ProofOfPossessionVerifierException {
         try {
-            this.didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:webvh log
-        } catch (DidLogMetaPeekerException exc1) { // not a did:webvh log
-            try {
-                this.didDoc = TdwDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:tdw log
-            } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
-                throw new ProofOfPossessionVerifierException(exc1);
-            }
+            this.didDoc = WebVerifiableHistory.resolveLog(didLog).getDidDoc();
+        } catch (WebVerifiableHistoryException exc) { // not a did:tdw log
+            throw new ProofOfPossessionVerifierException(exc);
         }
     }
 

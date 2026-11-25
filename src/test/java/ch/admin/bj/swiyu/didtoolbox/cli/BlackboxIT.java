@@ -1,7 +1,7 @@
 package ch.admin.bj.swiyu.didtoolbox.cli;
 
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistory;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
 import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException;
 import com.beust.jcommander.internal.DefaultConsole;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class BlackboxIT {
         }
 
         // create proof of possession
-        var didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc(); // assume a did:webvh log
+        var didDoc = WebVerifiableHistory.resolveLog(didLog).getDidDoc();
         didDoc.getId();
         var argsCreatePoP = new String[]{"create-pop", "-d", didLogFilePath, "-k", didDoc.getId() + "#assert-key-01", "-s", "./src/test/data/assert-key-01", "-n", nonce};
         assertEquals(0, main.run(argsCreatePoP));
@@ -81,7 +81,7 @@ class BlackboxIT {
         cliOutput.reset();
 
         // assert did doc contains keys
-        var didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc();
+        var didDoc = WebVerifiableHistory.resolveLog(didLog).getDidDoc();
         assertNotNull(didDoc.getKeyByMethodId(didDoc.getId() + "#auth-key-01"));
         assertNotNull(didDoc.getKeyByMethodId(didDoc.getId() + "#assert-key-01"));
 
@@ -98,7 +98,7 @@ class BlackboxIT {
         cliOutput.reset();
 
         // assert did doc contains updated keys
-        didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc();
+        didDoc = WebVerifiableHistory.resolveLog(didLog).getDidDoc();
         assertNotNull(didDoc.getKeyByMethodId(didDoc.getId() + "#auth-key-02"));
         assertNotNull(didDoc.getKeyByMethodId(didDoc.getId() + "#assert-key-02"));
 
@@ -114,7 +114,7 @@ class BlackboxIT {
         cliOutput.reset();
 
         final var finalDidLog = didLog;
-        assertThrows(DidLogMetaPeekerException.class, () -> WebVerifiableHistoryDidLogMetaPeeker.peek(finalDidLog));
+        assertThrows(WebVerifiableHistoryException.class, () -> WebVerifiableHistory.resolveLog(finalDidLog));
     }
 
     /**
@@ -142,7 +142,7 @@ class BlackboxIT {
         }
 
         // create proof of possession
-        var didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc();
+        var didDoc = WebVerifiableHistory.resolveLog(didLog).getDidDoc();
         var argsCreatePoP = new String[]{"create-pop", "-d", didLogFilePath, "-k", didDoc.getId() + "#assert-key-01", "-s", "./src/test/data/assert-key-01", "-n", "nonce"};
         assertEquals(0, main.run(argsCreatePoP));
         var jwt = cliOutput.toString();
@@ -191,7 +191,7 @@ class BlackboxIT {
             writer.write(didLog);
         }
 
-        var didDoc = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc();
+        var didDoc = WebVerifiableHistory.resolveLog(didLog).getDidDoc();
         var argsCreatePoP = new String[]{"create-pop", "-d", didLogFilePath, "-k", didDoc.getId() + "#assert-key-01", "-s", "./src/test/data/assert-key-01", "-n", "nonce"};
         assertEquals(0, main.run(argsCreatePoP));
         var jwt = cliOutput.toString().trim();

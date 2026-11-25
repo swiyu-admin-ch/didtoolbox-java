@@ -1,7 +1,8 @@
-package ch.admin.bj.swiyu.didtoolbox.did.new_did;
+package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
+import ch.admin.bj.swiyu.didtoolbox.did.DidDocumentBuilder;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.eid.did_sidekicks.DidDocExtended;
 import ch.admin.eid.did_sidekicks.DidMethodParameter;

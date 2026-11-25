@@ -1,8 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.model;
 
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.tdw.MalformedTdwDidLogMetaPeekerException;
 import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;

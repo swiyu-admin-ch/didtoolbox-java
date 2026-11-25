@@ -8,10 +8,9 @@ import ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
 import ch.admin.bj.swiyu.didtoolbox.did.AbstractUtilTestBase;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistory;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
 import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator;
 import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifier;
 import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException;
@@ -19,6 +18,7 @@ import ch.admin.eid.did_sidekicks.DidDoc;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.internal.Console;
+import com.google.gson.JsonParser;
 import com.nimbusds.jwt.SignedJWT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +38,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -173,12 +175,16 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         });
 
         assertDoesNotThrow(() -> {
-            var didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString());
-            assertEquals(1, didLogMeta.getLastVersionNumber());
+            var didLog = JsonParser.parseString(output.toString()).getAsJsonObject();
+            var versionId = didLog.get("versionId").getAsString();
+            var didLogMeta = WebVerifiableHistory.resolveLog(output.toString());
+            assertTrue(versionId.startsWith("1-"));
+
+            var didDocument = WebVerifiableHistory.resolveLog(output.toString());
 
             // CAUTION The persisted key MUST be the one the DID log was created with, as the DID could never be updated otherwise
             var cryptoSuite = new EdDsaJcs2022VcDataIntegrityCryptographicSuite(tmpDir.resolve(GENERATED_KEY_FILE_NAME));
-            assertEquals(Set.of(cryptoSuite.getVerificationKeyMultibase()), didLogMeta.getParams().getUpdateKeys());
+            assertEquals(Set.of(cryptoSuite.getVerificationKeyMultibase()), didDocument.getDidMethodParameters().get("updateKeys").getStringValue());
         });
     }
 
@@ -206,10 +212,11 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
             ).run(); // MUT
         });
 
-        var didLogMeta = assertDoesNotThrow(() -> WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString()));
-        assertTrue(didLogMeta.isKeyPreRotationActivated());
-        assertTrue(didLogMeta.isPreRotatedUpdateKey(TEST_KEYS[1][1]));
-        assertTrue(didLogMeta.isPreRotatedUpdateKey(TEST_KEYS[2][1]));
+        var didLogMeta = assertDoesNotThrow(() -> WebVerifiableHistory.resolveLog(output.toString()));
+        assertTrue(WebVerifiableHistory.isKeyRotationActive(didLogMeta.getDidMethodParameters()));
+        var nextKeyHashes = didLogMeta.getDidMethodParameters().get("nextKeyHashes").getStringArrayValue();
+        assertTrue(nextKeyHashes.contains(TEST_KEYS[1][1]));
+        assertTrue(nextKeyHashes.contains(TEST_KEYS[2][1]));
     }
 
     @Test
@@ -230,13 +237,13 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
             ).run(); // MUT
         });
 
-        var didLogMeta = assertDoesNotThrow(() -> WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString()));
-        assertEquals(2, didLogMeta.getLastVersionNumber()); // there should be another entry i.e. one more
+        var didLogMeta = assertDoesNotThrow(() -> WebVerifiableHistory.resolveLog(output.toString()));
+        assertEquals(2, output.toString().lines().count()); // there should be another entry i.e. one more
         assertDidDocFeaturesKeys(didLogMeta.getDidDoc(), "rotated-assert", "rotated-auth");
     }
 
     @Test
-    void run_updateDidLogWithKeyPrerotation_appendsEntryWithNextPrerotatedKeys() {
+    void run_updateDidLogWithKeyPrerotation_appendsEntryWithNextPrerotatedKeys() throws WebVerifiableHistoryException {
         var command = new UpdateDidLogCommand();
         command.didLogFile = writeStringToTempFile(buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(Set.of(
                 TEST_KEY_FILES[0] // the (single) pre-rotation key to be used when building the next DID log entry
@@ -254,10 +261,10 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
             ).run(); // MUT
         });
 
-        var didLogMeta = assertDoesNotThrow(() -> WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString()));
-        assertEquals(2, didLogMeta.getLastVersionNumber()); // there should be another entry i.e. one more
-        assertTrue(didLogMeta.isPreRotatedUpdateKey(TEST_KEYS[1][1]));
-        assertTrue(didLogMeta.isPreRotatedUpdateKey(TEST_KEYS[2][1]));
+        assertEquals(2, output.toString().lines().count()); // there should be another entry i.e. one more
+        var nextKeyHashes = nextKeyHashes(output.toString());
+        assertTrue(nextKeyHashes.contains(NextKeyHashesDidMethodParameter.of(TEST_KEYS[1][1]).getNextKeyHash()));
+        assertTrue(nextKeyHashes.contains(NextKeyHashesDidMethodParameter.of(TEST_KEYS[2][1]).getNextKeyHash()));
     }
 
     @Test
@@ -280,7 +287,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
             ).run(); // MUT
         });
 
-        assertDoesNotThrow(() -> assertEquals(2, WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString()).getLastVersionNumber())); // there should be another entry i.e. one more
+        assertEquals(2, output.toString());
     }
 
     @Test
@@ -311,7 +318,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
     }
 
     @Test
-    void run_repeatedUpdateDidLogWithKeyPrerotation_rotatesKeysAndDeactivatesPrerotation() {
+    void run_repeatedUpdateDidLogWithKeyPrerotation_rotatesKeysAndDeactivatesPrerotation() throws WebVerifiableHistoryException {
         var command1 = new UpdateDidLogCommand();
         command1.didLogFile = writeStringToTempFile(buildInitialWebVerifiableHistoryDidLogEntryWithKeyPrerotation(Set.of(
                 new File(TEST_DATA_PATH_PREFIX + "public.pem"), // matches "myalias" key from "mykeystore.jks"
@@ -334,9 +341,9 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
             ).run(); // MUT
         });
 
-        var didLogMeta = assertDoesNotThrow(() -> WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString()));
-        assertEquals(2, didLogMeta.getLastVersionNumber()); // there should be another entry i.e. one more
-        assertTrue(didLogMeta.isPreRotatedUpdateKey(TEST_KEYS[1][1]));
+        assertEquals(2, output.toString().lines().count()); // there should be another entry i.e. one more
+        var nextKeyHashes = nextKeyHashes(output.toString());
+        assertTrue(nextKeyHashes.contains(NextKeyHashesDidMethodParameter.of(TEST_KEYS[1][1]).getNextKeyHash()));
 
         var command2 = new UpdateDidLogCommand();
         command2.didLogFile = writeStringToTempFile(output.toString()); // built by the previous command1 run
@@ -357,9 +364,9 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
             ).run(); // MUT
         });
 
-        didLogMeta = assertDoesNotThrow(() -> WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString()));
-        assertEquals(3, didLogMeta.getLastVersionNumber());
-        assertFalse(didLogMeta.isKeyPreRotationActivated()); // CAUTION At this point, "key pre-rotation" is DEACTIVATED!
+        nextKeyHashes = nextKeyHashes(output.toString());
+        assertEquals(3, output.toString().lines().count());
+        assertFalse(WebVerifiableHistory.isKeyRotationActive(WebVerifiableHistory.resolveLog(output.toString()).getDidMethodParameters())); // CAUTION At this point, "key pre-rotation" is DEACTIVATED!
 
         var command3 = new UpdateDidLogCommand();
         command3.didLogFile = writeStringToTempFile(output.toString()); // built by the previous command2 run
@@ -377,7 +384,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
             ).run(); // MUT
         });
 
-        assertDoesNotThrow(() -> assertEquals(4, WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString()).getLastVersionNumber()));
+        assertEquals(4, output.toString().lines().count());
     }
 
     @Test
@@ -397,7 +404,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         assertTrue(output.toString().startsWith(didLog.trim())); // the supplied DID log comes first
         assertEquals(2, output.toString().lines().count()); // followed by the deactivating entry
 
-        var exc = assertThrowsExactly(DidLogMetaPeekerException.class, () -> WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString()));
+        var exc = assertThrowsExactly(WebVerifiableHistoryException.class, () -> WebVerifiableHistory.resolveLog(output.toString()));
         assertTrue(exc.getMessage().contains("Document has been deactivated"));
     }
 
@@ -414,7 +421,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         var before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
         assertDoesNotThrow(() -> {
 
-            command.kid = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc().getId() + "#my-assert-key-01";
+            command.kid = WebVerifiableHistory.resolveLog(didLog).getDidDoc().getId() + "#my-assert-key-01";
 
             new JCommanderRunner(jCommanderBuilder
                     .addCommand(CreateProofOfPossessionCommand.COMMAND_NAME, command)
@@ -446,7 +453,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
             command.jwt = new ProofOfPossessionCreator(ProofOfPossessionJWSSigner.of(
                     Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01"),
-                    WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc().getId() + "#my-assert-key-01"
+                    WebVerifiableHistory.resolveLog(didLog).getDidDoc().getId() + "#my-assert-key-01"
             )).create(command.nonce, Duration.ofDays(1));
 
             new JCommanderRunner(jCommanderBuilder
@@ -467,7 +474,7 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         command.didLogFile = writeDidLog(tmpDir, didLog);
         command.jwt = new ProofOfPossessionCreator(ProofOfPossessionJWSSigner.of(
                 Path.of(TEST_DATA_PATH_PREFIX + "assert-key-01"),
-                WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc().getId() + "#my-assert-key-01"
+                WebVerifiableHistory.resolveLog(didLog).getDidDoc().getId() + "#my-assert-key-01"
         )).create("my_nonce", Duration.ofDays(1));
         command.nonce = "another_nonce"; // does not match the one the JWT was created for
 
@@ -476,40 +483,6 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains("Provided JWT is invalid"), exc.getMessage());
         assertInstanceOf(ProofOfPossessionVerifierException.class, exc.getCause());
         assertTrue(output.isEmpty());
-    }
-
-    @Test
-    void run_updateTdwDidLog_appendsTdwEntry(@TempDir Path tmpDir) throws Exception {
-        var didLog = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS);
-        var command = new UpdateDidLogCommand();
-        command.didLogFile = writeDidLog(tmpDir, didLog + System.lineSeparator()); // as printed by the CLI, the trailing line separator must not end up in between
-        command.signingKeyPemFile = new File(TEST_DATA_PATH_PREFIX + "private.pem"); // must match the updateKey set by the initial entry
-        setKeyMaterial(command); // essential
-
-        run(UpdateDidLogCommand.COMMAND_NAME, command, tmpDir); // MUT
-
-        assertTrue(output.toString().startsWith(didLog.trim())); // the supplied DID log comes first
-        assertEquals(2, output.toString().lines().count()); // followed by the new entry
-        var didLogMeta = TdwDidLogMetaPeeker.peek(output.toString());
-        assertEquals(2, didLogMeta.getLastVersionNumber());
-        assertEquals(DidMethodEnum.TDW_0_3, didLogMeta.getParams().getDidMethodEnum());
-    }
-
-    @Test
-    void run_deactivateTdwDidLog_appendsDeactivatingTdwEntry(@TempDir Path tmpDir) throws Exception {
-        var didLog = buildInitialTdwDidLogEntry(TEST_CRYPTO_SUITE_JKS);
-        var command = new DeactivateDidLogCommand();
-        command.didLogFile = writeDidLog(tmpDir, didLog + System.lineSeparator()); // as printed by the CLI, the trailing line separator must not end up in between
-        command.signingKeyPemFile = new File(TEST_DATA_PATH_PREFIX + "private.pem"); // must match the updateKey set by the initial entry
-
-        run(DeactivateDidLogCommand.COMMAND_NAME, command, tmpDir); // MUT
-
-        assertTrue(output.toString().startsWith(didLog.trim())); // the supplied DID log comes first
-        assertEquals(2, output.toString().lines().count()); // followed by the deactivating entry
-
-        // CAUTION The "exactly" part matters: its Malformed* subclass would denote an entry not being a did:tdw one
-        var exc = assertThrowsExactly(DidLogMetaPeekerException.class, () -> TdwDidLogMetaPeeker.peek(output.toString()));
-        assertTrue(exc.getMessage().contains("Document has been deactivated"), exc.getMessage());
     }
 
     @ParameterizedTest(name = "Generating the next key: {0}")
@@ -524,12 +497,14 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
         run(UpdateDidLogCommand.COMMAND_NAME, command, tmpDir); // MUT
 
-        var didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString());
+        var didLogMeta = WebVerifiableHistory.resolveLog(output.toString());
         var persisted = persistedKey(tmpDir);
-        assertEquals(2, didLogMeta.getLastVersionNumber());
-        assertEquals(generateNextKey, didLogMeta.isKeyPreRotationActivated());
-        assertEquals(generateNextKey, didLogMeta.isPreRotatedUpdateKey(persisted));
-        assertEquals(!generateNextKey, didLogMeta.getParams().getUpdateKeys().contains(persisted));
+        assertEquals(2, output.toString().lines().count());
+        assertEquals(generateNextKey, WebVerifiableHistory.isKeyRotationActive(didLogMeta.getDidMethodParameters()));
+        var nextKeyHashes = nextKeyHashes(output.toString());
+        assertEquals(generateNextKey, nextKeyHashes.contains(NextKeyHashesDidMethodParameter.of(persisted).getNextKeyHash()));
+        var updateKeys = getUpdateKeys(output.toString());
+        assertEquals(!generateNextKey, updateKeys.contains(persisted));
     }
 
     @Test
@@ -609,10 +584,11 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
         var didLog = output.toString();
         var persistedKey = persistedKey(tmpDir);
-        var didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog);
-        assertTrue(didLogMeta.isKeyPreRotationActivated());
-        assertTrue(didLogMeta.isPreRotatedUpdateKey(persistedKey));
-        assertFalse(didLogMeta.getParams().getUpdateKeys().contains(persistedKey));
+        var didLogMeta = WebVerifiableHistory.resolveLog(didLog);
+        assertTrue(WebVerifiableHistory.isKeyRotationActive(didLogMeta.getDidMethodParameters()));
+        var nextKeyHashes = nextKeyHashes(output.toString());
+        assertTrue(nextKeyHashes.contains(NextKeyHashesDidMethodParameter.of(persistedKey).getNextKeyHash()));
+        assertFalse(getUpdateKeys(output.toString()).contains(persistedKey));
 
         // CAUTION The persisted key is the only one left, as the initial signing key was deliberately never persisted
         var updateCommand = new UpdateDidLogCommand();
@@ -624,9 +600,9 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
         run(UpdateDidLogCommand.COMMAND_NAME, updateCommand, tmpDir); // MUT
 
-        didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString());
-        assertEquals(2, didLogMeta.getLastVersionNumber());
-        assertEquals(Set.of(persistedKey), didLogMeta.getParams().getUpdateKeys());
+        var updateKeys = getUpdateKeys(output.toString());
+        assertEquals(2, output.toString().lines().count());
+        assertEquals(Set.of(persistedKey), new HashSet<>(updateKeys));
     }
 
     @Test
@@ -641,11 +617,12 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         run(CreateDidLogCommand.COMMAND_NAME, command, tmpDir); // MUT
 
         // REMINDER Peeking resolves the DID log, so the proof has been verified against the updateKeys at this point
-        var didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString());
-        assertEquals(Set.of(suppliedKey), didLogMeta.getParams().getUpdateKeys());
+        var didLogMeta = WebVerifiableHistory.resolveLog(output.toString());
+        var updateKeys = didLogMeta.getDidMethodParameters().get("updateKeys").getStringArrayValue();
+        assertEquals(Set.of(suppliedKey), updateKeys);
         assertNotEquals(suppliedKey, persistedKey(tmpDir));
-        assertTrue(didLogMeta.isPreRotatedUpdateKey(persistedKey(tmpDir)));
-        assertFalse(didLogMeta.isPreRotatedUpdateKey(suppliedKey));
+        assertTrue(updateKeys.contains(persistedKey(tmpDir)));
+        assertFalse(updateKeys.contains(suppliedKey));
     }
 
     @Test
@@ -659,15 +636,15 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
 
         run(CreateDidLogCommand.COMMAND_NAME, command, tmpDir); // MUT
 
-        var didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(output.toString());
-        assertEquals(Set.of(TEST_CRYPTO_SUITE_JKS.getVerificationKeyMultibase(), TEST_KEYS[0][1]), didLogMeta.getParams().getUpdateKeys());
+        var didLogMeta = WebVerifiableHistory.resolveLog(output.toString());
+        assertEquals(Set.of(TEST_CRYPTO_SUITE_JKS.getVerificationKeyMultibase(), TEST_KEYS[0][1]), didLogMeta.getDidMethodParameters().get("updateKeys").getStringArrayValue());
         assertDidDocFeaturesKeys(didLogMeta.getDidDoc(), "supplied-assert", "supplied-auth");
     }
 
-    private static Stream<Arguments> unverifiableProofs() throws DidLogMetaPeekerException {
+    private static Stream<Arguments> unverifiableProofs() throws WebVerifiableHistoryException {
         var didLog = buildInitialWebVerifiableHistoryDidLogEntry(TEST_CRYPTO_SUITE);
         return Stream.of(
-                Arguments.of("signing key not matching kid", didLog, WebVerifiableHistoryDidLogMetaPeeker.peek(didLog).getDidDoc().getId() + "#my-assert-key-01", "auth-key-01"),
+                Arguments.of("signing key not matching kid", didLog, WebVerifiableHistory.resolveLog(didLog).getDidDoc().getId() + "#my-assert-key-01", "auth-key-01"),
                 Arguments.of("unparsable DID log", "this is not a DID log", "did:webvh:SCID:example.com#my-assert-key-01", "assert-key-01"));
     }
 
@@ -685,5 +662,13 @@ class JCommanderRunnerTest extends AbstractUtilTestBase {
         assertTrue(exc.getMessage().contains("Failed to verify generated proof"), exc.getMessage());
         assertInstanceOf(ProofOfPossessionVerifierException.class, exc.getCause());
         assertTrue(output.isEmpty()); // no JWT printed
+    }
+
+    private List<String> nextKeyHashes(String didLog) throws WebVerifiableHistoryException {
+        return WebVerifiableHistory.resolveLog(didLog).getDidMethodParameters().get("nextKeyHashes").getStringArrayValue();
+    }
+
+    private List<String> getUpdateKeys(String didLog) throws WebVerifiableHistoryException {
+        return WebVerifiableHistory.resolveLog(didLog).getDidMethodParameters().get("updateKeys").getStringArrayValue();
     }
 }

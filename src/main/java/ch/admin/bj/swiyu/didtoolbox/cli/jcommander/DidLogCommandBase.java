@@ -10,10 +10,6 @@ import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.PrimusCredentialsFi
 import ch.admin.bj.swiyu.didtoolbox.cli.keymaterial.KeyMaterialLoader;
 import ch.admin.bj.swiyu.didtoolbox.cli.keymaterial.KeyMaterialLoaderFactory;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreLoader;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMeta;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.tdw.TdwDidLogMetaPeeker;
-import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDidLogMetaPeeker;
 import com.beust.jcommander.Parameter;
 
 import java.io.File;
@@ -86,38 +82,5 @@ public abstract class DidLogCommandBase extends CommandBase {
         return KeyMaterialLoaderFactory.pem(signingKeyPemFile)
                 .or(() -> KeyMaterialLoaderFactory.jks(jksFile, jksPassword, jksAlias))
                 .or(() -> KeyMaterialLoaderFactory.primus(securosysPrimusKeyStoreLoader, primusKeyAlias, primusKeyPassword));
-    }
-
-    /**
-     * Simple helper for extracting DID method parameters in a specification-agnostic fashion.
-     *
-     * @param didLogFile {@code File} object containing a valid DID log
-     * @return a {@code DidLogMeta} object, never {@code null}
-     */
-    static DidLogMeta fetchDidLogMeta(File didLogFile) throws CommandException {
-        String didLog;
-        try {
-            didLog = Files.readString(didLogFile.toPath());
-        } catch (IOException exc) {
-            throw new CommandException("Failed to read the supplied DID log file: " + didLogFile.getName(), exc);
-        }
-
-        DidLogMeta didLogMeta;
-        try {
-            didLogMeta = TdwDidLogMetaPeeker.peek(didLog); // assume a did:tdw log
-        } catch (DidLogMetaPeekerException exc) { // not a did:tdw log
-            try {
-                didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog); // assume a did:webvh log
-            } catch (DidLogMetaPeekerException exc1) { // not a did:webvh log
-                throw new CommandException("The supplied file contains unsupported DID log format: " + didLogFile.getName(), exc1); // NOPMD PreserveStackTrace: false positive
-            }
-        }
-
-        if (didLogMeta.getParams() == null ||
-                didLogMeta.getParams().getDidMethodEnum() == null) {
-            throw new CommandException("The supplied DID log features incomplete metadata: " + didLogFile.getName());
-        }
-
-        return didLogMeta;
     }
 }

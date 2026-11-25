@@ -2,9 +2,6 @@ package ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.Base58;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.Ed25519Utils;
-import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.Ed25519Signature;
 import ch.admin.eid.did_sidekicks.Ed25519SigningKey;
@@ -12,7 +9,6 @@ import ch.admin.eid.did_sidekicks.EddsaJcs2022Cryptosuite;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.*;
@@ -38,12 +34,7 @@ import java.util.HexFormat;
  * a fast end efficient Rust implementation of ed25519 key generation, signing, and verification.
  * <p>
  * As any other {@link VcDataIntegrityCryptographicSuite} implementation, it is predominantly intended to be used in conjunction with:
- * <ul>
- * <li> {@code ch.admin.bj.swiyu.didtoolbox.context.DidLogCreatorContext#cryptographicSuite} setter
- * (prior to a {@link DidLogCreatorContext#create(URL)} call)</li>
- * <li>{@code ch.admin.bj.swiyu.didtoolbox.context.DidLogUpdaterContext#cryptographicSuite} setter
- * (prior to a {@link DidLogUpdaterContext#update(String)} call).</li>
- * </ul>
+ * {@link ch.admin.bj.swiyu.didtoolbox.did.webvh}
  * <p>
  * Thanks to the following constructor(s), it is also capable of loading an already existing key material from the file system:
  * <ul>

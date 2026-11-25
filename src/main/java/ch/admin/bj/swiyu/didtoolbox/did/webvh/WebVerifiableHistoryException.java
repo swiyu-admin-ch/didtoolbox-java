@@ -1,4 +1,4 @@
-package ch.admin.bj.swiyu.didtoolbox.did.new_did;
+package ch.admin.bj.swiyu.didtoolbox.did.webvh;
 
 public class WebVerifiableHistoryException extends Exception {
 

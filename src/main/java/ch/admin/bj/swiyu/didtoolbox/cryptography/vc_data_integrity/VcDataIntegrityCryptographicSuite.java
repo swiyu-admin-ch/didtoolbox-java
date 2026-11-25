@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.Base58;
-import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
 import ch.admin.eid.did_sidekicks.DidSidekicksException;
 import ch.admin.eid.did_sidekicks.JcsSha256Hasher;
 import com.google.gson.JsonObject;
@@ -10,6 +9,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
+import java.util.Set;
 
 /**
  * The interface describes a cryptographic suite in charge of creating and (optionally) verifying data integrity proofs, as specified by
@@ -23,12 +23,40 @@ import java.util.HexFormat;
  * @since 1.8.0
  */
 @SuppressWarnings("PMD.ImplicitFunctionalInterface")
-public interface VcDataIntegrityCryptographicSuite extends VerificationMethodKeyProvider {
+public interface VcDataIntegrityCryptographicSuite {
     String DATA_INTEGRITY_PROOF = "DataIntegrityProof";
     String EDDSA_JCS_2022 = "eddsa-jcs-2022";
     String DID_KEY = "did:key:";
     String PROOF_PURPOSE_AUTHENTICATION = "authentication";
     String PROOF_PURPOSE_ASSERTION_METHOD = "assertionMethod";
+
+    /**
+     * Delivers the {@code publicKeyMultibase} property of the data integrity proof's {@code verificationMethod},
+     * that MUST be a public key encoded according to [MULTICODEC] and formatted according to [MULTIBASE].
+     * <p>
+     * For instance, the multicodec encoding of an Ed25519 public key is the two-byte prefix 0xed01 followed by the 32-byte public key data.
+     *
+     * @return a public verification key in multibase format.
+     */
+    String getVerificationKeyMultibase();
+
+    /**
+     * Checks if the public verification key (in multibase format) is part of the supplied set of keys.
+     *
+     * @param multibaseEncodedKeys
+     * @return
+     */
+    default boolean isKeyMultibaseInSet(Set<String> multibaseEncodedKeys) {
+        return multibaseEncodedKeys.contains(this.getVerificationKeyMultibase());
+    }
+
+    /**
+     * Generate a signature for the (hashed) verification proof.
+     *
+     * @param message to sign
+     * @return signed message
+     */
+    byte[] generateSignature(byte[] message);
 
     /**
      * Verify a <b>data integrity proof</b> ("a set of attributes that represent a digital proof and the parameters required to verify it. A digital signature is a type of data integrity proof.")

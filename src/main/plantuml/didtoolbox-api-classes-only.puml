@@ -74,6 +74,9 @@ class ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022Vc
 
 interface ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite {
 	{method} +buildDataIntegrityProof ( paramJsonObject1 : com.google.gson.JsonObject , paramString2 : String , paramString3 : String , paramZonedDateTime4 : java.time.ZonedDateTime ) : com.google.gson.JsonObject
+	{method}  {abstract} +generateSignature ( param[B1 : [B ) : [B
+	{method}  {abstract} +getVerificationKeyMultibase () : String
+	{method} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
 	{method} +verifyProof ( paramString1 : String , paramString2 : String ) : boolean
 }
 
@@ -82,99 +85,7 @@ class ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrit
 }
 
 
-interface ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider {
-	{method}  {abstract} +generateSignature ( param[B1 : [B ) : [B
-	{method}  {abstract} +getVerificationKeyMultibase () : String
-	{method} +isKeyMultibaseInSet ( paramSet1 : java.util.Set ) : boolean
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext {
-	{method}  {static} +builder ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum , paramVcDataIntegrityCryptographicSuite2 : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder
-	{method} +create ( paramURL1 : java.net.URL ) : String
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder {
-	{method} +assertionMethods ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder
-	{method} +authentications ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder
-	{method} +build () : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext
-	{method} +cryptographicSuite ( paramVcDataIntegrityCryptographicSuite1 : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder
-	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder
-	{method} +nextKeyHashesDidMethodParameter ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder
-	{method} +toString () : String
-	{method} +updateKeysDidMethodParameter ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder
-}
-
-
-interface ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategy {
-	{method}  {abstract} +createDidLog ( paramURL1 : java.net.URL ) : String
-	{method}  {abstract} +createDidLog ( paramURL1 : java.net.URL , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException {
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext {
-	{method}  {static} +builder ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum , paramVcDataIntegrityCryptographicSuite2 : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
-	{method} +deactivate ( paramString1 : String ) : String
-	{method} +deactivate ( paramFile1 : java.io.File ) : String
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder {
-	{method} +build () : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext
-	{method} +cryptographicSuite ( paramVcDataIntegrityCryptographicSuite1 : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
-	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder
-	{method} +toString () : String
-}
-
-
-interface ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategy {
-	{method}  {abstract} +deactivateDidLog ( paramString1 : String ) : String
-	{method}  {abstract} +deactivateDidLog ( paramFile1 : java.io.File ) : String
-	{method}  {abstract} +deactivateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategyException {
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext {
-	{method}  {static} +builder ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum , paramVcDataIntegrityCryptographicSuite2 : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
-	{method} +update ( paramString1 : String ) : String
-	{method} +update ( paramFile1 : java.io.File ) : String
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder {
-	{method} +assertionMethods ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
-	{method} +authentications ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
-	{method} +build () : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext
-	{method} +cryptographicSuite ( paramVcDataIntegrityCryptographicSuite1 : ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
-	{method} +didMethod ( paramDidMethodEnum1 : ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
-	{method} +nextKeyHashesDidMethodParameter ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
-	{method} +toString () : String
-	{method} +updateKeysDidMethodParameter ( paramSet1 : java.util.Set ) : ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder
-}
-
-
-interface ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategy {
-	{method}  {abstract} +updateDidLog ( paramString1 : String ) : String
-	{method}  {abstract} +updateDidLog ( paramFile1 : java.io.File ) : String
-	{method}  {abstract} +updateDidLog ( paramString1 : String , paramZonedDateTime2 : java.time.ZonedDateTime ) : String
-}
-
-
-class ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException {
-}
-
-
 enum ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum {
-	{field} +did:tdw:0.3
 	{field} +did:webvh:1.0
 }
 
@@ -293,35 +204,6 @@ ch.admin.bj.swiyu.didtoolbox.cryptography.EcP256ProofOfPossessionJWSSigner ..|> 
 ch.admin.bj.swiyu.didtoolbox.cryptography.primus.HsmProofOfPossessionJWSSigner ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
 ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusEd25519ProofOfPossessionJWSSignerImpl ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner
 ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite ..|>  ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter : nextKeyHashesDidMethodParameter
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter : updateKeysDidMethodParameter
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : assertionMethods
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : authentications
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext -->  ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum : didMethod
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter : nextKeyHashesDidMethodParameter$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter : updateKeysDidMethodParameter$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : assertionMethods$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : authentications$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext$DidLogCreatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum : didMethod$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext -->  ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum : didMethod
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext$DidLogDeactivatorContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum : didMethod$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter : nextKeyHashesDidMethodParameter
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter : updateKeysDidMethodParameter
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : assertionMethods
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : authentications
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext -->  ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum : didMethod
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter : nextKeyHashesDidMethodParameter$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter : updateKeysDidMethodParameter$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : assertionMethods$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder "1" o-- "0..*"  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod : authentications$value
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite : cryptographicSuite
-ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext$DidLogUpdaterContextBuilder -->  ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum : didMethod$value
 ch.admin.bj.swiyu.didtoolbox.did.model.JsonWebKeyVerificationMethod ..|>  ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethod
 ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreator *--  ch.admin.bj.swiyu.didtoolbox.cryptography.ProofOfPossessionJWSSigner : signer
 ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException *--  ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException$ErrorCause : errorCause

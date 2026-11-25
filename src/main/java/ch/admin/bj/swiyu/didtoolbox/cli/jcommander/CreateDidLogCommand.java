@@ -7,14 +7,15 @@ import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.IdentifierRegistryU
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.EdDsaJcs2022VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.DidMethodEnum;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameter;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
+import ch.admin.bj.swiyu.didtoolbox.did.DidDocumentBuilder;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryCreator;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
@@ -38,7 +39,7 @@ public class CreateDidLogCommand extends KeyMaterialDidLogCommand {
 
     public static final String COMMAND_NAME = "create";
 
-    public static final DidMethodEnum DEFAULT_METHOD_VERSION = DidMethodEnum.WEBVH_1_0;
+    public static final DidMethodEnum didMethod = DidMethodEnum.WEBVH_1_0;
 
     @Parameter(names = {"--identifier-registry-url", "-u"},
             description = "A HTTP(S) DID URL (to did.jsonl) to create a DID log for",
@@ -48,9 +49,7 @@ public class CreateDidLogCommand extends KeyMaterialDidLogCommand {
     public URL identifierRegistryUrl;
 
     @Override
-    protected void execute(CommandContext context) throws VerificationMethodException, DidLogCreatorStrategyException, IOException, VcDataIntegrityCryptographicSuiteException, CommandException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException {
-        var didMethod = DEFAULT_METHOD_VERSION;
-
+    protected void execute(CommandContext context) throws VerificationMethodException, IOException, VcDataIntegrityCryptographicSuiteException, CommandException, UpdateKeysDidMethodParameterException, NextKeyHashesDidMethodParameterException, WebVerifiableHistoryException {
         var outputDir = context.keyPairStore().getOutputDir().toPath();
         var assertionMethods = getAssertionMethods(outputDir);
         var authentications = getAuthentications(outputDir);
@@ -75,12 +74,14 @@ public class CreateDidLogCommand extends KeyMaterialDidLogCommand {
 
         var nextKeyPemFiles = nextVerifyingKeyPemFiles;
 
-        context.println(DidLogCreatorContext.builder(didMethod, cryptoSuite)
-                .assertionMethods(assertionMethods)
-                .authentications(authentications)
-                .updateKeysDidMethodParameter(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
-                .nextKeyHashesDidMethodParameter(NextKeyHashesDidMethodParameter.of(nextKeyPemFiles))
-                .build()
-                .create(identifierRegistryUrl));
+        var didDocumentBuilder = new DidDocumentBuilder()
+                .setAssertionMethods(assertionMethods)
+                .setAuthentications(authentications);
+        var logCreator = WebVerifiableHistoryCreator.builder(didDocumentBuilder, cryptoSuite)
+                .didMethod(didMethod)
+                .updateKeys(UpdateKeysDidMethodParameter.of(verifyingKeyPemFiles))
+                .nextKeyHashes(NextKeyHashesDidMethodParameter.of(nextKeyPemFiles))
+                .build();
+        context.println(logCreator.createDidLog(identifierRegistryUrl));
     }
 }

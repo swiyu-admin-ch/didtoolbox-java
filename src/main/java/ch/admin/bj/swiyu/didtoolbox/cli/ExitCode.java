@@ -2,14 +2,10 @@ package ch.admin.bj.swiyu.didtoolbox.cli;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.primus.PrimusKeyStoreInitializationException;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
-import ch.admin.bj.swiyu.didtoolbox.did.InvalidDidLogException;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategyException;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterStrategyException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.NextKeyHashesDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.UpdateKeysDidMethodParameterException;
 import ch.admin.bj.swiyu.didtoolbox.did.model.VerificationMethodException;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
 import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionCreatorException;
 import ch.admin.bj.swiyu.didtoolbox.pop.ProofOfPossessionVerifierException;
 import com.beust.jcommander.ParameterException;
@@ -63,11 +59,12 @@ public enum ExitCode {
         }
         for (var t = throwable; t != null; t = t.getCause()) {
             if (t instanceof GeneralSecurityException || t instanceof JOSEException
-                    || t instanceof VcDataIntegrityCryptographicSuiteException || t instanceof VerificationMethodException
-                    || t instanceof DidLogMetaPeekerException || t instanceof InvalidDidLogException
-                    || t instanceof ProofOfPossessionVerifierException || t instanceof ProofOfPossessionCreatorException
-                    || t instanceof DidLogCreatorStrategyException || t instanceof DidLogUpdaterStrategyException
-                    || t instanceof DidLogDeactivatorStrategyException || t instanceof UpdateKeysDidMethodParameterException
+                    || t instanceof VcDataIntegrityCryptographicSuiteException
+                    || t instanceof VerificationMethodException
+                    || t instanceof ProofOfPossessionVerifierException
+                    || t instanceof ProofOfPossessionCreatorException
+                    || t instanceof UpdateKeysDidMethodParameterException
+                    || t instanceof WebVerifiableHistoryException
                     || t instanceof NextKeyHashesDidMethodParameterException) {
                 return CRYPTO_VERIFICATION;
             }

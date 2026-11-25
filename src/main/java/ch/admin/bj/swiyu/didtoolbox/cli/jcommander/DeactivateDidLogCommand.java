@@ -5,8 +5,8 @@ import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.converter.DidLogFileParameter
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.CommandParametersValidator;
 import ch.admin.bj.swiyu.didtoolbox.cli.jcommander.validator.DidLogFileParameterValidator;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuiteException;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorStrategyException;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryDeactivator;
+import ch.admin.bj.swiyu.didtoolbox.did.webvh.WebVerifiableHistoryException;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
@@ -39,17 +39,18 @@ public class DeactivateDidLogCommand extends DidLogCommandBase {
     public File didLogFile;
 
     @Override
-    protected void execute(CommandContext context) throws CommandException, VcDataIntegrityCryptographicSuiteException, IOException, DidLogDeactivatorStrategyException {
-        var didLogMeta = fetchDidLogMeta(didLogFile);
-
+    protected void execute(CommandContext context) throws CommandException, VcDataIntegrityCryptographicSuiteException, IOException, InterruptedException, WebVerifiableHistoryException {
         var cryptoSuite = keyMaterialLoader()
                 .orElseThrow(() -> new CommandException("No valid source of signing/verifying ed25519 keys supplied. Use one of the relevant options to supply keys"))
                 .loadCryptographicSuite();
 
-        // CAUTION Trimming the existing DID log prevents ending up having multiple line separators in between (after appending the new entry)
-        context.println(Files.readString(didLogFile.toPath()).trim() + System.lineSeparator() +
-                DidLogDeactivatorContext.builder(didLogMeta.getParams().getDidMethodEnum(), cryptoSuite)
-                        .build()
-                        .deactivate(didLogFile));
+        var deactivator = WebVerifiableHistoryDeactivator.builder(cryptoSuite).build();
+
+        var didLog = Files.readString(didLogFile.toPath()).trim();
+
+        context.println(
+                didLog +
+                System.lineSeparator() +
+                deactivator.deactivateDidLog(didLog));
     }
 }

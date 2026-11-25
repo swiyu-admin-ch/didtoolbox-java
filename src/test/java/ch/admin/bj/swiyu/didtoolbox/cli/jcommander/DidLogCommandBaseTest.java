@@ -1,7 +1,6 @@
 package ch.admin.bj.swiyu.didtoolbox.cli.jcommander;
 
 import ch.admin.bj.swiyu.didtoolbox.cli.CommandException;
-import ch.admin.bj.swiyu.didtoolbox.did.DidLogMetaPeekerException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

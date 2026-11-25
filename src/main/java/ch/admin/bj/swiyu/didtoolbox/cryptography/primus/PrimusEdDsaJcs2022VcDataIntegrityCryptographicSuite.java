@@ -1,24 +1,13 @@
 package ch.admin.bj.swiyu.didtoolbox.cryptography.primus;
 
 import ch.admin.bj.swiyu.didtoolbox.cryptography.Ed25519Utils;
-import ch.admin.bj.swiyu.didtoolbox.cryptography.PemUtils;
 import ch.admin.bj.swiyu.didtoolbox.cryptography.vc_data_integrity.VcDataIntegrityCryptographicSuite;
-import ch.admin.bj.swiyu.didtoolbox.did.VerificationMethodKeyProvider;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogCreatorContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogDeactivatorContext;
-import ch.admin.bj.swiyu.didtoolbox.did.context.DidLogUpdaterContext;
 import lombok.Getter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Random;
 
 /**
@@ -27,16 +16,6 @@ import java.util.Random;
  * relying completely on Securosys Primus HSM cluster as source of key pairs for the Ed25519 algorithm.
  * Such key pair is then used for the purpose of DID (<a href="https://identity.foundation/didwebvh/v0.3">did:tdw</a> or <a href="https://identity.foundation/didwebvh/v1.0">did:webvh</a>) log creation.
  * Furthermore, it also plays an essential role while <a href="https://www.w3.org/TR/vc-di-eddsa/#create-proof-eddsa-jcs-2022">creating data integrity proof</a>.
- * <p>
- * It is predominantly intended to be used within a:
- * <ul>
- * <li> {@link DidLogCreatorContext} method
- * (prior to a {@link DidLogCreatorContext#create(URL)} call)</li>
- * <li>{@link DidLogUpdaterContext} method
- * (prior to a {@link DidLogUpdaterContext#update(String)} call).</li>
- * <li>{@link DidLogDeactivatorContext} method
- * (prior to a {@link DidLogDeactivatorContext#deactivate(String)} call).</li>
- * </ul>
  * <p>
  * Thanks to the following constructor(s), it is capable of loading an already existing key material directly from a Securosys Primus HSM (cluster):
  * <ul>
