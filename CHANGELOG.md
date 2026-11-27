@@ -1,5 +1,10 @@
 # DID Toolbox changelog
 
+## 2.3.1 - 
+
+### Changed
+- POP JWTs now set in the header "alg" to "Ed25519" instead of "EdDSA" `(#1603)`
+
 ## 2.3.0 - 2026-07-31
 
 ### Added

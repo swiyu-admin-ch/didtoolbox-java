@@ -22,10 +22,12 @@ import java.security.interfaces.EdECPrivateKey;
 public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWSSigner {
     private final String kid;
     private final JWSSigner signer;
+    private final JWSAlgorithm jwsAlgorithm;
 
-    private HsmProofOfPossessionJWSSigner(JWSSigner signer, String kid) {
+    private HsmProofOfPossessionJWSSigner(JWSSigner signer, String kid, JWSAlgorithm alg) {
         this.kid = kid;
         this.signer = signer;
+        this.jwsAlgorithm = alg;
     }
 
     /**
@@ -42,11 +44,11 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
             case ECPrivateKey ecPrivateKey -> {
                 var signer = new ECDSASigner(ecPrivateKey);
                 signer.getJCAContext().setProvider(primus.getKeyStore().getProvider());
-                return new HsmProofOfPossessionJWSSigner(signer, kid);
+                return new HsmProofOfPossessionJWSSigner(signer, kid, JWSAlgorithm.ES256);
             }
             case EdECPrivateKey ignored -> {
                 var signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(kp, kid, primus);
-                return new HsmProofOfPossessionJWSSigner(signer, kid);
+                return new HsmProofOfPossessionJWSSigner(signer, kid, JWSAlgorithm.Ed25519);
             }
             default -> {
                 throw new IllegalArgumentException();
@@ -71,7 +73,7 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
         hsmKeyStore.load(null, keystoreSecret.toCharArray());
         var privateKey = ECKey.load(hsmKeyStore, keyId, keystoreSecret.toCharArray());
         var signer = new ECDSASigner(privateKey);
-        return new HsmProofOfPossessionJWSSigner(signer, kid);
+        return new HsmProofOfPossessionJWSSigner(signer, kid, JWSAlgorithm.Ed25519);
     }
 
     @Override
@@ -81,7 +83,7 @@ public final class HsmProofOfPossessionJWSSigner implements ProofOfPossessionJWS
 
     @Override
     public JWSAlgorithm getAlgorithm() {
-        return JWSAlgorithm.ES256;
+        return this.jwsAlgorithm;
     }
 
     @Override

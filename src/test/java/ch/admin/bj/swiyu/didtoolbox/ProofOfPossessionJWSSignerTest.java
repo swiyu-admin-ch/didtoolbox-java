@@ -32,12 +32,12 @@ class ProofOfPossessionJWSSignerTest {
         var path = Path.of("src/test/data/private.pem");
         var signer = assertDoesNotThrow(() -> ProofOfPossessionJWSSigner.of(path, KID));
 
-        assertEquals(JWSAlgorithm.EdDSA, signer.getAlgorithm());
+        assertEquals(JWSAlgorithm.Ed25519, signer.getAlgorithm());
         assertEquals(KID, signer.getKid());
         assertNotNull(signer.getJCAContext());
 
         var data = "Hello, world!".getBytes();
-        var header = new JWSHeader(JWSAlgorithm.EdDSA);
+        var header = new JWSHeader(JWSAlgorithm.Ed25519);
         assertDoesNotThrow(() -> signer.sign(header, data));
     }
 

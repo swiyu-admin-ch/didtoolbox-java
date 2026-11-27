@@ -1,10 +1,13 @@
 package ch.admin.bj.swiyu.didtoolbox;
 
-import ch.admin.bj.swiyu.didtoolbox.model.WebVerifiableHistoryDidLogMetaPeeker;
+import ch.admin.bj.swiyu.didtoolbox.model.*;
+import ch.admin.bj.swiyu.didtoolbox.webvh.WebVerifiableHistoryCreator;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Set;
@@ -32,6 +35,36 @@ class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
 
         var header = pop.getHeader();
         assertEquals(JWSAlgorithm.ES256, pop.getHeader().getAlgorithm());
+        assertTrue(didLog.contains(header.getKeyID()));
+
+        var payload = pop.getPayload().toJSONObject();
+        assertNotNull(payload.get("exp"));
+        assertNotNull(payload.get("iat"));
+        assertNotNull(payload.get("iss"));
+        assertEquals(payload.get("iss"), didLogMeta.getDidDoc().getId());
+        assertNotNull(payload.get("nonce"));
+        assertEquals(nonce, payload.get("nonce").toString());
+
+        // verify proof
+        assertDoesNotThrow(() -> new ProofOfPossessionVerifier(didLog).isValid(pop, nonce));
+    }
+
+    @Test
+    void create_withEd25519_returnsValidJWT() throws Exception {
+        var nonce = "test_nonce";
+
+        var didLog = WebVerifiableHistoryCreator.builder(TEST_CRYPTO_SUITE)
+                .assertionMethods(Set.of(VerificationMethod.of("assert01", Path.of("src/test/data/public.pem"))))
+                .build().createDidLog(URL.of(new URI("https://identifier-reg.trust-infra.swiyu-int.admin.ch/api/v1/did/18fa7c77-9dd1-4e20-a147-fb1bec146085"), null));
+        var didLogMeta = WebVerifiableHistoryDidLogMetaPeeker.peek(didLog);
+
+        var crypto = ProofOfPossessionJWSSigner.of(Path.of("src/test/data/private.pem"), didLogMeta.getDidDoc().getId() + "#assert01");
+        var proofCreator = new ProofOfPossessionCreator(crypto);
+
+        var pop = assertDoesNotThrow(() -> proofCreator.create(nonce, ONE_DAY_LONG));
+
+        var header = pop.getHeader();
+        assertEquals(JWSAlgorithm.Ed25519, pop.getHeader().getAlgorithm());
         assertTrue(didLog.contains(header.getKeyID()));
 
         var payload = pop.getPayload().toJSONObject();

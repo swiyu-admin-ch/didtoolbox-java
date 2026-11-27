@@ -65,10 +65,10 @@ public interface ProofOfPossessionJWSSigner extends JWSSigner {
             if (keyPair.getPublic() instanceof ECPublicKey) {
                 return new EcP256ProofOfPossessionJWSSigner(keyPair, kid);
             }
-        } catch (IllegalArgumentException ignore) { } // NOPMD: try EdDsa as fallback
+        } catch (IllegalArgumentException ignore) { } // NOPMD: try Ed25519 as fallback
 
         var signer = new EdDsaJcs2022JWSSigner(path);
-        return of(signer, kid, JWSAlgorithm.EdDSA);
+        return of(signer, kid, JWSAlgorithm.Ed25519);
     }
 
     /**
@@ -87,7 +87,7 @@ public interface ProofOfPossessionJWSSigner extends JWSSigner {
             return of(signer, kid, JWSAlgorithm.ES256);
         } else {
             var signer = new PrimusEd25519ProofOfPossessionJWSSignerImpl(primus, alias, password, kid);
-            return of(signer, kid, JWSAlgorithm.EdDSA);
+            return of(signer, kid, JWSAlgorithm.Ed25519);
         }
     }
 

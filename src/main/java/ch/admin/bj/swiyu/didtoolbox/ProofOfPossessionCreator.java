@@ -73,7 +73,7 @@ public class ProofOfPossessionCreator {
     public SignedJWT create(String nonce, Duration expiresIn) throws ProofOfPossessionCreatorException {
         // Prepare header and claims set of the JWT
         var signedJWT = new SignedJWT(
-                new JWSHeader.Builder(signer.getAlgorithm())
+                new JWSHeader.Builder(this.signer.getAlgorithm())
                         .keyID(this.signer.getKid())
                         .build(),
                 new JWTClaimsSet.Builder()

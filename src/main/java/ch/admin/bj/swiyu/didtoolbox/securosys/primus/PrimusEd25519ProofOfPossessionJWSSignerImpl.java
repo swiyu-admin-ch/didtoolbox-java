@@ -43,7 +43,7 @@ public class PrimusEd25519ProofOfPossessionJWSSignerImpl extends PrimusEd25519Ve
 
     @Override
     public JWSAlgorithm getAlgorithm() {
-        return JWSAlgorithm.EdDSA;
+        return JWSAlgorithm.Ed25519;
     }
 
     @Override
