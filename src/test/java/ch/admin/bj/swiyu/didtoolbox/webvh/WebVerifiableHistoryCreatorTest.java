@@ -99,13 +99,31 @@ public class WebVerifiableHistoryCreatorTest extends AbstractUtilTestBase {
         assertDidLogEntry(didLogEntry.get());
     }
 
+    @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants with an Ed25519 assertion key")
+    @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
+    @MethodSource("identifierRegistryUrl")
+    void testCreateDidLog_withEd25519Assertion_Success(URL identifierRegistryUrl) {
+        AtomicReference<String> didLogEntry = new AtomicReference<>();
+        assertDoesNotThrow(() -> {
+
+            // Note that all keys will be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
+            didLogEntry.set(WebVerifiableHistoryCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
+                    .authentications(TEST_AUTHENTICATIONS)
+                    .assertionMethods(Set.of(VerificationMethod.of("assert01", Path.of("src/test/data/public.pem"))))
+                    .build()
+                    .createDidLog(identifierRegistryUrl)); // MUT
+        });
+
+        assertDidLogEntry(didLogEntry.get());
+    }
+
     @DisplayName("Building did:webvh log entry for various identifierRegistryUrl variants (multiple updateKeys)")
     @ParameterizedTest(name = "For identifierRegistryUrl: {0}")
     @MethodSource("identifierRegistryUrl")
     void testCreateDidLogWithMultipleUpdateKeys(URL identifierRegistryUrl) {
         AtomicReference<String> didLogEntry = new AtomicReference<>();
         assertDoesNotThrow(() -> {
-            // Note that all keys will all be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
+            // Note that all keys will be generated here as well, as the default Ed25519SignerVerifier constructor is used implicitly
             didLogEntry.set(WebVerifiableHistoryCreator.builder(new EdDsaJcs2022VcDataIntegrityCryptographicSuite())
                     .updateKeysDidMethodParameter(Set.of(UpdateKeysDidMethodParameter.of(Path.of("src/test/data/public.pem"))))
                     .authentications(TEST_AUTHENTICATIONS)

@@ -73,6 +73,7 @@ public interface VerificationMaterial {
             try (var dsaPublicKey = Ed25519VerifyingKey.Companion.readPublicKeyPemFile(publicKeyPemPath.toString())) {
                 var jwk = JsonParser.parseString(dsaPublicKey.toJwk());
                 jwk.getAsJsonObject().addProperty("kid", kid);
+                jwk.getAsJsonObject().addProperty("alg", CryptographicAlgorithm.ED25519.toString());
                 return jwk::toString;
             }
         }
@@ -104,6 +105,7 @@ public interface VerificationMaterial {
             try (var dsaPublicKey = Ed25519VerifyingKey.Companion.fromPublicKeyPem(pem)) {
                 var jwk = JsonParser.parseString(dsaPublicKey.toJwk());
                 jwk.getAsJsonObject().addProperty("kid", kid);
+                jwk.getAsJsonObject().addProperty("alg", CryptographicAlgorithm.ED25519.toString());
                 return jwk::toString;
             }
         }

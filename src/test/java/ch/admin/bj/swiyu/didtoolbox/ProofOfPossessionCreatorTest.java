@@ -84,9 +84,9 @@ class ProofOfPossessionCreatorTest extends AbstractUtilTestBase {
         var exceptionMessage = "mock exception";
         var nonce = "my_nonce";
         var signer = mock(ProofOfPossessionJWSSigner.class);
-        when(signer.getAlgorithm()).thenReturn(JWSAlgorithm.EdDSA);
+        when(signer.getAlgorithm()).thenReturn(JWSAlgorithm.Ed25519);
         when(signer.getKid()).thenReturn(TEST_POP_JWS_KID);
-        when(signer.supportedJWSAlgorithms()).thenReturn(Set.of(JWSAlgorithm.EdDSA));
+        when(signer.supportedJWSAlgorithms()).thenReturn(Set.of(JWSAlgorithm.Ed25519));
         when(signer.sign(any(), any())).thenThrow(new JOSEException(exceptionMessage));
 
         // create proof
